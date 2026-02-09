@@ -6,6 +6,16 @@
 
 ## Backlog
 
+### 0.9.0 — Eric Evans UX feedback (top priority)
+
+- [ ] Display names on context relationships — relationship edges need visible labels (Eric Evans first-use feedback)
+- [ ] Inline explanations on controls — replace separate legend/guide with contextual explanations directly on elements. "What is this thing? It's not a control. Put the explanation actually on the thing. Why not explain the color while I'm at it. Make it unambiguously a control." (Eric Evans)
+- [ ] Make relationship connection dots twice as big — still too hard to select and not clear how to attach to the other context (Eric Evans; prior "fix connections" work didn't fully resolve)
+- [ ] Clarify relationship direction — "Direction wasn't the one I was expecting." Upstream/downstream semantics need to be more obvious before committing (Eric Evans)
+- [ ] Highlight connected contexts on hover — when hovering over a context, highlight its relationship connections (Eric Evans; extends existing request below)
+- [ ] Drag-and-drop team assignment — drag "our team" over a context to assign ownership (Eric Evans; related to Organizational Modeling below)
+- [ ] Bug: issues/hotspots disappear when any context is selected (Eric Evans)
+
 ### 0.9.0
 
 - [ ] Organizational Modeling - Teams as first-class entities with many-to-many context ownership (Team X owns contexts A, B, C; Context D has unclear ownership from multiple teams; enables "show all contexts Team X touches" and "which contexts have unclear ownership?") (for 0.9.0)
@@ -13,7 +23,7 @@
 - [ ] Bug - Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
 - Add text link to discord in README (so someone can search the page for it)
-- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to
+- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to (see also Eric Evans hover-highlight request above)
 
 ### v.1.0.0 - SAAS cloud edition (users, auth, pricing)
 
