@@ -8,6 +8,7 @@
 
 ### 0.9.0 — Eric Evans UX feedback (top priority)
 
+- [ ] **[BUG P1]** Fix orphaned data on context deletion — no cascade cleanup (beads: contextflow-uhf). Deleting a context leaves dangling references in relationships, repos, groups, and need-context connections. The store's deleteContext bypasses deleteContextAction entirely, so even the keyframe cleanup there is dead code.
 - [ ] Display names on context relationships — relationship edges need visible labels (Eric Evans first-use feedback)
 - [ ] Inline explanations on controls — replace separate legend/guide with contextual explanations directly on elements. "What is this thing? It's not a control. Put the explanation actually on the thing. Why not explain the color while I'm at it. Make it unambiguously a control." (Eric Evans)
 - [ ] Make relationship connection dots twice as big — still too hard to select and not clear how to attach to the other context (Eric Evans; prior "fix connections" work didn't fully resolve)

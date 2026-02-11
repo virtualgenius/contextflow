@@ -1,0 +1,390 @@
+-- contextflow.allium
+--
+-- Behavioural specification for ContextFlow: a visual DDD context mapping tool.
+-- Distilled from the ContextFlow codebase (TypeScript/React).
+--
+-- Scope: Core domain model and business rules
+-- Includes: Projects, BoundedContexts, Relationships, Groups, Repos, Teams, Users/Needs, Temporal
+-- Excludes:
+--   - UI rendering (React components, canvas layout, blob shapes)
+--   - Persistence layer (IndexedDB, autosave)
+--   - Real-time collaboration (Yjs/CRDT sync, Cloudflare Workers)
+--   - Analytics tracking
+--   - Undo/redo command infrastructure (behaviour covered; mechanism excluded)
+
+-- ============================================================
+-- Value types
+-- ============================================================
+
+value Position2D { x: Number, y: Number }
+value Position1D { x: Number }
+
+value ContextPositions {
+    flow: Position1D              -- horizontal position in Flow View (0..100)
+    strategic: Position1D         -- horizontal position in Strategic View (0..100)
+    distillation: Position2D      -- 2D position in Distillation View (0..100 each axis)
+    shared_y: Number              -- vertical position shared across Flow/Strategic views (0..100)
+}
+
+-- ============================================================
+-- Entities
+-- ============================================================
+
+entity Project {
+    name: String
+    created_at: Timestamp
+    updated_at: Timestamp
+
+    contexts: BoundedContext for this project
+    relationships: Relationship for this project
+    repos: Repo for this project
+    teams: Team for this project
+    people: Person for this project
+    groups: Group for this project
+    users: User for this project
+    user_needs: UserNeed for this project
+    user_need_connections: UserNeedConnection for this project
+    need_context_connections: NeedContextConnection for this project
+    flow_stages: FlowStageMarker for this project
+    keyframes: TemporalKeyframe for this project
+
+    -- Invariant: at least one project must exist in the workspace at all times
+}
+
+entity BoundedContext {
+    name: String
+    purpose: String?
+    positions: ContextPositions
+    ownership: ours | internal | external
+
+    -- Auto-derived from positions (not set manually)
+    strategic_classification: core | supporting | generic
+    evolution_stage: genesis | custom_built | product_rental | commodity_utility
+
+    boundary_integrity: strong | moderate | weak
+    boundary_notes: String?
+    is_legacy: Boolean?
+    notes: String?
+
+    issues: Issue for this context
+    team: Team?
+
+    code_size_bucket: tiny | small | medium | large | huge
+
+    -- Derived: external contexts are outside the organisation
+    is_external: ownership = external
+}
+
+entity Issue {
+    title: String
+    description: String?
+    severity: info | warning | critical
+}
+
+entity Relationship {
+    -- Arrow points from downstream to upstream (authority)
+    downstream: BoundedContext     -- the dependent context
+    upstream: BoundedContext       -- the defining authority
+
+    pattern: customer_supplier
+           | conformist
+           | anti_corruption_layer
+           | open_host_service
+           | published_language
+           | shared_kernel
+           | partnership
+           | separate_ways
+
+    -- Derived from pattern
+    power_dynamics: upstream_power | downstream_power | mutual | none
+    category: upstream_downstream | mutual | autonomous
+
+    communication_mode: String?
+    description: String?
+}
+
+entity Group {
+    label: String
+    color: String?
+    members: Set<BoundedContext>
+    notes: String?
+
+    -- Groups are visual overlays only; deleting a group does NOT delete its members
+}
+
+entity Repo {
+    name: String
+    remote_url: String?
+    context: BoundedContext?
+    team_owners: Set<Team>
+    contributors: Set<Person>
+}
+
+entity Team {
+    name: String
+    jira_board: String?
+    topology_type: stream_aligned | platform | enabling | complicated_subsystem | unknown
+}
+
+entity Person {
+    display_name: String
+    emails: Set<String>
+    teams: Set<Team>
+}
+
+entity User {
+    name: String
+    description: String?
+    position: Number              -- 0..100 along Strategic View evolution axis
+    is_external: Boolean?
+}
+
+entity UserNeed {
+    name: String
+    description: String?
+    position: Number              -- 0..100 along evolution axis
+    visibility: Boolean?
+}
+
+entity UserNeedConnection {
+    user: User
+    user_need: UserNeed
+    notes: String?
+}
+
+entity NeedContextConnection {
+    user_need: UserNeed
+    context: BoundedContext
+    notes: String?
+}
+
+entity FlowStageMarker {
+    name: String
+    position: Number              -- 0..100 along Flow View X axis
+    description: String?
+    owner: String?
+    notes: String?
+}
+
+entity TemporalKeyframe {
+    date: String                  -- "YYYY" or "YYYY-QN"
+    label: String?
+    active_context_ids: Set<BoundedContext>
+    positions: Map<BoundedContext, Position2D>   -- evolution (x) and value chain (y)
+}
+
+-- ============================================================
+-- Classification thresholds
+-- ============================================================
+
+default distillation_generic_max_x = 33
+default distillation_core_min_x = 67
+default distillation_core_min_y = 50
+
+default strategic_genesis_max_x = 25
+default strategic_custom_built_max_x = 50
+default strategic_product_rental_max_x = 75
+
+-- ============================================================
+-- Pattern power dynamics mapping
+-- ============================================================
+
+-- Upstream-downstream patterns (upstream has more control):
+--   customer_supplier      -> upstream_power
+--   conformist             -> upstream_power
+--   open_host_service      -> upstream_power
+--   published_language     -> upstream_power
+--
+-- Downstream-defensive pattern:
+--   anti_corruption_layer  -> downstream_power
+--
+-- Mutual patterns:
+--   shared_kernel          -> mutual
+--   partnership            -> mutual
+--
+-- Autonomous pattern:
+--   separate_ways          -> none
+
+-- ============================================================
+-- Rules: Auto-classification
+-- ============================================================
+
+rule ClassifyFromDistillationPosition {
+    when: context: BoundedContext.positions.distillation becomes changed
+
+    let x = context.positions.distillation.x
+    let y = context.positions.distillation.y
+
+    ensures:
+        if x < distillation_generic_max_x:
+            context.strategic_classification = generic
+        else if x >= distillation_core_min_x and y >= distillation_core_min_y:
+            context.strategic_classification = core
+        else:
+            context.strategic_classification = supporting
+}
+
+rule ClassifyEvolutionFromStrategicPosition {
+    when: context: BoundedContext.positions.strategic becomes changed
+
+    let x = context.positions.strategic.x
+
+    ensures:
+        if x < strategic_genesis_max_x:
+            context.evolution_stage = genesis
+        else if x < strategic_custom_built_max_x:
+            context.evolution_stage = custom_built
+        else if x < strategic_product_rental_max_x:
+            context.evolution_stage = product_rental
+        else:
+            context.evolution_stage = commodity_utility
+}
+
+-- ============================================================
+-- Rules: External context constraints
+-- ============================================================
+
+rule ExternalContextCannotHaveRepo {
+    when: AssignRepoToContext(repo, context)
+
+    requires: context.is_external = false
+
+    ensures: repo.context = context
+}
+
+rule ExternalContextCannotHaveTeam {
+    when: AssignTeamToContext(team, context)
+
+    requires: context.is_external = false
+    requires: team in context.project.teams
+
+    ensures: context.team = team
+}
+
+-- ============================================================
+-- Rules: Context lifecycle
+-- ============================================================
+
+rule AddContext {
+    when: AddContext(project, name)
+
+    -- New context auto-placed at first unoccupied grid position
+    ensures: BoundedContext.created(
+        name: name,
+        ownership: ours,
+        strategic_classification: supporting,
+        evolution_stage: custom_built,
+        positions: auto_placed_positions
+    )
+}
+
+rule DeleteContext {
+    when: DeleteContext(context)
+
+    -- Cascade: remove context from all groups, keyframes, and relationships
+    ensures: context.project.relationships
+        .filter(r => r.downstream = context or r.upstream = context)
+        .each(r => r.deleted)
+    ensures: context.project.groups.each(g =>
+        g.members = g.members.without(context)
+    )
+    ensures: context.project.keyframes.each(kf =>
+        kf.active_context_ids = kf.active_context_ids.without(context)
+    )
+}
+
+-- ============================================================
+-- Rules: Relationship constraints
+-- ============================================================
+
+rule AddRelationship {
+    when: AddRelationship(project, downstream, upstream, pattern)
+
+    requires: downstream != upstream
+    requires: downstream in project.contexts
+    requires: upstream in project.contexts
+
+    ensures: Relationship.created(
+        downstream: downstream,
+        upstream: upstream,
+        pattern: pattern
+    )
+}
+
+-- ============================================================
+-- Rules: Group behaviour
+-- ============================================================
+
+rule DeleteGroup {
+    when: DeleteGroup(group)
+
+    -- Deleting a group does NOT delete its member contexts
+    ensures: group.deleted
+    -- group.members remain in the project unchanged
+}
+
+-- ============================================================
+-- Rules: Project lifecycle
+-- ============================================================
+
+rule CreateProject {
+    when: CreateProject(name)
+
+    requires: name.trim.length > 0
+
+    ensures: Project.created(
+        name: name.trim,
+        contexts: [],
+        relationships: [],
+        repos: [],
+        teams: [],
+        people: [],
+        groups: []
+    )
+}
+
+rule DeleteProject {
+    when: DeleteProject(project)
+
+    -- Must always have at least one project
+    requires: workspace.projects.count > 1
+
+    ensures: project.deleted
+}
+
+rule RenameProject {
+    when: RenameProject(project, new_name)
+
+    requires: new_name.trim.length > 0
+
+    ensures: project.name = new_name.trim
+    ensures: project.updated_at = now
+}
+
+-- ============================================================
+-- Rules: Repo assignment
+-- ============================================================
+
+rule AssignRepo {
+    when: AssignRepoToContext(repo, context)
+
+    requires: context.is_external = false
+
+    ensures: repo.context = context
+}
+
+rule UnassignRepo {
+    when: UnassignRepoFromContext(repo)
+
+    ensures: repo.context = null
+}
+
+-- ============================================================
+-- Open questions
+-- ============================================================
+
+open_question "Should relationship uniqueness be enforced? Currently multiple relationships can exist between the same pair of contexts with different patterns."
+
+open_question "Should group membership be validated against project membership? A context should only be in groups within its own project."
+
+open_question "What happens to repos mapped to a context when that context is deleted? Currently they become orphaned."
