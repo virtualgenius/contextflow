@@ -1,0 +1,237 @@
+-- clarify-relationship-direction.allium
+--
+-- Elicited specification: Clarify Relationship Direction
+-- Source: Eric Evans first-use feedback ("Direction wasn't the one I was expecting")
+--
+-- Scope: Relationship creation and direction comprehension
+-- Includes: Create dialog UX flow, direction preview, pattern-aware labeling
+-- Excludes: Edge rendering details, inspector panel changes, canvas interactions
+--
+-- Problem statement:
+--   Users create relationships without understanding which context is upstream
+--   (authority/supplier) and which is downstream (dependent/consumer).
+--   The current "From" / "To" labels are ambiguous. The arrow on canvas points
+--   to upstream, which feels backwards to users who think in terms of data flow.
+--   Direction errors are only discoverable after creation.
+--
+-- Design goals:
+--   1. User understands the direction BEFORE committing
+--   2. Language matches the selected pattern's power dynamics
+--   3. Symmetric patterns (shared-kernel, partnership) don't show direction at all
+--   4. Users can preview the relationship before confirming
+
+-- ============================================================
+-- Entities (extending existing contextflow.allium)
+-- ============================================================
+
+entity RelationshipDraft {
+    -- Transient state during creation, not persisted
+    source_context: BoundedContext       -- the context the user started from
+    target_context: BoundedContext?      -- selected second context
+    pattern: RelationshipPattern?
+    description: String?
+
+    -- Derived from pattern
+    power_dynamics: upstream_power | downstream_power | mutual | none
+    is_symmetric: power_dynamics in [mutual, none]
+
+    -- Derived: who is upstream and downstream, based on pattern
+    -- For upstream-power patterns (customer-supplier, conformist, OHS, published-language):
+    --   source is downstream (dependent), target is upstream (authority)
+    -- For downstream-power patterns (ACL):
+    --   source is downstream (protecting itself), target is upstream (being translated)
+    -- For symmetric patterns:
+    --   no direction distinction
+    upstream_context: BoundedContext?
+    downstream_context: BoundedContext?
+}
+
+-- ============================================================
+-- Rules: Relationship creation flow
+-- ============================================================
+
+rule UserStartsRelationshipFromContext {
+    when: UserInitiatesRelationship(source_context)
+
+    ensures: RelationshipDraft.created(
+        source_context: source_context,
+        pattern: customer_supplier       -- sensible default
+    )
+}
+
+rule UserSelectsTargetContext {
+    when: UserSelectsTarget(draft, target_context)
+
+    requires: target_context != draft.source_context
+
+    ensures: draft.target_context = target_context
+}
+
+rule UserSelectsPattern {
+    when: UserSelectsPattern(draft, pattern)
+
+    ensures: draft.pattern = pattern
+    ensures: draft.power_dynamics = pattern.power_dynamics
+}
+
+rule DirectionLabelsAdaptToPattern {
+    -- When the pattern changes, the labels shown to the user change
+    -- to match the pattern's vocabulary
+
+    when: draft.pattern becomes changed
+
+    -- For upstream-power patterns, source initiated the drag, so source = dependent:
+    --   Source label: "Downstream (depends on)" or pattern-specific label
+    --   Target label: "Upstream (provides to)" or pattern-specific label
+    --
+    -- For ACL specifically, the framing is defensive:
+    --   Source label: "Protected context (builds ACL)"
+    --   Target label: "Upstream system (being translated)"
+    --
+    -- For symmetric patterns:
+    --   Both labels: just context names, no direction language
+
+    ensures:
+        if draft.is_symmetric:
+            draft.upstream_context = null
+            draft.downstream_context = null
+        else:
+            draft.downstream_context = draft.source_context
+            draft.upstream_context = draft.target_context
+}
+
+-- Pattern-specific labels for the creation dialog:
+--
+--   customer_supplier:
+--     source:  "{name} (customer, depends on)"
+--     target:  "{name} (supplier, provides to)"
+--     preview: "{source} depends on {target}"
+--
+--   conformist:
+--     source:  "{name} (conforms to upstream model)"
+--     target:  "{name} (defines the model)"
+--     preview: "{source} adopts {target}'s model as-is"
+--
+--   anti_corruption_layer:
+--     source:  "{name} (protects itself with ACL)"
+--     target:  "{name} (upstream, being translated)"
+--     preview: "{source} translates {target}'s model through ACL"
+--
+--   open_host_service:
+--     source:  "{name} (consumes the API)"
+--     target:  "{name} (exposes public API)"
+--     preview: "{source} consumes {target}'s open host service"
+--
+--   published_language:
+--     source:  "{name} (uses the shared language)"
+--     target:  "{name} (publishes the language)"
+--     preview: "{source} uses {target}'s published language"
+--
+--   shared_kernel:
+--     source:  "{name}"
+--     target:  "{name}"
+--     preview: "{source} and {target} share a kernel"
+--
+--   partnership:
+--     source:  "{name}"
+--     target:  "{name}"
+--     preview: "{source} and {target} are partners"
+--
+--   separate_ways:
+--     source:  "{name}"
+--     target:  "{name}"
+--     preview: "{source} and {target} go separate ways"
+
+rule DirectionPreviewShown {
+    -- Before the user confirms, a preview sentence describes the relationship
+    -- in plain language using the pattern-specific template above
+
+    when: draft.target_context != null and draft.pattern != null
+
+    ensures: DirectionPreview.visible(
+        sentence: pattern_preview_sentence(draft),
+        arrow_direction: if draft.is_symmetric then none else downstream_to_upstream
+    )
+}
+
+rule UserSwapsDirectionBeforeCommit {
+    -- User can swap which context is upstream vs downstream
+    -- BEFORE creating the relationship (not just after, as currently)
+
+    when: UserSwapsDirection(draft)
+
+    requires: draft.is_symmetric = false
+    requires: draft.target_context != null
+
+    ensures:
+        let old_source = draft.source_context
+        let old_target = draft.target_context
+        draft.source_context = old_target
+        draft.target_context = old_source
+        -- Preview sentence updates automatically via DirectionPreviewShown
+}
+
+rule UserConfirmsRelationship {
+    when: UserConfirms(draft)
+
+    requires: draft.target_context != null
+    requires: draft.pattern != null
+
+    ensures:
+        if draft.is_symmetric:
+            -- For symmetric patterns, fromContextId/toContextId order doesn't matter
+            Relationship.created(
+                downstream: draft.source_context,
+                upstream: draft.target_context,
+                pattern: draft.pattern,
+                description: draft.description
+            )
+        else:
+            Relationship.created(
+                downstream: draft.downstream_context,
+                upstream: draft.upstream_context,
+                pattern: draft.pattern,
+                description: draft.description
+            )
+
+    ensures: draft.deleted
+}
+
+-- ============================================================
+-- Rules: Edge cases
+-- ============================================================
+
+rule PatternChangeUpdatesPreview {
+    -- When user changes pattern after selecting both contexts,
+    -- the preview and direction labels update immediately
+
+    when: draft.pattern becomes changed
+    requires: draft.target_context != null
+
+    ensures: DirectionPreview.updated
+}
+
+rule SwapHiddenForSymmetricPatterns {
+    -- The swap direction control is not shown for symmetric patterns
+    -- because there is no upstream/downstream distinction
+
+    when: draft.pattern becomes changed
+
+    ensures:
+        if draft.is_symmetric:
+            SwapDirectionControl.hidden
+        else:
+            SwapDirectionControl.visible
+}
+
+-- ============================================================
+-- Open questions
+-- ============================================================
+
+open_question "Should the arrow on the canvas be changed? Currently it points toward upstream (authority). Some users expect arrows to point in the direction of data flow (downstream). Could we use a different visual (e.g., open arrowhead for data flow, solid arrowhead for authority)?"
+
+open_question "Should the 'From' label be replaced entirely? Options: (a) use pattern-specific role labels always, (b) keep From/To but add role annotation, (c) use a visual diagram instead of dropdowns."
+
+open_question "Should the creation dialog show a mini-diagram of the two contexts with an arrow, updated live as the user changes pattern and direction? This would make the preview spatial rather than textual."
+
+open_question "When the user drags a connection on canvas (as opposed to using the dialog), which end is 'from'? Is the drag source always downstream? This needs to be consistent with the dialog."
