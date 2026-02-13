@@ -26,6 +26,7 @@ import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, Relationship, Group, User as UserType, UserNeed, UserNeedConnection, NeedContextConnection, Team } from '../model/types'
 import { User as UserIcon, Users, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
+import { getHoverConnectedContextIds, getEdgeLabelInfo } from '../lib/canvasHelpers'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
@@ -2483,9 +2484,8 @@ function RelationshipEdge({
       )}
       {/* Edge label showing pattern name and direction */}
       {(isEmphasized || isHighlightedByHover) && (() => {
-        const patternDef = PATTERN_DEFINITIONS.find(p => p.value === pattern)
-        if (!patternDef) return null
-        const directionIcon = POWER_DYNAMICS_ICONS[patternDef.powerDynamics]
+        const labelInfo = getEdgeLabelInfo(pattern)
+        if (!labelInfo) return null
         return (
           <EdgeLabelRenderer>
             <div
@@ -2496,8 +2496,8 @@ function RelationshipEdge({
               }}
               className="text-[10px] font-medium leading-tight whitespace-nowrap px-1.5 py-0.5 rounded bg-white/90 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-600 text-slate-600 dark:text-slate-300 shadow-sm"
             >
-              {directionIcon !== '○' && <span className="mr-0.5">{directionIcon}</span>}
-              {patternDef.label}
+              {labelInfo.directionIcon && <span className="mr-0.5">{labelInfo.directionIcon}</span>}
+              {labelInfo.label}
             </div>
           </EdgeLabelRenderer>
         )
@@ -2655,14 +2655,7 @@ function CanvasContent() {
     const needContextConnectionUserNeedId = selectedNeedContextConnection?.userNeedId || null
     const needContextConnectionContextId = selectedNeedContextConnection?.contextId || null
 
-    // Find contexts connected to the hovered context via relationships
-    const hoverConnectedContextIds = new Set<string>()
-    if (hoveredContextId) {
-      for (const rel of project.relationships) {
-        if (rel.fromContextId === hoveredContextId) hoverConnectedContextIds.add(rel.toContextId)
-        if (rel.toContextId === hoveredContextId) hoverConnectedContextIds.add(rel.fromContextId)
-      }
-    }
+    const hoverConnectedContextIds = getHoverConnectedContextIds(hoveredContextId, project.relationships)
 
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
