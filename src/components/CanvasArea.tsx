@@ -8,6 +8,7 @@ import ReactFlow, {
   Panel,
   NodeProps,
   EdgeProps,
+  EdgeLabelRenderer,
   getBezierPath,
   getStraightPath,
   Position,
@@ -223,6 +224,8 @@ function ContextNode({ data }: NodeProps) {
   const updateKeyframe = useEditorStore(s => s.updateKeyframe)
   const colorByMode = useEditorStore(s => s.colorByMode)
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const setHoveredContext = useEditorStore(s => s.setHoveredContext)
+  const isHoveredByRelationship = data.isHoveredByRelationship as boolean
   const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
@@ -328,7 +331,7 @@ function ContextNode({ data }: NodeProps) {
     context.boundaryIntegrity === 'weak' ? 'dotted' : 'solid'
 
   // Consolidated highlight state for selected or group member contexts
-  const isHighlighted = isSelected || isMemberOfSelectedGroup
+  const isHighlighted = isSelected || isMemberOfSelectedGroup || isHoveredByRelationship
 
   const borderColor = isDragOver ? '#3b82f6'
     : isHighlighted ? '#3b82f6'
@@ -352,8 +355,8 @@ function ContextNode({ data }: NodeProps) {
   return (
     <div
       ref={nodeRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => { setIsHovered(true); setHoveredContext(context.id) }}
+      onMouseLeave={() => { setIsHovered(false); setHoveredContext(null) }}
       style={{ position: 'relative' }}
     >
       {/* Connection handles - styled via CSS in index.css, visible on node hover */}
@@ -2156,9 +2159,11 @@ function RelationshipEdge({
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
   const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const hoveredContextId = useEditorStore(s => s.hoveredContextId)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
   const isSelected = id === selectedRelationshipId
+  const isHighlightedByHover = hoveredContextId === source || hoveredContextId === target
   const { x: vpX, y: vpY, zoom } = useViewport()
 
   // Close context menu on outside click
@@ -2207,7 +2212,7 @@ function RelationshipEdge({
   const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
 
   // Use ReactFlow's built-in marker system (automatically handles rotation)
-  const markerId = isSelected ? 'arrow-selected' : isHovered ? 'arrow-hover' : 'arrow-default'
+  const markerId = isSelected ? 'arrow-selected' : (isHovered || isHighlightedByHover) ? 'arrow-hover' : 'arrow-default'
 
   const indicatorConfig = PATTERN_EDGE_INDICATORS[pattern as Relationship['pattern']]
   const isACL = pattern === 'anti-corruption-layer'
@@ -2241,8 +2246,9 @@ function RelationshipEdge({
     : [null]
 
   // Edge color based on state
-  const edgeColor = isSelected ? '#3b82f6' : isHovered ? '#475569' : '#cbd5e1'
-  const strokeWidth = isSelected ? EDGE_STROKE_WIDTH.selected : isHovered ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default
+  const isEmphasized = isSelected || isHovered || isHighlightedByHover
+  const edgeColor = isSelected ? '#3b82f6' : isHighlightedByHover ? '#64748b' : isHovered ? '#475569' : '#cbd5e1'
+  const strokeWidth = isEmphasized ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default
 
   return (
     <>
@@ -2475,6 +2481,27 @@ function RelationshipEdge({
           </div>
         </foreignObject>
       )}
+      {/* Edge label showing pattern name and direction */}
+      {(isEmphasized || isHighlightedByHover) && (() => {
+        const patternDef = PATTERN_DEFINITIONS.find(p => p.value === pattern)
+        if (!patternDef) return null
+        const directionIcon = POWER_DYNAMICS_ICONS[patternDef.powerDynamics]
+        return (
+          <EdgeLabelRenderer>
+            <div
+              style={{
+                position: 'absolute',
+                transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+                pointerEvents: 'none',
+              }}
+              className="text-[10px] font-medium leading-tight whitespace-nowrap px-1.5 py-0.5 rounded bg-white/90 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-600 text-slate-600 dark:text-slate-300 shadow-sm"
+            >
+              {directionIcon !== '○' && <span className="mr-0.5">{directionIcon}</span>}
+              {patternDef.label}
+            </div>
+          </EdgeLabelRenderer>
+        )
+      })()}
     </>
   )
 }
@@ -2522,6 +2549,7 @@ function CanvasContent() {
   const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
   const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
+  const hoveredContextId = useEditorStore(s => s.hoveredContextId)
   const viewMode = useEditorStore(s => s.activeViewMode)
   const showGroups = useEditorStore(s => s.showGroups)
   const showRelationships = useEditorStore(s => s.showRelationships)
@@ -2627,6 +2655,15 @@ function CanvasContent() {
     const needContextConnectionUserNeedId = selectedNeedContextConnection?.userNeedId || null
     const needContextConnectionContextId = selectedNeedContextConnection?.contextId || null
 
+    // Find contexts connected to the hovered context via relationships
+    const hoverConnectedContextIds = new Set<string>()
+    if (hoveredContextId) {
+      for (const rel of project.relationships) {
+        if (rel.fromContextId === hoveredContextId) hoverConnectedContextIds.add(rel.toContextId)
+        if (rel.toContextId === hoveredContextId) hoverConnectedContextIds.add(rel.fromContextId)
+      }
+    }
+
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
@@ -2689,6 +2726,7 @@ function CanvasContent() {
           context,
           isSelected: context.id === selectedContextId || selectedContextIds.includes(context.id),
           isMemberOfSelectedGroup,
+          isHoveredByRelationship: hoverConnectedContextIds.has(context.id),
           opacity,
         },
         style: {
@@ -2838,7 +2876,7 @@ function CanvasContent() {
 
     // Return groups first (with selected on top), then contexts, then user needs, then users
     return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...userNodes]
-  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedUserId, selectedRelationshipId, selectedUserNeedConnectionId, selectedNeedContextConnectionId, viewMode, showGroups, currentDate])
+  }, [project, selectedContextId, selectedContextIds, selectedGroupId, selectedUserId, selectedRelationshipId, selectedUserNeedConnectionId, selectedNeedContextConnectionId, hoveredContextId, viewMode, showGroups, currentDate])
 
   // Use React Flow's internal nodes state for smooth updates
   const [nodes, setNodes, onNodesChangeOriginal] = useNodesState(baseNodes)

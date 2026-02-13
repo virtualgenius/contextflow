@@ -58,6 +58,7 @@ export interface EditorState {
   selectedStageIndex: number | null
   selectedTeamId: string | null
   selectedContextIds: string[]
+  hoveredContextId: string | null
   isDragging: boolean
 
   canvasView: {
@@ -110,6 +111,7 @@ export interface EditorState {
   setSelectedContext: (contextId: string | null) => void
   toggleContextSelection: (contextId: string) => void
   clearContextSelection: () => void
+  setHoveredContext: (contextId: string | null) => void
   setViewMode: (mode: ViewMode) => void
   setActiveProject: (projectId: string) => Promise<void>
   createProject: (name: string) => Promise<void>

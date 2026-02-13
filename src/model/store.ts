@@ -83,6 +83,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedStageIndex: null,
   selectedTeamId: null,
   selectedContextIds: [],
+  hoveredContextId: null,
 
   isDragging: false,
 
@@ -180,6 +181,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   clearContextSelection: () => set({
     ...createSelectionState(null, 'context'),
   }),
+
+  setHoveredContext: (contextId) => set({ hoveredContextId: contextId }),
 
   setViewMode: (mode) => set((state) => {
     const projectId = state.activeProjectId

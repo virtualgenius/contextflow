@@ -28,16 +28,16 @@
   box-shadow: none !important;
 }
 
-/* Connection handles - subtle by default, prominent on hover */
+/* Connection handles - visible by default, prominent on hover */
 .react-flow__node-context .react-flow__handle,
 .react-flow__node-user .react-flow__handle,
 .react-flow__node-userNeed .react-flow__handle {
-  width: 10px;
-  height: 10px;
-  background-color: #cbd5e1;
+  width: 14px;
+  height: 14px;
+  background-color: #94a3b8;
   border: 2px solid white;
-  opacity: 0.5;
-  transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out;
+  opacity: 0.7;
+  transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
 }
 
 .react-flow__node-context:hover .react-flow__handle,
@@ -45,9 +45,30 @@
 .react-flow__node-userNeed:hover .react-flow__handle {
   opacity: 1;
   background-color: #3b82f6;
+  transform: scale(1.3);
 }
 
 /* Keep the top handle on contexts always hidden (used for Need→Context connections) */
 .react-flow__node-context .react-flow__handle[data-handlepos="top"] {
   opacity: 0 !important;
+  transform: none !important;
+}
+
+/* Style the connection line drawn while dragging from a handle */
+.react-flow__connection-path {
+  stroke: #3b82f6;
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+}
+
+/* Highlight valid drop targets while dragging a connection */
+.react-flow__node-context.connecting .react-flow__handle {
+  opacity: 1;
+  background-color: #3b82f6;
+  animation: pulse-handle 1s ease-in-out infinite;
+}
+
+@keyframes pulse-handle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.4); }
 }
