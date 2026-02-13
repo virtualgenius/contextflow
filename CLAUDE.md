@@ -21,6 +21,18 @@ npm run build   # Build for production
 npm test        # Run tests
 ```
 
+## Local Collaboration Worker
+
+Use a local worker when running integration tests or the app against a local collab server.
+
+```bash
+# In repo root (defaults to port 8787)
+npx wrangler dev
+
+# In another terminal, point the app to the local worker
+VITE_COLLAB_HOST=localhost:8787 npm run dev
+```
+
 ## Deployment
 
 **Staging** (for testing before production):
@@ -90,6 +102,4 @@ Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-cor
 ## Important Constraints
 
 - **Browser-based**: works entirely in the browser with client-side storage; no backend required for core functionality
-- **ALWAYS prefer editing existing files** in the codebase. NEVER write new files unless explicitly required
-- **NEVER proactively create documentation files** (*.md) or README files. Only create documentation files if explicitly requested by the User
 - Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked
