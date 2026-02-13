@@ -122,6 +122,49 @@ describe('Store Collab Integration', () => {
 
       expect(project.contexts[0].positions.flow.x).toBe(500);
     });
+
+    it('renameProject routes through Yjs and updates Zustand state', () => {
+      useEditorStore.getState().renameProject(testProject.id, 'Renamed Project');
+
+      const state = useEditorStore.getState();
+      const project = state.projects[testProject.id];
+
+      expect(project.name).toBe('Renamed Project');
+    });
+
+    it('setViewMode distillation redistribution routes through Yjs', () => {
+      // Set up project with 2 contexts at default positions (all at 50,50 triggers redistribution)
+      const projectWith2Contexts: Project = {
+        ...createTestProject(),
+        contexts: [
+          { id: 'ctx-1', name: 'A', evolutionStage: 'genesis', positions: { flow: { x: 50 }, strategic: { x: 50 }, distillation: { x: 50, y: 50 }, shared: { y: 50 } } },
+          { id: 'ctx-2', name: 'B', evolutionStage: 'genesis', positions: { flow: { x: 50 }, strategic: { x: 50 }, distillation: { x: 50, y: 50 }, shared: { y: 50 } } },
+        ],
+      };
+
+      destroyCollabMode();
+      useEditorStore.setState({
+        activeProjectId: projectWith2Contexts.id,
+        projects: { [projectWith2Contexts.id]: projectWith2Contexts },
+      });
+
+      const onProjectChange = (project: Project): void => {
+        useEditorStore.setState((state) => ({
+          projects: { ...state.projects, [project.id]: project },
+        }));
+      };
+      initializeCollabMode(projectWith2Contexts, { onProjectChange });
+
+      useEditorStore.getState().setViewMode('distillation');
+
+      const state = useEditorStore.getState();
+      const project = state.projects[projectWith2Contexts.id];
+
+      // After redistribution, ctx-2 should NOT be at (50,50) anymore
+      // getGridPosition(1) = { x: 40, y: 30 } based on the grid constants
+      expect(project.contexts[1].positions.distillation).toEqual({ x: 40, y: 30 });
+      expect(project.contexts[1].strategicClassification).toBe('supporting');
+    });
   });
 
   describe('undo/redo uses CollabUndoManager when collab mode active', () => {

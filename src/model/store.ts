@@ -201,20 +201,18 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     // Redistribute overlapping contexts when switching to distillation view
     if (mode === 'distillation' && project && needsRedistribution(project.contexts)) {
-      const redistributedContexts = project.contexts.map((ctx, i) => ({
-        ...ctx,
-        positions: {
-          ...ctx.positions,
-          distillation: getGridPosition(i),
-        },
-        strategicClassification: classifyFromDistillationPosition(
-          getGridPosition(i).x,
-          getGridPosition(i).y
-        ),
-      }))
+      const redistributedContexts = project.contexts.map((ctx, i) => {
+        const newDistillationPos = getGridPosition(i)
+        const newPositions = { ...ctx.positions, distillation: newDistillationPos }
+        const newClassification = classifyFromDistillationPosition(newDistillationPos.x, newDistillationPos.y)
+
+        getCollabMutations().updateContextPosition(ctx.id, newPositions)
+        getCollabMutations().updateContext(ctx.id, { strategicClassification: newClassification })
+
+        return { ...ctx, positions: newPositions, strategicClassification: newClassification }
+      })
 
       const updatedProject = { ...project, contexts: redistributedContexts }
-      saveProject(updatedProject)
 
       return {
         activeViewMode: mode,
@@ -393,6 +391,7 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   renameProject: (projectId, newName) => set((state) => {
     const result = renameProjectAction(state, projectId, newName)
+    getCollabMutations().renameProject(newName.trim())
     autosaveIfNeeded(projectId, result.projects)
     return result
   }),
@@ -1023,7 +1022,7 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   exportProject: () => {},
 
-  importProject: (project) => set((state) => {
+  importProject: async (project) => {
     const migratedProject = migrateProject(project)
     const fileSize = JSON.stringify(migratedProject).length / 1024
     trackEvent('project_imported', migratedProject, {
@@ -1036,22 +1035,50 @@ export const useEditorStore = create<EditorState>((set) => ({
       need_count: migratedProject.userNeeds.length
     })
 
+    localStorage.setItem('contextflow.activeProjectId', migratedProject.id)
     autosaveIfNeeded(migratedProject.id, { [migratedProject.id]: migratedProject })
 
-    return {
+    useEditorStore.setState((state) => ({
       projects: {
         ...state.projects,
         [migratedProject.id]: migratedProject,
       },
       activeProjectId: migratedProject.id,
       selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
       selectedUserId: null,
       selectedUserNeedId: null,
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
+      selectedContextIds: [],
+    }))
+
+    destroyCollabMode()
+
+    const networkStore = useNetworkCollabStore.getState()
+    await networkStore.connectToProject(migratedProject.id)
+
+    const ydoc = useNetworkCollabStore.getState().ydoc
+    if (ydoc) {
+      populateYDocWithProject(ydoc, migratedProject)
+
+      const updateStoreAndAutosave = (updatedProject: Project): void => {
+        useEditorStore.setState((s) => ({
+          projects: {
+            ...s.projects,
+            [updatedProject.id]: updatedProject,
+          },
+        }))
+        saveProject(updatedProject).catch((err) => {
+          console.error('Failed to autosave imported project to IndexedDB:', err)
+        })
+      }
+      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
     }
-  }),
+  },
 
   reset: () => set({
     activeProjectId: sampleProject.id,

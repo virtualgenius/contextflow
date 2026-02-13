@@ -52,6 +52,7 @@ export interface CollabMutations {
   addPerson(person: Person): void;
   updatePerson(personId: string, updates: Partial<Person>): void;
   deletePerson(personId: string): void;
+  renameProject(name: string): void;
 }
 
 export interface CollabUndoRedo {
@@ -236,6 +237,9 @@ export function getCollabMutations(): CollabMutations {
     },
     deletePerson(personId: string): void {
       collabStore?.deletePerson(personId);
+    },
+    renameProject(name: string): void {
+      collabStore?.renameProject(name);
     },
   };
 }

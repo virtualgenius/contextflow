@@ -68,6 +68,7 @@ import {
   updatePersonMutation,
   deletePersonMutation,
 } from './metadataMutations';
+import { renameProjectMutation } from './projectMutations';
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void;
@@ -123,6 +124,7 @@ export interface CollabStore {
   addPerson(person: Person): void;
   updatePerson(personId: string, updates: Partial<Person>): void;
   deletePerson(personId: string): void;
+  renameProject(name: string): void;
   canUndo(): boolean;
   canRedo(): boolean;
   undo(): void;
@@ -341,6 +343,10 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     deletePerson(personId: string): void {
       deletePersonMutation(ydoc, personId);
+    },
+
+    renameProject(name: string): void {
+      renameProjectMutation(ydoc, name);
     },
 
     canUndo(): boolean {
@@ -596,6 +602,10 @@ export function createCollabStoreFromYDoc(ydoc: Y.Doc, options: CollabStoreOptio
 
     deletePerson(personId: string): void {
       deletePersonMutation(ydoc, personId);
+    },
+
+    renameProject(name: string): void {
+      renameProjectMutation(ydoc, name);
     },
 
     canUndo(): boolean {

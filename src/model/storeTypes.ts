@@ -178,7 +178,7 @@ export interface EditorState {
   redo: () => void
   fitToMap: () => void
   exportProject: () => void
-  importProject: (project: Project) => void
+  importProject: (project: Project) => Promise<void>
   reset: () => void
   loadSharedProject: (projectId: string) => Promise<void>
 }
