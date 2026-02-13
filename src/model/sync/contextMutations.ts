@@ -32,7 +32,14 @@ export function deleteContextMutation(ydoc: Y.Doc, contextId: string): void {
   const index = findContextIndex(yContexts, contextId);
   if (index === -1) return;
 
-  yContexts.delete(index);
+  ydoc.transact(() => {
+    cascadeDeleteRelationships(yProject, contextId);
+    cascadeClearRepoContextIds(yProject, contextId);
+    cascadeRemoveFromGroups(yProject, contextId);
+    cascadeDeleteNeedContextConnections(yProject, contextId);
+    cascadeRemoveFromTemporalKeyframes(yProject, contextId);
+    yContexts.delete(index);
+  });
 }
 
 export function updateContextPositionMutation(
@@ -116,4 +123,65 @@ function applyCodeSizeUpdate(yContext: Y.Map<unknown>, updates: Partial<BoundedC
   yCodeSize.set('loc', codeSize.loc ?? null);
   yCodeSize.set('bucket', codeSize.bucket ?? null);
   yContext.set('codeSize', yCodeSize);
+}
+
+function cascadeDeleteRelationships(yProject: Y.Map<unknown>, contextId: string): void {
+  const yRels = yProject.get('relationships') as Y.Array<Y.Map<unknown>>;
+  for (let i = yRels.length - 1; i >= 0; i--) {
+    const yRel = yRels.get(i);
+    if (yRel.get('fromContextId') === contextId || yRel.get('toContextId') === contextId) {
+      yRels.delete(i);
+    }
+  }
+}
+
+function cascadeClearRepoContextIds(yProject: Y.Map<unknown>, contextId: string): void {
+  const yRepos = yProject.get('repos') as Y.Array<Y.Map<unknown>>;
+  for (let i = 0; i < yRepos.length; i++) {
+    const yRepo = yRepos.get(i);
+    if (yRepo.get('contextId') === contextId) {
+      yRepo.set('contextId', null);
+    }
+  }
+}
+
+function cascadeRemoveFromGroups(yProject: Y.Map<unknown>, contextId: string): void {
+  const yGroups = yProject.get('groups') as Y.Array<Y.Map<unknown>>;
+  for (let i = 0; i < yGroups.length; i++) {
+    const yContextIds = yGroups.get(i).get('contextIds') as Y.Array<string>;
+    for (let j = yContextIds.length - 1; j >= 0; j--) {
+      if (yContextIds.get(j) === contextId) {
+        yContextIds.delete(j);
+      }
+    }
+  }
+}
+
+function cascadeDeleteNeedContextConnections(yProject: Y.Map<unknown>, contextId: string): void {
+  const yConns = yProject.get('needContextConnections') as Y.Array<Y.Map<unknown>>;
+  for (let i = yConns.length - 1; i >= 0; i--) {
+    if (yConns.get(i).get('contextId') === contextId) {
+      yConns.delete(i);
+    }
+  }
+}
+
+function cascadeRemoveFromTemporalKeyframes(yProject: Y.Map<unknown>, contextId: string): void {
+  const yTemporal = yProject.get('temporal');
+  if (yTemporal === null) return;
+
+  const yKeyframes = (yTemporal as Y.Map<unknown>).get('keyframes') as Y.Array<Y.Map<unknown>>;
+  for (let i = 0; i < yKeyframes.length; i++) {
+    const yKeyframe = yKeyframes.get(i);
+
+    const yPositions = yKeyframe.get('positions') as Y.Map<Y.Map<unknown>>;
+    yPositions.delete(contextId);
+
+    const yActiveIds = yKeyframe.get('activeContextIds') as Y.Array<string>;
+    for (let j = yActiveIds.length - 1; j >= 0; j--) {
+      if (yActiveIds.get(j) === contextId) {
+        yActiveIds.delete(j);
+      }
+    }
+  }
 }

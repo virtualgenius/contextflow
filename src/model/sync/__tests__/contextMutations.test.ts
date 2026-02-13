@@ -261,6 +261,103 @@ describe('contextMutations', () => {
       const result = yDocToProject(ydoc);
       expect(result.contexts).toHaveLength(1);
     });
+
+    it('should cascade-delete relationships referencing the context', () => {
+      const projectWithRels: Project = {
+        ...createTestProject(),
+        contexts: [
+          { id: 'ctx-1', name: 'A', evolutionStage: 'genesis', positions: { flow: { x: 0 }, strategic: { x: 0 }, distillation: { x: 0, y: 0 }, shared: { y: 0 } } },
+          { id: 'ctx-2', name: 'B', evolutionStage: 'genesis', positions: { flow: { x: 0 }, strategic: { x: 0 }, distillation: { x: 0, y: 0 }, shared: { y: 0 } } },
+          { id: 'ctx-3', name: 'C', evolutionStage: 'genesis', positions: { flow: { x: 0 }, strategic: { x: 0 }, distillation: { x: 0, y: 0 }, shared: { y: 0 } } },
+        ],
+        relationships: [
+          { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'customer-supplier' },
+          { id: 'rel-2', fromContextId: 'ctx-2', toContextId: 'ctx-1', pattern: 'conformist' },
+          { id: 'rel-3', fromContextId: 'ctx-2', toContextId: 'ctx-3', pattern: 'shared-kernel' },
+        ],
+      };
+      const doc = projectToYDoc(projectWithRels);
+      deleteContextMutation(doc, 'ctx-1');
+      const result = yDocToProject(doc);
+      expect(result.contexts).toHaveLength(2);
+      expect(result.relationships).toHaveLength(1);
+      expect(result.relationships[0].id).toBe('rel-3');
+    });
+
+    it('should clear contextId on repos mapped to the deleted context', () => {
+      const projectWithRepos: Project = {
+        ...createTestProject(),
+        repos: [
+          { id: 'repo-1', name: 'frontend', contextId: 'ctx-1', teamIds: [], contributors: [] },
+          { id: 'repo-2', name: 'backend', contextId: 'ctx-1', teamIds: [], contributors: [] },
+          { id: 'repo-3', name: 'shared', contextId: null, teamIds: [], contributors: [] },
+        ],
+      };
+      const doc = projectToYDoc(projectWithRepos);
+      deleteContextMutation(doc, 'ctx-1');
+      const result = yDocToProject(doc);
+      expect(result.repos[0].contextId).toBeUndefined();
+      expect(result.repos[1].contextId).toBeUndefined();
+      expect(result.repos[2].contextId).toBeUndefined();
+    });
+
+    it('should remove deleted context from groups', () => {
+      const projectWithGroups: Project = {
+        ...createTestProject(),
+        contexts: [
+          { id: 'ctx-1', name: 'A', evolutionStage: 'genesis', positions: { flow: { x: 0 }, strategic: { x: 0 }, distillation: { x: 0, y: 0 }, shared: { y: 0 } } },
+          { id: 'ctx-2', name: 'B', evolutionStage: 'genesis', positions: { flow: { x: 0 }, strategic: { x: 0 }, distillation: { x: 0, y: 0 }, shared: { y: 0 } } },
+        ],
+        groups: [
+          { id: 'grp-1', label: 'Group One', contextIds: ['ctx-1', 'ctx-2'], color: '#ff0000' },
+          { id: 'grp-2', label: 'Group Two', contextIds: ['ctx-1'], color: '#00ff00' },
+        ],
+      };
+      const doc = projectToYDoc(projectWithGroups);
+      deleteContextMutation(doc, 'ctx-1');
+      const result = yDocToProject(doc);
+      expect(result.groups[0].contextIds).toEqual(['ctx-2']);
+      expect(result.groups[1].contextIds).toEqual([]);
+    });
+
+    it('should cascade-delete needContextConnections referencing the context', () => {
+      const projectWithConns: Project = {
+        ...createTestProject(),
+        userNeeds: [{ id: 'need-1', name: 'Place Order' }],
+        needContextConnections: [
+          { id: 'nc-1', userNeedId: 'need-1', contextId: 'ctx-1' },
+          { id: 'nc-2', userNeedId: 'need-1', contextId: 'ctx-other' },
+        ],
+      };
+      const doc = projectToYDoc(projectWithConns);
+      deleteContextMutation(doc, 'ctx-1');
+      const result = yDocToProject(doc);
+      expect(result.needContextConnections).toHaveLength(1);
+      expect(result.needContextConnections[0].id).toBe('nc-2');
+    });
+
+    it('should remove context from temporal keyframes', () => {
+      const projectWithTemporal: Project = {
+        ...createTestProject(),
+        temporal: {
+          enabled: true,
+          keyframes: [{
+            id: 'kf-1',
+            date: '2027',
+            label: 'Future',
+            positions: { 'ctx-1': { x: 80, y: 20 }, 'ctx-2': { x: 50, y: 50 } },
+            activeContextIds: ['ctx-1', 'ctx-2'],
+          }],
+        },
+      };
+      const doc = projectToYDoc(projectWithTemporal);
+      deleteContextMutation(doc, 'ctx-1');
+      const result = yDocToProject(doc);
+      const kf = result.temporal!.keyframes[0];
+      expect(kf.activeContextIds).toEqual(['ctx-2']);
+      expect(kf.positions).not.toHaveProperty('ctx-1');
+      expect(kf.positions['ctx-2']).toEqual({ x: 50, y: 50 });
+    });
   });
 
   describe('updateContextPositionMutation', () => {
