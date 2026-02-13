@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person, Issue, IssueSeverity } from '../types';
 import { useCollabStore, createCollabStoreFromYDoc, type CollabStore, type CollabStoreOptions } from './useCollabStore';
 
 let collabStore: CollabStore | null = null;
@@ -9,6 +9,9 @@ export interface CollabMutations {
   updateContext(contextId: string, updates: Partial<BoundedContext>): void;
   deleteContext(contextId: string): void;
   updateContextPosition(contextId: string, positions: BoundedContext['positions']): void;
+  addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue | undefined;
+  updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void;
+  deleteContextIssue(contextId: string, issueId: string): void;
   addRelationship(relationship: Relationship): void;
   updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
   deleteRelationship(relationshipId: string): void;
@@ -104,6 +107,15 @@ export function getCollabMutations(): CollabMutations {
     },
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
       collabStore?.updateContextPosition(contextId, positions);
+    },
+    addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue | undefined {
+      return collabStore?.addContextIssue(contextId, title, severity);
+    },
+    updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void {
+      collabStore?.updateContextIssue(contextId, issueId, updates);
+    },
+    deleteContextIssue(contextId: string, issueId: string): void {
+      collabStore?.deleteContextIssue(contextId, issueId);
     },
     addRelationship(relationship: Relationship): void {
       collabStore?.addRelationship(relationship);

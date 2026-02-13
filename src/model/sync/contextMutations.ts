@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { BoundedContext } from '../types';
+import type { BoundedContext, Issue, IssueSeverity } from '../types';
 import { populateContextYMap } from './contextSync';
 
 export function addContextMutation(ydoc: Y.Doc, context: BoundedContext): void {
@@ -184,4 +184,87 @@ function cascadeRemoveFromTemporalKeyframes(yProject: Y.Map<unknown>, contextId:
       }
     }
   }
+}
+
+export function addContextIssueMutation(
+  ydoc: Y.Doc,
+  contextId: string,
+  title: string,
+  severity: IssueSeverity = 'warning'
+): Issue {
+  const newIssue: Issue = {
+    id: `issue-${Date.now()}`,
+    title,
+    severity,
+  };
+
+  const yContext = findContextById(ydoc, contextId);
+  if (!yContext) return newIssue;
+
+  ydoc.transact(() => {
+    let yIssues = yContext.get('issues') as Y.Array<Y.Map<unknown>> | null;
+    if (!yIssues) {
+      yIssues = new Y.Array<Y.Map<unknown>>();
+      yContext.set('issues', yIssues);
+    }
+
+    const yIssue = new Y.Map<unknown>();
+    yIssue.set('id', newIssue.id);
+    yIssue.set('title', newIssue.title);
+    yIssue.set('description', null);
+    yIssue.set('severity', newIssue.severity);
+    yIssues.push([yIssue]);
+  });
+
+  return newIssue;
+}
+
+export function updateContextIssueMutation(
+  ydoc: Y.Doc,
+  contextId: string,
+  issueId: string,
+  updates: Partial<Issue>
+): void {
+  const yContext = findContextById(ydoc, contextId);
+  if (!yContext) return;
+
+  const yIssues = yContext.get('issues') as Y.Array<Y.Map<unknown>> | null;
+  if (!yIssues) return;
+
+  ydoc.transact(() => {
+    for (let i = 0; i < yIssues.length; i++) {
+      const yIssue = yIssues.get(i);
+      if (yIssue.get('id') === issueId) {
+        if ('title' in updates) yIssue.set('title', updates.title ?? null);
+        if ('description' in updates) yIssue.set('description', updates.description ?? null);
+        if ('severity' in updates) yIssue.set('severity', updates.severity ?? null);
+        break;
+      }
+    }
+  });
+}
+
+export function deleteContextIssueMutation(
+  ydoc: Y.Doc,
+  contextId: string,
+  issueId: string
+): void {
+  const yContext = findContextById(ydoc, contextId);
+  if (!yContext) return;
+
+  const yIssues = yContext.get('issues') as Y.Array<Y.Map<unknown>> | null;
+  if (!yIssues) return;
+
+  ydoc.transact(() => {
+    for (let i = yIssues.length - 1; i >= 0; i--) {
+      if (yIssues.get(i).get('id') === issueId) {
+        yIssues.delete(i);
+        break;
+      }
+    }
+
+    if (yIssues.length === 0) {
+      yContext.set('issues', null);
+    }
+  });
 }

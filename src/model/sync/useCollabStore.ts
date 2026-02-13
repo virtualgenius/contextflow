@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person } from '../types';
+import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person, Issue, IssueSeverity } from '../types';
 import { projectToYDoc, yDocToProject } from './projectSync';
 import { SyncManager } from './syncManager';
 import { CollabUndoManager, createUndoManager } from './undoManager';
@@ -8,6 +8,9 @@ import {
   updateContextMutation,
   deleteContextMutation,
   updateContextPositionMutation,
+  addContextIssueMutation,
+  updateContextIssueMutation,
+  deleteContextIssueMutation,
 } from './contextMutations';
 import {
   addRelationshipMutation,
@@ -77,6 +80,9 @@ export interface CollabStore {
   updateContext(contextId: string, updates: Partial<BoundedContext>): void;
   deleteContext(contextId: string): void;
   updateContextPosition(contextId: string, positions: BoundedContext['positions']): void;
+  addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue;
+  updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void;
+  deleteContextIssue(contextId: string, issueId: string): void;
   addRelationship(relationship: Relationship): void;
   updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
   deleteRelationship(relationshipId: string): void;
@@ -163,6 +169,18 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
       updateContextPositionMutation(ydoc, contextId, positions);
+    },
+
+    addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue {
+      return addContextIssueMutation(ydoc, contextId, title, severity);
+    },
+
+    updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void {
+      updateContextIssueMutation(ydoc, contextId, issueId, updates);
+    },
+
+    deleteContextIssue(contextId: string, issueId: string): void {
+      deleteContextIssueMutation(ydoc, contextId, issueId);
     },
 
     addRelationship(relationship: Relationship): void {
@@ -406,6 +424,18 @@ export function createCollabStoreFromYDoc(ydoc: Y.Doc, options: CollabStoreOptio
 
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
       updateContextPositionMutation(ydoc, contextId, positions);
+    },
+
+    addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue {
+      return addContextIssueMutation(ydoc, contextId, title, severity);
+    },
+
+    updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void {
+      updateContextIssueMutation(ydoc, contextId, issueId, updates);
+    },
+
+    deleteContextIssue(contextId: string, issueId: string): void {
+      deleteContextIssueMutation(ydoc, contextId, issueId);
     },
 
     addRelationship(relationship: Relationship): void {

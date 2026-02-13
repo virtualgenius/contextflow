@@ -17,11 +17,6 @@ import { populateYDocWithProject, yDocToProject } from './sync/projectSync'
 import { useCollabStore as useNetworkCollabStore } from './collabStore'
 import { calculateNextStagePosition, calculateNextPosition } from './stagePosition'
 import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from '../lib/distillationGrid'
-import {
-  addContextIssueAction,
-  updateContextIssueAction,
-  deleteContextIssueAction,
-} from './actions/contextActions'
 import { createProjectAction, deleteProjectAction, renameProjectAction, duplicateProjectAction } from './actions/projectActions'
 import { createProjectFromTemplate } from './templateProjects'
 import {
@@ -440,22 +435,19 @@ export const useEditorStore = create<EditorState>((set) => ({
     return state.selectedContextId === contextId ? { selectedContextId: null } : {}
   }),
 
-  addContextIssue: (contextId, title, severity) => set((state) => {
-    const result = addContextIssueAction(state, contextId, title, severity)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  addContextIssue: (contextId, title, severity) => set(() => {
+    getCollabMutations().addContextIssue(contextId, title, severity)
+    return {}
   }),
 
-  updateContextIssue: (contextId, issueId, updates) => set((state) => {
-    const result = updateContextIssueAction(state, contextId, issueId, updates)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  updateContextIssue: (contextId, issueId, updates) => set(() => {
+    getCollabMutations().updateContextIssue(contextId, issueId, updates)
+    return {}
   }),
 
-  deleteContextIssue: (contextId, issueId) => set((state) => {
-    const result = deleteContextIssueAction(state, contextId, issueId)
-    autosaveIfNeeded(state.activeProjectId, result.projects)
-    return result
+  deleteContextIssue: (contextId, issueId) => set(() => {
+    getCollabMutations().deleteContextIssue(contextId, issueId)
+    return {}
   }),
 
   assignTeamToContext: (contextId, teamId) => set(() => {
