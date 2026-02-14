@@ -33,7 +33,6 @@ import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { SimpleTooltip } from './SimpleTooltip'
-import { ColorLegend } from './ColorLegend'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { InfoTooltip } from './InfoTooltip'
 import { EVOLUTION_STAGES, EDGE_INDICATORS, VALUE_CHAIN_VISIBILITY, DISTILLATION_AXES, DISTILLATION_REGIONS, RELATIONSHIP_PATTERNS } from '../model/conceptDefinitions'
@@ -3405,7 +3404,6 @@ function CanvasContent() {
         <CanvasBoundary />
 
         <CustomControls />
-        <ColorLegend />
 
         {viewMode === 'distillation' ? (
           <DistillationRegions />

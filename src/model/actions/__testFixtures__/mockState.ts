@@ -116,7 +116,6 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   hasSeenWelcome: false,
   groupOpacity: 0.6,
   colorByMode: 'strategic' as const,
-  showColorLegend: true,
   isDragging: false,
   temporal: {
     currentDate: '2024',
@@ -185,7 +184,6 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   resetWelcome: vi.fn(),
   setGroupOpacity: vi.fn(),
   setColorByMode: vi.fn(),
-  setShowColorLegend: vi.fn(),
   setDragging: vi.fn(),
   swapRelationshipDirection: vi.fn(),
   updateFlowStage: vi.fn(),

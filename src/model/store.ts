@@ -131,11 +131,6 @@ export const useEditorStore = create<EditorState>((set) => ({
     return stored === 'strategic' ? 'strategic' : 'ownership'
   })() as 'strategic' | 'ownership',
 
-  showColorLegend: (() => {
-    const stored = localStorage.getItem('contextflow.showColorLegend')
-    return stored === null ? true : stored === 'true'
-  })(),
-
   // Temporal state (defaults to current year)
   temporal: {
     currentDate: new Date().getFullYear().toString(),
@@ -880,11 +875,6 @@ export const useEditorStore = create<EditorState>((set) => ({
   setColorByMode: (mode) => {
     localStorage.setItem('contextflow.colorByMode', mode)
     set({ colorByMode: mode })
-  },
-
-  setShowColorLegend: (show) => {
-    localStorage.setItem('contextflow.showColorLegend', show.toString())
-    set({ showColorLegend: show })
   },
 
   setDragging: (isDragging) => set({ isDragging }),
