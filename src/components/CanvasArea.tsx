@@ -27,6 +27,7 @@ import type { BoundedContext, Relationship, Group, User as UserType, UserNeed, U
 import { User as UserIcon, Users, Target, X, ArrowRight, ArrowLeftRight, Trash2, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { getHoverConnectedContextIds, getEdgeLabelInfo } from '../lib/canvasHelpers'
+import { getContextTooltipLines } from '../lib/contextTooltip'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
@@ -215,6 +216,8 @@ function ContextNode({ data }: NodeProps) {
   const isMemberOfSelectedGroup = data.isMemberOfSelectedGroup as boolean
   const opacity = data.opacity as number | undefined
   const [isHovered, setIsHovered] = React.useState(false)
+  const [showTooltip, setShowTooltip] = React.useState(false)
+  const tooltipTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
@@ -356,8 +359,23 @@ function ContextNode({ data }: NodeProps) {
   return (
     <div
       ref={nodeRef}
-      onMouseEnter={() => { setIsHovered(true); setHoveredContext(context.id) }}
-      onMouseLeave={() => { setIsHovered(false); setHoveredContext(null) }}
+      onMouseEnter={() => {
+        setIsHovered(true)
+        setHoveredContext(context.id)
+        if (showHelpTooltips) {
+          tooltipTimerRef.current = setTimeout(() => setShowTooltip(true), 500)
+        }
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false)
+        setHoveredContext(null)
+        if (tooltipTimerRef.current) { clearTimeout(tooltipTimerRef.current); tooltipTimerRef.current = null }
+        setShowTooltip(false)
+      }}
+      onMouseDown={() => {
+        if (tooltipTimerRef.current) { clearTimeout(tooltipTimerRef.current); tooltipTimerRef.current = null }
+        setShowTooltip(false)
+      }}
       style={{ position: 'relative' }}
     >
       {/* Connection handles - styled via CSS in index.css, visible on node hover */}
@@ -517,69 +535,20 @@ function ContextNode({ data }: NodeProps) {
       )}
 
       {/* Rich tooltip on hover */}
-      {showHelpTooltips && isHovered && (() => {
+      {showHelpTooltips && showTooltip && (() => {
         const tooltipPos = getTooltipPosition()
-        const ownershipLabels: Record<string, string> = {
-          ours: 'Our Team',
-          internal: 'Internal (Other Team)',
-          external: 'External (Third Party)',
-        }
-        const classificationLabels: Record<string, string> = {
-          core: 'Core Domain',
-          supporting: 'Supporting Subdomain',
-          generic: 'Generic Subdomain',
-        }
-        const evolutionLabels: Record<string, string> = {
-          genesis: 'Genesis',
-          'custom-built': 'Custom-Built',
-          'product/rental': 'Product',
-          'commodity/utility': 'Commodity',
-        }
-        const boundaryLabels: Record<string, string> = {
-          strong: 'Strong',
-          moderate: 'Moderate',
-          weak: 'Weak',
-        }
-
-        const characteristics: string[] = []
-
-        // Ownership + team name
-        const ownership = context.ownership || 'ours'
-        let ownershipText = ownershipLabels[ownership] || ownership
-        if (team && (ownership === 'ours' || ownership === 'internal')) {
-          ownershipText += ` (${team.name})`
-        }
-        characteristics.push(`Ownership: ${ownershipText}`)
-
-        // Strategic classification
-        if (context.strategicClassification) {
-          characteristics.push(`Classification: ${classificationLabels[context.strategicClassification]}`)
-        }
-
-        // Evolution stage
-        characteristics.push(`Evolution: ${evolutionLabels[context.evolutionStage]}`)
-
-        // Boundary integrity
-        if (context.boundaryIntegrity) {
-          characteristics.push(`Boundary: ${boundaryLabels[context.boundaryIntegrity]}`)
-        }
-
-        // Legacy status
-        if (context.isLegacy) {
-          characteristics.push('⚠ Legacy system')
-        }
-
-        // Issue count
-        if (context.issues && context.issues.length > 0) {
-          const criticalCount = context.issues.filter(i => i.severity === 'critical').length
-          const warningCount = context.issues.filter(i => i.severity === 'warning').length
-          const infoCount = context.issues.filter(i => i.severity === 'info').length
-          const parts: string[] = []
-          if (criticalCount > 0) parts.push(`${criticalCount} critical`)
-          if (warningCount > 0) parts.push(`${warningCount} warning`)
-          if (infoCount > 0) parts.push(`${infoCount} info`)
-          characteristics.push(`Issues: ${parts.join(', ')}`)
-        }
+        const lines = getContextTooltipLines({
+          context,
+          viewMode: viewMode as 'flow' | 'strategic' | 'distillation',
+          colorByMode,
+          relationships: project?.relationships || [],
+          contexts: project?.contexts || [],
+        })
+        if (lines.length === 0) return null
+        const lastLine = lines[lines.length - 1]
+        const contentLines = lines.slice(0, -1)
+        const isGuidanceLine = lastLine === 'Drag handles to connect to other contexts'
+          || lastLine === 'Drag to classify as Core, Supporting, or Generic'
 
         return createPortal(
           <div
@@ -596,12 +565,18 @@ function ContextNode({ data }: NodeProps) {
                 <div className="text-xs text-slate-300 mb-2">{context.purpose}</div>
               )}
               <ul className="text-xs text-slate-300 space-y-0.5">
-                {characteristics.map((item, index) => (
+                {(isGuidanceLine ? contentLines : lines).map((item, index) => (
                   <li key={index} className="flex items-start gap-1.5">
                     <span className="text-slate-500 mt-0.5">•</span>
                     <span>{item}</span>
                   </li>
                 ))}
+                {isGuidanceLine && (
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-slate-500 mt-0.5">•</span>
+                    <span className="italic text-slate-400">{lastLine}</span>
+                  </li>
+                )}
               </ul>
             </div>
           </div>,
