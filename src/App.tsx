@@ -203,7 +203,7 @@ function App() {
           <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col">
             {/* Tab bar - only show when both tabs have content */}
             {hasUnassignedRepos && hasTeams ? (
-              <div className="flex border-b border-slate-200 dark:border-neutral-700">
+              <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
                 <button
                   onClick={() => handleTabChange('repos')}
                   className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
@@ -224,26 +224,30 @@ function App() {
                 >
                   Teams ({project?.teams?.length ?? 0})
                 </button>
+                <button
+                  onClick={toggleSidebar}
+                  className="px-2 py-2 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M9 3L3 9M3 3l6 6" />
+                  </svg>
+                </button>
               </div>
             ) : (
               <div className="flex items-center justify-between p-4 pb-2">
                 <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
                   {activeTab === 'repos' ? `Unassigned Repos (${unassignedRepos.length})` : `Teams (${project?.teams?.length ?? 0})`}
                 </div>
+                <button
+                  onClick={toggleSidebar}
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M9 3L3 9M3 3l6 6" />
+                  </svg>
+                </button>
               </div>
             )}
-
-            {/* Close button */}
-            <div className="flex justify-end px-4 pt-1">
-              <button
-                onClick={toggleSidebar}
-                className="p-1 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M9 3L3 9M3 3l6 6" />
-                </svg>
-              </button>
-            </div>
 
             <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
               {activeTab === 'repos' ? (
