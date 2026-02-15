@@ -4,6 +4,7 @@ import { CanvasArea } from './components/CanvasArea'
 import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
+import { TeamSidebar } from './components/TeamSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { WelcomeModal } from './components/WelcomeModal'
 import { OfflineBlockingModal } from './components/OfflineBlockingModal'
@@ -34,6 +35,9 @@ function App() {
   const setActiveProject = useEditorStore(s => s.setActiveProject)
   const createProject = useEditorStore(s => s.createProject)
   const loadSharedProject = useEditorStore(s => s.loadSharedProject)
+  const addTeam = useEditorStore(s => s.addTeam)
+  const deleteTeam = useEditorStore(s => s.deleteTeam)
+  const setSelectedTeam = useEditorStore(s => s.setSelectedTeam)
 
   const { route, params, navigate } = useUrlRouter()
 
@@ -82,26 +86,44 @@ function App() {
     return project?.repos?.filter(r => !r.contextId) || []
   }, [project?.repos])
 
-  const [isRepoSidebarCollapsed, setIsRepoSidebarCollapsed] = React.useState(() => {
-    const stored = localStorage.getItem('contextflow.repoSidebar.collapsed')
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
+    const stored = localStorage.getItem('contextflow.sidebar.collapsed')
     return stored === 'true'
   })
 
+  const [sidebarTab, setSidebarTab] = React.useState<'repos' | 'teams'>(() => {
+    const stored = localStorage.getItem('contextflow.sidebarTab')
+    if (stored === 'repos' || stored === 'teams') return stored
+    return 'repos'
+  })
+
   const hasUnassignedRepos = unassignedRepos.length > 0
-  const showRepoSidebar = hasUnassignedRepos && !isRepoSidebarCollapsed
+  const hasTeams = (project?.teams?.length ?? 0) > 0
+  const hasLeftSidebarContent = hasUnassignedRepos || hasTeams
+  const showLeftSidebar = hasLeftSidebarContent && !isSidebarCollapsed
+
+  // Auto-select appropriate tab when content changes
+  const activeTab = sidebarTab === 'repos' && !hasUnassignedRepos && hasTeams ? 'teams'
+    : sidebarTab === 'teams' && !hasTeams && hasUnassignedRepos ? 'repos'
+    : sidebarTab
   const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedUserId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedUserNeedConnectionId || !!selectedNeedContextConnectionId || selectedStageIndex !== null || !!selectedTeamId
 
-  const gridCols = showRepoSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
-                 : showRepoSidebar ? 'grid-cols-[240px_1fr]'
+  const gridCols = showLeftSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
+                 : showLeftSidebar ? 'grid-cols-[240px_1fr]'
                  : hasRightSidebar ? 'grid-cols-[1fr_320px]'
                  : 'grid-cols-[1fr]'
 
-  const toggleRepoSidebar = () => {
-    setIsRepoSidebarCollapsed(prev => {
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => {
       const newValue = !prev
-      localStorage.setItem('contextflow.repoSidebar.collapsed', String(newValue))
+      localStorage.setItem('contextflow.sidebar.collapsed', String(newValue))
       return newValue
     })
+  }
+
+  const handleTabChange = (tab: 'repos' | 'teams') => {
+    setSidebarTab(tab)
+    localStorage.setItem('contextflow.sidebarTab', tab)
   }
 
   return (
@@ -176,31 +198,72 @@ function App() {
       )}
 
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
-        {/* Repo Sidebar - collapsible */}
-        {showRepoSidebar && (
+        {/* Left Sidebar - collapsible, with Repos/Teams tabs */}
+        {showLeftSidebar && (
           <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col">
-            <div className="flex items-center justify-between p-4 pb-2">
-              <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-                Unassigned Repos ({unassignedRepos.length})
+            {/* Tab bar - only show when both tabs have content */}
+            {hasUnassignedRepos && hasTeams ? (
+              <div className="flex border-b border-slate-200 dark:border-neutral-700">
+                <button
+                  onClick={() => handleTabChange('repos')}
+                  className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                    activeTab === 'repos'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Repos ({unassignedRepos.length})
+                </button>
+                <button
+                  onClick={() => handleTabChange('teams')}
+                  className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                    activeTab === 'teams'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                      : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Teams ({project?.teams?.length ?? 0})
+                </button>
               </div>
+            ) : (
+              <div className="flex items-center justify-between p-4 pb-2">
+                <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+                  {activeTab === 'repos' ? `Unassigned Repos (${unassignedRepos.length})` : `Teams (${project?.teams?.length ?? 0})`}
+                </div>
+              </div>
+            )}
+
+            {/* Close button */}
+            <div className="flex justify-end px-4 pt-1">
               <button
-                onClick={toggleRepoSidebar}
+                onClick={toggleSidebar}
                 className="p-1 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                title="Hide sidebar"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M9 3L3 9M3 3l6 6" />
                 </svg>
               </button>
             </div>
+
             <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
-              <RepoSidebar
-                repos={unassignedRepos}
-                teams={project?.teams || []}
-                onRepoAssign={(repoId, contextId) => {
-                  // Will be implemented with drag-and-drop
-                }}
-              />
+              {activeTab === 'repos' ? (
+                <RepoSidebar
+                  repos={unassignedRepos}
+                  teams={project?.teams || []}
+                  onRepoAssign={(repoId, contextId) => {
+                    // Will be implemented with drag-and-drop
+                  }}
+                />
+              ) : (
+                <TeamSidebar
+                  teams={project?.teams || []}
+                  contexts={project?.contexts || []}
+                  selectedTeamId={selectedTeamId}
+                  onSelectTeam={(teamId) => setSelectedTeam(teamId)}
+                  onAddTeam={(name) => addTeam(name)}
+                  onDeleteTeam={(teamId) => deleteTeam(teamId)}
+                />
+              )}
             </div>
           </aside>
         )}
@@ -208,17 +271,18 @@ function App() {
         {/* Canvas Area */}
         <section className="relative bg-slate-100 dark:bg-neutral-800">
           {/* Show button when sidebar is collapsed */}
-          {hasUnassignedRepos && isRepoSidebarCollapsed && (
+          {hasLeftSidebarContent && isSidebarCollapsed && (
             <button
-              onClick={toggleRepoSidebar}
+              onClick={toggleSidebar}
               className="absolute left-2 top-2 z-10 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded px-2 py-1.5 text-xs text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:text-slate-700 dark:hover:text-slate-300 shadow-sm"
-              title="Show unassigned repos"
             >
               <div className="flex items-center gap-1">
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M4 9l3-3-3-3" />
                 </svg>
-                <span className="font-medium">Repos ({unassignedRepos.length})</span>
+                <span className="font-medium">
+                  {hasUnassignedRepos ? `Repos (${unassignedRepos.length})` : 'Teams'}
+                </span>
               </div>
             </button>
           )}
