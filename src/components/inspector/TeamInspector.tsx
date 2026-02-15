@@ -42,7 +42,7 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
           {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map((value) => (
             <InfoTooltip key={value} content={TEAM_TOPOLOGIES[value]} position="bottom">
               <button
-                onClick={() => updateTeam(team.id, { topologyType: value })}
+                onClick={() => updateTeam(team.id, { topologyType: team.topologyType === value ? undefined : value })}
                 className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
                   team.topologyType === value
                     ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 ring-1 ring-indigo-400'

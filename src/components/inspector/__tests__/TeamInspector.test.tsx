@@ -73,4 +73,16 @@ describe('TeamInspector', () => {
     fireEvent.click(screen.getByText('Delete Team'))
     expect(mockDeleteTeam).toHaveBeenCalledWith('team-1')
   })
+
+  it('deselects topology type when clicking the already-selected button', () => {
+    render(<TeamInspector project={makeProject()} teamId="team-1" />)
+    fireEvent.click(screen.getByText('Platform'))
+    expect(mockUpdateTeam).toHaveBeenCalledWith('team-1', { topologyType: undefined })
+  })
+
+  it('selects a different topology type when clicking an unselected button', () => {
+    render(<TeamInspector project={makeProject()} teamId="team-1" />)
+    fireEvent.click(screen.getByText('Stream'))
+    expect(mockUpdateTeam).toHaveBeenCalledWith('team-1', { topologyType: 'stream-aligned' })
+  })
 })
