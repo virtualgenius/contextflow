@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { NodeProps } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { Group } from '../../model/types'
+import { parseRgbColor } from '../../lib/nodeStyles'
 
 // Group node component - renders as a ReactFlow node for proper pan/zoom
 export function GroupNode({ data }: NodeProps) {
@@ -32,20 +33,7 @@ export function GroupNode({ data }: NodeProps) {
 
   const groupColor = group.color || '#3b82f6'
 
-  const getRgbValues = (color: string): [number, number, number] => {
-    if (color.startsWith('rgba(') || color.startsWith('rgb(')) {
-      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-      if (match) {
-        return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])]
-      }
-    }
-    const r = parseInt(color.slice(1, 3), 16)
-    const g = parseInt(color.slice(3, 5), 16)
-    const b = parseInt(color.slice(5, 7), 16)
-    return [r, g, b]
-  }
-
-  const [r, g, b] = getRgbValues(groupColor)
+  const [r, g, b] = parseRgbColor(groupColor)
 
   const backgroundColor = `rgba(${r}, ${g}, ${b}, ${groupOpacity})`
   const borderColor = `rgb(${r}, ${g}, ${b})`

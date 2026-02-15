@@ -20,6 +20,7 @@ import { generateBlobPath } from '../lib/blobShape'
 import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { NODE_SIZES } from '../lib/canvasConstants'
+import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
@@ -182,40 +183,15 @@ function CanvasContent() {
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
-      // Map 0-100 positions to pixel coordinates
-      // Choose position based on active view mode
-      let x, y
-      if (viewMode === 'distillation') {
-        // Distillation view uses independent 2D space
-        x = (context.positions.distillation.x / 100) * 2000
-        y = (1 - context.positions.distillation.y / 100) * 1000 // Invert Y for distillation (0 = bottom, 100 = top)
-      } else {
-        // Flow and Strategic views share Y axis
-        let xPos: number
-        let yPos: number
-
-        // Check if we should use temporal interpolation
-        const isTemporalMode = viewMode === 'strategic' && project.temporal?.enabled && currentDate
-        const keyframes = project.temporal?.keyframes || []
-
-        if (isTemporalMode && keyframes.length > 0) {
-          // Use interpolated positions for Strategic View in temporal mode
-          const basePosition = {
-            x: context.positions.strategic.x,
-            y: context.positions.shared.y,
-          }
-          const interpolated = interpolatePosition(context.id, currentDate!, keyframes, basePosition)
-          xPos = interpolated.x
-          yPos = interpolated.y
-        } else {
-          // Use base positions
-          xPos = viewMode === 'flow' ? context.positions.flow.x : context.positions.strategic.x
-          yPos = context.positions.shared.y
-        }
-
-        x = (xPos / 100) * 2000
-        y = (yPos / 100) * 1000
-      }
+      const keyframes = project.temporal?.keyframes || []
+      const { x, y } = getContextCanvasPosition(
+        context.positions,
+        viewMode as 'flow' | 'strategic' | 'distillation',
+        (viewMode === 'strategic' && project.temporal?.enabled) ? currentDate : null,
+        keyframes as any,
+        interpolatePosition as any,
+        context.id,
+      )
 
       // Check if this context is highlighted (by group, user, relationship, or need-context connection selection)
       const isMemberOfSelectedGroup = selectedGroup?.contextIds.includes(context.id)
@@ -651,28 +627,22 @@ function CanvasContent() {
       let deltaY = positionChange.position.y - draggedNode.position.y
 
       // Clamp delta so no selected node exceeds boundaries
-      const CANVAS_WIDTH = 2000
-      const CANVAS_HEIGHT = 1000
       const PROBLEM_SPACE_HEIGHT = 150
-
-      let maxDeltaLeft = Infinity
-      let maxDeltaRight = Infinity
-      let maxDeltaUp = Infinity
-      let maxDeltaDown = Infinity
-
-      for (const id of allSelectedIds) {
-        const n = nodes.find(node => node.id === id)
-        if (!n || n.type !== 'context') continue
-        const w = n.width ?? 170
-        const h = n.height ?? 100
-        maxDeltaLeft = Math.min(maxDeltaLeft, n.position.x)
-        maxDeltaRight = Math.min(maxDeltaRight, CANVAS_WIDTH - w - n.position.x)
-        maxDeltaUp = Math.min(maxDeltaUp, n.position.y - PROBLEM_SPACE_HEIGHT)
-        maxDeltaDown = Math.min(maxDeltaDown, CANVAS_HEIGHT - h - n.position.y)
-      }
-
-      deltaX = Math.max(-maxDeltaLeft, Math.min(maxDeltaRight, deltaX))
-      deltaY = Math.max(-maxDeltaUp, Math.min(maxDeltaDown, deltaY))
+      const selectedDragNodes = allSelectedIds
+        .map(id => nodes.find(node => node.id === id))
+        .filter((n): n is Node => n != null && n.type === 'context')
+        .map(n => ({
+          position: n.position,
+          width: n.width ?? 170,
+          height: n.height ?? 100,
+        }))
+      const clamped = clampDragDelta(
+        { x: deltaX, y: deltaY },
+        selectedDragNodes,
+        { width: 2000, height: 1000, minY: PROBLEM_SPACE_HEIGHT },
+      )
+      deltaX = clamped.x
+      deltaY = clamped.y
 
       // Update the original position change with clamped delta
       positionChange.position = {
