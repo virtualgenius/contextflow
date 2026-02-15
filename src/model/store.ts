@@ -492,9 +492,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     ...createSelectionState(stageIndex, 'stage'),
   }),
 
-  setSelectedTeam: (teamId) => set(teamId === null ? {
-    selectedTeamId: null,
-  } : {
+  setSelectedTeam: (teamId) => set({
     ...createSelectionState(teamId, 'team'),
   }),
 
@@ -511,11 +509,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
     getCollabMutations().addTeam(newTeam)
     useEditorStore.setState({
-      selectedTeamId: newTeam.id,
-      selectedContextId: null,
-      selectedGroupId: null,
-      selectedRelationshipId: null,
-      selectedStageIndex: null,
+      ...createSelectionState(newTeam.id, 'team'),
     })
     return newTeam.id
   },

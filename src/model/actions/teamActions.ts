@@ -1,24 +1,13 @@
 import type { EditorState } from '../storeTypes'
 import type { Team } from '../types'
+import { createSelectionState } from '../validation'
 
 export function setSelectedTeamAction(
-  state: EditorState,
+  _state: EditorState,
   teamId: string | null
 ): Partial<EditorState> {
-  if (teamId === null) {
-    return {
-      selectedTeamId: null,
-    }
-  }
-
   return {
-    selectedTeamId: teamId,
-    selectedContextId: null,
-    selectedRelationshipId: null,
-    selectedGroupId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(teamId, 'team'),
   }
 }
 
@@ -83,11 +72,7 @@ export function addTeamAction(
       ...state.projects,
       [projectId]: updatedProject,
     },
-    selectedTeamId: newTeam.id,
-    selectedContextId: null,
-    selectedGroupId: null,
-    selectedRelationshipId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(newTeam.id, 'team'),
     newTeamId: newTeam.id,
   }
 }

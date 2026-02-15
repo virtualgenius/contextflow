@@ -19,6 +19,7 @@ import { interpolatePosition, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
 import { calculateBoundingBox, translateContextsToRelative, calculateBlobPosition } from '../lib/blobPositioning'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
+import { createSelectionState } from '../model/validation'
 import { NODE_SIZES } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import { TimeSlider } from './TimeSlider'
@@ -439,15 +440,8 @@ function CanvasContent() {
         : []
 
       useEditorStore.setState({
-        selectedRelationshipId: edge.id,
-        selectedContextId: null,
+        ...createSelectionState(edge.id, 'relationship'),
         selectedContextIds: connectedContextIds,
-        selectedGroupId: null,
-        selectedUserId: null,
-        selectedUserNeedId: null,
-        selectedUserNeedConnectionId: null,
-        selectedNeedContextConnectionId: null,
-        selectedStageIndex: null,
       })
     }
   }, [project])
@@ -458,15 +452,7 @@ function CanvasContent() {
     if (node.type === 'group') {
       const groupId = node.id.replace('group-', '')
       useEditorStore.setState({
-        selectedGroupId: groupId,
-        selectedContextId: null,
-        selectedContextIds: [],
-        selectedUserId: null,
-        selectedUserNeedId: null,
-        selectedRelationshipId: null,
-        selectedUserNeedConnectionId: null,
-        selectedNeedContextConnectionId: null,
-        selectedStageIndex: null,
+        ...createSelectionState(groupId, 'group'),
       })
       return
     }
@@ -489,13 +475,17 @@ function CanvasContent() {
       useEditorStore.getState().toggleContextSelection(node.id)
     } else {
       // Single select
-      useEditorStore.setState({ selectedContextId: node.id, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null, selectedStageIndex: null })
+      useEditorStore.setState({
+          ...createSelectionState(node.id, 'context'),
+        })
     }
   }, [])
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
-    useEditorStore.setState({ selectedContextId: null, selectedContextIds: [], selectedGroupId: null, selectedUserId: null, selectedUserNeedId: null, selectedRelationshipId: null, selectedUserNeedConnectionId: null, selectedNeedContextConnectionId: null, selectedTeamId: null, selectedStageIndex: null })
+    useEditorStore.setState({
+      ...createSelectionState(null, 'context'),
+    })
   }, [])
 
   // Handle edge connection (User → User Need → Context, or Context → Context)

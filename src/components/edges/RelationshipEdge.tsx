@@ -15,6 +15,7 @@ import { getIndicatorBoxPosition } from '../../lib/edgeUtils'
 import { getEdgeParams, getBoxEdgePoint } from '../../lib/edgeGeometry'
 import { EDGE_HIT_AREA_WIDTH, EDGE_STROKE_WIDTH, EDGE_TRANSITION, PATTERN_EDGE_INDICATORS } from '../../lib/canvasConstants'
 import { EDGE_INDICATORS, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
+import { createSelectionState } from '../../model/validation'
 
 function RelationshipEdge({
   id,
@@ -263,15 +264,8 @@ function RelationshipEdge({
         onClick={(e) => {
           e.stopPropagation()
           useEditorStore.setState({
-            selectedRelationshipId: id,
-            selectedContextId: null,
+            ...createSelectionState(id, 'relationship'),
             selectedContextIds: [source, target],
-            selectedGroupId: null,
-            selectedUserId: null,
-            selectedUserNeedId: null,
-            selectedNeedContextConnectionId: null,
-            selectedUserNeedConnectionId: null,
-            selectedStageIndex: null,
           })
         }}
         onContextMenu={(e) => {

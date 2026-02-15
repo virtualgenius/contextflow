@@ -47,13 +47,15 @@ describe('teamActions', () => {
       expect(result.selectedGroupId).toBeNull()
     })
 
-    it('should not clear other selections when deselecting team', () => {
+    it('should clear all selections when deselecting team', () => {
       mockState.selectedTeamId = 'team-1'
 
       const result = setSelectedTeamAction(mockState, null)
 
       expect(result.selectedTeamId).toBeNull()
-      expect(result.selectedContextId).toBeUndefined()
+      expect(result.selectedContextId).toBeNull()
+      expect(result.selectedGroupId).toBeNull()
+      expect(result.selectedRelationshipId).toBeNull()
     })
   })
 
