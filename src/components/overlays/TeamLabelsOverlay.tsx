@@ -2,6 +2,7 @@ import { useViewport } from 'reactflow'
 import { Users } from 'lucide-react'
 import type { BoundedContext, Team } from '../../model/types'
 import { NODE_SIZES } from '../../lib/canvasConstants'
+import { getTopologyColors } from '../../lib/teamColors'
 
 export function TeamLabelsOverlay({
   contexts,
@@ -27,15 +28,6 @@ export function TeamLabelsOverlay({
 
   if (contextsWithTeams.length === 0) return null
 
-  // Team topology type colors (Team Topologies inspired)
-  const topologyColors: Record<string, { bg: string; border: string; text: string }> = {
-    'stream-aligned': { bg: '#f0fdf4', border: '#86efac', text: '#166534' },
-    'platform': { bg: '#faf5ff', border: '#d8b4fe', text: '#7c3aed' },
-    'enabling': { bg: '#fffbeb', border: '#fcd34d', text: '#b45309' },
-    'complicated-subsystem': { bg: '#fef2f2', border: '#fca5a5', text: '#b91c1c' },
-    'unknown': { bg: '#f8fafc', border: '#cbd5e1', text: '#475569' },
-  }
-
   return (
     <div
       style={{
@@ -49,7 +41,7 @@ export function TeamLabelsOverlay({
       {contextsWithTeams.map(context => {
         const team = teamMap.get(context.teamId!)!
         const nodeSize = NODE_SIZES[context.codeSize?.bucket || 'medium']
-        const colors = topologyColors[team.topologyType || 'unknown']
+        const colors = getTopologyColors(team.topologyType).light
 
         // Calculate position based on view mode
         let xPos: number, yPos: number

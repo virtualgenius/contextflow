@@ -6,6 +6,7 @@ import { TEAM_TOPOLOGIES } from '../../model/conceptDefinitions'
 import { InfoTooltip } from '../InfoTooltip'
 import { SimpleTooltip } from '../SimpleTooltip'
 import { INPUT_TITLE_CLASS, Section } from './inspectorShared'
+import { getTopologyColors } from '../../lib/teamColors'
 
 export function TeamInspector({ project, teamId }: { project: Project; teamId: string }) {
   const updateTeam = useEditorStore(s => s.updateTeam)
@@ -39,23 +40,32 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
       {/* Team Topology Type */}
       <Section label="Team Topology">
         <div className="flex flex-wrap gap-1.5">
-          {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map((value) => (
-            <InfoTooltip key={value} content={TEAM_TOPOLOGIES[value]} position="bottom">
-              <button
-                onClick={() => updateTeam(team.id, { topologyType: team.topologyType === value ? undefined : value })}
-                className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
-                  team.topologyType === value
-                    ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 ring-1 ring-indigo-400'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {value === 'stream-aligned' && 'Stream'}
-                {value === 'platform' && 'Platform'}
-                {value === 'enabling' && 'Enabling'}
-                {value === 'complicated-subsystem' && 'Subsystem'}
-              </button>
-            </InfoTooltip>
-          ))}
+          {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map((value) => {
+            const isActive = team.topologyType === value
+            const colors = isActive ? getTopologyColors(value).light : null
+            return (
+              <InfoTooltip key={value} content={TEAM_TOPOLOGIES[value]} position="bottom">
+                <button
+                  onClick={() => updateTeam(team.id, { topologyType: isActive ? undefined : value })}
+                  className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
+                    isActive
+                      ? 'ring-1'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                  style={colors ? {
+                    backgroundColor: colors.bg,
+                    color: colors.text,
+                    '--tw-ring-color': colors.border,
+                  } as React.CSSProperties : undefined}
+                >
+                  {value === 'stream-aligned' && 'Stream'}
+                  {value === 'platform' && 'Platform'}
+                  {value === 'enabling' && 'Enabling'}
+                  {value === 'complicated-subsystem' && 'Subsystem'}
+                </button>
+              </InfoTooltip>
+            )
+          })}
         </div>
       </Section>
 

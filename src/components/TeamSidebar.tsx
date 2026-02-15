@@ -1,6 +1,7 @@
 import React from 'react'
 import { Trash2 } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
+import { getTopologyColors } from '../lib/teamColors'
 
 interface TeamSidebarProps {
   teams: Team[]
@@ -65,6 +66,7 @@ export function TeamSidebar({
       {teams.map(team => {
         const count = contextCountForTeam(team.id, contexts)
         const isSelected = team.id === selectedTeamId
+        const badgeColors = team.topologyType ? getTopologyColors(team.topologyType).light : null
 
         return (
           <div
@@ -100,8 +102,15 @@ export function TeamSidebar({
             </div>
 
             <div className="flex items-center gap-2 mt-1">
-              {team.topologyType && team.topologyType !== 'unknown' && (
-                <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300">
+              {team.topologyType && team.topologyType !== 'unknown' && badgeColors && (
+                <span
+                  className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                  style={{
+                    backgroundColor: badgeColors.bg,
+                    color: badgeColors.text,
+                    border: `1px solid ${badgeColors.border}`,
+                  }}
+                >
                   {TOPOLOGY_LABELS[team.topologyType]}
                 </span>
               )}
