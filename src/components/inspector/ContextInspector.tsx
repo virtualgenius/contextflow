@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trash2, X, Users, Plus, ArrowRight, ArrowLeftRight, HelpCircle, Clock, AlertTriangle, AlertOctagon, Info } from 'lucide-react'
+import { Trash2, X, Users, Plus, ArrowRight, HelpCircle, Clock } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import { RelationshipCreateDialog } from '../RelationshipCreateDialog'
 import { Switch } from '../Switch'
@@ -8,8 +8,11 @@ import { classifyFromStrategicPosition } from '../../model/classification'
 import { InfoTooltip } from '../InfoTooltip'
 import { SimpleTooltip } from '../SimpleTooltip'
 import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, LEGACY_CONTEXT, POWER_DYNAMICS, OWNERSHIP_DEFINITIONS } from '../../model/conceptDefinitions'
-import type { ContextOwnership, UserNeedConnection, NeedContextConnection, User, Project } from '../../model/types'
+import type { ContextOwnership, Project } from '../../model/types'
+import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
 import { RepoCard } from './ContextRepoCard'
+import { RelationshipGroup } from './RelationshipGroup'
+import { IssueSeverityButton } from './IssueSeverityButton'
 import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
 export function ContextInspector({ project, contextId }: { project: Project; contextId: string }) {
@@ -19,7 +22,6 @@ export function ContextInspector({ project, contextId }: { project: Project; con
   const unassignRepo = useEditorStore(s => s.unassignRepo)
   const addRelationship = useEditorStore(s => s.addRelationship)
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
-  const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
   const addContextIssue = useEditorStore(s => s.addContextIssue)
   const updateContextIssue = useEditorStore(s => s.updateContextIssue)
   const deleteContextIssue = useEditorStore(s => s.deleteContextIssue)
@@ -82,17 +84,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
       {/* Users connected via user needs - between name and purpose, no heading */}
       {(() => {
-        const needContextConns = (project.needContextConnections || []).filter(
-          (nc: NeedContextConnection) => nc.contextId === context.id
-        )
-        const connectedUserNeedIds = new Set(needContextConns.map((nc: NeedContextConnection) => nc.userNeedId))
-        const userNeedConns = (project.userNeedConnections || []).filter(
-          (uc: UserNeedConnection) => connectedUserNeedIds.has(uc.userNeedId)
-        )
-        const uniqueUserIds = [...new Set(userNeedConns.map((uc: UserNeedConnection) => uc.userId))]
-        const usersForContext = uniqueUserIds
-          .map(userId => project.users?.find((u: User) => u.id === userId))
-          .filter((user): user is User => !!user)
+        const usersForContext = getConnectedUsers(project, context.id)
 
         return usersForContext.length > 0 ? (
           <div className="space-y-1">
@@ -229,13 +221,14 @@ export function ContextInspector({ project, contextId }: { project: Project; con
               >
                 {group.label}
               </button>
-              <button
-                onClick={() => removeContextFromGroup(group.id, context.id)}
-                className="opacity-0 group-hover/chip:opacity-100 transition-opacity hover:bg-white/50 dark:hover:bg-black/20 rounded p-0.5"
-                title="Remove from group"
-              >
-                <X size={10} />
-              </button>
+              <SimpleTooltip text="Remove from group" position="top">
+                <button
+                  onClick={() => removeContextFromGroup(group.id, context.id)}
+                  className="opacity-0 group-hover/chip:opacity-100 transition-opacity hover:bg-white/50 dark:hover:bg-black/20 rounded p-0.5"
+                >
+                  <X size={10} />
+                </button>
+              </SimpleTooltip>
             </div>
           ))}
         </div>
@@ -415,42 +408,14 @@ export function ContextInspector({ project, contextId }: { project: Project; con
             {context.issues.map((issue, index) => (
               <div key={issue.id} className="group/issue flex items-center gap-1.5">
                 <div className="flex-shrink-0 flex items-center gap-0.5">
-                  <SimpleTooltip text="Info: General note" position="top">
-                    <button
-                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'info' })}
-                      className={`p-0.5 rounded transition-colors ${
-                        issue.severity === 'info'
-                          ? 'bg-blue-100 dark:bg-blue-900/40'
-                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                      }`}
-                    >
-                      <Info size={14} className={issue.severity === 'info' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
-                    </button>
-                  </SimpleTooltip>
-                  <SimpleTooltip text="Warning: Needs attention" position="top">
-                    <button
-                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'warning' })}
-                      className={`p-0.5 rounded transition-colors ${
-                        issue.severity === 'warning'
-                          ? 'bg-amber-100 dark:bg-amber-900/40'
-                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                      }`}
-                    >
-                      <AlertTriangle size={14} className={issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'} />
-                    </button>
-                  </SimpleTooltip>
-                  <SimpleTooltip text="Critical: Urgent problem" position="top">
-                    <button
-                      onClick={() => updateContextIssue(context.id, issue.id, { severity: 'critical' })}
-                      className={`p-0.5 rounded transition-colors ${
-                        issue.severity === 'critical'
-                          ? 'bg-red-100 dark:bg-red-900/40'
-                          : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
-                      }`}
-                    >
-                      <AlertOctagon size={14} className={issue.severity === 'critical' ? 'text-red-600 dark:text-red-400' : 'text-slate-400 dark:text-slate-500'} />
-                    </button>
-                  </SimpleTooltip>
+                  {(['info', 'warning', 'critical'] as const).map(severity => (
+                    <IssueSeverityButton
+                      key={severity}
+                      severity={severity}
+                      isActive={issue.severity === severity}
+                      onClick={() => updateContextIssue(context.id, issue.id, { severity })}
+                    />
+                  ))}
                 </div>
                 <input
                   type="text"
@@ -494,16 +459,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
       {/* Relationships */}
       {(() => {
-        const isSymmetricPattern = (pattern: string) =>
-          pattern === 'shared-kernel' || pattern === 'partnership'
-
-        const upstream = project.relationships.filter(r =>
-          r.fromContextId === context.id && !isSymmetricPattern(r.pattern))
-        const downstream = project.relationships.filter(r =>
-          r.toContextId === context.id && !isSymmetricPattern(r.pattern))
-        const mutual = project.relationships.filter(r =>
-          (r.fromContextId === context.id || r.toContextId === context.id) &&
-          isSymmetricPattern(r.pattern))
+        const { upstream, downstream, mutual } = categorizeRelationships(project.relationships, context.id)
 
         return (
           <div>
@@ -516,126 +472,30 @@ export function ContextInspector({ project, contextId }: { project: Project; con
               </InfoTooltip>
             </div>
             <div className="text-[13px]">
-            {upstream.length > 0 && (
-              <div className="mb-3">
-                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
-                  Upstream
-                </div>
-                <div className="space-y-2">
-                  {upstream.map(rel => {
-                    const targetContext = project.contexts.find(c => c.id === rel.toContextId)
-                    return (
-                      <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <ArrowRight size={12} className="text-slate-400 flex-shrink-0" />
-                            <span className="text-slate-700 dark:text-slate-300 font-medium">
-                              {targetContext?.name || 'Unknown'}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
-                            {rel.pattern}
-                          </div>
-                          {rel.description && (
-                            <div className="text-[10px] text-slate-600 dark:text-slate-400 ml-5 mt-1">
-                              {rel.description}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => deleteRelationship(rel.id)}
-                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/rel:opacity-100"
-                          title="Delete relationship"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {downstream.length > 0 && (
-              <div className="mb-3">
-                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
-                  Downstream
-                </div>
-                <div className="space-y-2">
-                  {downstream.map(rel => {
-                    const sourceContext = project.contexts.find(c => c.id === rel.fromContextId)
-                    return (
-                      <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />
-                            <span className="text-slate-700 dark:text-slate-300 font-medium">
-                              {sourceContext?.name || 'Unknown'}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
-                            {rel.pattern}
-                          </div>
-                          {rel.description && (
-                            <div className="text-[10px] text-slate-600 dark:text-slate-400 ml-5 mt-1">
-                              {rel.description}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => deleteRelationship(rel.id)}
-                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/rel:opacity-100"
-                          title="Delete relationship"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {mutual.length > 0 && (
-              <div className="mb-3">
-                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">
-                  Mutual
-                </div>
-                <div className="space-y-2">
-                  {mutual.map(rel => {
-                    const otherContextId = rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId
-                    const otherContext = project.contexts.find(c => c.id === otherContextId)
-                    return (
-                      <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>
-                            <span className="text-slate-700 dark:text-slate-300 font-medium">
-                              {otherContext?.name || 'Unknown'}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 ml-5 mt-0.5">
-                            {rel.pattern}
-                          </div>
-                          {rel.description && (
-                            <div className="text-[10px] text-slate-600 dark:text-slate-400 ml-5 mt-1">
-                              {rel.description}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => deleteRelationship(rel.id)}
-                          className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover/rel:opacity-100"
-                          title="Delete relationship"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+            <RelationshipGroup
+              title="Upstream"
+              relationships={upstream}
+              contexts={project.contexts}
+              onDelete={deleteRelationship}
+              icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0" />}
+              getTargetContextId={rel => rel.toContextId}
+            />
+            <RelationshipGroup
+              title="Downstream"
+              relationships={downstream}
+              contexts={project.contexts}
+              onDelete={deleteRelationship}
+              icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />}
+              getTargetContextId={rel => rel.fromContextId}
+            />
+            <RelationshipGroup
+              title="Mutual"
+              relationships={mutual}
+              contexts={project.contexts}
+              onDelete={deleteRelationship}
+              icon={<span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>}
+              getTargetContextId={rel => rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId}
+            />
 
             {/* Add Relationship button */}
             <button
