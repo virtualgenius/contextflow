@@ -3,6 +3,15 @@ import { Users } from 'lucide-react'
 import type { BoundedContext, Team } from '../../model/types'
 import { NODE_SIZES } from '../../lib/canvasConstants'
 import { getTopologyColors } from '../../lib/teamColors'
+import { SimpleTooltip } from '../SimpleTooltip'
+import { TEAM_TOPOLOGIES } from '../../model/conceptDefinitions'
+
+const TOPOLOGY_SHORT_LABELS: Record<string, string> = {
+  'stream-aligned': 'Stream',
+  'platform': 'Platform',
+  'enabling': 'Enabling',
+  'complicated-subsystem': 'Subsystem',
+}
 
 export function TeamLabelsOverlay({
   contexts,
@@ -67,34 +76,51 @@ export function TeamLabelsOverlay({
           ? team.name.substring(0, 22) + '...'
           : team.name
 
+        const topologyDef = team.topologyType && team.topologyType !== 'unknown'
+          ? TEAM_TOPOLOGIES[team.topologyType]
+          : null
+        const tooltipText = topologyDef
+          ? `${topologyDef.title}: ${topologyDef.description}`
+          : team.name
+
         return (
-          <div
-            key={`team-label-${context.id}`}
-            onClick={onTeamClick ? (e) => { e.stopPropagation(); onTeamClick(team.id) } : undefined}
-            style={{
-              position: 'absolute',
-              left: transformedX,
-              top: transformedY,
-              transform: 'translate(-50%, -100%)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: `${3 * zoom}px`,
-              padding: `${2 * zoom}px ${6 * zoom}px`,
-              backgroundColor: colors.bg,
-              border: `${Math.max(1, 1 * zoom)}px solid ${colors.border}`,
-              borderRadius: `${4 * zoom}px`,
-              fontSize: `${10 * zoom}px`,
-              fontWeight: 500,
-              color: colors.text,
-              whiteSpace: 'nowrap',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              pointerEvents: onTeamClick ? 'auto' : 'none',
-              cursor: onTeamClick ? 'pointer' : 'default',
-            }}
-          >
-            <Users size={Math.max(10, 12 * zoom)} />
-            <span>{truncatedName}</span>
-          </div>
+          <SimpleTooltip key={`team-label-${context.id}`} text={tooltipText} position="top">
+            <div
+              onClick={onTeamClick ? (e) => { e.stopPropagation(); onTeamClick(team.id) } : undefined}
+              style={{
+                position: 'absolute',
+                left: transformedX,
+                top: transformedY,
+                transform: 'translate(-50%, -100%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: `${3 * zoom}px`,
+                padding: `${2 * zoom}px ${6 * zoom}px`,
+                backgroundColor: colors.bg,
+                border: `${Math.max(1, 1 * zoom)}px solid ${colors.border}`,
+                borderRadius: `${4 * zoom}px`,
+                fontSize: `${10 * zoom}px`,
+                fontWeight: 500,
+                color: colors.text,
+                whiteSpace: 'nowrap',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                pointerEvents: 'auto',
+                cursor: onTeamClick ? 'pointer' : 'default',
+              }}
+            >
+              <Users size={Math.max(10, 12 * zoom)} />
+              <span>{truncatedName}</span>
+              {team.topologyType && team.topologyType !== 'unknown' && (
+                <span style={{
+                  fontSize: `${8 * zoom}px`,
+                  opacity: 0.7,
+                  fontWeight: 400,
+                }}>
+                  ({TOPOLOGY_SHORT_LABELS[team.topologyType]})
+                </span>
+              )}
+            </div>
+          </SimpleTooltip>
         )
       })}
     </div>

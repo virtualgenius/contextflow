@@ -53,7 +53,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('Our Team (green)')
+      expect(lines).toContain('Our Team (green) - you control the roadmap and priorities')
     })
 
     it('returns Internal (blue) for internal ownership', () => {
@@ -64,7 +64,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('Internal (blue)')
+      expect(lines).toContain('Internal (blue) - another team owns this; coordination needed')
     })
 
     it('returns External (orange) for external ownership', () => {
@@ -75,7 +75,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('External (orange)')
+      expect(lines).toContain('External (orange) - third-party; limited ability to request changes')
     })
 
     it('omits ownership line when colorByMode is strategic', () => {
@@ -97,7 +97,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('Strong boundary')
+      expect(lines).toContain('Strong boundary - clear API contracts, independently deployable')
     })
 
     it('includes moderate boundary', () => {
@@ -108,7 +108,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('Moderate boundary')
+      expect(lines).toContain('Moderate boundary - some shared dependencies, coordination needed')
     })
 
     it('includes weak boundary', () => {
@@ -119,7 +119,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('Weak boundary')
+      expect(lines).toContain('Weak boundary - significant coupling, changes ripple across contexts')
     })
 
     it('omits boundary when unset', () => {
@@ -226,8 +226,8 @@ describe('getContextTooltipLines', () => {
         contexts: otherContexts,
       })
       expect(lines).toEqual([
-        'Our Team (green)',
-        'Strong boundary',
+        'Our Team (green) - you control the roadmap and priorities',
+        'Strong boundary - clear API contracts, independently deployable',
         '1 issues',
         'Connected to Billing',
         'Drag handles to connect to other contexts',
@@ -315,7 +315,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual(['Core Domain | Our Team | Strong boundary'])
+      expect(lines).toEqual(['Core Domain | Our Team | Strong boundary - clear API contracts, independently deployable'])
     })
 
     it('omits unset properties from summary', () => {
@@ -378,7 +378,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual(['Weak boundary'])
+      expect(lines).toEqual(['Weak boundary - significant coupling, changes ripple across contexts'])
     })
   })
 })

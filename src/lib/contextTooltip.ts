@@ -9,15 +9,15 @@ interface TooltipParams {
 }
 
 const OWNERSHIP_LABELS: Record<string, string> = {
-  ours: 'Our Team (green)',
-  internal: 'Internal (blue)',
-  external: 'External (orange)',
+  ours: 'Our Team (green) - you control the roadmap and priorities',
+  internal: 'Internal (blue) - another team owns this; coordination needed',
+  external: 'External (orange) - third-party; limited ability to request changes',
 }
 
 const BOUNDARY_LABELS: Record<string, string> = {
-  strong: 'Strong boundary',
-  moderate: 'Moderate boundary',
-  weak: 'Weak boundary',
+  strong: 'Strong boundary - clear API contracts, independently deployable',
+  moderate: 'Moderate boundary - some shared dependencies, coordination needed',
+  weak: 'Weak boundary - significant coupling, changes ripple across contexts',
 }
 
 const CLASSIFICATION_LABELS: Record<string, string> = {
