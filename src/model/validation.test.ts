@@ -67,6 +67,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -83,6 +84,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -99,6 +101,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -115,6 +118,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -131,6 +135,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -147,6 +152,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: 'conn1',
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -163,6 +169,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: 'conn2',
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -179,6 +186,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -195,6 +203,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: 2,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })
@@ -211,6 +220,24 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
+      selectedTeamId: null,
+      selectedContextIds: [],
+    })
+  })
+
+  it('creates team selection state', () => {
+    const result = createSelectionState('team1', 'team')
+
+    expect(result).toEqual({
+      selectedContextId: null,
+      selectedRelationshipId: null,
+      selectedGroupId: null,
+      selectedUserId: null,
+      selectedUserNeedId: null,
+      selectedUserNeedConnectionId: null,
+      selectedNeedContextConnectionId: null,
+      selectedStageIndex: null,
+      selectedTeamId: 'team1',
       selectedContextIds: [],
     })
   })
@@ -227,6 +254,7 @@ describe('createSelectionState', () => {
       selectedUserNeedConnectionId: null,
       selectedNeedContextConnectionId: null,
       selectedStageIndex: 0,
+      selectedTeamId: null,
       selectedContextIds: [],
     })
   })

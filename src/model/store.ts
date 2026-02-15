@@ -67,6 +67,39 @@ function loadExistingProjectFromYDoc(
   }
 }
 
+async function reconnectCollabForProject(
+  projectId: string,
+  project: Project,
+  options?: { loadExisting?: boolean }
+): Promise<void> {
+  destroyCollabMode()
+
+  const networkStore = useNetworkCollabStore.getState()
+  await networkStore.connectToProject(projectId)
+
+  const ydoc = useNetworkCollabStore.getState().ydoc
+  if (ydoc) {
+    populateYDocWithProject(ydoc, project)
+
+    const updateStoreAndAutosave = (updatedProject: Project): void => {
+      useEditorStore.setState((s) => ({
+        projects: {
+          ...s.projects,
+          [updatedProject.id]: updatedProject,
+        },
+      }))
+      saveProject(updatedProject).catch((err) => {
+        console.error('Failed to autosave project to IndexedDB:', err)
+      })
+    }
+    initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
+
+    if (options?.loadExisting) {
+      loadExistingProjectFromYDoc(ydoc, updateStoreAndAutosave)
+    }
+  }
+}
+
 export const useEditorStore = create<EditorState>((set) => ({
   activeProjectId: initialActiveProjectId,
   projects: initialProjects,
@@ -237,45 +270,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Update state immediately
     useEditorStore.setState(() => ({
       activeProjectId: projectId,
-      selectedContextId: null,
-      selectedGroupId: null,
-      selectedTeamId: null,
-      selectedUserId: null,
-      selectedUserNeedId: null,
-      selectedUserNeedConnectionId: null,
-      selectedNeedContextConnectionId: null,
-      selectedStageIndex: null,
-      selectedContextIds: [],
+      ...createSelectionState(null, 'context'),
       undoStack: [],
       redoStack: [],
     }))
 
-    // Destroy any existing collab mode
-    destroyCollabMode()
-
-    // Connect to the network using collabStore
-    const networkStore = useNetworkCollabStore.getState()
-    await networkStore.connectToProject(projectId)
-
-    // Get the network-connected Y.Doc and use it for mutations
-    const ydoc = useNetworkCollabStore.getState().ydoc
-    if (ydoc) {
-      // Populate the Y.Doc with the existing project data if network is empty
-      populateYDocWithProject(ydoc, project)
-
-      const updateStoreAndAutosave = (updatedProject: Project): void => {
-        useEditorStore.setState((s) => ({
-          projects: {
-            ...s.projects,
-            [updatedProject.id]: updatedProject,
-          },
-        }))
-        saveProject(updatedProject).catch((err) => {
-          console.error('Failed to autosave cloud project to IndexedDB:', err)
-        })
-      }
-      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
-    }
+    await reconnectCollabForProject(projectId, project)
   },
 
   createProject: async (name) => {
@@ -294,32 +294,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Update state immediately with the new project
     useEditorStore.setState(() => result)
 
-    // Destroy any existing collab mode
-    destroyCollabMode()
-
-    // Connect to the network using collabStore
-    const networkStore = useNetworkCollabStore.getState()
-    await networkStore.connectToProject(newProjectId)
-
-    // Get the network-connected Y.Doc and use it for mutations
-    const ydoc = useNetworkCollabStore.getState().ydoc
-    if (ydoc) {
-      // Populate the Y.Doc with the new empty project data
-      populateYDocWithProject(ydoc, newProject)
-
-      const updateStoreAndAutosave = (updatedProject: Project): void => {
-        useEditorStore.setState((s) => ({
-          projects: {
-            ...s.projects,
-            [updatedProject.id]: updatedProject,
-          },
-        }))
-        saveProject(updatedProject).catch((err) => {
-          console.error('Failed to autosave cloud project to IndexedDB:', err)
-        })
-      }
-      initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
-    }
+    await reconnectCollabForProject(newProjectId, newProject)
   },
 
   createFromTemplate: async (templateId) => {
@@ -334,16 +309,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         [newProject.id]: newProject,
       },
       activeProjectId: newProject.id,
-      selectedContextId: null,
-      selectedRelationshipId: null,
-      selectedGroupId: null,
-      selectedUserId: null,
-      selectedUserNeedId: null,
-      selectedUserNeedConnectionId: null,
-      selectedNeedContextConnectionId: null,
-      selectedStageIndex: null,
-      selectedTeamId: null,
-      selectedContextIds: [],
+      ...createSelectionState(null, 'context'),
       undoStack: [],
       redoStack: [],
     }))
@@ -544,44 +510,17 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   setSelectedRelationship: (relationshipId) => set({
-    selectedRelationshipId: relationshipId,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(relationshipId, 'relationship'),
   }),
 
   setSelectedStage: (stageIndex) => set({
-    selectedStageIndex: stageIndex,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedRelationshipId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
+    ...createSelectionState(stageIndex, 'stage'),
   }),
 
   setSelectedTeam: (teamId) => set(teamId === null ? {
     selectedTeamId: null,
   } : {
-    selectedTeamId: teamId,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedStageIndex: null,
-    selectedRelationshipId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
+    ...createSelectionState(teamId, 'team'),
   }),
 
   updateTeam: (teamId, updates) => set(() => {
@@ -653,16 +592,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   setSelectedUser: (userId) => set({
-    selectedUserId: userId,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedRelationshipId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(userId, 'user'),
   }),
 
   addUserNeed: (name) => {
@@ -715,42 +645,15 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   setSelectedUserNeed: (userNeedId) => set({
-    selectedUserNeedId: userNeedId,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedRelationshipId: null,
-    selectedUserId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(userNeedId, 'userNeed'),
   }),
 
   setSelectedUserNeedConnection: (connectionId) => set({
-    selectedUserNeedConnectionId: connectionId,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedRelationshipId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(connectionId, 'userNeedConnection'),
   }),
 
   setSelectedNeedContextConnection: (connectionId) => set({
-    selectedNeedContextConnectionId: connectionId,
-    selectedContextId: null,
-    selectedContextIds: [],
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedRelationshipId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedStageIndex: null,
+    ...createSelectionState(connectionId, 'needContextConnection'),
   }),
 
   createUserNeedConnection: (userId, userNeedId) => {
@@ -948,15 +851,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newStageIndex = stages.length
 
     return {
-      selectedStageIndex: newStageIndex,
-      selectedContextId: null,
-      selectedContextIds: [],
-      selectedGroupId: null,
-      selectedRelationshipId: null,
-      selectedUserId: null,
-      selectedUserNeedId: null,
-      selectedUserNeedConnectionId: null,
-      selectedNeedContextConnectionId: null,
+      ...createSelectionState(newStageIndex, 'stage'),
     }
   }),
 
@@ -1037,16 +932,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         [migratedProject.id]: migratedProject,
       },
       activeProjectId: migratedProject.id,
-      selectedContextId: null,
-      selectedRelationshipId: null,
-      selectedGroupId: null,
-      selectedUserId: null,
-      selectedUserNeedId: null,
-      selectedUserNeedConnectionId: null,
-      selectedNeedContextConnectionId: null,
-      selectedStageIndex: null,
-      selectedTeamId: null,
-      selectedContextIds: [],
+      ...createSelectionState(null, 'context'),
     }))
 
     destroyCollabMode()
@@ -1080,16 +966,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       [cbioportal.id]: cbioportal,
     },
     activeViewMode: 'flow',
-    selectedContextId: null,
-    selectedRelationshipId: null,
-    selectedGroupId: null,
-    selectedTeamId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
-    selectedContextIds: [],
+    ...createSelectionState(null, 'context'),
     undoStack: [],
     redoStack: [],
   }),
@@ -1121,15 +998,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         [projectId]: placeholderProject,
       },
       activeProjectId: projectId,
-      selectedContextId: null,
-      selectedGroupId: null,
-      selectedTeamId: null,
-      selectedUserId: null,
-      selectedUserNeedId: null,
-      selectedUserNeedConnectionId: null,
-      selectedNeedContextConnectionId: null,
-      selectedStageIndex: null,
-      selectedContextIds: [],
+      ...createSelectionState(null, 'context'),
       undoStack: [],
       redoStack: [],
     }))

@@ -1,5 +1,6 @@
 import type { Project } from '../types'
 import type { EditorState } from '../storeTypes'
+import { createSelectionState } from '../validation'
 
 export interface ValidationResult {
   valid: boolean
@@ -54,16 +55,7 @@ export function createProjectAction(
       [newProject.id]: newProject,
     },
     activeProjectId: newProject.id,
-    selectedContextId: null,
-    selectedRelationshipId: null,
-    selectedGroupId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
-    selectedTeamId: null,
-    selectedContextIds: [],
+    ...createSelectionState(null, 'context'),
     undoStack: [],
     redoStack: [],
   }
@@ -133,16 +125,7 @@ export function deleteProjectAction(
   }
 
   if (isDeletingActiveProject) {
-    result.selectedContextId = null
-    result.selectedRelationshipId = null
-    result.selectedGroupId = null
-    result.selectedUserId = null
-    result.selectedUserNeedId = null
-    result.selectedUserNeedConnectionId = null
-    result.selectedNeedContextConnectionId = null
-    result.selectedStageIndex = null
-    result.selectedTeamId = null
-    result.selectedContextIds = []
+    Object.assign(result, createSelectionState(null, 'context'))
     result.undoStack = []
     result.redoStack = []
   }
@@ -312,16 +295,7 @@ function duplicateViewConfig(project: Project) {
 
 function createClearedSelectionState(): Partial<EditorState> {
   return {
-    selectedContextId: null,
-    selectedRelationshipId: null,
-    selectedGroupId: null,
-    selectedUserId: null,
-    selectedUserNeedId: null,
-    selectedUserNeedConnectionId: null,
-    selectedNeedContextConnectionId: null,
-    selectedStageIndex: null,
-    selectedTeamId: null,
-    selectedContextIds: [],
+    ...createSelectionState(null, 'context'),
     undoStack: [],
     redoStack: [],
   }

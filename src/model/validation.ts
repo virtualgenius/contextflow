@@ -34,10 +34,11 @@ export interface SelectionState {
   selectedUserNeedConnectionId: string | null
   selectedNeedContextConnectionId: string | null
   selectedStageIndex: number | null
+  selectedTeamId: string | null
   selectedContextIds: string[]
 }
 
-type SelectionType = 'context' | 'relationship' | 'group' | 'user' | 'userNeed' | 'userNeedConnection' | 'needContextConnection' | 'stage'
+type SelectionType = 'context' | 'relationship' | 'group' | 'user' | 'userNeed' | 'userNeedConnection' | 'needContextConnection' | 'stage' | 'team'
 
 export function createSelectionState(
   selectedId: string | null,
@@ -62,6 +63,7 @@ export function createSelectionState(
     selectedUserNeedConnectionId: null,
     selectedNeedContextConnectionId: null,
     selectedStageIndex: null,
+    selectedTeamId: null,
     selectedContextIds: [],
   }
 
@@ -82,5 +84,7 @@ export function createSelectionState(
       return { ...baseState, selectedNeedContextConnectionId: selectedValue as string | null }
     case 'stage':
       return { ...baseState, selectedStageIndex: selectedValue as number | null }
+    case 'team':
+      return { ...baseState, selectedTeamId: selectedValue as string | null }
   }
 }
