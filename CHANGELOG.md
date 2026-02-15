@@ -4,6 +4,23 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.9.0] - 2026-02-15
+
+- Teams sidebar panel with tab navigation between Repos and Teams in the left sidebar
+- Drag-and-drop team assignment from the Teams sidebar onto bounded context nodes
+- Relationship UX improvements: bigger connection handles, edge labels, direction icons, and hover highlights on connected contexts
+- Rich educational tooltips across all canvas elements (contexts, users, user needs, groups, relationships, ACL/OHS indicators)
+- Visual Guide color legend on canvas explaining node colors and border styles
+- Fixed collaboration sync bugs where issue/hotspot and store mutations bypassed Yjs, causing silent data overwrites
+- Fixed orphaned data (repos, teams, issues, relationships) left behind when deleting a bounded context
+- Fixed cloud sync collisions caused by duplicate IDs in built-in projects
+- Fixed sharing a project not connecting to cloud
+- Fixed ACL/OHS indicator box hover detection
+- Fixed stage selection not clearing when clicking canvas
+- Fixed team topology type not deselectable
+- Added accessibility labels to toolbar buttons
+- Added SPA routing support for GitHub Pages
+
 ## [0.8.0] - 2025-12-09
 
 - Real-time collaboration allowing multiple users to edit the same project simultaneously
