@@ -25,6 +25,7 @@ export function ContextNode({ data }: NodeProps) {
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
+  const assignTeamToContext = useEditorStore(s => s.assignTeamToContext)
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const viewMode = useEditorStore(s => s.activeViewMode)
@@ -92,7 +93,9 @@ export function ContextNode({ data }: NodeProps) {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (e.dataTransfer.types.includes('application/contextflow-repo')) {
+    const hasRepo = e.dataTransfer.types.includes('application/contextflow-repo')
+    const hasTeam = e.dataTransfer.types.includes('application/contextflow-team')
+    if (hasRepo || (hasTeam && context.ownership !== 'external')) {
       setIsDragOver(true)
     }
   }
@@ -111,6 +114,11 @@ export function ContextNode({ data }: NodeProps) {
     const repoId = e.dataTransfer.getData('application/contextflow-repo')
     if (repoId) {
       assignRepoToContext(repoId, context.id)
+    }
+
+    const teamId = e.dataTransfer.getData('application/contextflow-team')
+    if (teamId && context.ownership !== 'external') {
+      assignTeamToContext(context.id, teamId)
     }
   }
 

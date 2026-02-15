@@ -36,6 +36,11 @@ export function TeamSidebar({
 }: TeamSidebarProps) {
   const [newTeamName, setNewTeamName] = React.useState('')
 
+  const handleDragStart = (e: React.DragEvent, teamId: string) => {
+    e.dataTransfer.setData('application/contextflow-team', teamId)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
   const handleAddTeam = () => {
     const trimmed = newTeamName.trim()
     if (!trimmed) return
@@ -65,8 +70,10 @@ export function TeamSidebar({
           <div
             key={team.id}
             data-testid={`team-card-${team.id}`}
+            draggable
+            onDragStart={(e) => handleDragStart(e, team.id)}
             onClick={() => onSelectTeam(team.id)}
-            className={`bg-slate-50 dark:bg-neutral-900 border rounded p-2.5 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800 transition-colors ${
+            className={`bg-slate-50 dark:bg-neutral-900 border rounded p-2.5 cursor-move hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800 transition-colors ${
               isSelected
                 ? 'border-blue-400 dark:border-blue-500 ring-1 ring-blue-400 dark:ring-blue-500'
                 : 'border-slate-200 dark:border-neutral-700'

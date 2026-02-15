@@ -325,4 +325,42 @@ describe('TeamSidebar', () => {
       expect(onSelectTeam).not.toHaveBeenCalled()
     })
   })
+
+  describe('drag and drop', () => {
+    it('team card has draggable attribute', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const card = screen.getByTestId('team-card-team-1')
+      expect(card).toHaveAttribute('draggable', 'true')
+    })
+
+    it('sets team MIME type data on drag start', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const card = screen.getByTestId('team-card-team-1')
+      const dataTransfer = {
+        setData: vi.fn(),
+        effectAllowed: '',
+      }
+      fireEvent.dragStart(card, { dataTransfer })
+      expect(dataTransfer.setData).toHaveBeenCalledWith('application/contextflow-team', 'team-1')
+      expect(dataTransfer.effectAllowed).toBe('move')
+    })
+  })
 })
