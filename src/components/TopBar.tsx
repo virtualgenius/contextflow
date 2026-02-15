@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, Sun, Moon, User, Settings, Box, Hash, Target, ChevronDown, Share2 } from 'lucide-react'
-import { useTheme } from '../hooks/useTheme'
+import { Undo2, Redo2, Plus, Download, Upload, User, Settings, Box, Hash, Target, ChevronDown, Share2 } from 'lucide-react'
 import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
+import { Switch } from './Switch'
+import { SettingsViewOptions } from './settings/SettingsViewOptions'
+import { SettingsHelp } from './settings/SettingsHelp'
+import { SettingsDisplay } from './settings/SettingsDisplay'
+import { SettingsIntegrations } from './settings/SettingsIntegrations'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
@@ -36,27 +40,10 @@ export function TopBar() {
   const addUser = useEditorStore(s => s.addUser)
   const addUserNeed = useEditorStore(s => s.addUserNeed)
   const addFlowStage = useEditorStore(s => s.addFlowStage)
-  const exportProject = useEditorStore(s => s.exportProject)
   const importProject = useEditorStore(s => s.importProject)
-  const showGroups = useEditorStore(s => s.showGroups)
-  const showRelationships = useEditorStore(s => s.showRelationships)
-  const showIssueLabels = useEditorStore(s => s.showIssueLabels)
-  const showTeamLabels = useEditorStore(s => s.showTeamLabels)
-  const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
-  const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
-  const toggleIssueLabels = useEditorStore(s => s.toggleIssueLabels)
-  const toggleTeamLabels = useEditorStore(s => s.toggleTeamLabels)
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
-  const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
   const resetWelcome = useEditorStore(s => s.resetWelcome)
-  const groupOpacity = useEditorStore(s => s.groupOpacity)
-  const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
-  const colorByMode = useEditorStore(s => s.colorByMode)
-  const setColorByMode = useEditorStore(s => s.setColorByMode)
   const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
   const temporalEnabled = project?.temporal?.enabled || false
-
-  const { theme, toggleTheme } = useTheme()
   const { route, navigate } = useUrlRouter()
   const [showSettings, setShowSettings] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
@@ -66,10 +53,6 @@ export function TopBar() {
     importedProject: Project
     existingProject: Project
   } | null>(null)
-  const [useCodeCohesionAPI, setUseCodeCohesionAPI] = useState(() => {
-    const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
-    return stored === 'true'
-  })
 
   // Close settings popover when clicking outside
   useEffect(() => {
@@ -299,19 +282,7 @@ export function TopBar() {
           <>
             <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
             <InfoTooltip content={TEMPORAL_MODE} position="bottom">
-              <div className="flex items-center gap-2 cursor-help">
-                <span className="text-xs text-slate-600 dark:text-slate-400">Temporal</span>
-                <button
-                  onClick={toggleTemporalMode}
-                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                  style={{ backgroundColor: temporalEnabled ? '#3b82f6' : '#cbd5e1' }}
-                >
-                  <span
-                    className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                    style={{ transform: temporalEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
-                  />
-                </button>
-              </div>
+              <Switch checked={temporalEnabled} onCheckedChange={() => toggleTemporalMode()} label="Temporal" />
             </InfoTooltip>
           </>
         )}
@@ -377,216 +348,22 @@ export function TopBar() {
           {showSettings && (
             <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-50">
               <div className="space-y-4">
-                {/* View Options Section */}
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">View Options</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
-                        Context Colors
-                      </label>
-                      <div className="flex gap-1 bg-slate-100 dark:bg-neutral-700 rounded-md p-1">
-                        <button
-                          onClick={() => setColorByMode('ownership')}
-                          className={`flex-1 text-xs py-1.5 px-2 rounded transition-colors ${
-                            colorByMode === 'ownership'
-                              ? 'bg-white dark:bg-neutral-600 text-slate-900 dark:text-slate-100 shadow-sm'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                          }`}
-                        >
-                          Ownership
-                        </button>
-                        <button
-                          onClick={() => setColorByMode('strategic')}
-                          className={`flex-1 text-xs py-1.5 px-2 rounded transition-colors ${
-                            colorByMode === 'strategic'
-                              ? 'bg-white dark:bg-neutral-600 text-slate-900 dark:text-slate-100 shadow-sm'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                          }`}
-                        >
-                          Strategic
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Groups</span>
-                        <button
-                          onClick={toggleShowGroups}
-                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                          style={{ backgroundColor: showGroups ? '#3b82f6' : '#cbd5e1' }}
-                        >
-                          <span
-                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                            style={{ transform: showGroups ? 'translateX(18px)' : 'translateX(2px)' }}
-                          />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationships</span>
-                        <button
-                          onClick={toggleShowRelationships}
-                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                          style={{ backgroundColor: showRelationships ? '#3b82f6' : '#cbd5e1' }}
-                        >
-                          <span
-                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                            style={{ transform: showRelationships ? 'translateX(18px)' : 'translateX(2px)' }}
-                          />
-                        </button>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
-                        Available in Flow & Strategic views
-                      </p>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Issue Labels</span>
-                        <button
-                          onClick={toggleIssueLabels}
-                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                          style={{ backgroundColor: showIssueLabels ? '#3b82f6' : '#cbd5e1' }}
-                        >
-                          <span
-                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                            style={{ transform: showIssueLabels ? 'translateX(18px)' : 'translateX(2px)' }}
-                          />
-                        </button>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
-                        Display issue titles on canvas
-                      </p>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-xs text-slate-600 dark:text-slate-400">Show Team Labels</span>
-                        <button
-                          onClick={toggleTeamLabels}
-                          className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                          style={{ backgroundColor: showTeamLabels ? '#3b82f6' : '#cbd5e1' }}
-                        >
-                          <span
-                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                            style={{ transform: showTeamLabels ? 'translateX(18px)' : 'translateX(2px)' }}
-                          />
-                        </button>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
-                        Display team names on canvas
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
-                        Group Opacity: {Math.round(groupOpacity * 100)}%
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={groupOpacity * 100}
-                        onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100)}
-                        className="w-full h-2 bg-slate-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer"
-                        style={{
-                          accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
+                <SettingsViewOptions />
                 <div className="border-t border-slate-200 dark:border-neutral-700" />
-
-                {/* Help Section */}
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Help</h3>
-
-                  {/* Welcome Guide */}
-                  <button
-                    onClick={() => {
-                      resetWelcome()
-                      setShowSettings(false)
-                    }}
-                    className="block text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                  >
-                    Welcome Guide
-                  </button>
-
-                  {/* Getting Started Guide */}
-                  <button
-                    onClick={() => {
-                      setShowGettingStartedGuide(true)
-                      setShowSettings(false)
-                    }}
-                    className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                  >
-                    Getting Started Guide
-                  </button>
-
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-xs text-slate-600 dark:text-slate-400">Show concept tooltips</span>
-                    <button
-                      onClick={toggleHelpTooltips}
-                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                      style={{ backgroundColor: showHelpTooltips ? '#3b82f6' : '#cbd5e1' }}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                        style={{ transform: showHelpTooltips ? 'translateX(18px)' : 'translateX(2px)' }}
-                      />
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
-                    Hover explanations for DDD & Wardley concepts
-                  </p>
-                </div>
-
+                <SettingsHelp
+                  onResetWelcome={() => {
+                    resetWelcome()
+                    setShowSettings(false)
+                  }}
+                  onOpenGettingStarted={() => {
+                    setShowGettingStartedGuide(true)
+                    setShowSettings(false)
+                  }}
+                />
                 <div className="border-t border-slate-200 dark:border-neutral-700" />
-
-                {/* Display Section */}
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Display</h3>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {theme === 'light' ? <Sun size={14} className="text-slate-600 dark:text-slate-400" /> : <Moon size={14} className="text-slate-600 dark:text-slate-400" />}
-                      <span className="text-xs text-slate-600 dark:text-slate-400">
-                        {theme === 'light' ? 'Light Mode' : 'Dark Mode'}
-                      </span>
-                    </div>
-                    <button
-                      onClick={toggleTheme}
-                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                      style={{ backgroundColor: theme === 'dark' ? '#3b82f6' : '#cbd5e1' }}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                        style={{ transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' }}
-                      />
-                    </button>
-                  </div>
-                </div>
-
+                <SettingsDisplay />
                 <div className="border-t border-slate-200 dark:border-neutral-700" />
-
-                {/* Integrations Section */}
-                <div>
-                  <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Integrations</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-600 dark:text-slate-400">Use CodeCohesion API</span>
-                    <button
-                      onClick={() => {
-                        const newValue = !useCodeCohesionAPI
-                        setUseCodeCohesionAPI(newValue)
-                        localStorage.setItem('contextflow.useCodeCohesionAPI', String(newValue))
-                      }}
-                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800"
-                      style={{ backgroundColor: useCodeCohesionAPI ? '#3b82f6' : '#cbd5e1' }}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                        style={{ transform: useCodeCohesionAPI ? 'translateX(18px)' : 'translateX(2px)' }}
-                      />
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
-                    Enable live repository stats and contributors
-                  </p>
-                </div>
+                <SettingsIntegrations />
               </div>
             </div>
           )}
