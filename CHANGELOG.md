@@ -18,6 +18,8 @@ All notable changes to ContextFlow will be documented in this file.
 - Fixed ACL/OHS indicator box hover detection
 - Fixed stage selection not clearing when clicking canvas
 - Fixed team topology type not deselectable
+- Keyboard shortcuts overlay (Cmd/Ctrl+?) showing all available shortcuts with platform-aware key display
+- Search/filter inputs in Repos and Teams sidebar tabs for quickly finding items in large projects
 - Added accessibility labels to toolbar buttons
 - Added SPA routing support for GitHub Pages
 
