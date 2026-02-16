@@ -209,87 +209,87 @@ export function TopBar() {
         </>
       )}
 
-      {/* View Toggle */}
-      <div className="ml-8 flex items-center bg-slate-100 dark:bg-neutral-900 rounded-lg p-1">
-        <InfoTooltip content={VIEW_DESCRIPTIONS.flow}>
-          <button
-            onClick={() => setViewMode('flow')}
-            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-              viewMode === 'flow'
-                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            Value Stream
-          </button>
+      {/* Add buttons - primary creation CTAs */}
+      <div className="ml-4 flex items-center gap-1 bg-slate-50 dark:bg-neutral-900 rounded-lg px-1.5 py-1">
+        <InfoTooltip content={BOUNDED_CONTEXT_DEFINITION} position="bottom">
+          <AddButton
+            onClick={handleAddContext}
+            icon={<Box size={14} />}
+            label="Context"
+          />
         </InfoTooltip>
-        <InfoTooltip content={VIEW_DESCRIPTIONS.distillation}>
-          <button
-            onClick={() => setViewMode('distillation')}
-            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-              viewMode === 'distillation'
-                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            Distillation
-          </button>
-        </InfoTooltip>
-        <InfoTooltip content={VIEW_DESCRIPTIONS.strategic}>
-          <button
-            onClick={() => setViewMode('strategic')}
-            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-              viewMode === 'strategic'
-                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            Strategic
-          </button>
-        </InfoTooltip>
+
+        {/* User/Need buttons: Strategic and Value Stream views (not Distillation) */}
+        {viewMode !== 'distillation' && (
+          <>
+            <InfoTooltip content={USER_DEFINITION} position="bottom">
+              <AddButton
+                onClick={handleAddUser}
+                icon={<User size={14} />}
+                label="User"
+              />
+            </InfoTooltip>
+            <InfoTooltip content={USER_NEED_DEFINITION} position="bottom">
+              <AddButton
+                onClick={handleAddUserNeed}
+                icon={<Target size={14} />}
+                label="Need"
+              />
+            </InfoTooltip>
+          </>
+        )}
+
+        {/* Add Stage button - only in Value Stream View */}
+        {viewMode === 'flow' && (
+          <InfoTooltip content={STAGE_DEFINITION} position="bottom">
+            <AddButton
+              onClick={handleAddStage}
+              icon={<Hash size={14} />}
+              label="Stage"
+            />
+          </InfoTooltip>
+        )}
       </div>
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Add buttons - primary creation CTAs */}
-        <div className="flex items-center gap-1 bg-slate-50 dark:bg-neutral-900 rounded-lg px-1.5 py-1">
-          {/* Add Stage button - only in Value Stream View */}
-          {viewMode === 'flow' && (
-            <InfoTooltip content={STAGE_DEFINITION} position="bottom">
-              <AddButton
-                onClick={handleAddStage}
-                icon={<Hash size={14} />}
-                label="Stage"
-              />
-            </InfoTooltip>
-          )}
-
-          {/* User/Need buttons: Strategic and Value Stream views (not Distillation) */}
-          {viewMode !== 'distillation' && (
-            <>
-              <InfoTooltip content={USER_DEFINITION} position="bottom">
-                <AddButton
-                  onClick={handleAddUser}
-                  icon={<User size={14} />}
-                  label="User"
-                />
-              </InfoTooltip>
-              <InfoTooltip content={USER_NEED_DEFINITION} position="bottom">
-                <AddButton
-                  onClick={handleAddUserNeed}
-                  icon={<Target size={14} />}
-                  label="Need"
-                />
-              </InfoTooltip>
-            </>
-          )}
-
-          <InfoTooltip content={BOUNDED_CONTEXT_DEFINITION} position="bottom">
-            <AddButton
-              onClick={handleAddContext}
-              icon={<Box size={14} />}
-              label="Context"
-            />
+        {/* View Toggle */}
+        <div className="flex items-center bg-slate-100 dark:bg-neutral-900 rounded-lg p-1">
+          <InfoTooltip content={VIEW_DESCRIPTIONS.flow}>
+            <button
+              onClick={() => setViewMode('flow')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'flow'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Value Stream
+            </button>
+          </InfoTooltip>
+          <InfoTooltip content={VIEW_DESCRIPTIONS.distillation}>
+            <button
+              onClick={() => setViewMode('distillation')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'distillation'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Distillation
+            </button>
+          </InfoTooltip>
+          <InfoTooltip content={VIEW_DESCRIPTIONS.strategic}>
+            <button
+              onClick={() => setViewMode('strategic')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'strategic'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Strategic
+            </button>
           </InfoTooltip>
         </div>
 
