@@ -4,9 +4,10 @@ import { Switch } from '../Switch'
 interface SettingsHelpProps {
   onResetWelcome: () => void
   onOpenGettingStarted: () => void
+  onOpenKeyboardShortcuts: () => void
 }
 
-export function SettingsHelp({ onResetWelcome, onOpenGettingStarted }: SettingsHelpProps) {
+export function SettingsHelp({ onResetWelcome, onOpenGettingStarted, onOpenKeyboardShortcuts }: SettingsHelpProps) {
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
   const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
 
@@ -26,6 +27,13 @@ export function SettingsHelp({ onResetWelcome, onOpenGettingStarted }: SettingsH
         className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
       >
         Getting Started Guide
+      </button>
+
+      <button
+        onClick={onOpenKeyboardShortcuts}
+        className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+      >
+        Keyboard Shortcuts
       </button>
 
       <div className="flex items-center justify-between mt-3">

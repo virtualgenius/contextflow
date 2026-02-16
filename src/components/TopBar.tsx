@@ -12,6 +12,7 @@ import { SettingsIntegrations } from './settings/SettingsIntegrations'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
+import { KeyboardShortcutsModal } from './KeyboardShortcutsModal'
 import { ProjectListModal } from './ProjectListModal'
 import { ImportConflictDialog } from './ImportConflictDialog'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
@@ -49,6 +50,7 @@ export function TopBar() {
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
   const [showProjectList, setShowProjectList] = useState(false)
   const [showShareDialog, setShowShareDialog] = useState(false)
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
   const [importConflict, setImportConflict] = useState<{
     importedProject: Project
     existingProject: Project
@@ -66,6 +68,20 @@ export function TopBar() {
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showSettings])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
+
+      if (e.key === '?' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setShowKeyboardShortcuts(prev => !prev)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const selectProjectAndExitSharedMode = (newProjectId: string) => {
     if (route === 'shared-project') {
@@ -359,6 +375,10 @@ export function TopBar() {
                     setShowGettingStartedGuide(true)
                     setShowSettings(false)
                   }}
+                  onOpenKeyboardShortcuts={() => {
+                    setShowKeyboardShortcuts(true)
+                    setShowSettings(false)
+                  }}
                 />
                 <div className="border-t border-slate-200 dark:border-neutral-700" />
                 <SettingsDisplay />
@@ -405,6 +425,11 @@ export function TopBar() {
           onImportAsNew={handleImportAsNew}
           onCancel={() => setImportConflict(null)}
         />
+      )}
+
+      {/* Keyboard Shortcuts Modal */}
+      {showKeyboardShortcuts && (
+        <KeyboardShortcutsModal onClose={() => setShowKeyboardShortcuts(false)} />
       )}
 
       {/* Share Project Dialog */}
