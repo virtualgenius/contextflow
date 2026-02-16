@@ -128,23 +128,6 @@ describe('store analytics integration', () => {
       )
     })
 
-    it('tracks project_opened with empty origin for Empty Project', () => {
-      const state = useEditorStore.getState()
-
-      const emptyId = findProjectByName(state.projects, 'Empty Project')
-      expect(emptyId).toBeDefined()
-
-      state.setActiveProject(emptyId!)
-
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_opened',
-        expect.any(Object),
-        {
-          project_origin: 'empty'
-        }
-      )
-    })
-
     it('tracks project_opened with sample origin when switching between sample projects', () => {
       const state = useEditorStore.getState()
 

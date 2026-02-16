@@ -1,7 +1,6 @@
 import type { Project } from './types'
 import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
-import emptyProject from '../../examples/empty.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject, loadAllProjects, migrateProject } from './persistence'
 import { classifyFromStrategicPosition } from './classification'
@@ -9,7 +8,6 @@ import { classifyFromStrategicPosition } from './classification'
 const TEMPLATE_PROJECTS = [
   demoProject as Project,
   cbioportalProject as Project,
-  emptyProject as Project,
   elanWarrantyProject as Project,
 ]
 
@@ -19,7 +17,7 @@ export const BUILT_IN_PROJECTS = TEMPLATE_PROJECTS.map(template => ({
   isBuiltIn: true,
 }))
 
-export const [sampleProject, cbioportal, empty, elanWarranty] = BUILT_IN_PROJECTS
+export const [sampleProject, cbioportal, elanWarranty] = BUILT_IN_PROJECTS
 
 BUILT_IN_PROJECTS.forEach(project => {
   if (!project.users) project.users = []
@@ -76,14 +74,14 @@ const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 const storedProjectExistsLocally = storedProjectId && initialProjects[storedProjectId]
 export const initialActiveProjectId: string | null = storedProjectExistsLocally ? storedProjectId : null
 
-type ProjectOrigin = 'sample' | 'empty' | 'imported' | 'continued'
+type ProjectOrigin = 'sample' | 'imported' | 'continued'
 
 export function determineProjectOrigin(
   project: Project,
   isFirstLoad: boolean
 ): ProjectOrigin {
   if (project.isBuiltIn) {
-    return project.name === 'Empty Project' ? 'empty' : 'sample'
+    return 'sample'
   } else if (isFirstLoad) {
     return 'imported'
   }

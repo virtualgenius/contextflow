@@ -57,7 +57,7 @@ describe('isProjectEmpty', () => {
 })
 
 describe('isSampleProject', () => {
-  it('returns true for built-in project that is not Empty Project', () => {
+  it('returns true for built-in project', () => {
     const project = {
       ...createBaseMockProject(),
       name: 'ACME E-Commerce',
@@ -73,15 +73,6 @@ describe('isSampleProject', () => {
       isBuiltIn: true,
     }
     expect(isSampleProject(project)).toBe(true)
-  })
-
-  it('returns false for Empty Project even when built-in', () => {
-    const project = {
-      ...createBaseMockProject(),
-      name: 'Empty Project',
-      isBuiltIn: true,
-    }
-    expect(isSampleProject(project)).toBe(false)
   })
 
   it('returns false for user-created projects', () => {

@@ -50,12 +50,6 @@ describe('builtInProjects', () => {
       expect(cbioportal).toBeDefined()
     })
 
-    it('should include empty project', () => {
-      const projects = Object.values(initialProjects)
-      const empty = projects.find(p => p.name.toLowerCase().includes('empty'))
-      expect(empty).toBeDefined()
-    })
-
     it('should include elan warranty project', () => {
       const projects = Object.values(initialProjects)
       const elan = projects.find(p => p.name.toLowerCase().includes('elan'))
@@ -209,7 +203,7 @@ describe('builtInProjects', () => {
   })
 
   describe('determineProjectOrigin', () => {
-    it('returns "sample" for built-in project that is not Empty Project', () => {
+    it('returns "sample" for built-in project', () => {
       const project = createTestProject({ name: 'ACME E-Commerce', isBuiltIn: true })
       expect(determineProjectOrigin(project, false)).toBe('sample')
     })
@@ -219,9 +213,9 @@ describe('builtInProjects', () => {
       expect(determineProjectOrigin(project, false)).toBe('sample')
     })
 
-    it('returns "empty" for Empty Project', () => {
-      const project = createTestProject({ name: 'Empty Project', isBuiltIn: true })
-      expect(determineProjectOrigin(project, false)).toBe('empty')
+    it('returns "sample" for any built-in project', () => {
+      const project = createTestProject({ name: 'Some Built-In', isBuiltIn: true })
+      expect(determineProjectOrigin(project, false)).toBe('sample')
     })
 
     it('returns "imported" for first load of custom project', () => {

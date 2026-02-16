@@ -5,7 +5,7 @@ export function isProjectEmpty(project: Project): boolean {
 }
 
 export function isSampleProject(project: Project): boolean {
-  return project.isBuiltIn === true && project.name !== 'Empty Project'
+  return project.isBuiltIn === true
 }
 
 export function shouldShowGettingStartedGuide(

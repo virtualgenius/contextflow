@@ -32,12 +32,6 @@ describe('templateProjects', () => {
       expect(template).toBeNull();
     });
 
-    it('returns Empty Project template', async () => {
-      const { getTemplateByName } = await import('./templateProjects');
-      const template = getTemplateByName('Empty Project');
-      expect(template).not.toBeNull();
-      expect(template?.name).toBe('Empty Project');
-    });
   });
 
   describe('createProjectFromTemplate', () => {

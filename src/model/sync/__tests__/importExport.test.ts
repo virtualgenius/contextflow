@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { projectToYDoc, yDocToProject } from '../projectSync';
 import { validateImportedProject, checkImportConflict, importProjectAsNew } from '../../actions/projectActions';
 import type { Project, BoundedContext, Relationship, Group, Repo, Person, Team, User, UserNeed, UserNeedConnection, NeedContextConnection, FlowStageMarker } from '../../types';
-import emptyProject from '../../../../examples/empty.project.json';
 import sampleProject from '../../../../examples/sample.project.json';
 
 // Performance test configuration
@@ -422,23 +421,9 @@ describe('JSON import/export compatibility', () => {
   });
 
   describe('sample project files', () => {
-    it('loads and validates examples/empty.project.json', () => {
-      const result = validateImportedProject(emptyProject);
-      expect(result.valid).toBe(true);
-    });
-
     it('loads and validates examples/sample.project.json', () => {
       const result = validateImportedProject(sampleProject);
       expect(result.valid).toBe(true);
-    });
-
-    it('round-trips empty.project.json through Y.Doc', () => {
-      const doc = projectToYDoc(emptyProject as Project);
-      const result = yDocToProject(doc);
-
-      expect(result.id).toBe(emptyProject.id);
-      expect(result.name).toBe(emptyProject.name);
-      expect(result.contexts).toEqual(emptyProject.contexts);
     });
 
     it('round-trips sample.project.json through Y.Doc', () => {
