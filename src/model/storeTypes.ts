@@ -76,9 +76,6 @@ export interface EditorState {
   // Help preferences
   showHelpTooltips: boolean
 
-  // Onboarding
-  hasSeenWelcome: boolean
-
   // UI preferences
   groupOpacity: number
   colorByMode: 'strategic' | 'ownership'
@@ -166,8 +163,7 @@ export interface EditorState {
   toggleIssueLabels: () => void
   toggleTeamLabels: () => void
   toggleHelpTooltips: () => void
-  dismissWelcome: () => void
-  resetWelcome: () => void
+  clearActiveProject: () => void
   setGroupOpacity: (opacity: number) => void
   setColorByMode: (mode: 'strategic' | 'ownership') => void
   updateFlowStage: (index: number, updates: Partial<{ name: string; position: number; description: string; owner: string; notes: string }>) => void

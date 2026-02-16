@@ -2,12 +2,11 @@ import { useEditorStore } from '../../model/store'
 import { Switch } from '../Switch'
 
 interface SettingsHelpProps {
-  onResetWelcome: () => void
   onOpenGettingStarted: () => void
   onOpenKeyboardShortcuts: () => void
 }
 
-export function SettingsHelp({ onResetWelcome, onOpenGettingStarted, onOpenKeyboardShortcuts }: SettingsHelpProps) {
+export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: SettingsHelpProps) {
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
   const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
 
@@ -16,15 +15,8 @@ export function SettingsHelp({ onResetWelcome, onOpenGettingStarted, onOpenKeybo
       <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Help</h3>
 
       <button
-        onClick={onResetWelcome}
-        className="block text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-      >
-        Welcome Guide
-      </button>
-
-      <button
         onClick={onOpenGettingStarted}
-        className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+        className="block text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
       >
         Getting Started Guide
       </button>

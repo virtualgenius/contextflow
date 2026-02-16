@@ -6,7 +6,7 @@ import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { TeamSidebar } from './components/TeamSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
-import { WelcomeModal } from './components/WelcomeModal'
+import { ProjectListPage } from './components/ProjectListPage'
 import { OfflineBlockingModal } from './components/OfflineBlockingModal'
 import { useCollabStore } from './model/collabStore'
 import { Users, X } from 'lucide-react'
@@ -16,6 +16,18 @@ import { useUrlRouter } from './hooks/useUrlRouter'
 const MILLISECONDS_PER_SECOND = 1000
 
 function App() {
+  const projectId = useEditorStore(s => s.activeProjectId)
+  const { route, params } = useUrlRouter()
+
+  // Show project list page when no active project and not on a shared-project route
+  if (!projectId && route !== 'shared-project') {
+    return <ProjectListPage />
+  }
+
+  return <Workspace />
+}
+
+function Workspace() {
   const projectId = useEditorStore(s => s.activeProjectId)
   const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
   const selectedContextId = useEditorStore(s => s.selectedContextId)
@@ -30,22 +42,17 @@ function App() {
   const selectedContextIds = useEditorStore(s => s.selectedContextIds)
   const clearContextSelection = useEditorStore(s => s.clearContextSelection)
   const createGroup = useEditorStore(s => s.createGroup)
-  const hasSeenWelcome = useEditorStore(s => s.hasSeenWelcome)
-  const dismissWelcome = useEditorStore(s => s.dismissWelcome)
-  const setActiveProject = useEditorStore(s => s.setActiveProject)
-  const createProject = useEditorStore(s => s.createProject)
   const loadSharedProject = useEditorStore(s => s.loadSharedProject)
   const addTeam = useEditorStore(s => s.addTeam)
   const deleteTeam = useEditorStore(s => s.deleteTeam)
   const setSelectedTeam = useEditorStore(s => s.setSelectedTeam)
 
-  const { route, params, navigate } = useUrlRouter()
+  const { route, params } = useUrlRouter()
 
   const connectionState = useCollabStore((s) => s.connectionState)
 
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
   const [isLoadingSharedProject, setIsLoadingSharedProject] = React.useState(false)
-  const showWelcomeModal = !hasSeenWelcome && route !== 'shared-project'
 
   const [initializedSharedProjectId, setInitializedSharedProjectId] = React.useState<string | null>(null)
 
@@ -162,21 +169,6 @@ function App() {
             setShowGroupDialog(false)
           }}
           onCancel={() => setShowGroupDialog(false)}
-        />
-      )}
-
-      {/* Welcome modal for first-time users */}
-      {showWelcomeModal && (
-        <WelcomeModal
-          onSelectProject={(projectId) => {
-            setActiveProject(projectId)
-            dismissWelcome()
-          }}
-          onCreateProject={(name) => {
-            createProject(name)
-            dismissWelcome()
-          }}
-          onClose={dismissWelcome}
         />
       )}
 

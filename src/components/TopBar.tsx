@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, User, Settings, Box, Hash, Target, ChevronDown, Share2 } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, User, Settings, Box, Hash, Target, ChevronDown, Share2, Home } from 'lucide-react'
 import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -42,7 +42,7 @@ export function TopBar() {
   const addUserNeed = useEditorStore(s => s.addUserNeed)
   const addFlowStage = useEditorStore(s => s.addFlowStage)
   const importProject = useEditorStore(s => s.importProject)
-  const resetWelcome = useEditorStore(s => s.resetWelcome)
+  const clearActiveProject = useEditorStore(s => s.clearActiveProject)
   const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
   const temporalEnabled = project?.temporal?.enabled || false
   const { route, navigate } = useUrlRouter()
@@ -191,6 +191,22 @@ export function TopBar() {
         <div className="font-semibold text-base text-slate-800 dark:text-slate-100">
           ContextFlow
         </div>
+      </SimpleTooltip>
+
+      {/* Home button */}
+      <SimpleTooltip text="Back to projects">
+        <button
+          onClick={() => {
+            if (route === 'shared-project') {
+              navigate('/')
+            }
+            clearActiveProject()
+          }}
+          className="p-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          aria-label="Back to projects"
+        >
+          <Home size={16} />
+        </button>
       </SimpleTooltip>
 
       {/* Project Selector */}
@@ -367,10 +383,6 @@ export function TopBar() {
                 <SettingsViewOptions />
                 <div className="border-t border-slate-200 dark:border-neutral-700" />
                 <SettingsHelp
-                  onResetWelcome={() => {
-                    resetWelcome()
-                    setShowSettings(false)
-                  }}
                   onOpenGettingStarted={() => {
                     setShowGettingStartedGuide(true)
                     setShowSettings(false)

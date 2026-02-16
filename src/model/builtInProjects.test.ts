@@ -152,22 +152,17 @@ describe('builtInProjects', () => {
   })
 
   describe('initialActiveProjectId', () => {
-    it('should export a string project ID', () => {
-      expect(initialActiveProjectId).toBeTypeOf('string')
-      expect(initialActiveProjectId.length).toBeGreaterThan(0)
+    it('should be null for first-time users (no stored project)', () => {
+      expect(initialActiveProjectId).toBeNull()
     })
 
-    it('should reference a project that exists in initialProjects', () => {
-      expect(initialProjects[initialActiveProjectId]).toBeDefined()
-    })
-
-    it('should use localStorage value if available', () => {
+    it('should use localStorage value if available and project exists', () => {
       const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 
-      if (storedProjectId) {
+      if (storedProjectId && initialProjects[storedProjectId]) {
         expect(initialActiveProjectId).toBe(storedProjectId)
       } else {
-        expect(initialProjects[initialActiveProjectId]).toBeDefined()
+        expect(initialActiveProjectId).toBeNull()
       }
     })
   })

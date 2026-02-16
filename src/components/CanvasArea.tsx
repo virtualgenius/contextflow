@@ -90,7 +90,6 @@ function CanvasContent() {
   const deleteUser = useEditorStore(s => s.deleteUser)
   const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
   const deleteGroup = useEditorStore(s => s.deleteGroup)
-  const hasSeenWelcome = useEditorStore(s => s.hasSeenWelcome)
 
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
@@ -1141,7 +1140,7 @@ function CanvasContent() {
         <ValueChainGuideModal onClose={() => setShowValueChainGuide(false)} />
       )}
 
-      {project && shouldShowGettingStartedGuide(project, seenSampleProjects, showGettingStartedGuide, hasSeenWelcome, dismissedGuideForEmptyProject) && (
+      {project && shouldShowGettingStartedGuide(project, seenSampleProjects, showGettingStartedGuide, true, dismissedGuideForEmptyProject) && (
         <GettingStartedGuideModal
           onClose={() => {
             setShowGettingStartedGuide(false)

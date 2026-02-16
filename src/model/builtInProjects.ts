@@ -74,7 +74,7 @@ export const initialProjects = BUILT_IN_PROJECTS.reduce((acc, project) => {
 
 const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 const storedProjectExistsLocally = storedProjectId && initialProjects[storedProjectId]
-export const initialActiveProjectId = storedProjectExistsLocally ? storedProjectId : sampleProject.id
+export const initialActiveProjectId: string | null = storedProjectExistsLocally ? storedProjectId : null
 
 type ProjectOrigin = 'sample' | 'empty' | 'imported' | 'continued'
 
