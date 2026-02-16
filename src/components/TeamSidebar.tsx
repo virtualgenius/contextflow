@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trash2 } from 'lucide-react'
+import { Search, Trash2, X } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
 import { getTopologyColors } from '../lib/teamColors'
 
@@ -36,6 +36,13 @@ export function TeamSidebar({
   onDeleteTeam,
 }: TeamSidebarProps) {
   const [newTeamName, setNewTeamName] = React.useState('')
+  const [searchQuery, setSearchQuery] = React.useState('')
+
+  const filteredTeams = React.useMemo(() => {
+    if (!searchQuery.trim()) return teams
+    const query = searchQuery.toLowerCase()
+    return teams.filter(t => t.name.toLowerCase().includes(query))
+  }, [teams, searchQuery])
 
   const handleDragStart = (e: React.DragEvent, teamId: string) => {
     e.dataTransfer.setData('application/contextflow-team', teamId)
@@ -63,7 +70,42 @@ export function TeamSidebar({
         </div>
       )}
 
-      {teams.map(team => {
+      {teams.length > 1 && (
+        <div className="relative mb-2">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            placeholder="Filter teams..."
+            className="w-full text-xs pl-7 pr-7 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+          />
+          {searchQuery && (
+            <button
+              aria-label="clear"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {searchQuery.trim() && (
+        <div className="text-[10px] text-slate-500 dark:text-neutral-400 mb-1">
+          {filteredTeams.length} of {teams.length} teams
+        </div>
+      )}
+
+      {filteredTeams.length === 0 && searchQuery.trim() && (
+        <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
+          No teams match your search
+        </div>
+      )}
+
+      {filteredTeams.map(team => {
         const count = contextCountForTeam(team.id, contexts)
         const isSelected = team.id === selectedTeamId
         const badgeColors = team.topologyType ? getTopologyColors(team.topologyType).light : null

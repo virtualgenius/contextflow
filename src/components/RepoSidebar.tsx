@@ -1,5 +1,5 @@
 import React from 'react'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Search, X } from 'lucide-react'
 import type { Repo, Team } from '../model/types'
 
 interface RepoSidebarProps {
@@ -9,6 +9,14 @@ interface RepoSidebarProps {
 }
 
 export function RepoSidebar({ repos, teams, onRepoAssign }: RepoSidebarProps) {
+  const [searchQuery, setSearchQuery] = React.useState('')
+
+  const filteredRepos = React.useMemo(() => {
+    if (!searchQuery.trim()) return repos
+    const query = searchQuery.toLowerCase()
+    return repos.filter(r => r.name.toLowerCase().includes(query))
+  }, [repos, searchQuery])
+
   const getTeamsForRepo = (repo: Repo): Team[] => {
     return teams.filter(t => repo.teamIds.includes(t.id))
   }
@@ -20,7 +28,42 @@ export function RepoSidebar({ repos, teams, onRepoAssign }: RepoSidebarProps) {
 
   return (
     <div className="space-y-2">
-      {repos.map(repo => {
+      {repos.length > 1 && (
+        <div className="relative mb-2">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            placeholder="Filter repos..."
+            className="w-full text-xs pl-7 pr-7 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+          />
+          {searchQuery && (
+            <button
+              aria-label="clear"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {searchQuery.trim() && (
+        <div className="text-[10px] text-slate-500 dark:text-neutral-400 mb-1">
+          {filteredRepos.length} of {repos.length} repos
+        </div>
+      )}
+
+      {filteredRepos.length === 0 && searchQuery.trim() && (
+        <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
+          No repos match your search
+        </div>
+      )}
+
+      {filteredRepos.map(repo => {
         const repoTeams = getTeamsForRepo(repo)
 
         return (

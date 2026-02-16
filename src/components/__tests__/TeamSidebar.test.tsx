@@ -363,4 +363,146 @@ describe('TeamSidebar', () => {
       expect(dataTransfer.effectAllowed).toBe('move')
     })
   })
+
+  describe('search filtering', () => {
+    it('shows search input when more than 1 team', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam(), makeTeam({ id: 'team-2', name: 'Core Team' })]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      expect(screen.getByPlaceholderText('Filter teams...')).toBeInTheDocument()
+    })
+
+    it('does not show search input when only 1 team', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      expect(screen.queryByPlaceholderText('Filter teams...')).not.toBeInTheDocument()
+    })
+
+    it('filters teams by name as user types', () => {
+      render(
+        <TeamSidebar
+          teams={[
+            makeTeam({ id: 'team-1', name: 'Platform Squad' }),
+            makeTeam({ id: 'team-2', name: 'Core Team' }),
+            makeTeam({ id: 'team-3', name: 'Platform Infra' }),
+          ]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const input = screen.getByPlaceholderText('Filter teams...')
+      fireEvent.change(input, { target: { value: 'platform' } })
+
+      expect(screen.getByText('Platform Squad')).toBeInTheDocument()
+      expect(screen.getByText('Platform Infra')).toBeInTheDocument()
+      expect(screen.queryByText('Core Team')).not.toBeInTheDocument()
+    })
+
+    it('shows result count when filtering', () => {
+      render(
+        <TeamSidebar
+          teams={[
+            makeTeam({ id: 'team-1', name: 'Platform Squad' }),
+            makeTeam({ id: 'team-2', name: 'Core Team' }),
+            makeTeam({ id: 'team-3', name: 'Platform Infra' }),
+          ]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const input = screen.getByPlaceholderText('Filter teams...')
+      fireEvent.change(input, { target: { value: 'platform' } })
+
+      expect(screen.getByText('2 of 3 teams')).toBeInTheDocument()
+    })
+
+    it('shows empty state when no teams match search', () => {
+      render(
+        <TeamSidebar
+          teams={[
+            makeTeam({ id: 'team-1', name: 'Platform Squad' }),
+            makeTeam({ id: 'team-2', name: 'Core Team' }),
+          ]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const input = screen.getByPlaceholderText('Filter teams...')
+      fireEvent.change(input, { target: { value: 'xyz' } })
+
+      expect(screen.getByText('No teams match your search')).toBeInTheDocument()
+    })
+
+    it('clears search when clicking X button', () => {
+      render(
+        <TeamSidebar
+          teams={[
+            makeTeam({ id: 'team-1', name: 'Platform Squad' }),
+            makeTeam({ id: 'team-2', name: 'Core Team' }),
+          ]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const input = screen.getByPlaceholderText('Filter teams...')
+      fireEvent.change(input, { target: { value: 'platform' } })
+
+      expect(screen.queryByText('Core Team')).not.toBeInTheDocument()
+
+      const clearButton = screen.getByRole('button', { name: /clear/i })
+      fireEvent.click(clearButton)
+
+      expect(screen.getByText('Platform Squad')).toBeInTheDocument()
+      expect(screen.getByText('Core Team')).toBeInTheDocument()
+    })
+
+    it('shows all teams when search is cleared', () => {
+      render(
+        <TeamSidebar
+          teams={[
+            makeTeam({ id: 'team-1', name: 'Platform Squad' }),
+            makeTeam({ id: 'team-2', name: 'Core Team' }),
+          ]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const input = screen.getByPlaceholderText('Filter teams...')
+      fireEvent.change(input, { target: { value: 'platform' } })
+      fireEvent.change(input, { target: { value: '' } })
+
+      expect(screen.getByText('Platform Squad')).toBeInTheDocument()
+      expect(screen.getByText('Core Team')).toBeInTheDocument()
+    })
+  })
 })
