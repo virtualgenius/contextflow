@@ -10,7 +10,7 @@
 
 - [x] **[BUG P1]** Fix orphaned data on context deletion — no cascade cleanup
 - [x] Display names on context relationships — relationship edges need visible labels
-- [ ] Inline explanations on controls — replace separate legend/guide with contextual explanations directly on elements. "What is this thing? It's not a control. Put the explanation actually on the thing. Why not explain the color while I'm at it. Make it unambiguously a control." (Eric Evans)
+- [x] Inline explanations on controls — contextual explanations directly on elements (Eric Evans)
 - [x] Make relationship connection dots twice as big — obvious and easy to connect
 - [x] Clarify relationship direction — upstream/downstream semantics more obvious
 - [x] Highlight connected contexts on hover
@@ -24,7 +24,7 @@
 - [ ] Bug - Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
 - Add text link to discord in README (so someone can search the page for it)
-- [ ] When I select a boundary should it highlight its relationship connections? I thought it was supposed to (see also Eric Evans hover-highlight request above)
+- [x] When I select a boundary should it highlight its relationship connections? — covered by hover-highlight (contextflow-f0i)
 
 ### v.1.0.0 - SAAS cloud edition (users, auth, pricing)
 
