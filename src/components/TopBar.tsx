@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, User, Settings, Box, Hash, Target, ChevronDown, Share2, Home } from 'lucide-react'
+import { Undo2, Redo2, Plus, Download, Upload, User, Settings, Box, Hash, Target, Share2, Home } from 'lucide-react'
 import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -13,7 +13,6 @@ import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal'
-import { ProjectListModal } from './ProjectListModal'
 import { ImportConflictDialog } from './ImportConflictDialog'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
 import { checkImportConflict, importProjectAsNew, validateImportedProject } from '../model/actions/projectActions'
@@ -28,11 +27,6 @@ export function TopBar() {
   const viewMode = useEditorStore(s => s.activeViewMode)
   const setViewMode = useEditorStore(s => s.setViewMode)
   const setActiveProject = useEditorStore(s => s.setActiveProject)
-  const createProject = useEditorStore(s => s.createProject)
-  const createFromTemplate = useEditorStore(s => s.createFromTemplate)
-  const deleteProject = useEditorStore(s => s.deleteProject)
-  const renameProject = useEditorStore(s => s.renameProject)
-  const duplicateProject = useEditorStore(s => s.duplicateProject)
   const canUndo = useEditorStore(s => s.undoStack.length > 0)
   const canRedo = useEditorStore(s => s.redoStack.length > 0)
   const undo = useEditorStore(s => s.undo)
@@ -48,7 +42,6 @@ export function TopBar() {
   const { route, navigate } = useUrlRouter()
   const [showSettings, setShowSettings] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
-  const [showProjectList, setShowProjectList] = useState(false)
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
   const [importConflict, setImportConflict] = useState<{
@@ -209,19 +202,13 @@ export function TopBar() {
         </button>
       </SimpleTooltip>
 
-      {/* Project Selector */}
+      {/* Project name */}
       {project && (
         <>
           <div className="text-slate-400 dark:text-slate-500">•</div>
-          <SimpleTooltip text="Switch between projects or create new ones">
-            <button
-              onClick={() => setShowProjectList(true)}
-              className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300 font-medium bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-neutral-600 rounded px-2 py-1 outline-none cursor-pointer max-w-[220px]"
-            >
-              <span className="truncate">{project.name}</span>
-              <ChevronDown size={14} className="shrink-0 text-slate-400" />
-            </button>
-          </SimpleTooltip>
+          <span className="text-sm text-slate-600 dark:text-slate-300 font-medium truncate max-w-[220px]">
+            {project.name}
+          </span>
         </>
       )}
 
@@ -410,21 +397,6 @@ export function TopBar() {
             selectProjectAndExitSharedMode('acme-ecommerce')
             setShowGettingStartedGuide(false)
           }}
-        />
-      )}
-
-      {/* Project List Modal */}
-      {showProjectList && (
-        <ProjectListModal
-          projects={projects}
-          activeProjectId={projectId}
-          onSelectProject={selectProjectAndExitSharedMode}
-          onCreateProject={createProject}
-          onCreateFromTemplate={createFromTemplate}
-          onDeleteProject={deleteProject}
-          onRenameProject={renameProject}
-          onDuplicateProject={duplicateProject}
-          onClose={() => setShowProjectList(false)}
         />
       )}
 

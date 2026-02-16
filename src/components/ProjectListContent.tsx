@@ -1,15 +1,10 @@
 import React from 'react'
-import { Layers, Plus, Trash2, Copy, Pencil, Link2, Check, Search } from 'lucide-react'
+import { Layers, Plus, Trash2, Copy, Pencil, Search } from 'lucide-react'
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
 import { ProjectCreateDialog } from './ProjectCreateDialog'
 import { ProjectDeleteDialog } from './ProjectDeleteDialog'
-
-function getShareUrl(projectId: string): string {
-  const baseUrl = window.location.origin
-  return `${baseUrl}/p/${projectId}`
-}
 
 interface ProjectListContentProps {
   projects: Record<string, Project>
@@ -37,7 +32,6 @@ export function ProjectListContent({
   const [editingProjectId, setEditingProjectId] = React.useState<string | null>(null)
   const [editingName, setEditingName] = React.useState('')
   const [searchQuery, setSearchQuery] = React.useState('')
-  const [copiedProjectId, setCopiedProjectId] = React.useState<string | null>(null)
   const editInputRef = React.useRef<HTMLInputElement>(null)
 
   const sortedProjects = React.useMemo(() => {
@@ -111,25 +105,6 @@ export function ProjectListContent({
   const handleDuplicateClick = (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation()
     onDuplicateProject(projectId)
-  }
-
-  const handleQuickShare = async (e: React.MouseEvent, projectId: string) => {
-    e.stopPropagation()
-    const shareUrl = getShareUrl(projectId)
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      setCopiedProjectId(projectId)
-      setTimeout(() => setCopiedProjectId(null), 2000)
-    } catch {
-      const textArea = document.createElement('textarea')
-      textArea.value = shareUrl
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      setCopiedProjectId(projectId)
-      setTimeout(() => setCopiedProjectId(null), 2000)
-    }
   }
 
   if (deleteTarget) {
@@ -241,26 +216,16 @@ export function ProjectListContent({
                           <Layers size={12} />
                           {metadata.contextCount} context{metadata.contextCount !== 1 ? 's' : ''}
                         </span>
-                        <span>
-                          {formatRelativeTime(metadata.lastModified)}
-                        </span>
+                        {metadata.lastModified && (
+                          <span>
+                            {formatRelativeTime(metadata.lastModified)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                 </button>
                 <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {/* Quick share button */}
-                  <button
-                    onClick={(e) => handleQuickShare(e, project.id)}
-                    className={`p-1.5 rounded transition-colors ${
-                      copiedProjectId === project.id
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                        : 'hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400'
-                    }`}
-                    title={copiedProjectId === project.id ? 'Link copied!' : 'Copy share link'}
-                  >
-                    {copiedProjectId === project.id ? <Check size={14} /> : <Link2 size={14} />}
-                  </button>
                   {!isBuiltIn && (
                     <button
                       onClick={(e) => handleEditClick(e, project)}

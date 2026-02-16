@@ -5,7 +5,7 @@ export function isBuiltInProject(project: Project): boolean {
 }
 
 export function formatRelativeTime(isoString?: string): string {
-  if (!isoString) return 'Never'
+  if (!isoString) return ''
 
   const date = new Date(isoString)
   const now = new Date()
