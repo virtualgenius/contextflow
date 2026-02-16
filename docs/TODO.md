@@ -23,7 +23,7 @@
 - [ ] Not clear how to add a context to a group
 - [ ] Bug - Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
-- Add text link to discord in README (so someone can search the page for it)
+- [x] Add text link to discord in README — already present as badge
 - [x] When I select a boundary should it highlight its relationship connections? — covered by hover-highlight (contextflow-f0i)
 
 ### v.1.0.0 - SAAS cloud edition (users, auth, pricing)
