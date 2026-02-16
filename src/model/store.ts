@@ -143,6 +143,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     const stored = localStorage.getItem('contextflow.showTeamLabels')
     return stored === 'true'
   })(),
+  showRelationshipLabels: (() => {
+    const stored = localStorage.getItem('contextflow.showRelationshipLabels')
+    return stored !== null ? stored === 'true' : true
+  })(),
 
   showHelpTooltips: (() => {
     const stored = localStorage.getItem('contextflow.showHelpTooltips')
@@ -716,6 +720,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newValue = !state.showTeamLabels
     localStorage.setItem('contextflow.showTeamLabels', String(newValue))
     return { showTeamLabels: newValue }
+  }),
+
+  toggleRelationshipLabels: () => set((state) => {
+    const newValue = !state.showRelationshipLabels
+    localStorage.setItem('contextflow.showRelationshipLabels', String(newValue))
+    return { showRelationshipLabels: newValue }
   }),
 
   toggleHelpTooltips: () => set((state) => {

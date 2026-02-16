@@ -7,10 +7,12 @@ export function SettingsViewOptions() {
   const showRelationships = useEditorStore(s => s.showRelationships)
   const showIssueLabels = useEditorStore(s => s.showIssueLabels)
   const showTeamLabels = useEditorStore(s => s.showTeamLabels)
+  const showRelationshipLabels = useEditorStore(s => s.showRelationshipLabels)
   const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
   const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
   const toggleIssueLabels = useEditorStore(s => s.toggleIssueLabels)
   const toggleTeamLabels = useEditorStore(s => s.toggleTeamLabels)
+  const toggleRelationshipLabels = useEditorStore(s => s.toggleRelationshipLabels)
   const groupOpacity = useEditorStore(s => s.groupOpacity)
   const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
   const colorByMode = useEditorStore(s => s.colorByMode)
@@ -56,6 +58,10 @@ export function SettingsViewOptions() {
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationships</span>
             <Switch checked={showRelationships} onCheckedChange={() => toggleShowRelationships()} />
+          </div>
+          <div className="flex items-center justify-between pl-3">
+            <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationship Labels</span>
+            <Switch checked={showRelationshipLabels} onCheckedChange={() => toggleRelationshipLabels()} />
           </div>
           <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
             Available in Flow & Strategic views

@@ -36,6 +36,7 @@ function RelationshipEdge({
   const deleteRelationship = useEditorStore(s => s.deleteRelationship)
   const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const showRelationshipLabels = useEditorStore(s => s.showRelationshipLabels)
   const hoveredContextId = useEditorStore(s => s.hoveredContextId)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
@@ -352,7 +353,7 @@ function RelationshipEdge({
         </foreignObject>
       )}
       {/* Edge label showing pattern name and direction */}
-      {(isEmphasized || isHighlightedByHover) && (() => {
+      {(showRelationshipLabels || isEmphasized || isHighlightedByHover) && (() => {
         const labelInfo = getEdgeLabelInfo(pattern)
         if (!labelInfo) return null
         return (

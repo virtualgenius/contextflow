@@ -72,6 +72,7 @@ export interface EditorState {
   showRelationships: boolean
   showIssueLabels: boolean
   showTeamLabels: boolean
+  showRelationshipLabels: boolean
 
   // Help preferences
   showHelpTooltips: boolean
@@ -162,6 +163,7 @@ export interface EditorState {
   toggleShowRelationships: () => void
   toggleIssueLabels: () => void
   toggleTeamLabels: () => void
+  toggleRelationshipLabels: () => void
   toggleHelpTooltips: () => void
   clearActiveProject: () => void
   setGroupOpacity: (opacity: number) => void
