@@ -163,9 +163,9 @@ export function ContextNode({ data }: NodeProps) {
       }}
       style={{ position: 'relative' }}
     >
-      {/* Connection handles - styled via CSS in index.css, visible on node hover */}
-      <Handle type="target" position={Position.Left} style={{ zIndex: 1 }} />
-      <Handle type="source" position={Position.Right} style={{ zIndex: 1 }} />
+      {/* Connection handles - both source so drag direction always determines relationship direction */}
+      <Handle type="source" position={Position.Left} id="left" style={{ zIndex: 1 }} />
+      <Handle type="source" position={Position.Right} id="right" style={{ zIndex: 1 }} />
       {/* Top handle for receiving connections from User Needs in Strategic View */}
       <Handle type="target" position={Position.Top} id="top" />
 

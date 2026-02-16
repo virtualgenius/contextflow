@@ -889,6 +889,7 @@ function CanvasContent() {
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onConnect={onConnect}
+          connectionMode="loose"
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodeClick={onNodeClick}
