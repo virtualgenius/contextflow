@@ -2,6 +2,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { initialProjects, initialActiveProjectId, determineProjectOrigin, isBuiltInNewer } from './builtInProjects'
 import type { Project } from './types'
 
+vi.mock('./persistence', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./persistence')>()
+  return {
+    ...actual,
+    loadProject: vi.fn().mockResolvedValue(null),
+    loadAllProjects: vi.fn().mockResolvedValue([]),
+    saveProject: vi.fn().mockResolvedValue(undefined),
+  }
+})
+
 function createTestProject(overrides: Partial<Project> = {}): Project {
   return {
     id: 'test-project',
@@ -222,6 +232,90 @@ describe('builtInProjects', () => {
     it('returns "continued" for subsequent load of custom project', () => {
       const project = createTestProject({ name: 'My Project', isBuiltIn: false })
       expect(determineProjectOrigin(project, false)).toBe('continued')
+    })
+  })
+
+  describe('initializeBuiltInProjects', () => {
+    // Dynamic import so mocks are applied
+    async function getModules() {
+      const { initializeBuiltInProjects, BUILT_IN_PROJECTS } = await import('./builtInProjects')
+      const { loadAllProjects } = await import('./persistence')
+      return { initializeBuiltInProjects, BUILT_IN_PROJECTS, loadAllProjects: loadAllProjects as ReturnType<typeof vi.fn> }
+    }
+
+    it('should load user projects from IndexedDB alongside built-in projects', async () => {
+      const { initializeBuiltInProjects, BUILT_IN_PROJECTS, loadAllProjects } = await getModules()
+
+      const userProject = createTestProject({
+        id: 'user-project-1',
+        name: 'My Custom Map',
+        isBuiltIn: false,
+      })
+
+      loadAllProjects.mockResolvedValue([userProject])
+
+      const setState = vi.fn()
+      initializeBuiltInProjects(setState)
+
+      await vi.waitFor(() => expect(setState).toHaveBeenCalled())
+
+      const calledWith = setState.mock.calls[0][0]
+      expect(calledWith.projects['user-project-1']).toBeDefined()
+      expect(calledWith.projects['user-project-1'].name).toBe('My Custom Map')
+      // Built-in projects should also be present
+      BUILT_IN_PROJECTS.forEach(bp => {
+        expect(calledWith.projects[bp.id]).toBeDefined()
+      })
+    })
+
+    it('should exclude orphaned built-in projects from IndexedDB', async () => {
+      const { initializeBuiltInProjects, loadAllProjects } = await getModules()
+
+      const orphanedBuiltIn = createTestProject({
+        id: 'stale-builtin-id-from-previous-session',
+        name: 'ACME E-Commerce',
+        isBuiltIn: true,
+      })
+
+      const userProject = createTestProject({
+        id: 'user-project-2',
+        name: 'My Real Project',
+        isBuiltIn: false,
+      })
+
+      loadAllProjects.mockResolvedValue([orphanedBuiltIn, userProject])
+
+      const setState = vi.fn()
+      initializeBuiltInProjects(setState)
+
+      await vi.waitFor(() => expect(setState).toHaveBeenCalled())
+
+      const calledWith = setState.mock.calls[0][0]
+      expect(calledWith.projects['stale-builtin-id-from-previous-session']).toBeUndefined()
+      expect(calledWith.projects['user-project-2']).toBeDefined()
+    })
+
+    it('should restore activeProjectId when it matches a loaded user project', async () => {
+      const { initializeBuiltInProjects, loadAllProjects } = await getModules()
+
+      const userProject = createTestProject({
+        id: 'user-project-active',
+        name: 'Active User Project',
+        isBuiltIn: false,
+      })
+
+      loadAllProjects.mockResolvedValue([userProject])
+      localStorage.setItem('contextflow.activeProjectId', 'user-project-active')
+
+      const setState = vi.fn()
+      initializeBuiltInProjects(setState)
+
+      await vi.waitFor(() => expect(setState).toHaveBeenCalled())
+
+      const calledWith = setState.mock.calls[0][0]
+      expect(calledWith.activeProjectId).toBe('user-project-active')
+
+      localStorage.removeItem('contextflow.activeProjectId')
     })
   })
 

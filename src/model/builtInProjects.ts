@@ -3,7 +3,7 @@ import demoProject from '../../examples/sample.project.json'
 import cbioportalProject from '../../examples/cbioportal.project.json'
 import emptyProject from '../../examples/empty.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
-import { saveProject, loadProject, migrateProject } from './persistence'
+import { saveProject, loadProject, loadAllProjects, migrateProject } from './persistence'
 import { classifyFromStrategicPosition } from './classification'
 
 const TEMPLATE_PROJECTS = [
@@ -105,25 +105,34 @@ export function isBuiltInNewer(
 }
 
 export function initializeBuiltInProjects(
-  setState: (state: { projects: Record<string, Project> }) => void
+  setState: (state: { projects: Record<string, Project>; activeProjectId?: string | null }) => void
 ): void {
-  Promise.all(
-    BUILT_IN_PROJECTS.map(project => loadProject(project.id))
-  ).then((savedProjects) => {
+  Promise.all([
+    Promise.all(BUILT_IN_PROJECTS.map(project => loadProject(project.id))),
+    loadAllProjects(),
+  ]).then(([savedBuiltIns, allSavedProjects]) => {
     const projects: Record<string, Project> = {}
 
     BUILT_IN_PROJECTS.forEach((builtInProject, index) => {
-      const savedProject = savedProjects[index]
+      const savedProject = savedBuiltIns[index]
       if (isBuiltInNewer(builtInProject, savedProject)) {
         projects[builtInProject.id] = builtInProject
       } else {
-        // Migrate saved project to handle schema changes (e.g., actors → users)
         const migratedProject = migrateProject(savedProject!)
         projects[migratedProject.id] = migratedProject
       }
     })
 
-    setState({ projects })
+    const userProjects = allSavedProjects.filter(p => !p.isBuiltIn)
+    for (const userProject of userProjects) {
+      const migrated = migrateProject(userProject)
+      projects[migrated.id] = migrated
+    }
+
+    const storedActiveId = localStorage.getItem('contextflow.activeProjectId')
+    const activeProjectId = storedActiveId && projects[storedActiveId] ? storedActiveId : undefined
+
+    setState({ projects, ...(activeProjectId && { activeProjectId }) })
   }).catch(err => {
     console.error('Failed to load projects from IndexedDB:', err)
   })
