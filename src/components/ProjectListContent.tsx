@@ -1,10 +1,16 @@
 import React from 'react'
-import { Layers, Plus, Trash2, Copy, Pencil, Search } from 'lucide-react'
+import { Layers, Plus, Trash2, Copy, Pencil, Search, BookOpen } from 'lucide-react'
 import type { Project } from '../model/types'
 import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
 import { ProjectCreateDialog } from './ProjectCreateDialog'
 import { ProjectDeleteDialog } from './ProjectDeleteDialog'
+
+const EXAMPLE_DESCRIPTIONS: Record<string, string> = {
+  'ACME E-Commerce Platform': 'Fictional e-commerce company with teams, repos, and value flow',
+  'cBioPortal Demo Map': 'Open-source cancer genomics platform with complex domain boundaries',
+  'Elan Extended Warranty': 'Warranty claims processing with upstream/downstream relationships',
+}
 
 interface ProjectListContentProps {
   projects: Record<string, Project>
@@ -34,11 +40,16 @@ export function ProjectListContent({
   const [searchQuery, setSearchQuery] = React.useState('')
   const editInputRef = React.useRef<HTMLInputElement>(null)
 
-  const sortedProjects = React.useMemo(() => {
+  const { userProjects, exampleProjects } = React.useMemo(() => {
     const allProjects = sortProjectsByLastModified(Object.values(projects))
-    if (!searchQuery.trim()) return allProjects
-    const query = searchQuery.toLowerCase()
-    return allProjects.filter(p => p.name.toLowerCase().includes(query))
+    const query = searchQuery.trim().toLowerCase()
+    const filtered = query
+      ? allProjects.filter(p => p.name.toLowerCase().includes(query))
+      : allProjects
+    return {
+      userProjects: filtered.filter(p => !isBuiltInProject(p)),
+      exampleProjects: filtered.filter(p => isBuiltInProject(p)),
+    }
   }, [projects, searchQuery])
 
   const projectCount = Object.keys(projects).length
@@ -153,19 +164,20 @@ export function ProjectListContent({
         </div>
       </div>
 
-      {/* Project List */}
-      <div>
-        {sortedProjects.length === 0 && searchQuery.trim() && (
-          <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
-            No projects match "{searchQuery}"
-          </div>
-        )}
+      {/* No results */}
+      {userProjects.length === 0 && exampleProjects.length === 0 && searchQuery.trim() && (
+        <div className="text-center py-8 text-sm text-slate-500 dark:text-slate-400">
+          No projects match "{searchQuery}"
+        </div>
+      )}
+
+      {/* User Projects */}
+      {userProjects.length > 0 && (
         <div className="space-y-2">
-          {sortedProjects.map((project) => {
+          {userProjects.map((project) => {
             const metadata = getProjectMetadata(project)
             const isActive = project.id === activeProjectId
-            const isBuiltIn = isBuiltInProject(project)
-            const canDelete = canDeleteAny && !isBuiltIn
+            const canDelete = canDeleteAny
             const isEditing = editingProjectId === project.id
 
             return (
@@ -200,11 +212,6 @@ export function ProjectListContent({
                             {project.name}
                           </span>
                         )}
-                        {isBuiltIn && (
-                          <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-700 text-slate-500 dark:text-slate-400">
-                            Sample
-                          </span>
-                        )}
                         {isActive && (
                           <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
                             Active
@@ -226,15 +233,13 @@ export function ProjectListContent({
                   </div>
                 </button>
                 <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {!isBuiltIn && (
-                    <button
-                      onClick={(e) => handleEditClick(e, project)}
-                      className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                      title="Rename project"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                  )}
+                  <button
+                    onClick={(e) => handleEditClick(e, project)}
+                    className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    title="Rename project"
+                  >
+                    <Pencil size={14} />
+                  </button>
                   <button
                     onClick={(e) => handleDuplicateClick(e, project.id)}
                     className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -256,7 +261,77 @@ export function ProjectListContent({
             )
           })}
         </div>
-      </div>
+      )}
+
+      {/* Examples Section */}
+      {exampleProjects.length > 0 && (
+        <div className={userProjects.length > 0 ? 'mt-6' : ''}>
+          <div className="flex items-center gap-2 mb-3 pt-4 border-t border-slate-200 dark:border-neutral-700">
+            <BookOpen size={14} className="text-slate-400 dark:text-slate-500" />
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Examples
+            </span>
+          </div>
+          <div className="space-y-2">
+            {exampleProjects.map((project) => {
+              const metadata = getProjectMetadata(project)
+              const isActive = project.id === activeProjectId
+              const description = EXAMPLE_DESCRIPTIONS[project.name]
+
+              return (
+                <div
+                  key={project.id}
+                  className="group relative"
+                >
+                  <button
+                    onClick={() => handleSelectProject(project.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                      isActive
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-200 dark:border-neutral-700 hover:border-slate-300 dark:hover:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-750'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                            {project.name}
+                          </span>
+                          {isActive && (
+                            <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        {description && (
+                          <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            {description}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <Layers size={12} />
+                            {metadata.contextCount} context{metadata.contextCount !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => handleDuplicateClick(e, project.id)}
+                      className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      title="Duplicate project"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </>
   )
 }
