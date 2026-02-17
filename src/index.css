@@ -28,7 +28,7 @@
   box-shadow: none !important;
 }
 
-/* Connection handles - visible by default, prominent on hover */
+/* Connection handles - hidden by default, appear on hover */
 .react-flow__node-context .react-flow__handle,
 .react-flow__node-user .react-flow__handle,
 .react-flow__node-userNeed .react-flow__handle {
@@ -36,7 +36,7 @@
   height: 14px;
   background-color: #94a3b8;
   border: 2px solid white;
-  opacity: 0.7;
+  opacity: 0;
   transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
 }
 
