@@ -32,6 +32,13 @@ const TOPOLOGY_COLORS: Record<string, TopologyColors> = {
   },
 }
 
+export const TOPOLOGY_LABELS: Record<string, string> = {
+  'stream-aligned': 'Stream',
+  'platform': 'Platform',
+  'enabling': 'Enabling',
+  'complicated-subsystem': 'Subsystem',
+}
+
 export function getTopologyColors(type?: string): TopologyColors {
   return TOPOLOGY_COLORS[type ?? 'unknown'] ?? TOPOLOGY_COLORS['unknown']
 }

@@ -238,6 +238,7 @@ export function addContextAction(
     },
     strategicClassification: 'supporting',
     evolutionStage: 'custom-built',
+    ownership: 'ours',
   }
 
   const command: EditorCommand = {

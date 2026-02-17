@@ -1,7 +1,7 @@
 import React from 'react'
 import { Search, Trash2, X } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
-import { getTopologyColors } from '../lib/teamColors'
+import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 
 interface TeamSidebarProps {
   teams: Team[]
@@ -10,13 +10,6 @@ interface TeamSidebarProps {
   onSelectTeam: (teamId: string) => void
   onAddTeam: (name: string) => void
   onDeleteTeam: (teamId: string) => void
-}
-
-const TOPOLOGY_LABELS: Record<string, string> = {
-  'stream-aligned': 'Stream',
-  'platform': 'Platform',
-  'enabling': 'Enabling',
-  'complicated-subsystem': 'Subsystem',
 }
 
 function contextCountForTeam(teamId: string, contexts: BoundedContext[]): number {
