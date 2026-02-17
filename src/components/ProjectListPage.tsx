@@ -26,15 +26,15 @@ export function ProjectListPage() {
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-50 dark:bg-neutral-900">
       {/* Header */}
-      <header className="flex items-center px-6 py-4 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <div>
+      <header className="border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
+        <div className="max-w-xl mx-auto px-6 py-4">
           <SimpleTooltip text={`v${version}`}>
             <div className="font-semibold text-lg text-slate-800 dark:text-slate-100">
               ContextFlow
             </div>
           </SimpleTooltip>
           <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Visualize bounded contexts, team ownership, and value flow together for effective strategy
+            See how your bounded contexts, teams, and value flow connect
           </div>
         </div>
       </header>
