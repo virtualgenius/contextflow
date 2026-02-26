@@ -15,7 +15,7 @@ ContextFlow is a visual DDD context mapper for analyzing bounded contexts, their
 
 ## What is ContextFlow?
 
-ContextFlow helps teams map and edit their system architecture as it actually exists — not as the slide deck says it should be. It captures:
+ContextFlow helps teams map and edit their system architecture as it actually exists, not as the slide deck says it should be. It captures:
 
 - **Bounded contexts** with strategic classification (core/supporting/generic), boundary integrity (strong/moderate/weak), and visual properties
 - **DDD relationship patterns** between contexts (customer-supplier, conformist, anti-corruption layer, open-host service, shared kernel, partnership, etc.)
@@ -115,7 +115,6 @@ All three views analyze the same system — different lenses, different strategi
 **Planned:**
 - Enhanced import/export options
 - Accessibility improvements
-- Keyboard shortcuts documentation overlay
 
 ## Getting Started
 
@@ -130,7 +129,6 @@ The app includes multiple example projects:
 - **ACME E-Commerce** — 20 contexts with external services (Stripe, shipping carriers, fraud detection) and realistic DDD relationship patterns (fictional data for demonstration)
 - **cBioPortal** — Complete genomics platform with user needs value chain demonstrating actors → needs → contexts flow (adapted from public repository and documentation; does not reflect actual project realities)
 - **Elan Extended Warranty** — DDD strategic patterns reference for teaching workshops (fictional data for demonstration)
-- **Empty Project** — Practice template for your own context mapping
 
 **Note:** All sample project data is invented for demonstration purposes, except cBioPortal which is adapted from the [public repository](https://github.com/cBioPortal/cbioportal) and documentation but does not represent the actual project structure or strategic decisions.
 
@@ -149,16 +147,16 @@ The app includes multiple example projects:
 
 - `src/` – React app code (TypeScript + Vite)
 - `src/model/` – Core types and Zustand store
-- `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`, `elan.project.json`, `empty.project.json`)
+- `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`, `elan-warranty.project.json`)
 - `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [TODO.md](docs/TODO.md), [Enterprise Data Privacy](docs/ENTERPRISE_DATA_PRIVACY.md)
 
 ## Project Status
 
-**Beta.** Milestones 1-6 in progress:
+**Beta.** All six milestones complete:
 - ✅ M1-M3: Value Stream View, Strategic View, editing, repos, teams, groups
 - ✅ M4: Full editability (flow stages, relationships, group membership)
 - ✅ M5: Wardley Map value chain (actors, user needs, 2-hop highlighting)
-- 🚧 M6: Organic blob-based group rendering (in progress)
+- ✅ M6: Organic blob-based group rendering
 
 Includes temporal evolution mode, CodeCohesion API integration, real-time collaboration, and multi-project support. Ready for field testing with real projects.
 
@@ -191,7 +189,7 @@ ContextFlow builds on established practices in domain-driven design, team topolo
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-Whether you're reporting bugs, suggesting features, or submitting pull requests, your help is appreciated. See [VISION.md](docs/VISION.md) for the product vision and direction.
+Whether you're reporting bugs, suggesting features, or submitting pull requests, your help is appreciated. Join us on [Discord](https://discord.gg/ABRnay8PM5) for questions, feedback, and discussion. See [VISION.md](docs/VISION.md) for the product vision and direction.
 
 ## License
 
