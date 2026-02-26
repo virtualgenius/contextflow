@@ -172,8 +172,18 @@ export const useEditorStore = create<EditorState>((set) => ({
   undoStack: [],
   redoStack: [],
 
-  updateContext: (contextId, updates) => set(() => {
+  updateContext: (contextId, updates) => set((state) => {
     getCollabMutations().updateContext(contextId, updates)
+
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    const changedProperties = Object.keys(updates)
+    trackEvent('context_updated', project, {
+      entity_type: 'context',
+      entity_id: contextId,
+      properties_changed: changedProperties,
+    })
+
     return {}
   }),
 
@@ -377,7 +387,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   deleteContext: (contextId) => set((state) => {
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
     getCollabMutations().deleteContext(contextId)
+    trackEvent('context_deleted', project, {
+      entity_type: 'context',
+      entity_id: contextId,
+    })
     return state.selectedContextId === contextId ? { selectedContextId: null } : {}
   }),
 
@@ -396,23 +412,49 @@ export const useEditorStore = create<EditorState>((set) => ({
     return {}
   }),
 
-  assignTeamToContext: (contextId, teamId) => set(() => {
+  assignTeamToContext: (contextId, teamId) => set((state) => {
     getCollabMutations().updateContext(contextId, { teamId })
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('team_assigned_to_context', project, {
+      entity_type: 'context',
+      entity_id: contextId,
+      team_id: teamId,
+    })
     return {}
   }),
 
-  unassignTeamFromContext: (contextId) => set(() => {
+  unassignTeamFromContext: (contextId) => set((state) => {
     getCollabMutations().updateContext(contextId, { teamId: undefined })
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('team_unassigned_from_context', project, {
+      entity_type: 'context',
+      entity_id: contextId,
+    })
     return {}
   }),
 
-  assignRepoToContext: (repoId, contextId) => set(() => {
+  assignRepoToContext: (repoId, contextId) => set((state) => {
     getCollabMutations().updateRepo(repoId, { contextId })
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('repo_assigned_to_context', project, {
+      entity_type: 'repo',
+      entity_id: repoId,
+      context_id: contextId,
+    })
     return {}
   }),
 
-  unassignRepo: (repoId) => set(() => {
+  unassignRepo: (repoId) => set((state) => {
     getCollabMutations().updateRepo(repoId, { contextId: undefined })
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('repo_unassigned', project, {
+      entity_type: 'repo',
+      entity_id: repoId,
+    })
     return {}
   }),
 
@@ -425,6 +467,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       notes,
     }
     getCollabMutations().addGroup(newGroup)
+
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('group_created', project, {
+      entity_type: 'group',
+      entity_id: newGroup.id,
+      context_count: state.selectedContextIds.length,
+    })
+    trackFTUEMilestone('first_group_created', project)
+
     return {
       selectedGroupId: newGroup.id,
       selectedContextIds: [],
@@ -438,6 +490,12 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   deleteGroup: (groupId) => set((state) => {
     getCollabMutations().deleteGroup(groupId)
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('group_deleted', project, {
+      entity_type: 'group',
+      entity_id: groupId,
+    })
     return state.selectedGroupId === groupId ? { selectedGroupId: null } : {}
   }),
 
@@ -476,12 +534,25 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   deleteRelationship: (relationshipId) => set((state) => {
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
     getCollabMutations().deleteRelationship(relationshipId)
+    trackEvent('relationship_deleted', project, {
+      entity_type: 'relationship',
+      entity_id: relationshipId,
+    })
     return state.selectedRelationshipId === relationshipId ? { selectedRelationshipId: null } : {}
   }),
 
-  updateRelationship: (relationshipId, updates) => set(() => {
+  updateRelationship: (relationshipId, updates) => set((state) => {
     getCollabMutations().updateRelationship(relationshipId, updates)
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    trackEvent('relationship_updated', project, {
+      entity_type: 'relationship',
+      entity_id: relationshipId,
+      properties_changed: Object.keys(updates),
+    })
     return {}
   }),
 
@@ -495,6 +566,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     getCollabMutations().updateRelationship(relationshipId, {
       fromContextId: rel.toContextId,
       toContextId: rel.fromContextId,
+    })
+    trackEvent('relationship_direction_swapped', project, {
+      entity_type: 'relationship',
+      entity_id: relationshipId,
     })
     return {}
   }),
@@ -517,12 +592,22 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   addTeam: (name) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+
     const newTeam = {
       id: `team-${Date.now()}`,
       name,
       topologyType: 'stream-aligned' as const,
     }
     getCollabMutations().addTeam(newTeam)
+
+    trackEvent('team_added', project, {
+      entity_type: 'team',
+      entity_id: newTeam.id,
+    })
+
     useEditorStore.setState({
       ...createSelectionState(newTeam.id, 'team'),
     })
@@ -530,7 +615,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   },
 
   deleteTeam: (teamId) => set((state) => {
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
     getCollabMutations().deleteTeam(teamId)
+    trackEvent('team_deleted', project, {
+      entity_type: 'team',
+      entity_id: teamId,
+    })
     return state.selectedTeamId === teamId ? { selectedTeamId: null } : {}
   }),
 
@@ -569,6 +660,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     getCollabMutations().deleteUser(userId)
+    trackEvent('user_deleted', project, {
+      entity_type: 'user',
+      entity_id: userId,
+    })
     return state.selectedUserId === userId ? { selectedUserId: null } : {}
   }),
 
@@ -628,6 +723,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     getCollabMutations().deleteUserNeed(userNeedId)
+    trackEvent('user_need_deleted', project, {
+      entity_type: 'user_need',
+      entity_id: userNeedId,
+    })
     return state.selectedUserNeedId === userNeedId ? { selectedUserNeedId: null } : {}
   }),
 
@@ -955,6 +1054,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   loadSharedProject: async (projectId: string) => {
+    trackEvent('shared_project_opened', null, {
+      project_id: projectId,
+    })
+
     // Create a placeholder project for the shared project
     const placeholderProject: Project = {
       id: projectId,
