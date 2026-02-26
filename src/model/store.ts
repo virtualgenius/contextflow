@@ -296,6 +296,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newProjectId = result.activeProjectId
     const newProject = result.projects[newProjectId]
 
+    trackEvent('project_created', newProject, {
+      creation_method: 'blank'
+    })
+
     localStorage.setItem('contextflow.activeProjectId', newProjectId)
     autosaveIfNeeded(newProjectId, result.projects)
 
@@ -307,6 +311,12 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   createFromTemplate: async (templateId) => {
     const newProject = createProjectFromTemplate(templateId)
+
+    trackEvent('project_created', newProject, {
+      creation_method: 'template',
+      template_id: templateId
+    })
+
     localStorage.setItem('contextflow.activeProjectId', newProject.id)
     autosaveIfNeeded(newProject.id, { [newProject.id]: newProject })
 
@@ -326,6 +336,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   },
 
   deleteProject: (projectId) => set((state) => {
+    const project = state.projects[projectId]
+    const projectCount = Object.keys(state.projects).length
+
+    trackEvent('project_deleted', project || null, {
+      remaining_project_count: projectCount - 1
+    })
+
     const result = deleteProjectAction(state, projectId)
     if (result.activeProjectId) {
       localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
@@ -337,6 +354,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
 
   renameProject: (projectId, newName) => set((state) => {
+    const project = state.projects[projectId]
+
+    trackEvent('project_renamed', project || null)
+
     const result = renameProjectAction(state, projectId, newName)
     getCollabMutations().renameProject(newName.trim())
     autosaveIfNeeded(projectId, result.projects)
@@ -346,6 +367,12 @@ export const useEditorStore = create<EditorState>((set) => ({
   duplicateProject: (projectId) => set((state) => {
     const result = duplicateProjectAction(state, projectId)
     if (result.activeProjectId && result.projects) {
+      const newProject = result.projects[result.activeProjectId]
+
+      trackEvent('project_created', newProject || null, {
+        creation_method: 'duplicate'
+      })
+
       localStorage.setItem('contextflow.activeProjectId', result.activeProjectId)
       autosaveIfNeeded(result.activeProjectId, result.projects)
     }

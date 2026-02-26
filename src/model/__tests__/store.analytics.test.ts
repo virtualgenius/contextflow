@@ -185,4 +185,73 @@ describe('store analytics integration', () => {
       expect(updatedState.activeViewMode).toBe('strategic')
     })
   })
+
+  describe('createProject', () => {
+    it('tracks project_created event with blank creation method', () => {
+      const state = useEditorStore.getState()
+
+      // Fire and forget (don't await - reconnectCollabForProject hangs in tests)
+      state.createProject('Test Project')
+
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        'project_created',
+        expect.objectContaining({ name: 'Test Project' }),
+        { creation_method: 'blank' }
+      )
+    })
+  })
+
+  describe('duplicateProject', () => {
+    it('tracks project_created event with duplicate creation method', () => {
+      const state = useEditorStore.getState()
+      const sampleId = findProjectByName(state.projects, 'ACME E-Commerce Platform')
+      expect(sampleId).toBeDefined()
+
+      state.duplicateProject(sampleId!)
+
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        'project_created',
+        expect.any(Object),
+        { creation_method: 'duplicate' }
+      )
+    })
+  })
+
+  describe('deleteProject', () => {
+    it('tracks project_deleted event with remaining count', () => {
+      const state = useEditorStore.getState()
+      const projectCount = Object.keys(state.projects).length
+
+      // Create a project to delete (so we don't hit the "must have at least one" guard)
+      state.createProject('Deletable Project')
+      trackEventSpy.mockClear()
+
+      const updatedState = useEditorStore.getState()
+      const deletableId = findProjectByName(updatedState.projects, 'Deletable Project')
+      expect(deletableId).toBeDefined()
+
+      updatedState.deleteProject(deletableId!)
+
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        'project_deleted',
+        expect.objectContaining({ name: 'Deletable Project' }),
+        { remaining_project_count: projectCount }
+      )
+    })
+  })
+
+  describe('renameProject', () => {
+    it('tracks project_renamed event', () => {
+      const state = useEditorStore.getState()
+      const sampleId = findProjectByName(state.projects, 'ACME E-Commerce Platform')
+      expect(sampleId).toBeDefined()
+
+      state.renameProject(sampleId!, 'Renamed Project')
+
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        'project_renamed',
+        expect.any(Object)
+      )
+    })
+  })
 })
