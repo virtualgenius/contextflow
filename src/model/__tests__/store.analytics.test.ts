@@ -435,6 +435,28 @@ describe('store analytics integration', () => {
       )
     })
 
+    it('tracks property change on updateUser isExternal change', () => {
+      const projectId = activateSampleProject()
+      const state = useEditorStore.getState()
+      const project = state.projects[projectId]
+      const user = project.users[0]
+      const newValue = !user.isExternal
+
+      trackPropertyChangeSpy.mockClear()
+
+      state.updateUser(user.id, { isExternal: newValue })
+
+      expect(trackPropertyChangeSpy).toHaveBeenCalledWith(
+        'user_property_changed',
+        expect.any(Object),
+        'user',
+        user.id,
+        'isExternal',
+        user.isExternal,
+        newValue
+      )
+    })
+
     it('tracks text field edit on updateUserNeed name change', () => {
       const projectId = activateSampleProject()
       const state = useEditorStore.getState()
@@ -529,31 +551,6 @@ describe('store analytics integration', () => {
         oldName,
         'Updated Stage Name',
         'inspector'
-      )
-    })
-
-    it('tracks property change on updateFlowStage color change', () => {
-      const projectId = activateSampleProject()
-      const state = useEditorStore.getState()
-      const project = state.projects[projectId]
-      const stages = project.viewConfig.flowStages
-
-      if (stages.length === 0) return // skip if no stages
-
-      const oldColor = stages[0].color
-
-      trackPropertyChangeSpy.mockClear()
-
-      state.updateFlowStage(0, { color: '#00ff00' })
-
-      expect(trackPropertyChangeSpy).toHaveBeenCalledWith(
-        'flow_stage_property_changed',
-        expect.any(Object),
-        'flow_stage',
-        expect.any(String),
-        'color',
-        oldColor,
-        '#00ff00'
       )
     })
 

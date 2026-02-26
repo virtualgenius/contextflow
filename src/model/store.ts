@@ -733,8 +733,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         if ('name' in updates && updates.name !== oldUser.name) {
           trackTextFieldEdit(project, 'user', 'name', oldUser.name, updates.name, 'inspector')
         }
-        if ('type' in updates && (updates as any).type !== (oldUser as any).type) {
-          trackPropertyChange('user_property_changed', project, 'user', userId, 'type', (oldUser as any).type, (updates as any).type)
+        if ('isExternal' in updates && updates.isExternal !== oldUser.isExternal) {
+          trackPropertyChange('user_property_changed', project, 'user', userId, 'isExternal', oldUser.isExternal, updates.isExternal)
         }
       }
     }
@@ -1009,9 +1009,6 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     if ('name' in updates && updates.name !== oldStage.name) {
       trackTextFieldEdit(project, 'flow_stage', 'name', oldStage.name, updates.name, 'inspector')
-    }
-    if ('color' in updates && (updates as any).color !== (oldStage as any).color) {
-      trackPropertyChange('flow_stage_property_changed', project, 'flow_stage', `stage-${index}`, 'color', (oldStage as any).color, (updates as any).color)
     }
 
     getCollabMutations().updateFlowStage(index, updates)
