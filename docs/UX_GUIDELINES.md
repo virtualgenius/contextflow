@@ -49,7 +49,7 @@ The UX is inspired by **Miro**, **Wardley Maps**, and the **Linear** aesthetic: 
 - **Select Entity:** Click context/relationship/group/actor/user need to open Inspector Panel (right sidebar).
 - **Deselect:** Click empty canvas or press `Esc`.
 - **Undo/Redo:** Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes).
-- **Autosave:** Changes persist automatically to IndexedDB (Miro-like).
+- **Autosave:** Changes sync to cloud automatically via Yjs.
 
 ### View Modes
 Three synchronized views of the same system model:
@@ -132,6 +132,8 @@ Three synchronized views of the same system model:
 | **TopBar.tsx** | Global controls: view toggle, project switcher, flow stage editor, temporal mode toggle |
 | **TimelineSlider.tsx** | Keyframe management, scrubbing, and playback controls |
 | **App.tsx** | Layout composition, responsive sizing, and entity selection routing to Inspector |
+| **ProjectListPage.tsx** | Landing page with project list, creation, and example loading |
+| **TeamSidebar.tsx** | Team management with drag-and-drop assignment to contexts (left sidebar is tabbed: Repos/Teams) |
 
 ## Aesthetic Guidelines
 
@@ -145,7 +147,7 @@ Three synchronized views of the same system model:
 
 ## Persistence and Behavior
 
-- **Local-first persistence:** IndexedDB storage with Miro-style autosave.
+- **Cloud-first persistence:** Yjs + Cloudflare Durable Objects with automatic sync. IndexedDB used only for migration backup.
 - **Multi-project support:** Project switcher dropdown in TopBar. Each project has isolated state.
 - **Undo/redo history:** Per project session. Applies to structural changes only (add/move/delete context, relationships, repo assignments, groups, keyframes). Text edits in Inspector autosave directly and are not undoable.
 - **Import/export:** JSON format for project data. No YAML or other formats in current version.
@@ -165,6 +167,4 @@ Three synchronized views of the same system model:
 - **Alignment guides:** Visual guides and snapping for precise node positioning.
 - **Auto-layout options:** Automatic graph layout algorithms for large maps.
 - **Context-level comments:** Inline annotations and discussion threads.
-- **Keyboard shortcuts overlay:** Discoverable documentation for power users.
 - **Enhanced accessibility:** Screen reader support, keyboard-only navigation improvements.
-- **Collaborative editing:** Real-time multi-user editing with conflict resolution.
