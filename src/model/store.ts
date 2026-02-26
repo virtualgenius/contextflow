@@ -907,21 +907,27 @@ export const useEditorStore = create<EditorState>((set) => ({
       validateStagePosition(stages, newPosition, index)
     }
 
-    // Track analytics - track position changes (moves)
-    if (newPosition !== oldStage.position) {
-      trackEvent('flow_stage_moved', project, {
-        entity_type: 'flow_stage',
-        metadata: {
-          name: newName,
-          old_position: oldStage.position,
-          new_position: newPosition
-        }
-      })
-    }
-
     getCollabMutations().updateFlowStage(index, updates)
     return {}
   }),
+
+  completeFlowStageMove: (index, startPosition) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    if (!projectId) return
+    const project = state.projects[projectId]
+    if (!project) return
+    const stages = project.viewConfig.flowStages
+    if (index < 0 || index >= stages.length) return
+    const finalPosition = stages[index].position
+    if (finalPosition === startPosition) return
+    trackEvent('flow_stage_moved', project, {
+      entity_type: 'flow_stage',
+      name: stages[index].name,
+      old_position: startPosition,
+      new_position: finalPosition,
+    })
+  },
 
   addFlowStage: (name, position?) => set((state) => {
     const projectId = state.activeProjectId

@@ -169,6 +169,7 @@ export interface EditorState {
   setGroupOpacity: (opacity: number) => void
   setColorByMode: (mode: 'strategic' | 'ownership') => void
   updateFlowStage: (index: number, updates: Partial<{ name: string; position: number; description: string; owner: string; notes: string }>) => void
+  completeFlowStageMove: (index: number, startPosition: number) => void
   addFlowStage: (name: string, position?: number) => void
   deleteFlowStage: (index: number) => void
   setDragging: (isDragging: boolean) => void

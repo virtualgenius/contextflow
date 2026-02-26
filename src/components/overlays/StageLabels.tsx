@@ -5,10 +5,12 @@ import { useEditorStore } from '../../model/store'
 export function StageLabels({ stages }: { stages: Array<{ name: string; position: number; description?: string; owner?: string; notes?: string }> }) {
   const { x, y, zoom } = useViewport()
   const updateFlowStage = useEditorStore(s => s.updateFlowStage)
+  const completeFlowStageMove = useEditorStore(s => s.completeFlowStageMove)
   const setSelectedStage = useEditorStore(s => s.setSelectedStage)
   const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
   const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
   const [dragStartX, setDragStartX] = React.useState(0)
+  const [dragStartPosition, setDragStartPosition] = React.useState(0)
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
 
   const handleClick = (e: React.MouseEvent, index: number) => {
@@ -20,6 +22,7 @@ export function StageLabels({ stages }: { stages: Array<{ name: string; position
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     setDraggingIndex(index)
     setDragStartX(e.clientX)
+    setDragStartPosition(stages[index].position)
     e.preventDefault()
   }
 
@@ -40,6 +43,7 @@ export function StageLabels({ stages }: { stages: Array<{ name: string; position
     }
 
     const handleMouseUp = () => {
+      completeFlowStageMove(draggingIndex, dragStartPosition)
       setDraggingIndex(null)
     }
 
@@ -50,7 +54,7 @@ export function StageLabels({ stages }: { stages: Array<{ name: string; position
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [draggingIndex, dragStartX, stages, updateFlowStage, zoom])
+  }, [draggingIndex, dragStartX, dragStartPosition, stages, updateFlowStage, completeFlowStageMove, zoom])
 
   return (
     <div
