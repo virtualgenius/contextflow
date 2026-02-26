@@ -150,7 +150,7 @@ The app includes multiple example projects:
 - `src/` – React app code (TypeScript + Vite)
 - `src/model/` – Core types and Zustand store
 - `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`, `elan.project.json`, `empty.project.json`)
-- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [TODO.md](docs/TODO.md)
+- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [TODO.md](docs/TODO.md), [Enterprise Data Privacy](docs/ENTERPRISE_DATA_PRIVACY.md)
 
 ## Project Status
 
