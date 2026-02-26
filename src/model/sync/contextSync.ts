@@ -30,6 +30,8 @@ export function yMapToContext(yMap: Y.Map<unknown>): BoundedContext {
   assignIfNotNull(context, 'boundaryIntegrity', yMap.get('boundaryIntegrity'));
   assignIfNotNull(context, 'boundaryNotes', yMap.get('boundaryNotes'));
   assignIfNotNull(context, 'isLegacy', yMap.get('isLegacy'));
+  assignIfNotNull(context, 'isBigBallOfMud', yMap.get('isBigBallOfMud'));
+  assignIfNotNull(context, 'businessModelRole', yMap.get('businessModelRole'));
   assignIfNotNull(context, 'notes', yMap.get('notes'));
   assignIfNotNull(context, 'teamId', yMap.get('teamId'));
 
@@ -59,6 +61,8 @@ function setOptionalFields(yMap: Y.Map<unknown>, context: BoundedContext): void 
   yMap.set('boundaryIntegrity', context.boundaryIntegrity ?? null);
   yMap.set('boundaryNotes', context.boundaryNotes ?? null);
   yMap.set('isLegacy', context.isLegacy ?? null);
+  yMap.set('isBigBallOfMud', context.isBigBallOfMud ?? null);
+  yMap.set('businessModelRole', context.businessModelRole ?? null);
   yMap.set('notes', context.notes ?? null);
   yMap.set('teamId', context.teamId ?? null);
 }

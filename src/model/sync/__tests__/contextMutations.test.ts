@@ -181,6 +181,36 @@ describe('contextMutations', () => {
       expect(result.contexts[0].isLegacy).toBe(true);
     });
 
+    it('should set isBigBallOfMud', () => {
+      updateContextMutation(ydoc, 'ctx-1', { isBigBallOfMud: true });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].isBigBallOfMud).toBe(true);
+    });
+
+    it('should clear isBigBallOfMud', () => {
+      updateContextMutation(ydoc, 'ctx-1', { isBigBallOfMud: true });
+      updateContextMutation(ydoc, 'ctx-1', { isBigBallOfMud: false });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].isBigBallOfMud).toBe(false);
+    });
+
+    it('should update businessModelRole', () => {
+      updateContextMutation(ydoc, 'ctx-1', { businessModelRole: 'revenue-generator' });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].businessModelRole).toBe('revenue-generator');
+    });
+
+    it('should clear businessModelRole when set to undefined', () => {
+      updateContextMutation(ydoc, 'ctx-1', { businessModelRole: 'cost-reduction' });
+      updateContextMutation(ydoc, 'ctx-1', { businessModelRole: undefined });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].businessModelRole).toBeUndefined();
+    });
+
     it('should update codeSize', () => {
       updateContextMutation(ydoc, 'ctx-1', {
         codeSize: { loc: 5000, bucket: 'medium' },

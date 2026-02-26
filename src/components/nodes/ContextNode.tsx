@@ -208,6 +208,22 @@ export function ContextNode({ data }: NodeProps) {
         </div>
       )}
 
+      {/* Big Ball of Mud badge */}
+      {context.isBigBallOfMud && (
+        <div
+          data-testid="bbom-badge"
+          style={{
+            position: 'absolute',
+            top: '4px',
+            right: context.isLegacy ? '24px' : '4px',
+            fontSize: '16px',
+          }}
+          title="Big Ball of Mud"
+        >
+          🟤
+        </div>
+      )}
+
       {/* External badge */}
       {context.ownership === 'external' && (
         <div
@@ -270,7 +286,7 @@ export function ContextNode({ data }: NodeProps) {
           fontSize: '13px',
           fontWeight: 600,
           color: '#0f172a',
-          marginTop: context.ownership === 'external' ? '20px' : (context.isLegacy || (context.issues && context.issues.length > 0)) ? '20px' : '0',
+          marginTop: context.ownership === 'external' ? '20px' : (context.isLegacy || context.isBigBallOfMud || (context.issues && context.issues.length > 0)) ? '20px' : '0',
           lineHeight: '1.3',
           overflow: 'hidden',
           textOverflow: 'ellipsis',

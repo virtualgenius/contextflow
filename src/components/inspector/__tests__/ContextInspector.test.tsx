@@ -127,4 +127,53 @@ describe('ContextInspector', () => {
     fireEvent.click(screen.getByText('Add Issue'))
     expect(mockAddContextIssue).toHaveBeenCalledWith('ctx-1', 'New issue')
   })
+
+  it('renders Big Ball of Mud toggle', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.getByLabelText('Big Ball of Mud')).toBeInTheDocument()
+  })
+
+  it('calls updateContext when Big Ball of Mud toggle changes', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    fireEvent.click(screen.getByLabelText('Big Ball of Mud'))
+    expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { isBigBallOfMud: true })
+  })
+
+  it('renders Business Model Role label and dropdown', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.getByText('Role')).toBeInTheDocument()
+    const roleLabel = screen.getByText('Role')
+    const container = roleLabel.closest('div')!
+    const select = container.querySelector('select')!
+    expect(select.value).toBe('')
+  })
+
+  it('calls updateContext when Business Model Role changes', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const roleLabel = screen.getByText('Role')
+    const container = roleLabel.closest('div')!
+    const select = container.querySelector('select')!
+    fireEvent.change(select, { target: { value: 'revenue-generator' } })
+    expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { businessModelRole: 'revenue-generator' })
+  })
+
+  it('calls updateContext with undefined when Business Model Role is cleared', () => {
+    const project = makeProject({
+      contexts: [{
+        id: 'ctx-1',
+        name: 'Orders',
+        purpose: 'Manage orders',
+        ownership: 'ours',
+        positions: { flow: { x: 0 }, strategic: { x: 50 }, distillation: { x: 40, y: 60 }, shared: { y: 30 } },
+        strategicClassification: 'core',
+        evolutionStage: 'custom-built',
+        businessModelRole: 'revenue-generator',
+        issues: [],
+      }],
+    })
+    render(<ContextInspector project={project} contextId="ctx-1" />)
+    const roleSelect = screen.getByDisplayValue('Revenue Generator')
+    fireEvent.change(roleSelect, { target: { value: '' } })
+    expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { businessModelRole: undefined })
+  })
 })

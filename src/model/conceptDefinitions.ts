@@ -240,6 +240,30 @@ export const OWNERSHIP_DEFINITIONS: Record<string, ConceptDefinition> = {
   },
 }
 
+// Business Model Role (Bounded Context Canvas V5)
+export const BUSINESS_MODEL_ROLE: ConceptDefinition = {
+  title: 'Business Model Role',
+  description: 'How this bounded context contributes to the organization\'s business model. From the Bounded Context Canvas V5 by DDD Crew.',
+  characteristics: [
+    'Revenue Generator: directly produces income (e.g., payments, subscriptions)',
+    'Engagement Creator: increases user interaction and retention',
+    'Compliance Enforcer: ensures regulatory or policy adherence',
+    'Cost Reduction: optimizes spend or automates expensive processes',
+  ],
+}
+
+// Big Ball of Mud
+export const BIG_BALL_OF_MUD: ConceptDefinition = {
+  title: 'Big Ball of Mud',
+  description: 'A system with mixed models, inconsistent boundaries, and tangled dependencies. Identified by Eric Evans as a strategic design pattern that needs isolation.',
+  characteristics: [
+    'No clear internal structure or model boundaries',
+    'Should be isolated behind an anti-corruption layer',
+    'Often grows organically without deliberate design',
+    'Signals need for decomposition or strangler fig migration',
+  ],
+}
+
 // Legacy Context
 export const LEGACY_CONTEXT: ConceptDefinition = {
   title: 'Legacy Context',

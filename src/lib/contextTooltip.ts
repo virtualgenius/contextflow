@@ -65,6 +65,14 @@ function getFlowLines(params: TooltipParams): string[] {
     lines.push(BOUNDARY_LABELS[context.boundaryIntegrity])
   }
 
+  if (context.isLegacy) {
+    lines.push('Legacy system')
+  }
+
+  if (context.isBigBallOfMud) {
+    lines.push('Big Ball of Mud - needs isolation or decomposition')
+  }
+
   if (context.issues && context.issues.length > 0) {
     lines.push(`${context.issues.length} issues`)
   }
@@ -111,6 +119,14 @@ function getStrategicLines(params: TooltipParams): string[] {
   const lines: string[] = []
   if (parts.length > 0) {
     lines.push(parts.join(' | '))
+  }
+
+  if (context.isLegacy) {
+    lines.push('Legacy system')
+  }
+
+  if (context.isBigBallOfMud) {
+    lines.push('Big Ball of Mud - needs isolation or decomposition')
   }
 
   if (context.issues && context.issues.length > 0) {

@@ -64,6 +64,9 @@ export interface BoundedContext {
   }
 
   isLegacy?: boolean
+  isBigBallOfMud?: boolean
+
+  businessModelRole?: 'revenue-generator' | 'engagement-creator' | 'compliance-enforcer' | 'cost-reduction'
 
   notes?: string
   issues?: Issue[]

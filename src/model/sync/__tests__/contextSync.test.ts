@@ -325,6 +325,46 @@ describe('contextSync', () => {
       expect(result).toEqual(original);
     });
 
+    it('round-trips a context with businessModelRole', () => {
+      const original: BoundedContext = {
+        id: 'ctx-role',
+        name: 'Payments',
+        positions: {
+          strategic: { x: 50 },
+          flow: { x: 50 },
+          distillation: { x: 50, y: 50 },
+          shared: { y: 50 },
+        },
+        evolutionStage: 'product/rental',
+        businessModelRole: 'revenue-generator',
+      };
+
+      const yMap = contextToYMap(original);
+      const result = yMapToContext(yMap);
+
+      expect(result).toEqual(original);
+    });
+
+    it('round-trips a context with isBigBallOfMud', () => {
+      const original: BoundedContext = {
+        id: 'ctx-bbom',
+        name: 'Monolith',
+        positions: {
+          strategic: { x: 50 },
+          flow: { x: 50 },
+          distillation: { x: 50, y: 50 },
+          shared: { y: 50 },
+        },
+        evolutionStage: 'custom-built',
+        isBigBallOfMud: true,
+      };
+
+      const yMap = contextToYMap(original);
+      const result = yMapToContext(yMap);
+
+      expect(result).toEqual(original);
+    });
+
     it('round-trips a minimal context', () => {
       const original: BoundedContext = {
         id: 'ctx-min',

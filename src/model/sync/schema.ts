@@ -103,6 +103,8 @@ export interface YjsBoundedContext {
   boundaryNotes?: string | null;
   evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility';
   isLegacy?: boolean;
+  isBigBallOfMud?: boolean;
+  businessModelRole?: 'revenue-generator' | 'engagement-creator' | 'compliance-enforcer' | 'cost-reduction' | null;
   notes?: string | null;
   teamId?: string | null;
 

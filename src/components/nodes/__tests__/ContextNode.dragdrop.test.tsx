@@ -90,6 +90,35 @@ function createDataTransfer(mimeType: string, value: string) {
   }
 }
 
+describe('ContextNode Big Ball of Mud badge', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setupStoreMock()
+  })
+
+  it('renders BBoM badge when isBigBallOfMud is true', () => {
+    renderContextNode(makeContext({ isBigBallOfMud: true }))
+    expect(screen.getByTestId('bbom-badge')).toBeInTheDocument()
+    expect(screen.getByTitle('Big Ball of Mud')).toBeInTheDocument()
+  })
+
+  it('does not render BBoM badge when isBigBallOfMud is false', () => {
+    renderContextNode(makeContext({ isBigBallOfMud: false }))
+    expect(screen.queryByTestId('bbom-badge')).not.toBeInTheDocument()
+  })
+
+  it('does not render BBoM badge when isBigBallOfMud is undefined', () => {
+    renderContextNode(makeContext())
+    expect(screen.queryByTestId('bbom-badge')).not.toBeInTheDocument()
+  })
+
+  it('renders both Legacy and BBoM badges when both are true', () => {
+    renderContextNode(makeContext({ isLegacy: true, isBigBallOfMud: true }))
+    expect(screen.getByTitle('Legacy')).toBeInTheDocument()
+    expect(screen.getByTitle('Big Ball of Mud')).toBeInTheDocument()
+  })
+})
+
 describe('ContextNode drag and drop', () => {
   beforeEach(() => {
     vi.clearAllMocks()

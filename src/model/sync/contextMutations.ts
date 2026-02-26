@@ -102,6 +102,8 @@ function applyScalarUpdates(yContext: Y.Map<unknown>, updates: Partial<BoundedCo
     'boundaryNotes',
     'evolutionStage',
     'isLegacy',
+    'isBigBallOfMud',
+    'businessModelRole',
     'notes',
     'teamId',
   ];

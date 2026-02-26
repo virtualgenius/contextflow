@@ -7,7 +7,7 @@ import { interpolatePosition } from '../../lib/temporal'
 import { classifyFromStrategicPosition } from '../../model/classification'
 import { InfoTooltip } from '../InfoTooltip'
 import { SimpleTooltip } from '../SimpleTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, LEGACY_CONTEXT, POWER_DYNAMICS, OWNERSHIP_DEFINITIONS } from '../../model/conceptDefinitions'
+import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, LEGACY_CONTEXT, BIG_BALL_OF_MUD, BUSINESS_MODEL_ROLE, POWER_DYNAMICS, OWNERSHIP_DEFINITIONS } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
 import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
 import { RepoCard } from './ContextRepoCard'
@@ -168,6 +168,37 @@ export function ContextInspector({ project, contextId }: { project: Project; con
           onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
         />
         <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+        </InfoTooltip>
+      </div>
+
+      {/* Big Ball of Mud toggle */}
+      <div className="flex items-center gap-2">
+        <Switch
+          label="Big Ball of Mud"
+          checked={context.isBigBallOfMud || false}
+          onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
+        />
+        <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
+          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+        </InfoTooltip>
+      </div>
+
+      {/* Business Model Role */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Role</span>
+        <select
+          value={context.businessModelRole || ''}
+          onChange={(e) => handleUpdate({ businessModelRole: (e.target.value || undefined) as any })}
+          className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+        >
+          <option value="">Not set</option>
+          <option value="revenue-generator">Revenue Generator</option>
+          <option value="engagement-creator">Engagement Creator</option>
+          <option value="compliance-enforcer">Compliance Enforcer</option>
+          <option value="cost-reduction">Cost Reduction</option>
+        </select>
+        <InfoTooltip content={BUSINESS_MODEL_ROLE} position="bottom">
           <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
         </InfoTooltip>
       </div>

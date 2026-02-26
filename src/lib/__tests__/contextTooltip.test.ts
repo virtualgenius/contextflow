@@ -234,6 +234,28 @@ describe('getContextTooltipLines', () => {
       ])
     })
 
+    it('includes Big Ball of Mud line when isBigBallOfMud is true', () => {
+      const lines = getContextTooltipLines({
+        context: makeContext({ isBigBallOfMud: true }),
+        viewMode: 'flow',
+        colorByMode: 'strategic',
+        relationships: [],
+        contexts: [],
+      })
+      expect(lines).toContain('Big Ball of Mud - needs isolation or decomposition')
+    })
+
+    it('includes Legacy system line when isLegacy is true', () => {
+      const lines = getContextTooltipLines({
+        context: makeContext({ isLegacy: true }),
+        viewMode: 'flow',
+        colorByMode: 'strategic',
+        relationships: [],
+        contexts: [],
+      })
+      expect(lines).toContain('Legacy system')
+    })
+
     it('returns minimal lines for unconfigured context', () => {
       const lines = getContextTooltipLines({
         context: makeContext(),
@@ -368,6 +390,17 @@ describe('getContextTooltipLines', () => {
         contexts: [],
       })
       expect(lines).toEqual(['External'])
+    })
+
+    it('includes Big Ball of Mud line in strategic view', () => {
+      const lines = getContextTooltipLines({
+        context: makeContext({ isBigBallOfMud: true }),
+        viewMode: 'strategic',
+        colorByMode: 'strategic',
+        relationships: [],
+        contexts: [],
+      })
+      expect(lines).toContain('Big Ball of Mud - needs isolation or decomposition')
     })
 
     it('shows only boundary when only boundary is set', () => {
