@@ -396,6 +396,10 @@ export const useEditorStore = create<EditorState>((set) => ({
       entity_type: 'context',
       entity_id: newContext.id,
       source_view: state.activeViewMode,
+      metadata: {
+        context_type: newContext.strategicClassification,
+        ownership: newContext.ownership || 'ours',
+      },
     })
     trackFTUEMilestone('first_context_added', updatedProject)
 
@@ -405,10 +409,18 @@ export const useEditorStore = create<EditorState>((set) => ({
   deleteContext: (contextId) => set((state) => {
     const projectId = state.activeProjectId
     const project = projectId ? state.projects[projectId] : null
+    const relationshipCount = project?.relationships.filter(
+      r => r.fromContextId === contextId || r.toContextId === contextId
+    ).length ?? 0
+    const groupCount = project?.groups.filter(g => g.contextIds.includes(contextId)).length ?? 0
     getCollabMutations().deleteContext(contextId)
     trackEvent('context_deleted', project, {
       entity_type: 'context',
       entity_id: contextId,
+      metadata: {
+        relationship_count: relationshipCount,
+        group_count: groupCount,
+      },
     })
     return state.selectedContextId === contextId ? { selectedContextId: null } : {}
   }),
@@ -709,6 +721,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     trackEvent('user_deleted', project, {
       entity_type: 'user',
       entity_id: userId,
+      metadata: {
+        connection_count: userNeedConnections.length,
+      },
     })
     return state.selectedUserId === userId ? { selectedUserId: null } : {}
   }),
@@ -785,6 +800,10 @@ export const useEditorStore = create<EditorState>((set) => ({
     trackEvent('user_need_deleted', project, {
       entity_type: 'user_need',
       entity_id: userNeedId,
+      metadata: {
+        user_connection_count: userNeedConnections.length,
+        context_connection_count: needContextConnections.length,
+      },
     })
     return state.selectedUserNeedId === userNeedId ? { selectedUserNeedId: null } : {}
   }),

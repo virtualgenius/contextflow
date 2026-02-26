@@ -1,6 +1,6 @@
-import { vi, beforeEach, afterEach } from 'vitest'
+import { vi } from 'vitest'
 import type { EditorState } from '../../storeTypes'
-import type { Project, BoundedContext, Group, Relationship, TemporalKeyframe } from '../../types'
+import type { Project, BoundedContext } from '../../types'
 
 export const createMockContext = (overrides?: Partial<BoundedContext>): BoundedContext => ({
   id: 'ctx-1',
@@ -15,56 +15,6 @@ export const createMockContext = (overrides?: Partial<BoundedContext>): BoundedC
   strategicClassification: 'supporting',
   ...overrides,
 })
-
-export const createMockGroup = (overrides?: Partial<Group>): Group => ({
-  id: 'group-1',
-  label: 'Test Group',
-  contextIds: [],
-  ...overrides,
-})
-
-export const createMockRelationship = (overrides?: Partial<Relationship>): Relationship => ({
-  id: 'rel-1',
-  fromContextId: 'context-1',
-  toContextId: 'context-2',
-  pattern: 'customer-supplier',
-  ...overrides,
-})
-
-export const createMockKeyframe = (overrides?: Partial<TemporalKeyframe>): TemporalKeyframe => ({
-  id: 'kf-1',
-  date: '2025',
-  label: 'Future',
-  positions: {},
-  activeContextIds: [],
-  ...overrides,
-})
-
-export const setupAnalyticsMock = () => {
-  vi.mock('../../utils/analytics', () => ({
-    trackEvent: vi.fn(),
-    trackPropertyChange: vi.fn(),
-    trackTextFieldEdit: vi.fn(),
-    trackFTUEMilestone: vi.fn(),
-  }))
-}
-
-export const setupConsoleSpy = () => {
-  let consoleErrorSpy: any
-  let consoleWarnSpy: any
-
-  beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-  })
-
-  afterEach(() => {
-    consoleErrorSpy?.mockRestore()
-    consoleWarnSpy?.mockRestore()
-  })
-
-  return { consoleErrorSpy, consoleWarnSpy }
-}
 
 export const createBaseMockProject = (): Project => ({
   id: 'test-project',
