@@ -250,14 +250,16 @@ export interface TemporalKeyframe {
 
 ```txt
 <App />
-  <ProjectPicker />            // Choose/create project from local storage
+  <ProjectListPage />          // Project list, creation, and example loading
   <EditorView />               // Active board
     <TopBar />                 // view toggle, add context, fit-to-map, undo/redo, import/export
     <MainLayout />
       <RepoSidebar />          // Unassigned repos; drag to assign to a context
+      <TeamSidebar />          // Team management (tabbed sidebar with RepoSidebar)
       <CanvasArea />           // React Flow canvas:
                                //   contexts, relationships, groups, axes
-      <InspectorPanel />       // Edit selected context / relationship / group
+      <InspectorPanel />       // Edit selected context / relationship / group /
+                               //   user / user need / connection / stage / team
     <RelationshipCreateOverlay /> // When creating new relationship by drag
     <GroupCreateOverlay />        // When creating a new group from multi-select
 ```
@@ -275,7 +277,7 @@ export interface TemporalKeyframe {
   - fill color = `strategicClassification`
   - border style = `boundaryIntegrity`
   - badge if `isLegacy`
-  - badge/dotted ring if `isExternal`
+  - badge/dotted ring if `ownership` is `'external'`
   - radius = `codeSize.bucket`
 - Renders edges (relationships)
   - curved bezier lines
@@ -329,7 +331,9 @@ When a context is selected:
   - boundaryIntegrity + boundaryNotes
   - codeSize.bucket
   - isLegacy
-  - isExternal
+  - isBigBallOfMud
+  - ownership
+  - businessModelRole
   - evolutionStage (optional)
   - notes
 - Repos assigned to this context:
@@ -374,7 +378,7 @@ When a group is selected:
 We maintain a Zustand store as a **read-only projection** of the Yjs document:
 
 ```ts
-export type ViewMode = 'flow' | 'strategic';
+export type ViewMode = 'flow' | 'strategic' | 'distillation';
 
 interface EditorState {
   activeProjectId: string | null;
@@ -382,17 +386,45 @@ interface EditorState {
 
   activeViewMode: ViewMode;
 
+  // Selection state
   selectedContextId: string | null;
   selectedRelationshipId: string | null;
   selectedGroupId: string | null;
+  selectedUserId: string | null;
+  selectedUserNeedId: string | null;
+  selectedUserNeedConnectionId: string | null;
+  selectedNeedContextConnectionId: string | null;
+  selectedStageIndex: number | null;
+  selectedTeamId: string | null;
+  selectedContextIds: string[];       // multi-select
+  hoveredContextId: string | null;
+  isDragging: boolean;
 
   canvasView: {
     flow: { zoom: number; panX: number; panY: number };
     strategic: { zoom: number; panX: number; panY: number };
+    distillation: { zoom: number; panX: number; panY: number };
   };
 
-  // Connection state (managed by collabStore)
-  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
+  // View filters
+  showGroups: boolean;
+  showRelationships: boolean;
+  showIssueLabels: boolean;
+  showTeamLabels: boolean;
+  showRelationshipLabels: boolean;
+
+  // Help preferences
+  showHelpTooltips: boolean;
+
+  // UI preferences
+  groupOpacity: number;
+  colorByMode: 'strategic' | 'ownership';
+
+  // Temporal state
+  temporal: {
+    currentDate: string | null;
+    activeKeyframeId: string | null;
+  };
 }
 ```
 
@@ -465,8 +497,8 @@ User Action → Yjs Y.Doc → WebSocket → Cloudflare Durable Object
   - `weak` → dashed / porous
 - Legacy:
   - ⚠ badge in corner of node
-- External:
-  - Small “External” badge and/or dotted ring
+- Ownership `'external'`:
+  - Small “External” badge and dotted ring
   - Cannot assign repos to this node
 - Group blobs:
   - Organic, smooth shapes wrapping around member contexts
