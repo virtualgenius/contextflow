@@ -174,6 +174,7 @@ ContextFlow builds on established practices in domain-driven design, team topolo
 
 **Domain-Driven Design & Context Mapping:**
 - [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) by DDD Crew — visual template for documenting bounded contexts
+- [Context Mapping](https://github.com/ddd-crew/context-mapping) by DDD Crew — reference for context map patterns and team relationships
 - [Context Mapper](https://contextmapper.org/) — complementary DSL-based context mapping tool
 
 **Wardley Mapping:**

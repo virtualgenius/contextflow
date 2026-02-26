@@ -25,6 +25,7 @@
 
 - [ ] Domain Roles / Model Traits — Brandolini's 15 bounded context archetypes (specification, execution, gateway, enforcer, etc.) as a field on contexts. Useful for workshops but 15 options is a lot of UI complexity. Consider after v1.0 when inspector UX is revisited. See docs/DDD_CREW_COMPARISON.md.
 - [ ] Ubiquitous Language per context — term/definition pairs capturing context-specific vocabulary. Core DDD concept but needs a UX approach that doesn't clutter the inspector (canvas overlay? dedicated panel? linked view?). See docs/DDD_CREW_COMPARISON.md.
+- [ ] Canvas mode / per-context deep dive view — inspired by the Bounded Context Canvas, a focused view for one selected context showing inbound/outbound communication, glossary, assumptions, etc. Complements the landscape views. See docs/DDD_CREW_COMPARISON.md.
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
