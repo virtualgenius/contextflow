@@ -809,7 +809,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         if ('name' in updates && updates.name !== oldNeed.name) {
           trackTextFieldEdit(project, 'user_need', 'name', oldNeed.name, updates.name, 'inspector')
         }
-        if ('visibility' in updates) {
+        if ('visibility' in updates && updates.visibility !== oldNeed.visibility) {
           trackPropertyChange('user_need_property_changed', project, 'user_need', userNeedId, 'visibility', oldNeed.visibility, updates.visibility)
         }
       }
