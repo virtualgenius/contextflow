@@ -10,7 +10,7 @@ Both repos use **CC BY-SA 4.0** (Creative Commons Attribution-ShareAlike 4.0).
 - DDD pattern names and concepts (from Eric Evans, etc.) are not copyrightable.
 - If we embed their exact text verbatim (descriptions, definitions), we must provide attribution and any redistributed content must remain CC BY-SA 4.0.
 - Building a software tool inspired by their structure is not "adapted material" under copyright law; ideas are not copyrightable, only expression is.
-- **Safe approach**: Use our own descriptions. Reference/credit the DDD Crew repos in a credits or acknowledgements section.
+- **Safe approach**: Use our own descriptions. Reference/credit the DDD Crew repos. ContextFlow's README already credits the Bounded Context Canvas, Nick Tune's Core Domain Charts, and other DDD Crew resources in its references section.
 
 ## Bounded Context Canvas (V5) Comparison
 
