@@ -25,6 +25,7 @@
 
 - [ ] Domain Roles / Model Traits — Brandolini's 15 bounded context archetypes (specification, execution, gateway, enforcer, etc.) as a field on contexts. Useful for workshops but 15 options is a lot of UI complexity. Consider after v1.0 when inspector UX is revisited. See docs/DDD_CREW_COMPARISON.md.
 - [ ] Ubiquitous Language per context — term/definition pairs capturing context-specific vocabulary. Core DDD concept but needs a UX approach that doesn't clutter the inspector (canvas overlay? dedicated panel? linked view?). See docs/DDD_CREW_COMPARISON.md.
+- [ ] Embeddable mode / facilitator dashboard — enable embedding multiple ContextFlow instances in a single page (iframe embed support) or Miro board, so a facilitator can watch multiple teams working on their context maps simultaneously in a class/workshop setting. May need CSP/X-Frame-Options changes, a compact embed mode, and/or a dedicated facilitator view with live thumbnails of multiple project rooms.
 - [ ] Canvas mode / per-context deep dive view — inspired by the Bounded Context Canvas, a focused view for one selected context showing inbound/outbound communication, glossary, assumptions, etc. Complements the landscape views. See docs/DDD_CREW_COMPARISON.md.
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
