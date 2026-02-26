@@ -980,11 +980,9 @@ export const useEditorStore = create<EditorState>((set) => ({
     })
   },
 
-  setGroupOpacity: (opacity, { skipAnalytics = false } = {}) => {
+  setGroupOpacity: (opacity) => {
     localStorage.setItem('contextflow.groupOpacity', String(opacity))
-    if (!skipAnalytics) {
-      trackEvent('view_preference_changed', null, { preference_name: 'groupOpacity', new_value: opacity })
-    }
+    trackEvent('view_preference_changed', null, { preference_name: 'groupOpacity', new_value: opacity })
     set({ groupOpacity: opacity })
   },
 

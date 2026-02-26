@@ -90,11 +90,7 @@ export function SettingsViewOptions() {
             min="0"
             max="100"
             value={groupOpacity * 100}
-            onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100, { skipAnalytics: true })}
-            onPointerUp={(e) => {
-              const value = parseInt((e.target as HTMLInputElement).value) / 100
-              setGroupOpacity(value)
-            }}
+            onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100)}
             className="w-full h-2 bg-slate-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer"
             style={{
               accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa'
