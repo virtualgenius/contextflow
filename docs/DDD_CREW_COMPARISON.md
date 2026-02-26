@@ -10,11 +10,11 @@ Research comparing [ddd-crew/bounded-context-canvas](https://github.com/ddd-crew
 
 2. ~~**Big Ball of Mud**~~: Implemented as `isBigBallOfMud` boolean toggle in the Inspector, with visual badge on context nodes. Syncs via Yjs, tracked in analytics.
 
-### Next up
+### Future (post-v1.0)
 
-3. **Domain Roles / Model Traits**: Add a multi-select field for Brandolini's 15 archetypes (Specification/Draft, Execution, Analysis/Audit, Approver, Enforcer, Gateway, etc.). Characterizes what a context *does* behaviorally. Brandolini is a close collaborator; this aligns well with ContextFlow's DDD positioning.
+3. **Domain Roles / Model Traits**: Brandolini's 15 bounded context archetypes (specification, execution, gateway, enforcer, etc.) as a field on contexts. Useful for workshops, but 15 options is a lot of UI complexity for the current inspector. Revisit when inspector UX is overhauled.
 
-4. **Ubiquitous Language per context**: Key-value list in Inspector (term -> definition). Core DDD concept, unique differentiator for a tool. Enables the "same word, different meaning in different contexts" insight that drives boundary decisions.
+4. **Ubiquitous Language per context**: Term/definition pairs capturing context-specific vocabulary. Core DDD concept and a potential differentiator, but needs a UX approach that doesn't clutter the inspector (canvas overlay? dedicated panel? linked view?).
 
 ### Positioning insights
 
