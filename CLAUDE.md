@@ -99,6 +99,12 @@ Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-cor
 2. Match aesthetic guidelines in [docs/UX_GUIDELINES.md](docs/UX_GUIDELINES.md)
 3. Preserve product vision and positioning from [docs/VISION.md](docs/VISION.md)
 
+### Definition of Done (checklist before closing a feature)
+
+- [ ] **Analytics coverage**: Verify the feature is tracked. New user-facing actions (buttons, toggles, dropdowns, entity CRUD) must fire analytics events. Check whether existing generic events (e.g., `context_updated` with `properties_changed`) already cover the new fields. If not, add explicit `trackEvent`/`trackPropertyChange` calls in `store.ts`. See `src/utils/analytics.ts` for helpers and `docs/ANALYTICS_USAGE_GUIDE.md` for conventions.
+- [ ] **Yjs sync**: Any new entity field must round-trip through Yjs (types.ts, schema.ts, contextSync.ts, contextMutations.ts)
+- [ ] **Tests pass**: `npm test` with no new failures
+
 ## Important Constraints
 
 - **Browser-based**: works entirely in the browser with client-side storage; no backend required for core functionality
