@@ -23,7 +23,7 @@ This document defines how we build it.
 - Canvas / graph rendering: React Flow
   - Handles pan/zoom, nodes, edges, selection
 - Animation: Framer Motion
-  - Smoothly animate node horizontal position when switching Flow ↔ Strategic views
+  - Smoothly animate node positions when switching between views
 - State: Zustand store for editor state (read-only projection of Yjs)
 - Persistence: Yjs + Cloudflare Durable Objects for real-time cloud sync
 - Collaboration: Yjs CRDT for conflict-free real-time editing
@@ -239,6 +239,7 @@ export interface TemporalKeyframe {
 - `ownership` → when set to `'external'`, show an “External” badge and dotted outer ring, and disallow repo assignment
 - `positions` drives layout:
   - Flow View uses `positions.flow.x` (horizontal) and `positions.shared.y` (vertical)
+  - Distillation View uses `positions.distillation.x` and `positions.distillation.y` (independent 2D positioning)
   - Strategic View uses `positions.strategic.x` (horizontal) and `positions.shared.y` (vertical)
 - `relationships` arrow direction:
   - arrow points toward `toContextId` (upstream power)

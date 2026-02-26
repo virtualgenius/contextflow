@@ -55,7 +55,7 @@ The UX is inspired by **Miro**, **Wardley Maps**, and the **Linear** aesthetic: 
 Three synchronized views of the same system model:
 
 - **Value Stream View (default):** X-axis = configurable flow stages (e.g., Discovery → Selection → Purchase → Fulfillment). Shows how value flows through the system. Stages are editable via TopBar.
-- **Distillation View:** X-axis = Model Complexity (low → high), Y-axis = Business Differentiation (low → high). Core Domain Chart for classifying domains (core/supporting/generic).
+- **Distillation View:** X-axis = Business Differentiation (low → high), Y-axis = Model Complexity (low → high). Core Domain Chart for classifying domains (core/supporting/generic).
 - **Strategic View:** X-axis = Wardley evolution (Genesis → Custom-built → Product → Commodity). Shows three-layer value chain: Actors → User Needs → Contexts.
 - Toggle via top bar button. View transitions animate smoothly.
 
@@ -114,9 +114,9 @@ Three synchronized views of the same system model:
   - X-axis: User-defined flow stage labels (e.g., "Discovery", "Selection", "Purchase", "Fulfillment"). Editable via TopBar.
   - Y-axis: Shared value chain position (top → bottom).
 - **Distillation View:**
-  - X-axis: Model Complexity (low → high).
-  - Y-axis: Business Differentiation (low → high).
-  - Quadrant labels: Generic (low/low), Supporting (high/low), Core (high/high).
+  - X-axis: Business Differentiation (low → high).
+  - Y-axis: Model Complexity (low → high).
+  - Quadrant labels: Generic (low/low), Supporting (mixed), Core (high/high).
 - **Strategic View:**
   - X-axis: Wardley evolution stages ("Genesis", "Custom-Built", "Product/Rental", "Commodity/Utility").
   - Y-axis: Shared value chain position (top → bottom).
