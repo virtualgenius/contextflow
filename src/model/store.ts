@@ -20,16 +20,6 @@ import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, 
 import { createProjectAction, deleteProjectAction, renameProjectAction, duplicateProjectAction } from './actions/projectActions'
 import { createProjectFromTemplate } from './templateProjects'
 import {
-  addUserAction,
-  deleteUserAction,
-  updateUserAction,
-  updateUserPositionAction,
-  addUserNeedAction,
-  deleteUserNeedAction,
-  updateUserNeedAction,
-  updateUserNeedPositionAction,
-} from './actions/userActions'
-import {
   validateKeyframeDate,
   checkDuplicateKeyframe,
   shouldWarnFarFuture,
