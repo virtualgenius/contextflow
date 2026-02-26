@@ -509,8 +509,24 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
   }),
 
-  updateGroup: (groupId, updates) => set(() => {
+  updateGroup: (groupId, updates) => set((state) => {
     getCollabMutations().updateGroup(groupId, updates)
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    if (project) {
+      const oldGroup = project.groups.find(g => g.id === groupId)
+      if (oldGroup) {
+        if ('label' in updates && updates.label !== oldGroup.label) {
+          trackTextFieldEdit(project, 'group', 'name', oldGroup.label, updates.label, 'inspector')
+        }
+        if ('notes' in updates && updates.notes !== oldGroup.notes) {
+          trackTextFieldEdit(project, 'group', 'notes', oldGroup.notes, updates.notes, 'inspector')
+        }
+        if ('color' in updates && updates.color !== oldGroup.color) {
+          trackPropertyChange('group_property_changed', project, 'group', groupId, 'color', oldGroup.color, updates.color)
+        }
+      }
+    }
     return {}
   }),
 
@@ -527,16 +543,19 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   removeContextFromGroup: (groupId, contextId) => set(() => {
     getCollabMutations().removeContextFromGroup(groupId, contextId)
+    trackEvent('context_removed_from_group', null, { entity_type: 'group', entity_id: groupId })
     return {}
   }),
 
   addContextToGroup: (groupId, contextId) => set(() => {
     getCollabMutations().addContextToGroup(groupId, contextId)
+    trackEvent('context_added_to_group', null, { entity_type: 'group', entity_id: groupId })
     return {}
   }),
 
   addContextsToGroup: (groupId, contextIds) => set(() => {
     getCollabMutations().addContextsToGroup(groupId, contextIds)
+    trackEvent('context_added_to_group', null, { entity_type: 'group', entity_id: groupId, context_count: contextIds.length })
     return {}
   }),
 
@@ -555,6 +574,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       entity_id: newRelationship.id,
       pattern,
     })
+    trackFTUEMilestone('first_relationship_added', null)
 
     return {}
   }),
@@ -612,8 +632,18 @@ export const useEditorStore = create<EditorState>((set) => ({
     ...createSelectionState(teamId, 'team'),
   }),
 
-  updateTeam: (teamId, updates) => set(() => {
+  updateTeam: (teamId, updates) => set((state) => {
     getCollabMutations().updateTeam(teamId, updates)
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    if (project) {
+      const oldTeam = project.teams.find(t => t.id === teamId)
+      if (oldTeam) {
+        if ('name' in updates && updates.name !== oldTeam.name) {
+          trackTextFieldEdit(project, 'team', 'name', oldTeam.name, updates.name, 'inspector')
+        }
+      }
+    }
     return {}
   }),
 
@@ -693,8 +723,21 @@ export const useEditorStore = create<EditorState>((set) => ({
     return state.selectedUserId === userId ? { selectedUserId: null } : {}
   }),
 
-  updateUser: (userId, updates) => set(() => {
+  updateUser: (userId, updates) => set((state) => {
     getCollabMutations().updateUser(userId, updates)
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    if (project) {
+      const oldUser = (project.users || []).find(u => u.id === userId)
+      if (oldUser) {
+        if ('name' in updates && updates.name !== oldUser.name) {
+          trackTextFieldEdit(project, 'user', 'name', oldUser.name, updates.name, 'inspector')
+        }
+        if ('type' in updates && (updates as any).type !== (oldUser as any).type) {
+          trackPropertyChange('user_property_changed', project, 'user', userId, 'type', (oldUser as any).type, (updates as any).type)
+        }
+      }
+    }
     return {}
   }),
 
@@ -756,8 +799,21 @@ export const useEditorStore = create<EditorState>((set) => ({
     return state.selectedUserNeedId === userNeedId ? { selectedUserNeedId: null } : {}
   }),
 
-  updateUserNeed: (userNeedId, updates) => set(() => {
+  updateUserNeed: (userNeedId, updates) => set((state) => {
     getCollabMutations().updateUserNeed(userNeedId, updates)
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    if (project) {
+      const oldNeed = (project.userNeeds || []).find(n => n.id === userNeedId)
+      if (oldNeed) {
+        if ('name' in updates && updates.name !== oldNeed.name) {
+          trackTextFieldEdit(project, 'user_need', 'name', oldNeed.name, updates.name, 'inspector')
+        }
+        if ('visibility' in updates) {
+          trackPropertyChange('user_need_property_changed', project, 'user_need', userNeedId, 'visibility', oldNeed.visibility, updates.visibility)
+        }
+      }
+    }
     return {}
   }),
 
@@ -807,11 +863,16 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   deleteUserNeedConnection: (connectionId) => set(() => {
     getCollabMutations().deleteUserNeedConnection(connectionId)
+    trackEvent('user_need_connection_deleted', null, {
+      entity_type: 'user_need_connection',
+      entity_id: connectionId,
+    })
     return {}
   }),
 
   updateUserNeedConnection: (connectionId, updates) => set(() => {
     getCollabMutations().updateUserNeedConnection(connectionId, updates)
+    trackEvent('user_need_connection_updated', null, { entity_type: 'user_need_connection', entity_id: connectionId })
     return {}
   }),
 
@@ -844,47 +905,58 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   deleteNeedContextConnection: (connectionId) => set(() => {
     getCollabMutations().deleteNeedContextConnection(connectionId)
+    trackEvent('need_context_connection_deleted', null, {
+      entity_type: 'need_context_connection',
+      entity_id: connectionId,
+    })
     return {}
   }),
 
   updateNeedContextConnection: (connectionId, updates) => set(() => {
     getCollabMutations().updateNeedContextConnection(connectionId, updates)
+    trackEvent('need_context_connection_updated', null, { entity_type: 'need_context_connection', entity_id: connectionId })
     return {}
   }),
 
   toggleShowGroups: () => set((state) => {
     const newValue = !state.showGroups
     localStorage.setItem('contextflow.showGroups', String(newValue))
+    trackEvent('view_preference_changed', null, { preference_name: 'showGroups', new_value: newValue })
     return { showGroups: newValue }
   }),
 
   toggleShowRelationships: () => set((state) => {
     const newValue = !state.showRelationships
     localStorage.setItem('contextflow.showRelationships', String(newValue))
+    trackEvent('view_preference_changed', null, { preference_name: 'showRelationships', new_value: newValue })
     return { showRelationships: newValue }
   }),
 
   toggleIssueLabels: () => set((state) => {
     const newValue = !state.showIssueLabels
     localStorage.setItem('contextflow.showIssueLabels', String(newValue))
+    trackEvent('view_preference_changed', null, { preference_name: 'showIssueLabels', new_value: newValue })
     return { showIssueLabels: newValue }
   }),
 
   toggleTeamLabels: () => set((state) => {
     const newValue = !state.showTeamLabels
     localStorage.setItem('contextflow.showTeamLabels', String(newValue))
+    trackEvent('view_preference_changed', null, { preference_name: 'showTeamLabels', new_value: newValue })
     return { showTeamLabels: newValue }
   }),
 
   toggleRelationshipLabels: () => set((state) => {
     const newValue = !state.showRelationshipLabels
     localStorage.setItem('contextflow.showRelationshipLabels', String(newValue))
+    trackEvent('view_preference_changed', null, { preference_name: 'showRelationshipLabels', new_value: newValue })
     return { showRelationshipLabels: newValue }
   }),
 
   toggleHelpTooltips: () => set((state) => {
     const newValue = !state.showHelpTooltips
     localStorage.setItem('contextflow.showHelpTooltips', String(newValue))
+    trackEvent('view_preference_changed', null, { preference_name: 'showHelpTooltips', new_value: newValue })
     return { showHelpTooltips: newValue }
   }),
 
@@ -901,11 +973,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   setGroupOpacity: (opacity) => {
     localStorage.setItem('contextflow.groupOpacity', String(opacity))
+    trackEvent('view_preference_changed', null, { preference_name: 'groupOpacity', new_value: opacity })
     set({ groupOpacity: opacity })
   },
 
   setColorByMode: (mode) => {
     localStorage.setItem('contextflow.colorByMode', mode)
+    trackEvent('view_preference_changed', null, { preference_name: 'colorByMode', new_value: mode })
     set({ colorByMode: mode })
   },
 
@@ -931,6 +1005,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     if (newPosition !== oldStage.position) {
       validateStagePosition(stages, newPosition, index)
+    }
+
+    if ('name' in updates && updates.name !== oldStage.name) {
+      trackTextFieldEdit(project, 'flow_stage', 'name', oldStage.name, updates.name, 'inspector')
+    }
+    if ('color' in updates && (updates as any).color !== (oldStage as any).color) {
+      trackPropertyChange('flow_stage_property_changed', project, 'flow_stage', `stage-${index}`, 'color', (oldStage as any).color, (updates as any).color)
     }
 
     getCollabMutations().updateFlowStage(index, updates)
@@ -1029,11 +1110,13 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   undo: () => set(() => {
     getCollabUndoRedo().undo()
+    trackEvent('undo_used', null)
     return {}
   }),
 
   redo: () => set(() => {
     getCollabUndoRedo().redo()
+    trackEvent('redo_used', null)
     return {}
   }),
 
@@ -1137,6 +1220,7 @@ export const useEditorStore = create<EditorState>((set) => ({
 
     const currentlyEnabled = project.temporal?.enabled || false
     getCollabMutations().toggleTemporal(!currentlyEnabled)
+    trackEvent('temporal_mode_toggled', project, { enabled: !currentlyEnabled })
 
     return {}
   }),
@@ -1247,7 +1331,20 @@ export const useEditorStore = create<EditorState>((set) => ({
     return {}
   }),
 
-  updateKeyframe: (keyframeId, updates) => set(() => {
+  updateKeyframe: (keyframeId, updates) => set((state) => {
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+    if (project) {
+      const oldKeyframe = project.temporal?.keyframes.find(kf => kf.id === keyframeId)
+      if (oldKeyframe) {
+        if ('label' in updates && updates.label !== oldKeyframe.label) {
+          trackTextFieldEdit(project, 'keyframe', 'label', oldKeyframe.label, updates.label, 'inspector')
+        }
+        if ('date' in updates && updates.date !== oldKeyframe.date) {
+          trackTextFieldEdit(project, 'keyframe', 'date', oldKeyframe.date, updates.date, 'inspector')
+        }
+      }
+    }
     getCollabMutations().updateKeyframe(keyframeId, updates)
     return {}
   }),

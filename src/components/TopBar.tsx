@@ -17,6 +17,7 @@ import { ImportConflictDialog } from './ImportConflictDialog'
 import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
 import { checkImportConflict, importProjectAsNew, validateImportedProject } from '../model/actions/projectActions'
 import type { Project } from '../model/types'
+import { trackEvent } from '../utils/analytics'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -85,6 +86,7 @@ export function TopBar() {
 
   const handleExport = () => {
     if (!project) return
+    trackEvent('project_exported', project)
     const json = JSON.stringify(project, null, 2)
     const blob = new Blob([json], { type: 'application/json' })
     const url = URL.createObjectURL(blob)

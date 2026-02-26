@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { X, Link2, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react'
 import { useCollabStore } from '../model/collabStore'
 import { useEditorStore } from '../model/store'
+import { trackEvent } from '../utils/analytics'
 
 interface ShareProjectDialogProps {
   projectId: string
@@ -26,6 +27,10 @@ export function ShareProjectDialog({
 
   const connectionState = useCollabStore((s) => s.connectionState)
   const setActiveProject = useEditorStore((s) => s.setActiveProject)
+  const activeProject = useEditorStore((s) => {
+    const pid = s.activeProjectId
+    return pid ? s.projects[pid] : null
+  })
 
   const shareUrl = getShareUrl(projectId)
 
@@ -51,6 +56,7 @@ export function ShareProjectDialog({
   }
 
   const handleCopy = async () => {
+    trackEvent('share_link_copied', activeProject)
     try {
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
