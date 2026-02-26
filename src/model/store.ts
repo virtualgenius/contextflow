@@ -364,6 +364,15 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     getCollabMutations().addContext(newContext)
+
+    const updatedProject = { ...project, contexts: [...project.contexts, newContext] }
+    trackEvent('context_added', updatedProject, {
+      entity_type: 'context',
+      entity_id: newContext.id,
+      source_view: state.activeViewMode,
+    })
+    trackFTUEMilestone('first_context_added', updatedProject)
+
     return { selectedContextId: newContext.id }
   }),
 
@@ -456,6 +465,13 @@ export const useEditorStore = create<EditorState>((set) => ({
       description,
     }
     getCollabMutations().addRelationship(newRelationship)
+
+    trackEvent('relationship_added', null, {
+      entity_type: 'relationship',
+      entity_id: newRelationship.id,
+      pattern,
+    })
+
     return {}
   }),
 
@@ -531,6 +547,13 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     getCollabMutations().addUser(newUser)
+
+    const updatedProject = { ...project, users: [...(project.users || []), newUser] }
+    trackEvent('user_added', updatedProject, {
+      entity_type: 'user',
+      entity_id: newUser.id,
+    })
+
     return { selectedUserId: newUser.id }
   }),
 
@@ -578,6 +601,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     }
 
     getCollabMutations().addUserNeed(newUserNeed)
+
+    trackEvent('user_need_added', project, {
+      entity_type: 'user_need',
+      entity_id: newUserNeed.id,
+    })
+
     useEditorStore.setState({ selectedUserNeedId: newUserNeed.id })
     return newUserNeed.id
   },
