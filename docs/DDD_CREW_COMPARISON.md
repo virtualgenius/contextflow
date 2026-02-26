@@ -24,7 +24,7 @@ The canvas is a single-context deep-dive worksheet with 11 sections. It is desig
 | Purpose | `purpose` field | Identical intent |
 | Strategic Classification (domain) | `strategicClassification`: core/supporting/generic | Identical |
 | Evolution Stage | `evolutionStage`: genesis/custom-built/product/commodity | Identical, uses Wardley stages |
-| Domain Roles | -- | Not supported (see gaps below) |
+| Domain Roles | -- | Not supported yet (see gaps below) |
 | Inbound Communication | -- | Not supported |
 | Outbound Communication | -- | Not supported |
 | Ubiquitous Language | -- | Not supported |
@@ -34,6 +34,8 @@ The canvas is a single-context deep-dive worksheet with 11 sections. It is desig
 | Open Questions | -- | Partially covered by Issues (info severity) |
 
 ContextFlow also has properties the canvas does not:
+- `businessModelRole` (revenue-generator, engagement-creator, compliance-enforcer, cost-reduction)
+- `isBigBallOfMud` flag with visual badge
 - `ownership` (ours/internal/external) with visual encoding
 - `boundaryIntegrity` (strong/moderate/weak) with border styling
 - `codeSize` with node sizing
@@ -103,9 +105,9 @@ ContextFlow also has properties the canvas does not:
 | Shared Kernel | `shared-kernel` | Supported |
 | Partnership | `partnership` | Supported |
 | Separate Ways | `separate-ways` | Supported |
-| Big Ball of Mud | -- | Not a relationship pattern (see below) |
+| Big Ball of Mud | `isBigBallOfMud` flag | Implemented as a per-context toggle with visual badge |
 
-ContextFlow covers **all 8 integration patterns**. The only missing item is Big Ball of Mud, which is not really a pattern between two contexts; it is a quality demarcation on a single system. It could be represented as an issue/hotspot or a flag on a context.
+ContextFlow covers **all 8 integration patterns** plus Big Ball of Mud (as a per-context flag rather than a relationship pattern, since it is a quality demarcation on a single system).
 
 ### Team Relationships
 
@@ -127,11 +129,11 @@ This aligns with ContextFlow's multi-view approach (flow, strategic, distillatio
 
 ## Opportunities Summary
 
-### Quick wins (small effort, clear value)
+### Implemented (v0.9.1)
 
-1. **Add `businessModelRole` field** to BoundedContext: revenue-generator, engagement-creator, compliance-enforcer, cost-reduction. Simple dropdown in Inspector.
+1. ~~**Add `businessModelRole` field**~~: Implemented as a dropdown in the Inspector with values: revenue-generator, engagement-creator, compliance-enforcer, cost-reduction. Syncs via Yjs, tracked in analytics.
 
-2. **Add Big Ball of Mud as context flag/issue**: Rather than a relationship pattern, add a "Big Ball of Mud" badge or critical-severity issue preset that marks a context as having mixed models and inconsistent boundaries.
+2. ~~**Add Big Ball of Mud as context flag**~~: Implemented as `isBigBallOfMud` boolean toggle in the Inspector, with visual badge on context nodes. Syncs via Yjs, tracked in analytics.
 
 ### Medium-term enhancements
 

@@ -4,6 +4,16 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.9.1] - 2026-02-26
+
+- Business Model Role field on bounded contexts (revenue-generator, engagement-creator, compliance-enforcer, cost-reduction) for investment prioritization discussions
+- Big Ball of Mud toggle on bounded contexts with visual badge, marking contexts with mixed models and inconsistent boundaries
+- Enterprise data privacy positioning document for self-hosted/on-premise deployment scenarios
+- Fixed group opacity slider firing excessive analytics events (now debounced)
+- Removed dead action functions superseded by collab mutations
+- Updated ARCHITECTURE.md data model, component descriptions, and Distillation View documentation
+- Updated README status, examples, and planned features
+
 ## [0.9.0] - 2026-02-15
 
 - Teams sidebar panel with tab navigation between Repos and Teams in the left sidebar
