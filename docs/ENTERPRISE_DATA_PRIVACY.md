@@ -10,7 +10,7 @@
 
 ContextFlow is a browser-based tool. Your architecture data syncs through Cloudflare's infrastructure when you use collaboration. There is no authentication yet (link-sharing only), so it is not currently suitable for regulated or highly sensitive data. For those scenarios, export as JSON and share files directly.
 
-This doc covers what exists today, what's planned, and what to tell prospects honestly.
+This doc covers what exists today, what's planned, and how to communicate ContextFlow's security posture.
 
 ---
 
@@ -100,27 +100,23 @@ The build requires setting `VITE_COLLAB_HOST` to point to your own worker. Every
 
 ---
 
-## Talking Points for Enterprise Prospects
+## Frequently Asked Questions
 
-### When they ask "Is this secure enough for our architecture data?"
+### Is this secure enough for our architecture data?
 
-Be honest about the current state:
+ContextFlow syncs through Cloudflare's infrastructure, encrypted in transit and at rest. Sharing is currently link-based without authentication, so we recommend it for workshop collaboration and team design sessions rather than regulated data. For sensitive contexts, you can self-host on your own Cloudflare account, which gives you full control over where data lives. Authentication and access control are on the roadmap.
 
-> "ContextFlow syncs through Cloudflare's infrastructure, encrypted in transit and at rest. Right now, sharing is link-based without authentication, so we recommend it for workshop collaboration and team design sessions rather than regulated data. For sensitive contexts, you can self-host on your own Cloudflare account, which gives you full control over where data lives. Authentication and access control are on the roadmap."
+### Can we run this internally?
 
-### When they ask "Can we run this internally?"
+Yes. ContextFlow is open-source. You can deploy the frontend to any internal server and the collaboration worker to your own Cloudflare account. Your data never touches Virtual Genius infrastructure.
 
-> "Yes. ContextFlow is open-source. You can deploy the frontend to any internal server and the collaboration worker to your own Cloudflare account. Your data never touches our infrastructure. Several teams use it this way."
+### What about SOC 2, HIPAA, or other compliance frameworks?
 
-### When they ask about specific compliance (SOC 2, HIPAA, etc.)
+ContextFlow does not have its own SOC 2 certification yet. If you self-host on Cloudflare, their SOC 2 Type II and ISO 27001 certifications cover the infrastructure layer. For the application layer, the codebase is open-source and auditable, so your security team can review it directly.
 
-> "We don't have our own SOC 2 certification yet. If you self-host on Cloudflare, their SOC 2 Type II and ISO 27001 certifications cover the infrastructure layer. For the application layer, we're happy to walk through the architecture so your security team can assess it. The codebase is open-source and auditable."
+### Can my team collaborate without running the CLI?
 
-### When the real objection is friction, not security
-
-Many prospects (like Ben Richards) are actually asking: "Can I stop being the single point of failure?" They want their team to access it without running CLI commands. The answer:
-
-> "Absolutely. Share a project URL and your team opens it in their browser. No CLI, no install, no accounts. Real-time collaboration works like Google Docs: everyone sees changes instantly. You can also export/import JSON if you need offline backups."
+Yes. Share a project URL and your team opens it in their browser. No CLI, no install, no accounts. Real-time collaboration works like Google Docs: everyone sees changes instantly. You can also export/import JSON for offline backups.
 
 ---
 
