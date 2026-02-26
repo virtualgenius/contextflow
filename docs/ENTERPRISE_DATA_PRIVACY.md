@@ -120,6 +120,12 @@ Yes. Share a project URL and your team opens it in their browser. No CLI, no ins
 
 ---
 
+## Licensing
+
+ContextFlow is currently free for all users, including enterprise teams. Commercial licensing with tiered plans (Free, Pro, Team, Enterprise) is planned. Early adopters who start using ContextFlow now will benefit from shaping the product before paid tiers take effect. See [SAAS_MONETIZATION_STRATEGY.md](SAAS_MONETIZATION_STRATEGY.md) for details on planned pricing and tiers.
+
+---
+
 ## Roadmap to Enterprise-Ready
 
 In priority order (from SAAS_MONETIZATION_STRATEGY.md):
