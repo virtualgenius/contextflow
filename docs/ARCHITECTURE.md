@@ -2,7 +2,7 @@
 
 ## Overview
 ContextFlow is a browser-based React application for mapping bounded contexts, their strategic relationships, and their code ownership.
-It presents two synchronized projections of the same model: Flow View and Strategic View.
+It presents three synchronized projections of the same model: Flow View, Distillation View, and Strategic View.
 
 The core of the app is:
 - A canvas (React Flow) that renders nodes/edges/groups and allows drag interactions
@@ -263,7 +263,7 @@ export interface TemporalKeyframe {
 ```
 
 ### `<TopBar />`
-- Toggle `Flow View` / `Strategic View`
+- Toggle `Flow View` / `Distillation View` / `Strategic View`
 - Add Context
 - Fit to Map
 - Undo / Redo
@@ -294,18 +294,25 @@ export interface TemporalKeyframe {
   - Flow View:
     - X axis = `project.viewConfig.flowStages`
     - Y axis label (top “user-facing / clinician-facing”, bottom “enabling / platform”)
+  - Distillation View:
+    - X axis = Business Differentiation (Low to High)
+    - Y axis = Model Complexity (Low to High)
+    - Quadrant regions: Generic (low differentiation), Supporting (high complexity or high differentiation but not both), Core (high differentiation and high complexity)
   - Strategic View:
     - X axis = Wardley bands (“Genesis / Custom-built / Product-Rental / Commodity / Utility”)
     - Y axis is unchanged
 - Drag behavior
   - In Flow View:
-    - horizontal drag → update `positions.flow.x`
-    - vertical drag → update `positions.shared.y`
+    - horizontal drag updates `positions.flow.x`
+    - vertical drag updates `positions.shared.y`
+  - In Distillation View:
+    - horizontal drag updates `positions.distillation.x`
+    - vertical drag updates `positions.distillation.y` (independent 2D positioning, NOT shared Y)
   - In Strategic View:
-    - horizontal drag → update `positions.strategic.x`
-    - vertical drag → update `positions.shared.y`
+    - horizontal drag updates `positions.strategic.x`
+    - vertical drag updates `positions.shared.y`
 - View switching
-  - Uses Framer Motion to animate each node’s horizontal position from Flow to Strategic (or back)
+  - Uses Framer Motion to animate each node’s horizontal position when switching between Flow, Distillation, and Strategic views
 
 ### `<RepoSidebar />`
 - Shows repos with no `contextId` (unassigned)
