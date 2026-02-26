@@ -768,6 +768,15 @@ describe('store analytics integration', () => {
       )
     })
 
+    it('skips analytics for setGroupOpacity when skipAnalytics is true', () => {
+      const state = useEditorStore.getState()
+
+      state.setGroupOpacity(0.7, { skipAnalytics: true })
+
+      expect(trackEventSpy).not.toHaveBeenCalled()
+      expect(useEditorStore.getState().groupOpacity).toBe(0.7)
+    })
+
     it('tracks view_preference_changed for setColorByMode', () => {
       const state = useEditorStore.getState()
 
