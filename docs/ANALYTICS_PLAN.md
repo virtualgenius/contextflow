@@ -2,13 +2,13 @@
 
 ## Scope: Enable usage tracking to guide product decisions as a solo founder
 
-**Goal:** Track how end-users interact with ContextFlow so you (Paul) can validate product-market fit, prioritize features, and improve onboarding. Analytics provides actionable insights in Simple Analytics dashboard.
+**Goal:** Track how end-users interact with ContextFlow so you (Paul) can validate product-market fit, prioritize features, and improve onboarding. Analytics provides actionable insights in the PostHog dashboard.
 
 **Key Decision:** Use **project-level identifiers** (like EventCatalog's catalog IDs) to distinguish different projects while respecting user privacy.
 
-**Perspective:** You are the **user** of this analytics system. Simple Analytics dashboard is your **UI**. Each slice delivers insights you can act on.
+**Perspective:** You are the **user** of this analytics system. PostHog dashboard is your **UI**. Each slice delivers insights you can act on.
 
-**Approach:** Track both **detailed events** (for future deep analysis via exports) and **summary events** (for immediate dashboard insights). Simple Analytics handles all event types; exports enable complex analysis when needed.
+**Approach:** Track both **detailed events** (for future deep analysis via exports) and **summary events** (for immediate dashboard insights). PostHog handles all event types; its built-in funnels and retention analysis enable complex analysis without manual exports.
 
 ---
 
@@ -1112,12 +1112,47 @@ This tells us which platforms users integrate with WITHOUT capturing proprietary
 
 ---
 
+## PostHog Migration (2026-02)
+
+Migrated from Simple Analytics to PostHog for richer product analytics (funnels, retention, feature adoption) while maintaining privacy guarantees.
+
+**What changed:**
+- Replaced Simple Analytics `<script>` tags with `posthog-js` SDK initialized in `main.tsx`
+- All events still flow through `trackEvent()`, now calling `posthog.capture()` instead of `window.sa_event()`
+- App version pulled from `package.json` via Vite define (no more hardcoded version string)
+
+**Privacy hardening (PostHog ships with invasive defaults, all disabled):**
+- `autocapture: false` (no automatic click/input tracking)
+- `capture_pageview: false`, `capture_pageleave: false`
+- `disable_session_recording: true` (no session replays)
+- `disable_surveys: true`
+- `persistence: 'memory'` (no cookies, no localStorage fingerprinting)
+- `ip: false` (server discards IP before storage)
+- `property_denylist` strips `$current_url`, `$pathname`, `$referrer`, `$referring_domain`, `$initial_referrer`, `$initial_referring_domain`
+- Anonymous session ID via `crypto.randomUUID()` for session-level grouping without cross-session tracking
+
+**Deployment-aware defaults:**
+- `hosted_demo` (contextflow.virtualgenius.com): analytics ON by default
+- `self_hosted` and `localhost`: analytics OFF by default
+- User can always override via Settings toggle
+- Developer mode still disables analytics regardless
+
+**User-facing opt-out:**
+- Toggle in Settings panel: "Anonymous usage analytics"
+- "What we track" collapsible disclosure section
+- Uses `contextflow.analytics_enabled` localStorage key
+
+**Build configuration:**
+- `VITE_POSTHOG_KEY` env var required at build time
+- Example: `VITE_POSTHOG_KEY=phc_xxx npm run build`
+
+---
+
 ## References
 
+- **PostHog docs:** https://posthog.com/docs
+- **PostHog privacy:** https://posthog.com/docs/privacy
 - **EventCatalog approach:** Server-side CLI telemetry with catalog-level IDs (`cId`)
 - **EventCatalog config:** Uses `cId` (UUID) + `organizationName` to identify catalogs (not users)
-- **Simple Analytics docs:** https://docs.simpleanalytics.com/events
-- **Simple Analytics metadata:** https://docs.simpleanalytics.com/metadata
-- **Simple Analytics restrictions:** No personal data, no user identifiers in metadata
 - **ContextFlow data model:** [src/model/types.ts](../src/model/types.ts) - Project already has `id` field
 - **ContextFlow store:** [src/model/store.ts](../src/model/store.ts)

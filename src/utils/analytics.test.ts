@@ -4,9 +4,25 @@ import {
   hashProjectId,
   isAnalyticsEnabled,
   getProjectMetadata,
-  trackEvent
+  trackEvent,
+  initAnalytics,
+  setAnalyticsEnabled,
+  getAnalyticsPreference
 } from './analytics'
 import type { Project } from '../model/types'
+
+vi.mock('posthog-js', () => {
+  const capture = vi.fn()
+  const init = vi.fn()
+  const identify = vi.fn()
+  const opt_in_capturing = vi.fn()
+  const opt_out_capturing = vi.fn()
+  return {
+    default: { capture, init, identify, opt_in_capturing, opt_out_capturing },
+  }
+})
+
+import posthog from 'posthog-js'
 
 describe('analytics', () => {
   describe('getDeploymentContext', () => {
@@ -84,10 +100,6 @@ describe('analytics', () => {
       localStorage.clear()
     })
 
-    it('returns true when developer mode is not set', () => {
-      expect(isAnalyticsEnabled()).toBe(true)
-    })
-
     it('returns false when developer mode is enabled', () => {
       localStorage.setItem('contextflow.developer_mode', 'true')
       expect(isAnalyticsEnabled()).toBe(false)
@@ -95,7 +107,192 @@ describe('analytics', () => {
 
     it('returns true when developer mode is explicitly disabled', () => {
       localStorage.setItem('contextflow.developer_mode', 'false')
+      localStorage.setItem('contextflow.analytics_enabled', 'true')
       expect(isAnalyticsEnabled()).toBe(true)
+    })
+
+    it('returns explicit user preference when set to true', () => {
+      localStorage.setItem('contextflow.analytics_enabled', 'true')
+      expect(isAnalyticsEnabled()).toBe(true)
+    })
+
+    it('returns explicit user preference when set to false', () => {
+      localStorage.setItem('contextflow.analytics_enabled', 'false')
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('developer mode overrides explicit analytics preference', () => {
+      localStorage.setItem('contextflow.developer_mode', 'true')
+      localStorage.setItem('contextflow.analytics_enabled', 'true')
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+  })
+
+  describe('deployment-aware defaults', () => {
+    let originalLocation: typeof window.location
+
+    beforeEach(() => {
+      localStorage.clear()
+      originalLocation = window.location
+      // @ts-ignore
+      delete window.location
+    })
+
+    afterEach(() => {
+      localStorage.clear()
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
+    })
+
+    it('defaults to ON for hosted_demo', () => {
+      // @ts-ignore
+      window.location = { hostname: 'contextflow.virtualgenius.com' }
+      expect(isAnalyticsEnabled()).toBe(true)
+    })
+
+    it('defaults to OFF for localhost', () => {
+      // @ts-ignore
+      window.location = { hostname: 'localhost' }
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('defaults to OFF for self_hosted', () => {
+      // @ts-ignore
+      window.location = { hostname: 'my-company.com' }
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('explicit user preference overrides hosted_demo default', () => {
+      // @ts-ignore
+      window.location = { hostname: 'contextflow.virtualgenius.com' }
+      localStorage.setItem('contextflow.analytics_enabled', 'false')
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('explicit user preference overrides localhost default', () => {
+      // @ts-ignore
+      window.location = { hostname: 'localhost' }
+      localStorage.setItem('contextflow.analytics_enabled', 'true')
+      expect(isAnalyticsEnabled()).toBe(true)
+    })
+  })
+
+  describe('setAnalyticsEnabled', () => {
+    beforeEach(() => {
+      localStorage.clear()
+      vi.mocked(posthog.opt_in_capturing).mockClear()
+      vi.mocked(posthog.opt_out_capturing).mockClear()
+    })
+
+    afterEach(() => {
+      localStorage.clear()
+    })
+
+    it('stores preference and calls opt_in_capturing when enabled', () => {
+      setAnalyticsEnabled(true)
+      expect(localStorage.getItem('contextflow.analytics_enabled')).toBe('true')
+      expect(posthog.opt_in_capturing).toHaveBeenCalled()
+    })
+
+    it('stores preference and calls opt_out_capturing when disabled', () => {
+      setAnalyticsEnabled(false)
+      expect(localStorage.getItem('contextflow.analytics_enabled')).toBe('false')
+      expect(posthog.opt_out_capturing).toHaveBeenCalled()
+    })
+  })
+
+  describe('getAnalyticsPreference', () => {
+    beforeEach(() => {
+      localStorage.clear()
+    })
+
+    afterEach(() => {
+      localStorage.clear()
+    })
+
+    it('returns null when no preference set', () => {
+      expect(getAnalyticsPreference()).toBeNull()
+    })
+
+    it('returns true when preference is true', () => {
+      localStorage.setItem('contextflow.analytics_enabled', 'true')
+      expect(getAnalyticsPreference()).toBe(true)
+    })
+
+    it('returns false when preference is false', () => {
+      localStorage.setItem('contextflow.analytics_enabled', 'false')
+      expect(getAnalyticsPreference()).toBe(false)
+    })
+  })
+
+  describe('initAnalytics', () => {
+    let originalLocation: typeof window.location
+
+    beforeEach(() => {
+      localStorage.clear()
+      vi.mocked(posthog.init).mockClear()
+      vi.mocked(posthog.identify).mockClear()
+      originalLocation = window.location
+      // @ts-ignore
+      delete window.location
+    })
+
+    afterEach(() => {
+      localStorage.clear()
+      vi.unstubAllEnvs()
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
+    })
+
+    it('calls posthog.init with privacy-hardened config when analytics enabled', () => {
+      // @ts-ignore
+      window.location = { hostname: 'contextflow.virtualgenius.com' }
+      vi.stubEnv('VITE_POSTHOG_KEY', 'phc_test_key')
+
+      initAnalytics()
+
+      expect(posthog.init).toHaveBeenCalledWith('phc_test_key', {
+        api_host: 'https://us.i.posthog.com',
+        autocapture: false,
+        capture_pageview: false,
+        capture_pageleave: false,
+        disable_session_recording: true,
+        disable_surveys: true,
+        persistence: 'memory',
+        ip: false,
+        property_denylist: [
+          '$current_url',
+          '$pathname',
+          '$referrer',
+          '$referring_domain',
+          '$initial_referrer',
+          '$initial_referring_domain',
+        ],
+      })
+      expect(posthog.identify).toHaveBeenCalledWith(expect.any(String))
+    })
+
+    it('does not call posthog.init when analytics disabled', () => {
+      // @ts-ignore
+      window.location = { hostname: 'localhost' }
+
+      initAnalytics()
+
+      expect(posthog.init).not.toHaveBeenCalled()
+    })
+
+    it('does not call posthog.init when no API key', () => {
+      // @ts-ignore
+      window.location = { hostname: 'contextflow.virtualgenius.com' }
+      vi.stubEnv('VITE_POSTHOG_KEY', '')
+
+      initAnalytics()
+
+      expect(posthog.init).not.toHaveBeenCalled()
     })
   })
 
@@ -249,30 +446,39 @@ describe('analytics', () => {
   })
 
   describe('trackEvent', () => {
-    let saEventMock: ReturnType<typeof vi.fn>
+    let originalLocation: typeof window.location
 
     beforeEach(() => {
       localStorage.clear()
-      saEventMock = vi.fn()
+      vi.mocked(posthog.capture).mockClear()
+      originalLocation = window.location
       // @ts-ignore
-      window.sa_event = saEventMock
+      delete window.location
       // @ts-ignore
-      window.location = { hostname: 'localhost' }
+      window.location = { hostname: 'contextflow.virtualgenius.com' }
     })
 
     afterEach(() => {
       localStorage.clear()
-      // @ts-ignore
-      delete window.sa_event
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+      })
     })
 
-    it('does not call sa_event when developer mode is enabled', () => {
+    it('does not call posthog.capture when developer mode is enabled', () => {
       localStorage.setItem('contextflow.developer_mode', 'true')
       trackEvent('test_event', null, {})
-      expect(saEventMock).not.toHaveBeenCalled()
+      expect(posthog.capture).not.toHaveBeenCalled()
     })
 
-    it('calls sa_event with event name and metadata', () => {
+    it('does not call posthog.capture when analytics preference is off', () => {
+      localStorage.setItem('contextflow.analytics_enabled', 'false')
+      trackEvent('test_event', null, {})
+      expect(posthog.capture).not.toHaveBeenCalled()
+    })
+
+    it('calls posthog.capture with event name and metadata', () => {
       const project: Project = {
         id: 'test-project',
         name: 'Test',
@@ -291,9 +497,9 @@ describe('analytics', () => {
 
       trackEvent('test_event', project, { custom: 'value' })
 
-      expect(saEventMock).toHaveBeenCalledWith('test_event', {
-        deployment: 'localhost',
-        app_version: '0.2.0',
+      expect(posthog.capture).toHaveBeenCalledWith('test_event', {
+        deployment: 'hosted_demo',
+        app_version: expect.any(String),
         project_id: expect.stringMatching(/^proj_[a-z0-9]+$/),
         context_count: 1,
         relationship_count: 0,
@@ -318,28 +524,18 @@ describe('analytics', () => {
     it('handles null project gracefully', () => {
       trackEvent('test_event', null, { custom: 'value' })
 
-      expect(saEventMock).toHaveBeenCalledWith('test_event', {
-        deployment: 'localhost',
-        app_version: '0.2.0',
+      expect(posthog.capture).toHaveBeenCalledWith('test_event', {
+        deployment: 'hosted_demo',
+        app_version: expect.any(String),
         custom: 'value'
       })
     })
 
-    it('handles sa_event not being defined (silent failure)', () => {
-      // @ts-ignore
-      delete window.sa_event
-
-      // Should not throw
-      expect(() => trackEvent('test_event', null, {})).not.toThrow()
-    })
-
-    it('handles sa_event throwing error (silent failure)', () => {
-      // @ts-ignore
-      window.sa_event = vi.fn(() => {
+    it('handles posthog.capture throwing error (silent failure)', () => {
+      vi.mocked(posthog.capture).mockImplementationOnce(() => {
         throw new Error('Network error')
       })
 
-      // Should not throw
       expect(() => trackEvent('test_event', null, {})).not.toThrow()
     })
   })

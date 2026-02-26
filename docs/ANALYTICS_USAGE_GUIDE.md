@@ -1,12 +1,14 @@
 # Analytics Usage Guide
 
-Practical guide for using Simple Analytics dashboard to track ContextFlow user behavior.
+Practical guide for using the PostHog dashboard to track ContextFlow user behavior.
+
+> **Note:** ContextFlow migrated from Simple Analytics to PostHog in Feb 2026 for richer product analytics (funnels, retention, feature adoption). All existing events are preserved; they now flow through `posthog.capture()`. See [ANALYTICS_PLAN.md](ANALYTICS_PLAN.md#posthog-migration-2026-02) for migration details.
 
 ## The Core Issue
 
-Your analytics plan has all 5 slices implemented (Product Validation, Feature Adoption, Onboarding, Power Users, View-Specific Features), tracking ~60+ different event types with rich metadata. That's why the field list is overwhelming!
+Your analytics plan has all 5 slices implemented (Product Validation, Feature Adoption, Onboarding, Power Users, View-Specific Features), tracking ~60+ different event types with rich metadata.
 
-**Solution:** Focus on a few key reports for daily monitoring. Use exports for deep journey analysis.
+**Solution:** PostHog's built-in funnels, retention charts, and feature flags make it easier to analyze these events directly. Focus on a few key dashboards for daily monitoring.
 
 ---
 

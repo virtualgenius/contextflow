@@ -1,12 +1,9 @@
+import posthog from 'posthog-js'
 import type { Project } from '../model/types'
 
 const MILLISECONDS_PER_SECOND = 1000
-
-declare global {
-  interface Window {
-    sa_event?: (eventName: string, metadata?: Record<string, any>) => void
-  }
-}
+const ANALYTICS_PREFERENCE_KEY = 'contextflow.analytics_enabled'
+const DEVELOPER_MODE_KEY = 'contextflow.developer_mode'
 
 export type DeploymentContext = 'hosted_demo' | 'self_hosted' | 'localhost'
 
@@ -24,14 +21,70 @@ export function hashProjectId(id: string): string {
     hash = hash & hash
   }
   const base36 = Math.abs(hash).toString(36)
-  // Pad to ensure 8 characters
   const padded = base36.padStart(8, '0').substring(0, 8)
   return `proj_${padded}`
 }
 
+function getAnalyticsDefault(): boolean {
+  return getDeploymentContext() === 'hosted_demo'
+}
+
 export function isAnalyticsEnabled(): boolean {
-  const isDeveloper = localStorage.getItem('contextflow.developer_mode') === 'true'
-  return !isDeveloper
+  const isDeveloper = localStorage.getItem(DEVELOPER_MODE_KEY) === 'true'
+  if (isDeveloper) return false
+
+  const explicit = localStorage.getItem(ANALYTICS_PREFERENCE_KEY)
+  if (explicit !== null) return explicit === 'true'
+
+  return getAnalyticsDefault()
+}
+
+export function setAnalyticsEnabled(enabled: boolean): void {
+  localStorage.setItem(ANALYTICS_PREFERENCE_KEY, String(enabled))
+  if (enabled) {
+    posthog.opt_in_capturing()
+  } else {
+    posthog.opt_out_capturing()
+  }
+}
+
+export function getAnalyticsPreference(): boolean | null {
+  const value = localStorage.getItem(ANALYTICS_PREFERENCE_KEY)
+  if (value === null) return null
+  return value === 'true'
+}
+
+export function initAnalytics(): void {
+  if (!isAnalyticsEnabled()) return
+
+  const apiKey = import.meta.env.VITE_POSTHOG_KEY
+  if (!apiKey) return
+
+  posthog.init(apiKey, {
+    api_host: 'https://us.i.posthog.com',
+    autocapture: false,
+    capture_pageview: false,
+    capture_pageleave: false,
+    disable_session_recording: true,
+    disable_surveys: true,
+    persistence: 'memory',
+    ip: false,
+    property_denylist: [
+      '$current_url',
+      '$pathname',
+      '$referrer',
+      '$referring_domain',
+      '$initial_referrer',
+      '$initial_referring_domain',
+    ],
+  })
+
+  const sessionId = crypto.randomUUID()
+  posthog.identify(sessionId)
+}
+
+function getAppVersion(): string {
+  return __APP_VERSION__
 }
 
 interface ProjectMetadata {
@@ -88,15 +141,13 @@ export function trackEvent(
   try {
     const globalMetadata = {
       deployment: getDeploymentContext(),
-      app_version: '0.2.0',
+      app_version: getAppVersion(),
       ...getProjectMetadata(project)
     }
 
     const fullMetadata = { ...globalMetadata, ...metadata }
 
-    if (typeof window.sa_event === 'function') {
-      window.sa_event(eventName, fullMetadata)
-    }
+    posthog.capture(eventName, fullMetadata)
   } catch (error) {
     // Silent failure - never break the app
     console.warn('Analytics error:', error)

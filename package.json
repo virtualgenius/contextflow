@@ -47,6 +47,7 @@
     "d3-shape": "^3.2.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.460.0",
+    "posthog-js": "^1.354.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "reactflow": "^11.11.4",
