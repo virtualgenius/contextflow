@@ -466,6 +466,54 @@ describe('contextMutations', () => {
       const result = yDocToProject(ydoc);
       expect(result.contexts[0].positions.flow.x).toBe(100);
     });
+
+    it('should auto-classify strategicClassification from distillation position', () => {
+      updateContextPositionMutation(ydoc, 'ctx-1', {
+        flow: { x: 100 },
+        strategic: { x: 200 },
+        distillation: { x: 80, y: 60 },
+        shared: { y: 100 },
+      });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].strategicClassification).toBe('core');
+    });
+
+    it('should auto-classify evolutionStage from strategic position', () => {
+      updateContextPositionMutation(ydoc, 'ctx-1', {
+        flow: { x: 100 },
+        strategic: { x: 10 },
+        distillation: { x: 300, y: 300 },
+        shared: { y: 100 },
+      });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].evolutionStage).toBe('genesis');
+    });
+
+    it('should classify as generic when distillation x < 33', () => {
+      updateContextPositionMutation(ydoc, 'ctx-1', {
+        flow: { x: 100 },
+        strategic: { x: 200 },
+        distillation: { x: 20, y: 50 },
+        shared: { y: 100 },
+      });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].strategicClassification).toBe('generic');
+    });
+
+    it('should classify as commodity when strategic x >= 75', () => {
+      updateContextPositionMutation(ydoc, 'ctx-1', {
+        flow: { x: 100 },
+        strategic: { x: 80 },
+        distillation: { x: 300, y: 300 },
+        shared: { y: 100 },
+      });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].evolutionStage).toBe('commodity/utility');
+    });
   });
 
   describe('undo integration', () => {

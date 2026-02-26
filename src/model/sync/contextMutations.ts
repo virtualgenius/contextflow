@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import type { BoundedContext, Issue, IssueSeverity } from '../types';
 import { populateContextYMap } from './contextSync';
+import { classifyFromDistillationPosition, classifyFromStrategicPosition } from '../classification';
 
 export function addContextMutation(ydoc: Y.Doc, context: BoundedContext): void {
   const yProject = ydoc.getMap('project');
@@ -65,6 +66,9 @@ export function updateContextPositionMutation(
 
     const yShared = yPositions.get('shared') as Y.Map<number>;
     yShared.set('y', positions.shared.y);
+
+    yContext.set('strategicClassification', classifyFromDistillationPosition(positions.distillation.x, positions.distillation.y));
+    yContext.set('evolutionStage', classifyFromStrategicPosition(positions.strategic.x));
   });
 }
 

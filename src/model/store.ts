@@ -247,7 +247,6 @@ export const useEditorStore = create<EditorState>((set) => ({
         const newClassification = classifyFromDistillationPosition(newDistillationPos.x, newDistillationPos.y)
 
         getCollabMutations().updateContextPosition(ctx.id, newPositions)
-        getCollabMutations().updateContext(ctx.id, { strategicClassification: newClassification })
 
         return { ...ctx, positions: newPositions, strategicClassification: newClassification }
       })
