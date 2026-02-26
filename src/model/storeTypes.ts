@@ -166,7 +166,7 @@ export interface EditorState {
   toggleRelationshipLabels: () => void
   toggleHelpTooltips: () => void
   clearActiveProject: () => void
-  setGroupOpacity: (opacity: number) => void
+  setGroupOpacity: (opacity: number, options?: { skipAnalytics?: boolean }) => void
   setColorByMode: (mode: 'strategic' | 'ownership') => void
   updateFlowStage: (index: number, updates: Partial<{ name: string; position: number; description: string; owner: string; notes: string }>) => void
   completeFlowStageMove: (index: number, startPosition: number) => void
