@@ -34,9 +34,24 @@ This document defines how we build it.
 ## Data model
 
 ```ts
+export type IssueSeverity = 'info' | 'warning' | 'critical';
+
+export interface Issue {
+  id: string;
+  title: string;
+  description?: string;
+  severity: IssueSeverity;
+}
+
+export type ContextOwnership = 'ours' | 'internal' | 'external';
+
 export interface Project {
   id: string;
   name: string;
+  version?: number;
+  isBuiltIn?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 
   contexts: BoundedContext[];
   relationships: Relationship[];
@@ -44,8 +59,10 @@ export interface Project {
   people: Person[];
   teams: Team[];
   groups: Group[];
-  actors: Actor[];
-  actorConnections: ActorConnection[];
+  users: User[];
+  userNeeds: UserNeed[];
+  userNeedConnections: UserNeedConnection[];
+  needContextConnections: NeedContextConnection[];
 
   viewConfig: {
     flowStages: FlowStageMarker[];
@@ -63,6 +80,7 @@ export interface BoundedContext {
   purpose?: string;
 
   strategicClassification?: 'core' | 'supporting' | 'generic';
+  ownership?: ContextOwnership;
 
   boundaryIntegrity?: 'strong' | 'moderate' | 'weak';
   boundaryNotes?: string;
@@ -74,7 +92,7 @@ export interface BoundedContext {
     shared: { y: number };                  // vertical (0..100), shared across Flow/Strategic views
   };
 
-  evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'; // aligns with Strategic View horizontal position
+  evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility';
 
   codeSize?: {
     loc?: number;
@@ -82,9 +100,13 @@ export interface BoundedContext {
   };
 
   isLegacy?: boolean;
-  isExternal?: boolean; // true for upstream data sources, downstream consumers, etc.
+  isBigBallOfMud?: boolean;
 
-  notes?: string; // analysis, assumptions, bottlenecks, risks
+  businessModelRole?: 'revenue-generator' | 'engagement-creator' | 'compliance-enforcer' | 'cost-reduction';
+
+  notes?: string;
+  issues?: Issue[];
+  teamId?: string; // direct team assignment (orthogonal to repo ownership)
 }
 
 export interface Relationship {
@@ -148,21 +170,40 @@ export interface Group {
 }
 
 export interface FlowStageMarker {
-  label: string;    // e.g. "Data Ingestion"
-  position: number; // 0..100 along Flow View X axis
+  name: string;         // e.g. "Data Ingestion"
+  position: number;     // 0..100 along Flow View X axis
+  description?: string; // shown in hover tooltip and inspector
+  owner?: string;       // team/person responsible for this stage
+  notes?: string;       // freeform notes
 }
 
-export interface Actor {
+export interface User {
   id: string;
   name: string;
   description?: string;
-  position: number; // 0..100 along Strategic View X axis (horizontal only)
+  position: number;     // 0..100 along Strategic View X axis (horizontal only)
+  isExternal?: boolean; // external users outside the organization
 }
 
-export interface ActorConnection {
+export interface UserNeed {
   id: string;
-  actorId: string;   // which actor
-  contextId: string; // which bounded context
+  name: string;
+  description?: string;
+  position: number;     // 0..100 along evolution axis (horizontal only)
+  visibility?: boolean; // can be hidden without deleting
+}
+
+export interface UserNeedConnection {
+  id: string;
+  userId: string;
+  userNeedId: string;
+  notes?: string;
+}
+
+export interface NeedContextConnection {
+  id: string;
+  userNeedId: string;
+  contextId: string;
   notes?: string;
 }
 
@@ -195,7 +236,7 @@ export interface TemporalKeyframe {
   - weak → dashed / porous
 - `codeSize.bucket` → node radius (`tiny`..`huge` → progressively larger)
 - `isLegacy` → show a ⚠ Legacy badge in the corner of the node
-- `isExternal` → show an “External” badge and/or dotted outer ring, and disallow repo assignment
+- `ownership` → when set to `'external'`, show an “External” badge and dotted outer ring, and disallow repo assignment
 - `positions` drives layout:
   - Flow View uses `positions.flow.x` (horizontal) and `positions.shared.y` (vertical)
   - Strategic View uses `positions.strategic.x` (horizontal) and `positions.shared.y` (vertical)
