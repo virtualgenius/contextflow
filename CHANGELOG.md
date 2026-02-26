@@ -11,8 +11,10 @@ All notable changes to ContextFlow will be documented in this file.
 - Enterprise data privacy positioning document for self-hosted/on-premise deployment scenarios
 - Fixed group opacity slider firing excessive analytics events (now debounced)
 - Removed dead action functions superseded by collab mutations
+- Updated DDD Crew comparison doc: marked implemented items, restructured as living tracking doc
 - Updated ARCHITECTURE.md data model, component descriptions, and Distillation View documentation
 - Updated README status, examples, and planned features
+- Updated UX Guidelines persistence model and Distillation View references
 
 ## [0.9.0] - 2026-02-15
 
