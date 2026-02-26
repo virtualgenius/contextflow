@@ -6,25 +6,11 @@
 
 ## Backlog
 
-### 0.9.0 — Eric Evans UX feedback (top priority)
-
-- [x] **[BUG P1]** Fix orphaned data on context deletion — no cascade cleanup
-- [x] Display names on context relationships — relationship edges need visible labels
-- [x] Inline explanations on controls — contextual explanations directly on elements (Eric Evans)
-- [x] Make relationship connection dots twice as big — obvious and easy to connect
-- [x] Clarify relationship direction — upstream/downstream semantics more obvious
-- [x] Highlight connected contexts on hover
-- [x] Drag-and-drop team assignment
-- [x] Bug: issues/hotspots disappear when any context is selected
-
 ### 0.9.0
 
-- [ ] Organizational Modeling - Teams as first-class entities with many-to-many context ownership (Team X owns contexts A, B, C; Context D has unclear ownership from multiple teams; enables "show all contexts Team X touches" and "which contexts have unclear ownership?") (for 0.9.0)
 - [ ] Not clear how to add a context to a group
 - [ ] Bug - Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
-- [x] Add text link to discord in README — already present as badge
-- [x] When I select a boundary should it highlight its relationship connections? — covered by hover-highlight (contextflow-f0i)
 
 ### v.1.0.0 - SAAS cloud edition (users, auth, pricing)
 
@@ -33,12 +19,10 @@
 - [ ] Add about page? link to repo? link to VG.com
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
 - [ ] Add logo
-- [ ] Implement ANALYTICS_PLAN.md
 - [ ] Susanne Kaiser feature ideas: flow overlays, blocker visualization, value stream types, team boundaries (see [Susanne_Kaiser_Feature_Ideas.md](Susanne_Kaiser_Feature_Ideas.md))
 
 ### Future
 
-- [ ] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
 - [ ] Hide context strategic classification and evolution stage values in inspector until explicity set in appropriate views?
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
@@ -46,7 +30,6 @@
 - [ ] Accessibility checks
 - [ ] Responsive design
 - [ ] Distillation - can a context overlap subdomain boundaries? what would this tell us if it did?
-- [ ] Add search/filter for contexts, repos, teams
 - In ~/Documents/EventStormer, you enter your name when you join a board and then you can see other people's cursors with their names moving around on the board. Enable this for ContextFlow
 - "Add Team" button in top menu?
 - "Add Repo" button in top menu?
@@ -54,10 +37,6 @@
 
 ### Docs
 
-- [x] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...) - moved to docs/done/
-- [x] Update ARCHITECTURE.md with cloud sync architecture
-- [x] Update README.md with cloud sync features
-- [x] Update VISION.md with cloud sync positioning
 - [ ] Update UX_GUIDELINES.md
 - [ ] Update README.md with fresh images
 
@@ -84,6 +63,24 @@
 
 ## Done
 
+- [x] Organizational Modeling - Teams as first-class entities with team-context assignment, team topology types, team labels overlay
+- [x] Add keyboard shortcuts documentation overlay (Cmd/Ctrl+?)
+- [x] Add search/filter for contexts, repos, teams (sidebar search)
+- [x] Implement ANALYTICS_PLAN.md - all 5 slices completed
+- [x] **[BUG P1]** Fix orphaned data on context deletion — no cascade cleanup
+- [x] Display names on context relationships — relationship edges need visible labels
+- [x] Inline explanations on controls — contextual explanations directly on elements (Eric Evans)
+- [x] Make relationship connection dots twice as big — obvious and easy to connect
+- [x] Clarify relationship direction — upstream/downstream semantics more obvious
+- [x] Highlight connected contexts on hover
+- [x] Drag-and-drop team assignment
+- [x] Bug: issues/hotspots disappear when any context is selected
+- [x] Add text link to discord in README — already present as badge
+- [x] When I select a boundary should it highlight its relationship connections? — covered by hover-highlight
+- [x] Delete old docs (PLAN.md, SPEC.md, ACTORS_NEEDS_...) - moved to docs/done/
+- [x] Update ARCHITECTURE.md with cloud sync architecture
+- [x] Update README.md with cloud sync features
+- [x] Update VISION.md with cloud sync positioning
 - [x] Errors for repository stats and contributors in Inspector when selecting repository name when CodeCohesion not connected (even when turned off in settings)
 - [x] Select Stage, then select context, doesn't switch inspector to context. Does seem to work when select need after stage though.
 - [x] Legend for colors
