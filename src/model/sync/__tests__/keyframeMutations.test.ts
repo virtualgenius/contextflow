@@ -333,6 +333,21 @@ describe('keyframeMutations', () => {
       expect(result.temporal?.enabled).toBe(true);
       expect(result.temporal?.keyframes).toHaveLength(2);
     });
+
+    it('should initialize temporal map when project has no temporal property', () => {
+      const noTemporalProject: Project = {
+        ...createTestProject(),
+        temporal: undefined,
+      };
+      const noTemporalYdoc = projectToYDoc(noTemporalProject);
+
+      toggleTemporalMutation(noTemporalYdoc, true);
+
+      const result = yDocToProject(noTemporalYdoc);
+      expect(result.temporal).toBeDefined();
+      expect(result.temporal?.enabled).toBe(true);
+      expect(result.temporal?.keyframes).toEqual([]);
+    });
   });
 
   describe('undo integration', () => {
