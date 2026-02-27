@@ -74,6 +74,17 @@ describe('TeamInspector', () => {
     expect(mockDeleteTeam).toHaveBeenCalledWith('team-1')
   })
 
+  it('renders the Undefined button', () => {
+    render(<TeamInspector project={makeProject()} teamId="team-1" />)
+    expect(screen.getByText('Undefined')).toBeInTheDocument()
+  })
+
+  it('clicking Undefined button calls updateTeam with topologyType undefined', () => {
+    render(<TeamInspector project={makeProject()} teamId="team-1" />)
+    fireEvent.click(screen.getByText('Undefined'))
+    expect(mockUpdateTeam).toHaveBeenCalledWith('team-1', { topologyType: undefined })
+  })
+
   it('deselects topology type when clicking the already-selected button', () => {
     render(<TeamInspector project={makeProject()} teamId="team-1" />)
     fireEvent.click(screen.getByText('Platform'))

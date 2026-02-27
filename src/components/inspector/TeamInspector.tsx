@@ -40,6 +40,21 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
       {/* Team Topology Type */}
       <Section label="Team Topology">
         <div className="flex flex-wrap gap-1.5">
+          <button
+            onClick={() => updateTeam(team.id, { topologyType: undefined })}
+            className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+              !team.topologyType
+                ? 'ring-1'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+            style={!team.topologyType ? {
+              backgroundColor: getTopologyColors('unknown').light.bg,
+              color: getTopologyColors('unknown').light.text,
+              '--tw-ring-color': getTopologyColors('unknown').light.border,
+            } as React.CSSProperties : undefined}
+          >
+            Undefined
+          </button>
           {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map((value) => {
             const isActive = team.topologyType === value
             const colors = isActive ? getTopologyColors(value).light : null
