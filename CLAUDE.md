@@ -23,13 +23,13 @@ npm test        # Run tests
 
 ## Local Collaboration Worker
 
-Use a local worker when running integration tests or the app against a local collab server.
+**Required for browser testing.** Without the local worker, Yjs state does not persist across navigation (teams, repos, temporal data disappear when leaving a project). Always start both processes before browser testing:
 
 ```bash
-# In repo root (defaults to port 8787)
+# Terminal 1: start collab worker (defaults to port 8787)
 npx wrangler dev
 
-# In another terminal, point the app to the local worker
+# Terminal 2: start dev server pointed at local worker
 VITE_COLLAB_HOST=localhost:8787 npm run dev
 ```
 
