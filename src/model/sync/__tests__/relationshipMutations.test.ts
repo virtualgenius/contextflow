@@ -183,6 +183,17 @@ describe('relationshipMutations', () => {
       expect(rel.description).toBe('Equal collaboration');
     });
 
+    it('should not clobber fields not included in the update', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', { description: 'Data flows downstream' });
+
+      const result = yDocToProject(ydoc);
+      const rel = result.relationships[0];
+      expect(rel.description).toBe('Data flows downstream');
+      expect(rel.pattern).toBe('customer-supplier');
+      expect(rel.fromContextId).toBe('ctx-1');
+      expect(rel.toContextId).toBe('ctx-2');
+    });
+
     it('should not modify other relationships', () => {
       // Add a second relationship first
       const secondRel: Relationship = {

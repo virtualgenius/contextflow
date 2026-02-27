@@ -144,6 +144,15 @@ describe('userMutations', () => {
       expect(user.isExternal).toBe(true);
     });
 
+    it('should not clobber fields not included in the update', () => {
+      updateUserMutation(ydoc, 'user-2', { name: 'Super Admin' });
+
+      const result = yDocToProject(ydoc);
+      const user = result.users[1];
+      expect(user.name).toBe('Super Admin');
+      expect(user.description).toBe('System administrator');
+    });
+
     it('should not modify other users', () => {
       updateUserMutation(ydoc, 'user-1', { name: 'Updated First' });
 

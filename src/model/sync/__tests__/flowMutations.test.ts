@@ -151,6 +151,17 @@ describe('flowMutations', () => {
       expect(stage.notes).toBe('New notes');
     });
 
+    it('should not clobber fields not included in the update', () => {
+      updateFlowStageMutation(ydoc, 0, { description: 'Collects raw data', owner: 'Team A' });
+      updateFlowStageMutation(ydoc, 0, { name: 'Data Ingestion' });
+
+      const result = yDocToProject(ydoc);
+      const stage = result.viewConfig.flowStages[0];
+      expect(stage.name).toBe('Data Ingestion');
+      expect(stage.description).toBe('Collects raw data');
+      expect(stage.owner).toBe('Team A');
+    });
+
     it('should not modify other stages', () => {
       updateFlowStageMutation(ydoc, 0, { name: 'Updated First' });
 

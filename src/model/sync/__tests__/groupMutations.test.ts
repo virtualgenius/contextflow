@@ -183,6 +183,17 @@ describe('groupMutations', () => {
       expect(group.notes).toBe('New notes');
     });
 
+    it('should not clobber fields not included in the update', () => {
+      updateGroupMutation(ydoc, 'grp-1', { color: '#FF0000', notes: 'Important' });
+      updateGroupMutation(ydoc, 'grp-1', { label: 'Renamed' });
+
+      const result = yDocToProject(ydoc);
+      const group = result.groups[0];
+      expect(group.label).toBe('Renamed');
+      expect(group.color).toBe('#FF0000');
+      expect(group.notes).toBe('Important');
+    });
+
     it('should not modify other groups', () => {
       // Add a second group first
       const secondGroup: Group = {

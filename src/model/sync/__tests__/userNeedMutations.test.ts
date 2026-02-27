@@ -144,6 +144,15 @@ describe('userNeedMutations', () => {
       expect(need.visibility).toBe(false);
     });
 
+    it('should not clobber fields not included in the update', () => {
+      updateUserNeedMutation(ydoc, 'need-2', { name: 'Updated tracking' });
+
+      const result = yDocToProject(ydoc);
+      const need = result.userNeeds[1];
+      expect(need.name).toBe('Updated tracking');
+      expect(need.description).toBe('Real-time tracking');
+    });
+
     it('should not modify other user needs', () => {
       updateUserNeedMutation(ydoc, 'need-1', { name: 'Updated First' });
 

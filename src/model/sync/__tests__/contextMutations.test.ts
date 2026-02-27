@@ -221,6 +221,16 @@ describe('contextMutations', () => {
       expect(result.contexts[0].codeSize?.bucket).toBe('medium');
     });
 
+    it('should not clobber fields not included in the update', () => {
+      updateContextMutation(ydoc, 'ctx-1', { purpose: 'Handle orders' });
+
+      const result = yDocToProject(ydoc);
+      const ctx = result.contexts[0];
+      expect(ctx.purpose).toBe('Handle orders');
+      expect(ctx.name).toBe('Context One');
+      expect(ctx.evolutionStage).toBe('custom-built');
+    });
+
     it('should not modify other contexts', () => {
       // Add a second context first
       const secondContext: BoundedContext = {
