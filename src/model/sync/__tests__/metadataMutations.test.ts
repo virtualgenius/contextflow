@@ -180,13 +180,13 @@ describe('metadataMutations', () => {
       });
 
       it('should not clobber fields not included in the update', () => {
-        updateTeamMutation(ydoc, 'team-2', { jiraBoard: 'NEWBOARD' });
+        updateTeamMutation(ydoc, 'team-2', { topologyType: 'enabling' });
 
         const result = yDocToProject(ydoc);
         const team = result.teams[1];
-        expect(team.jiraBoard).toBe('NEWBOARD');
+        expect(team.topologyType).toBe('enabling');
         expect(team.name).toBe('Payments Team');
-        expect(team.topologyType).toBe('platform');
+        expect(team.jiraBoard).toBe('PAY');
       });
 
       it('should clear optional field when set to undefined', () => {
@@ -509,12 +509,12 @@ describe('metadataMutations', () => {
       });
 
       it('should not clobber fields not included in the update', () => {
-        updatePersonMutation(ydoc, 'person-2', { teamIds: ['team-2'] });
+        updatePersonMutation(ydoc, 'person-2', { displayName: 'Robert' });
 
         const result = yDocToProject(ydoc);
         const person = result.people[1];
-        expect(person.teamIds).toEqual(['team-2']);
-        expect(person.displayName).toBe('Bob');
+        expect(person.displayName).toBe('Robert');
+        expect(person.teamIds).toEqual(['team-1']);
       });
 
       it('should clear teamIds when set to undefined', () => {
