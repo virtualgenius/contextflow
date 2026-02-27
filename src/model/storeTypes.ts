@@ -139,7 +139,8 @@ export interface EditorState {
   setSelectedStage: (stageIndex: number | null) => void
   setSelectedTeam: (teamId: string | null) => void
   updateTeam: (teamId: string, updates: Partial<{ name: string; jiraBoard: string; topologyType: 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem' | 'unknown' }>) => void
-  addTeam: (name: string) => void
+  addTeam: (name: string) => string
+  addRepo: (name: string) => string
   deleteTeam: (teamId: string) => void
   addUser: (name: string) => void
   deleteUser: (userId: string) => void

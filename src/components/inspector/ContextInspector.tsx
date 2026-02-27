@@ -28,6 +28,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
   const assignTeamToContext = useEditorStore(s => s.assignTeamToContext)
   const unassignTeamFromContext = useEditorStore(s => s.unassignTeamFromContext)
   const removeContextFromGroup = useEditorStore(s => s.removeContextFromGroup)
+  const addTeam = useEditorStore(s => s.addTeam)
+  const addRepo = useEditorStore(s => s.addRepo)
+  const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
 
   // Temporal state
   const currentDate = useEditorStore(s => s.temporal.currentDate)
@@ -204,32 +207,47 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       </div>
 
       {/* Team Assignment - only for non-external contexts */}
-      {context.ownership !== 'external' && project.teams && project.teams.length > 0 && (
+      {context.ownership !== 'external' && (
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Team</span>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={context.teamId || ''}
-              onChange={(e) => {
-                const teamId = e.target.value
-                if (teamId) {
-                  assignTeamToContext(context.id, teamId)
-                } else {
-                  unassignTeamFromContext(context.id)
+          {project.teams && project.teams.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <select
+                value={context.teamId || ''}
+                onChange={(e) => {
+                  const teamId = e.target.value
+                  if (teamId) {
+                    assignTeamToContext(context.id, teamId)
+                  } else {
+                    unassignTeamFromContext(context.id)
+                  }
+                }}
+                className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+              >
+                <option value="">No team assigned</option>
+                {project.teams.map(team => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}{team.topologyType ? ` (${team.topologyType})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                const name = window.prompt('Team name:')
+                if (name) {
+                  addTeam(name)
                 }
               }}
-              className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+              className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
-              <option value="">No team assigned</option>
-              {project.teams.map(team => (
-                <option key={team.id} value={team.id}>
-                  {team.name}{team.topologyType ? ` (${team.topologyType})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+              <Plus size={12} />
+              Add Team
+            </button>
+          )}
         </div>
       )}
 
@@ -351,26 +369,37 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </Section>
       )}
 
-      {/* Assigned Repos - no heading */}
-      {assignedRepos.length > 0 && (
-        <div className="space-y-2">
-          {assignedRepos.map(repo => {
-            return (
-              <RepoCard
-                key={repo.id}
-                repo={repo}
-                project={project}
-                useAPI={useCodeCohesionAPI}
-                expandedTeamId={expandedTeamId}
-                expandedRepoId={expandedRepoId}
-                onToggleTeam={setExpandedTeamId}
-                onToggleRepo={setExpandedRepoId}
-                onUnassign={unassignRepo}
-              />
-            )
-          })}
-        </div>
-      )}
+      {/* Assigned Repos */}
+      <div className="space-y-2">
+        {assignedRepos.map(repo => {
+          return (
+            <RepoCard
+              key={repo.id}
+              repo={repo}
+              project={project}
+              useAPI={useCodeCohesionAPI}
+              expandedTeamId={expandedTeamId}
+              expandedRepoId={expandedRepoId}
+              onToggleTeam={setExpandedTeamId}
+              onToggleRepo={setExpandedRepoId}
+              onUnassign={unassignRepo}
+            />
+          )
+        })}
+        <button
+          onClick={() => {
+            const name = window.prompt('Repo name:')
+            if (name) {
+              const repoId = addRepo(name)
+              assignRepoToContext(repoId, context.id)
+            }
+          }}
+          className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          <Plus size={12} />
+          Add Repo
+        </button>
+      </div>
 
       {/* Code */}
       <div className="flex items-center gap-2">

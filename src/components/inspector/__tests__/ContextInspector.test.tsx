@@ -28,6 +28,9 @@ const mockDeleteContextIssue = vi.fn()
 const mockAssignTeamToContext = vi.fn()
 const mockUnassignTeamFromContext = vi.fn()
 const mockRemoveContextFromGroup = vi.fn()
+const mockAddTeam = vi.fn()
+const mockAddRepo = vi.fn()
+const mockAssignRepoToContext = vi.fn()
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
@@ -74,6 +77,9 @@ describe('ContextInspector', () => {
         assignTeamToContext: mockAssignTeamToContext,
         unassignTeamFromContext: mockUnassignTeamFromContext,
         removeContextFromGroup: mockRemoveContextFromGroup,
+        addTeam: mockAddTeam,
+        addRepo: mockAddRepo,
+        assignRepoToContext: mockAssignRepoToContext,
         temporal: { currentDate: null, activeKeyframeId: null },
       }
       return selector(state as never)
@@ -155,6 +161,84 @@ describe('ContextInspector', () => {
     const select = container.querySelector('select')!
     fireEvent.change(select, { target: { value: 'revenue-generator' } })
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { businessModelRole: 'revenue-generator' })
+  })
+
+  it('shows Add Team button when no teams exist and context is non-external', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.getByText('Add Team')).toBeInTheDocument()
+  })
+
+  it('shows team dropdown when teams exist', () => {
+    const project = makeProject({
+      teams: [{ id: 'team-1', name: 'Platform Team' }],
+    })
+    render(<ContextInspector project={project} contextId="ctx-1" />)
+    expect(screen.getByText('No team assigned')).toBeInTheDocument()
+    expect(screen.queryByText('Add Team')).not.toBeInTheDocument()
+  })
+
+  it('calls addTeam when Add Team button is clicked', () => {
+    vi.spyOn(window, 'prompt').mockReturnValue('New Team')
+    mockAddTeam.mockReturnValue('team-new')
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    fireEvent.click(screen.getByText('Add Team'))
+    expect(mockAddTeam).toHaveBeenCalledWith('New Team')
+  })
+
+  it('does not call addTeam when prompt is cancelled', () => {
+    vi.spyOn(window, 'prompt').mockReturnValue(null)
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    fireEvent.click(screen.getByText('Add Team'))
+    expect(mockAddTeam).not.toHaveBeenCalled()
+  })
+
+  it('hides Team section for external contexts', () => {
+    const project = makeProject({
+      contexts: [{
+        id: 'ctx-1',
+        name: 'External API',
+        purpose: '',
+        ownership: 'external',
+        positions: { flow: { x: 0 }, strategic: { x: 50 }, distillation: { x: 40, y: 60 }, shared: { y: 30 } },
+        evolutionStage: 'custom-built',
+        issues: [],
+      }],
+    })
+    render(<ContextInspector project={project} contextId="ctx-1" />)
+    // Should not show Add Team for external contexts
+    const addTeamButtons = screen.queryAllByText('Add Team')
+    // Filter to only the team-related Add Team (not Add Issue etc)
+    expect(addTeamButtons.length).toBe(0)
+  })
+
+  it('shows Add Repo button when no repos are assigned', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.getByText('Add Repo')).toBeInTheDocument()
+  })
+
+  it('shows Add Repo button alongside assigned repos', () => {
+    const project = makeProject({
+      repos: [{ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1', teamIds: [], contributors: [] }],
+    })
+    render(<ContextInspector project={project} contextId="ctx-1" />)
+    expect(screen.getByText('Add Repo')).toBeInTheDocument()
+    expect(screen.getByTestId('repo-card')).toBeInTheDocument()
+  })
+
+  it('calls addRepo and assignRepoToContext when Add Repo is clicked', () => {
+    vi.spyOn(window, 'prompt').mockReturnValue('new-service')
+    mockAddRepo.mockReturnValue('repo-new')
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    fireEvent.click(screen.getByText('Add Repo'))
+    expect(mockAddRepo).toHaveBeenCalledWith('new-service')
+    expect(mockAssignRepoToContext).toHaveBeenCalledWith('repo-new', 'ctx-1')
+  })
+
+  it('does not call addRepo when prompt is cancelled', () => {
+    vi.spyOn(window, 'prompt').mockReturnValue(null)
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    fireEvent.click(screen.getByText('Add Repo'))
+    expect(mockAddRepo).not.toHaveBeenCalled()
   })
 
   it('calls updateContext with undefined when Business Model Role is cleared', () => {

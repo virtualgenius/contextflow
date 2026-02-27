@@ -674,6 +674,27 @@ export const useEditorStore = create<EditorState>((set) => ({
     return newTeam.id
   },
 
+  addRepo: (name) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    const project = projectId ? state.projects[projectId] : null
+
+    const newRepo = {
+      id: `repo-${Date.now()}`,
+      name,
+      teamIds: [],
+      contributors: [],
+    }
+    getCollabMutations().addRepo(newRepo)
+
+    trackEvent('repo_added', project, {
+      entity_type: 'repo',
+      entity_id: newRepo.id,
+    })
+
+    return newRepo.id
+  },
+
   deleteTeam: (teamId) => set((state) => {
     const projectId = state.activeProjectId
     const project = projectId ? state.projects[projectId] : null
