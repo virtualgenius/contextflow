@@ -3,7 +3,7 @@
   "testRunner": "vitest",
   "checkers": ["typescript"],
   "tsconfigFile": "tsconfig.stryker.json",
-  "mutate": ["src/model/sync/**/*.ts", "!src/**/*.test.ts"],
+  "mutate": ["src/model/sync/**/*.ts", "!src/**/*.test.ts", "!src/**/*.integration.test.ts", "!src/**/__tests__/**"],
   "incremental": true,
   "tempDirName": ".stryker-tmp",
   "ignorePatterns": [".stryker-tmp", ".wrangler", "reports", "dist", "*.png", "*.zip"],

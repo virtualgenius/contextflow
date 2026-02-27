@@ -118,10 +118,16 @@ Stryker is configured for mutation testing against `src/model/sync/` (the Yjs mu
 ```bash
 npm run mutate                                              # Full run (all sync mutations)
 npm run mutate:changed                                      # Incremental (only changed code)
-npx stryker run --mutate "src/model/sync/contextMutations.ts"  # Target one file
+```
+
+To target one file (must install vitest 3 first, as Stryker is incompatible with Vitest 4):
+```bash
+npm install --no-save vitest@3.2.4 && npx stryker run --mutate "src/model/sync/contextMutations.ts"; npm install --no-save vitest@4.0.6
 ```
 
 Or use the `/mutate` skill during dev sessions.
+
+**Important**: Do NOT use `--mutate` on the CLI for the default scope. It overrides the config file's test file exclusions, causing test files to be mutated (slow, noisy results).
 
 **Interpreting results:**
 - **Mutation score**: percentage of mutants killed by tests (higher is better)
