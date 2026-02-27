@@ -644,6 +644,9 @@ export const useEditorStore = create<EditorState>((set) => ({
         if ('name' in updates && updates.name !== oldTeam.name) {
           trackTextFieldEdit(project, 'team', 'name', oldTeam.name, updates.name, 'inspector')
         }
+        if ('topologyType' in updates && updates.topologyType !== oldTeam.topologyType) {
+          trackPropertyChange('team_updated', project, 'team', teamId, 'topologyType', oldTeam.topologyType, updates.topologyType, 'inspector')
+        }
       }
     }
     return {}
@@ -657,7 +660,6 @@ export const useEditorStore = create<EditorState>((set) => ({
     const newTeam = {
       id: `team-${Date.now()}`,
       name,
-      topologyType: 'stream-aligned' as const,
     }
     getCollabMutations().addTeam(newTeam)
 
