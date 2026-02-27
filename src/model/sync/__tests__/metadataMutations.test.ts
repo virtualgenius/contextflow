@@ -179,13 +179,23 @@ describe('metadataMutations', () => {
         expect(result.teams[0].name).toBe('Orders Team');
       });
 
-      it('should not clobber fields not included in the update', () => {
+      it('should not clobber name or jiraBoard when updating topologyType', () => {
         updateTeamMutation(ydoc, 'team-2', { topologyType: 'enabling' });
 
         const result = yDocToProject(ydoc);
         const team = result.teams[1];
         expect(team.topologyType).toBe('enabling');
         expect(team.name).toBe('Payments Team');
+        expect(team.jiraBoard).toBe('PAY');
+      });
+
+      it('should not clobber topologyType or jiraBoard when updating name', () => {
+        updateTeamMutation(ydoc, 'team-2', { name: 'Renamed' });
+
+        const result = yDocToProject(ydoc);
+        const team = result.teams[1];
+        expect(team.name).toBe('Renamed');
+        expect(team.topologyType).toBe('platform');
         expect(team.jiraBoard).toBe('PAY');
       });
 
@@ -508,13 +518,22 @@ describe('metadataMutations', () => {
         expect(result.people[0].displayName).toBe('Alice');
       });
 
-      it('should not clobber fields not included in the update', () => {
+      it('should not clobber teamIds when updating displayName', () => {
         updatePersonMutation(ydoc, 'person-2', { displayName: 'Robert' });
 
         const result = yDocToProject(ydoc);
         const person = result.people[1];
         expect(person.displayName).toBe('Robert');
         expect(person.teamIds).toEqual(['team-1']);
+      });
+
+      it('should not clobber displayName when updating emails', () => {
+        updatePersonMutation(ydoc, 'person-2', { emails: ['bob.new@example.com'] });
+
+        const result = yDocToProject(ydoc);
+        const person = result.people[1];
+        expect(person.emails).toEqual(['bob.new@example.com']);
+        expect(person.displayName).toBe('Bob');
       });
 
       it('should clear teamIds when set to undefined', () => {
