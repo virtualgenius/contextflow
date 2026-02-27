@@ -139,6 +139,13 @@ describe('connectionMutations', () => {
       expect(result.userNeedConnections[0].notes).toBe('Updated notes');
     });
 
+    it('should not clobber notes when update does not include notes', () => {
+      updateUserNeedConnectionMutation(ydoc, 'unc-2', { userId: 'user-2' } as Partial<UserNeedConnection>);
+
+      const result = yDocToProject(ydoc);
+      expect(result.userNeedConnections[1].notes).toBe('Primary need');
+    });
+
     it('should not modify other connections', () => {
       updateUserNeedConnectionMutation(ydoc, 'unc-1', { notes: 'Updated first' });
 
@@ -253,6 +260,13 @@ describe('connectionMutations', () => {
 
       const result = yDocToProject(ydoc);
       expect(result.needContextConnections[0].notes).toBe('Updated notes');
+    });
+
+    it('should not clobber notes when update does not include notes', () => {
+      updateNeedContextConnectionMutation(ydoc, 'ncc-2', { contextId: 'context-1' } as Partial<NeedContextConnection>);
+
+      const result = yDocToProject(ydoc);
+      expect(result.needContextConnections[1].notes).toBe('Fulfilled by');
     });
 
     it('should not modify other connections', () => {

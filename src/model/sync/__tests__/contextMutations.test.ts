@@ -231,6 +231,16 @@ describe('contextMutations', () => {
       expect(ctx.evolutionStage).toBe('custom-built');
     });
 
+    it('should not clobber codeSize when updating scalar fields', () => {
+      updateContextMutation(ydoc, 'ctx-1', { codeSize: { loc: 5000, bucket: 'medium' } });
+      updateContextMutation(ydoc, 'ctx-1', { name: 'Updated Name' });
+
+      const result = yDocToProject(ydoc);
+      expect(result.contexts[0].name).toBe('Updated Name');
+      expect(result.contexts[0].codeSize?.loc).toBe(5000);
+      expect(result.contexts[0].codeSize?.bucket).toBe('medium');
+    });
+
     it('should not modify other contexts', () => {
       // Add a second context first
       const secondContext: BoundedContext = {

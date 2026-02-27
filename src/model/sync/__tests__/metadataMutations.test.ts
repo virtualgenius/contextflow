@@ -179,6 +179,16 @@ describe('metadataMutations', () => {
         expect(result.teams[0].name).toBe('Orders Team');
       });
 
+      it('should not clobber fields not included in the update', () => {
+        updateTeamMutation(ydoc, 'team-2', { name: 'Renamed Payments' });
+
+        const result = yDocToProject(ydoc);
+        const team = result.teams[1];
+        expect(team.name).toBe('Renamed Payments');
+        expect(team.topologyType).toBe('platform');
+        expect(team.jiraBoard).toBe('PAY');
+      });
+
       it('should clear optional field when set to undefined', () => {
         updateTeamMutation(ydoc, 'team-2', { jiraBoard: undefined });
 
@@ -316,6 +326,34 @@ describe('metadataMutations', () => {
         expect(result.repos[0].name).toBe('order-service');
       });
 
+      it('should not clobber fields not included in the update', () => {
+        updateRepoMutation(ydoc, 'repo-1', { name: 'renamed-service' });
+
+        const result = yDocToProject(ydoc);
+        const repo = result.repos[0];
+        expect(repo.name).toBe('renamed-service');
+        expect(repo.contextId).toBe('context-1');
+      });
+
+      it('should not clobber remoteUrl when updating other fields', () => {
+        updateRepoMutation(ydoc, 'repo-2', { name: 'renamed-payment' });
+
+        const result = yDocToProject(ydoc);
+        const repo = result.repos[1];
+        expect(repo.name).toBe('renamed-payment');
+        expect(repo.remoteUrl).toBe('https://github.com/acme/payment');
+      });
+
+      it('should not clobber analysisSummary when updating other fields', () => {
+        updateRepoMutation(ydoc, 'repo-1', { analysisSummary: 'Well-structured service' });
+        updateRepoMutation(ydoc, 'repo-1', { name: 'renamed-order' });
+
+        const result = yDocToProject(ydoc);
+        const repo = result.repos[0];
+        expect(repo.name).toBe('renamed-order');
+        expect(repo.analysisSummary).toBe('Well-structured service');
+      });
+
       it('should clear optional field when set to undefined', () => {
         updateRepoMutation(ydoc, 'repo-2', { remoteUrl: undefined });
 
@@ -449,6 +487,15 @@ describe('metadataMutations', () => {
         const result = yDocToProject(ydoc);
         expect(result.people).toHaveLength(2);
         expect(result.people[0].displayName).toBe('Alice');
+      });
+
+      it('should not clobber fields not included in the update', () => {
+        updatePersonMutation(ydoc, 'person-2', { displayName: 'Robert' });
+
+        const result = yDocToProject(ydoc);
+        const person = result.people[1];
+        expect(person.displayName).toBe('Robert');
+        expect(person.teamIds).toEqual(['team-1']);
       });
 
       it('should clear teamIds when set to undefined', () => {
