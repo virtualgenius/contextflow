@@ -207,6 +207,14 @@ describe('keyframeMutations', () => {
       expect(result.temporal?.keyframes[0].date).toBe('2024');
     });
 
+    it('should not clobber label when updating only date', () => {
+      updateKeyframeMutation(ydoc, 'keyframe-1', { date: '2024-Q2' });
+
+      const result = yDocToProject(ydoc);
+      expect(result.temporal?.keyframes[0].date).toBe('2024-Q2');
+      expect(result.temporal?.keyframes[0].label).toBe('Current State');
+    });
+
     it('should clear label when set to undefined', () => {
       updateKeyframeMutation(ydoc, 'keyframe-1', { label: undefined });
 

@@ -180,13 +180,13 @@ describe('metadataMutations', () => {
       });
 
       it('should not clobber fields not included in the update', () => {
-        updateTeamMutation(ydoc, 'team-2', { name: 'Renamed Payments' });
+        updateTeamMutation(ydoc, 'team-2', { jiraBoard: 'NEWBOARD' });
 
         const result = yDocToProject(ydoc);
         const team = result.teams[1];
-        expect(team.name).toBe('Renamed Payments');
+        expect(team.jiraBoard).toBe('NEWBOARD');
+        expect(team.name).toBe('Payments Team');
         expect(team.topologyType).toBe('platform');
-        expect(team.jiraBoard).toBe('PAY');
       });
 
       it('should clear optional field when set to undefined', () => {
@@ -226,6 +226,24 @@ describe('metadataMutations', () => {
 
         const result = yDocToProject(ydoc);
         expect(result.contexts[0].teamId).toBeUndefined();
+      });
+
+      it('should not clear teamId on contexts belonging to other teams', () => {
+        // Assign context-2 to team-2, then delete team-1
+        const projectWithBothTeams: Project = {
+          ...createTestProject(),
+          contexts: [
+            { ...createTestProject().contexts[0], teamId: 'team-1' },
+            { ...createTestProject().contexts[1], teamId: 'team-2' },
+          ],
+        };
+        const doc = projectToYDoc(projectWithBothTeams);
+
+        deleteTeamMutation(doc, 'team-1');
+
+        const result = yDocToProject(doc);
+        expect(result.contexts[0].teamId).toBeUndefined();
+        expect(result.contexts[1].teamId).toBe('team-2');
       });
     });
   });
@@ -327,11 +345,12 @@ describe('metadataMutations', () => {
       });
 
       it('should not clobber fields not included in the update', () => {
-        updateRepoMutation(ydoc, 'repo-1', { name: 'renamed-service' });
+        updateRepoMutation(ydoc, 'repo-1', { remoteUrl: 'https://github.com/acme/order' });
 
         const result = yDocToProject(ydoc);
         const repo = result.repos[0];
-        expect(repo.name).toBe('renamed-service');
+        expect(repo.remoteUrl).toBe('https://github.com/acme/order');
+        expect(repo.name).toBe('order-service');
         expect(repo.contextId).toBe('context-1');
       });
 
@@ -490,12 +509,12 @@ describe('metadataMutations', () => {
       });
 
       it('should not clobber fields not included in the update', () => {
-        updatePersonMutation(ydoc, 'person-2', { displayName: 'Robert' });
+        updatePersonMutation(ydoc, 'person-2', { teamIds: ['team-2'] });
 
         const result = yDocToProject(ydoc);
         const person = result.people[1];
-        expect(person.displayName).toBe('Robert');
-        expect(person.teamIds).toEqual(['team-1']);
+        expect(person.teamIds).toEqual(['team-2']);
+        expect(person.displayName).toBe('Bob');
       });
 
       it('should clear teamIds when set to undefined', () => {
@@ -535,6 +554,27 @@ describe('metadataMutations', () => {
 
         const result = yDocToProject(ydoc);
         expect(result.repos[0].contributors).toEqual([]);
+      });
+
+      it('should not remove other contributors when a person is deleted', () => {
+        const projectWithContributors: Project = {
+          ...createTestProject(),
+          repos: [
+            {
+              id: 'repo-1',
+              name: 'order-service',
+              teamIds: ['team-1'],
+              contributors: [{ personId: 'person-1' }, { personId: 'person-2' }],
+              contextId: 'context-1',
+            },
+          ],
+        };
+        const doc = projectToYDoc(projectWithContributors);
+
+        deletePersonMutation(doc, 'person-1');
+
+        const result = yDocToProject(doc);
+        expect(result.repos[0].contributors).toEqual([{ personId: 'person-2' }]);
       });
     });
   });
