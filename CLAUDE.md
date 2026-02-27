@@ -105,6 +105,31 @@ Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-cor
 - [ ] **Yjs sync**: Any new entity field must round-trip through Yjs (types.ts, schema.ts, contextSync.ts, contextMutations.ts)
 - [ ] **Tests pass**: `npm test` with no new failures
 
+## Mutation Testing
+
+Stryker is configured for mutation testing against `src/model/sync/` (the Yjs mutation layer). It uses the Vitest runner and TypeScript checker to filter out invalid mutations.
+
+**When to use:**
+- After writing tests for a new feature, to verify test effectiveness
+- Before merging significant changes to sync mutations
+- Periodic audit of test quality
+
+**How to run:**
+```bash
+npm run mutate                                              # Full run (all sync mutations)
+npm run mutate:changed                                      # Incremental (only changed code)
+npx stryker run --mutate "src/model/sync/contextMutations.ts"  # Target one file
+```
+
+Or use the `/mutate` skill during dev sessions.
+
+**Interpreting results:**
+- **Mutation score**: percentage of mutants killed by tests (higher is better)
+- **Survived mutants**: indicate gaps where tests don't verify behavior; prioritize fixes in data-critical paths
+- **Focus on sync mutations and pure logic**, not UI components (React components have too many false positives)
+
+**Reports**: HTML report at `reports/mutation/index.html` (gitignored)
+
 ## Important Constraints
 
 - **Browser-based**: works entirely in the browser with client-side storage; no backend required for core functionality

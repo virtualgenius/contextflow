@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker/master/packages/core/schema/stryker-core.schema.json",
+  "testRunner": "vitest",
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.stryker.json",
+  "mutate": ["src/model/sync/**/*.ts", "!src/**/*.test.ts"],
+  "incremental": true,
+  "tempDirName": ".stryker-tmp",
+  "reporters": ["clear-text", "html"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  }
+}

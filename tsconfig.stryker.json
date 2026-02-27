@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/model/**/*.ts",
+    "src/utils/**/*.ts",
+    "src/types/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/__tests__/**",
+    "src/**/__testFixtures__/**"
+  ]
+}
