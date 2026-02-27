@@ -6,6 +6,7 @@
   "mutate": ["src/model/sync/**/*.ts", "!src/**/*.test.ts"],
   "incremental": true,
   "tempDirName": ".stryker-tmp",
+  "ignorePatterns": [".stryker-tmp", ".wrangler", "reports", "dist", "*.png", "*.zip"],
   "reporters": ["clear-text", "html"],
   "htmlReporter": {
     "fileName": "reports/mutation/index.html"
