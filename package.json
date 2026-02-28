@@ -2,6 +2,7 @@
   "name": "contextflow",
   "version": "0.9.1",
   "description": "Visual DDD context mapper with Value Stream, Distillation, and Strategic views",
+  "type": "module",
   "private": false,
   "license": "MIT",
   "author": "Paul Rayner",
