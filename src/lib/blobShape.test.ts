@@ -866,9 +866,9 @@ describe('generateBlobPath - visual quality tests', () => {
     ]
 
     const minX = Math.min(...absoluteContexts.map(c => c.x - c.width / 2))
-    const maxX = Math.max(...absoluteContexts.map(c => c.x + c.width / 2))
+    const _maxX = Math.max(...absoluteContexts.map(c => c.x + c.width / 2))
     const minY = Math.min(...absoluteContexts.map(c => c.y - c.height / 2))
-    const maxY = Math.max(...absoluteContexts.map(c => c.y + c.height / 2))
+    const _maxY = Math.max(...absoluteContexts.map(c => c.y + c.height / 2))
 
     // Translate to relative coordinates (what CanvasArea does)
     const relativeContexts = absoluteContexts.map(c => ({

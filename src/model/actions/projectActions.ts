@@ -112,7 +112,7 @@ export function deleteProjectAction(
     throw new Error(validation.reason)
   }
 
-  const { [projectId]: deleted, ...remainingProjects } = state.projects
+  const { [projectId]: _deleted, ...remainingProjects } = state.projects
   const isDeletingActiveProject = state.activeProjectId === projectId
 
   const nextProjectId = isDeletingActiveProject

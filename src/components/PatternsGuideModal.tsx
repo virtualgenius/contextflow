@@ -1,7 +1,6 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import {
-  PATTERN_DEFINITIONS,
   POWER_DYNAMICS_ICONS,
   getPatternsByCategory,
   type PatternDefinition,
@@ -66,7 +65,7 @@ function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
     </g>
   )
 
-  const BidirectionalArrow = () => (
+  const _BidirectionalArrow = () => (
     <g className={arrowStyle}>
       <line x1={76} y1={30} x2={124} y2={30} strokeWidth={1.5} />
       <polygon points="70,30 78,26 78,34" className="fill-slate-500 dark:fill-slate-400" />

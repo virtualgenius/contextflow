@@ -39,7 +39,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
   const [expandedTeamId, setExpandedTeamId] = React.useState<string | null>(null)
   const [expandedRepoId, setExpandedRepoId] = React.useState<string | null>(null)
   const [showRelationshipDialog, setShowRelationshipDialog] = React.useState(false)
-  const [useCodeCohesionAPI, setUseCodeCohesionAPI] = React.useState(() => {
+  const [useCodeCohesionAPI, _setUseCodeCohesionAPI] = React.useState(() => {
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === 'true'
   })

@@ -30,7 +30,7 @@ describe('analytics', () => {
 
     beforeEach(() => {
       originalLocation = window.location
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       delete window.location
     })
 
@@ -42,25 +42,25 @@ describe('analytics', () => {
     })
 
     it('returns "hosted_demo" for contextflow.virtualgenius.com', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
       expect(getDeploymentContext()).toBe('hosted_demo')
     })
 
     it('returns "localhost" for localhost', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'localhost' }
       expect(getDeploymentContext()).toBe('localhost')
     })
 
     it('returns "localhost" for 127.0.0.1', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: '127.0.0.1' }
       expect(getDeploymentContext()).toBe('localhost')
     })
 
     it('returns "self_hosted" for other domains', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'my-company.com' }
       expect(getDeploymentContext()).toBe('self_hosted')
     })
@@ -134,7 +134,7 @@ describe('analytics', () => {
     beforeEach(() => {
       localStorage.clear()
       originalLocation = window.location
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       delete window.location
     })
 
@@ -147,32 +147,32 @@ describe('analytics', () => {
     })
 
     it('defaults to ON for hosted_demo', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
       expect(isAnalyticsEnabled()).toBe(true)
     })
 
     it('defaults to OFF for localhost', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'localhost' }
       expect(isAnalyticsEnabled()).toBe(false)
     })
 
     it('defaults to OFF for self_hosted', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'my-company.com' }
       expect(isAnalyticsEnabled()).toBe(false)
     })
 
     it('explicit user preference overrides hosted_demo default', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
       localStorage.setItem('contextflow.analytics_enabled', 'false')
       expect(isAnalyticsEnabled()).toBe(false)
     })
 
     it('explicit user preference overrides localhost default', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'localhost' }
       localStorage.setItem('contextflow.analytics_enabled', 'true')
       expect(isAnalyticsEnabled()).toBe(true)
@@ -235,7 +235,7 @@ describe('analytics', () => {
       vi.mocked(posthog.init).mockClear()
       vi.mocked(posthog.identify).mockClear()
       originalLocation = window.location
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       delete window.location
     })
 
@@ -249,7 +249,7 @@ describe('analytics', () => {
     })
 
     it('calls posthog.init with privacy-hardened config when analytics enabled', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
       vi.stubEnv('VITE_POSTHOG_KEY', 'phc_test_key')
 
@@ -277,7 +277,7 @@ describe('analytics', () => {
     })
 
     it('does not call posthog.init when analytics disabled', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'localhost' }
 
       initAnalytics()
@@ -286,7 +286,7 @@ describe('analytics', () => {
     })
 
     it('does not call posthog.init when no API key', () => {
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
       vi.stubEnv('VITE_POSTHOG_KEY', '')
 
@@ -452,9 +452,9 @@ describe('analytics', () => {
       localStorage.clear()
       vi.mocked(posthog.capture).mockClear()
       originalLocation = window.location
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       delete window.location
-      // @ts-ignore
+      // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
     })
 

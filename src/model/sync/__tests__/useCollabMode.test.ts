@@ -1,6 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
-import * as Y from 'yjs';
-
 import {
   initializeCollabMode,
   destroyCollabMode,
@@ -9,7 +7,7 @@ import {
   getCollabMutations,
   getCollabUndoRedo,
 } from '../useCollabMode';
-import type { Project, BoundedContext } from '../../types';
+import type { Project } from '../../types';
 
 function createTestProject(): Project {
   return {

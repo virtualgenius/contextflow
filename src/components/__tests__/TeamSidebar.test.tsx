@@ -261,7 +261,7 @@ describe('TeamSidebar', () => {
           onDeleteTeam={onDeleteTeam}
         />
       )
-      const deleteBtn = screen.getByRole('button', { name: '' })
+      const _deleteBtn = screen.getByRole('button', { name: '' })
       // The trash icon button - find it by the SVG inside the team card
       const card = screen.getByTestId('team-card-team-1')
       const trashBtn = card.querySelector('button:last-of-type') as HTMLElement

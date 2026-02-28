@@ -1,6 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import * as Y from 'yjs';
-
 import { projectToYDoc, yDocToProject } from '../projectSync';
 import { renameProjectMutation } from '../projectMutations';
 import type { Project } from '../../types';

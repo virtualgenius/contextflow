@@ -29,23 +29,7 @@ import type {
   YjsContributorRef,
 } from '../schema';
 import { isYMap, isYArray, isYDoc } from '../schema';
-import type {
-  Project,
-  BoundedContext,
-  Relationship,
-  Group,
-  Repo,
-  Person,
-  Team,
-  FlowStageMarker,
-  User,
-  UserNeed,
-  UserNeedConnection,
-  NeedContextConnection,
-  TemporalKeyframe,
-  Issue,
-  ContributorRef,
-} from '../../types';
+import type { BoundedContext, Relationship, Group, User, UserNeed, Issue, ContributorRef } from '../../types';
 
 describe('Yjs Schema Type Definitions', () => {
   describe('Type Exports', () => {

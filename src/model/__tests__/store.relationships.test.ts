@@ -34,7 +34,7 @@ describe('Store - Relationship Editing', () => {
 
       expect(project.relationships.length).toBeGreaterThan(0)
       const relationshipId = project.relationships[0].id
-      const originalPattern = project.relationships[0].pattern
+      const _originalPattern = project.relationships[0].pattern
 
       updateRelationship(relationshipId, { pattern: 'partnership' as any })
 

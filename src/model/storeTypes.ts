@@ -126,7 +126,7 @@ export interface EditorState {
   assignRepoToContext: (repoId: string, contextId: string) => void
   unassignRepo: (repoId: string) => void
   createGroup: (label: string, color?: string, notes?: string) => void
-  updateGroup: (groupId: string, updates: Partial<{ label: string; notes: string }>) => void
+  updateGroup: (groupId: string, updates: Partial<{ label: string; notes: string; color: string }>) => void
   deleteGroup: (groupId: string) => void
   removeContextFromGroup: (groupId: string, contextId: string) => void
   addContextToGroup: (groupId: string, contextId: string) => void

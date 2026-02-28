@@ -340,7 +340,7 @@ describe('contextMutations', () => {
         repos: [
           { id: 'repo-1', name: 'frontend', contextId: 'ctx-1', teamIds: [], contributors: [] },
           { id: 'repo-2', name: 'backend', contextId: 'ctx-1', teamIds: [], contributors: [] },
-          { id: 'repo-3', name: 'shared', contextId: null, teamIds: [], contributors: [] },
+          { id: 'repo-3', name: 'shared', contextId: undefined, teamIds: [], contributors: [] },
         ],
       };
       const doc = projectToYDoc(projectWithRepos);
@@ -373,7 +373,7 @@ describe('contextMutations', () => {
     it('should cascade-delete needContextConnections referencing the context', () => {
       const projectWithConns: Project = {
         ...createTestProject(),
-        userNeeds: [{ id: 'need-1', name: 'Place Order' }],
+        userNeeds: [{ id: 'need-1', name: 'Place Order', position: 50 }],
         needContextConnections: [
           { id: 'nc-1', userNeedId: 'need-1', contextId: 'ctx-1' },
           { id: 'nc-2', userNeedId: 'need-1', contextId: 'ctx-other' },

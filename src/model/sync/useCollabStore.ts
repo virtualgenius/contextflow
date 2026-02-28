@@ -624,7 +624,7 @@ export function createCollabStoreFromYDoc(ydoc: Y.Doc, options: CollabStoreOptio
       undoManager?.redo();
     },
 
-    reset(newProject: Project): void {
+    reset(_newProject: Project): void {
       // For network-connected docs, reset is not supported
       // The Y.Doc is managed by the network provider
       console.warn('reset() is not supported for network-connected CollabStore');

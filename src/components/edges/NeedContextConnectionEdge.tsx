@@ -17,8 +17,8 @@ function NeedContextConnectionEdge({
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
+  sourcePosition: _sourcePosition,
+  targetPosition: _targetPosition,
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)

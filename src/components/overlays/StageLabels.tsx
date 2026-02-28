@@ -36,7 +36,7 @@ export function StageLabels({ stages }: { stages: Array<{ name: string; position
 
       try {
         updateFlowStage(draggingIndex, { position: Math.round(newPosition * 10) / 10 })
-      } catch (err) {
+      } catch (_err) {
         // Position conflict, ignore
       }
       setDragStartX(e.clientX)

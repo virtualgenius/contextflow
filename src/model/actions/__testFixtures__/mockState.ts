@@ -159,4 +159,5 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   addContextIssue: vi.fn(),
   updateContextIssue: vi.fn(),
   deleteContextIssue: vi.fn(),
+  completeFlowStageMove: vi.fn(),
 })

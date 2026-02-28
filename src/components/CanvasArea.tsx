@@ -8,6 +8,7 @@ import ReactFlow, {
   NodeDragHandler,
   useNodesState,
   ReactFlowProvider,
+  ConnectionMode,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
@@ -83,9 +84,9 @@ function CanvasContent() {
   const updateMultipleContextPositions = useEditorStore(s => s.updateMultipleContextPositions)
   const updateUserPosition = useEditorStore(s => s.updateUserPosition)
   const updateUserNeedPosition = useEditorStore(s => s.updateUserNeedPosition)
-  const setSelectedUser = useEditorStore(s => s.setSelectedUser)
+  const _setSelectedUser = useEditorStore(s => s.setSelectedUser)
   const setSelectedTeam = useEditorStore(s => s.setSelectedTeam)
-  const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
+  const _assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
   const deleteContext = useEditorStore(s => s.deleteContext)
   const deleteUser = useEditorStore(s => s.deleteUser)
   const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
@@ -118,7 +119,7 @@ function CanvasContent() {
   const [showGettingStartedGuide, setShowGettingStartedGuide] = React.useState(false)
   const [dismissedGuideForEmptyProject, setDismissedGuideForEmptyProject] = React.useState(false)
   const [seenSampleProjects, setSeenSampleProjects] = React.useState<Set<string>>(new Set())
-  const setActiveProject = useEditorStore(s => s.setActiveProject)
+  const _setActiveProject = useEditorStore(s => s.setActiveProject)
 
   const { fitBounds } = useReactFlow()
 
@@ -889,7 +890,7 @@ function CanvasContent() {
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onConnect={onConnect}
-          connectionMode="loose"
+          connectionMode={ConnectionMode.Loose}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodeClick={onNodeClick}

@@ -9,7 +9,7 @@ interface RepoSidebarProps {
   onRepoAssign: (repoId: string, contextId: string) => void
 }
 
-export function RepoSidebar({ repos, teams, onRepoAssign }: RepoSidebarProps) {
+export function RepoSidebar({ repos, teams, onRepoAssign: _onRepoAssign }: RepoSidebarProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
 
   const filteredRepos = React.useMemo(() => {

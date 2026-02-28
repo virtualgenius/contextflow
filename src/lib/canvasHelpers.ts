@@ -1,5 +1,5 @@
 import type { Relationship } from '../model/types'
-import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS, type PowerDynamics } from '../model/patternDefinitions'
+import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 
 /**
  * Given a hovered context ID and a list of relationships,

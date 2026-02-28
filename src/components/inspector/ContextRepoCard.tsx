@@ -9,7 +9,7 @@ export function RepoCard({
   useAPI,
   expandedTeamId,
   expandedRepoId,
-  onToggleTeam,
+  onToggleTeam: _onToggleTeam,
   onToggleRepo,
   onUnassign,
 }: {

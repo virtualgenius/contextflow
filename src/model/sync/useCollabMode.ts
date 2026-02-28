@@ -66,6 +66,7 @@ export function initializeCollabMode(project: Project, options: CollabStoreOptio
   if (collabStore) {
     collabStore.destroy();
   }
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- useCollabStore is a factory, not a React hook
   collabStore = useCollabStore(project, options);
 }
 

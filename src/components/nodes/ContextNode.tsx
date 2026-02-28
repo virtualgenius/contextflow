@@ -41,7 +41,7 @@ export function ContextNode({ data }: NodeProps) {
   const hideDescription = context.codeSize?.bucket === 'tiny' || context.codeSize?.bucket === 'small'
 
   // Get team name if assigned
-  const team = context.teamId && project?.teams?.find(t => t.id === context.teamId)
+  const _team = context.teamId && project?.teams?.find(t => t.id === context.teamId)
 
   // Calculate tooltip position from node bounds
   const getTooltipPosition = () => {

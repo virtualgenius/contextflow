@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from 'react'
-import { User, FileText, Box } from 'lucide-react'
 
 interface ConnectionGuidanceTooltipProps {
   sourceType: 'user' | 'userNeed' | 'context'

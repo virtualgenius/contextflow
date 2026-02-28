@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trash2, ArrowRight } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { SimpleTooltip } from '../SimpleTooltip'
 import type { Relationship, BoundedContext } from '../../model/types'
 

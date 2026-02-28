@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, User, FileText, Box, ArrowRight } from 'lucide-react'
+import { X, User, FileText, Box } from 'lucide-react'
 
 interface ValueChainGuideModalProps {
   onClose: () => void
@@ -9,7 +9,7 @@ interface ValueChainGuideModalProps {
  * Large SVG diagram showing the complete value chain model
  */
 function ValueChainDiagram() {
-  const boxStyle = "fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500"
+  const _boxStyle = "fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500"
   const textStyle = "fill-slate-700 dark:fill-slate-200 text-[11px] font-medium"
   const subtextStyle = "fill-slate-500 dark:fill-slate-400 text-[9px]"
   const arrowStyle = "stroke-slate-400 dark:stroke-slate-500"

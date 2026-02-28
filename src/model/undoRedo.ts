@@ -1,4 +1,4 @@
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type { Project } from './types'
 import type { EditorCommand } from './storeTypes'
 
 /**

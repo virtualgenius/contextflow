@@ -1,13 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   migrateProject,
 } from './persistence'
 import type { Project } from './types'
-import {
-  STRATEGIC_GENESIS_MAX_X,
-  STRATEGIC_CUSTOM_BUILT_MAX_X,
-  STRATEGIC_PRODUCT_RENTAL_MAX_X
-} from './classification'
 
 vi.mock('./classification', () => ({
   classifyFromStrategicPosition: (x: number) => {

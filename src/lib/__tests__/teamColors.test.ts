@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getTopologyColors, type TopologyColorSet } from '../teamColors'
+import { getTopologyColors } from '../teamColors'
 
 describe('getTopologyColors', () => {
   it('returns warm yellow palette for stream-aligned', () => {

@@ -57,7 +57,7 @@ describe('RelationshipEdge label visibility', () => {
 
   it('renders labels when showRelationshipLabels is true even without hover/emphasis', () => {
     setupMock({ showRelationshipLabels: true, selectedRelationshipId: null, hoveredContextId: null })
-    const { container } = render(
+    const { container: _container } = render(
       <svg>
         <RelationshipEdge {...baseProps} />
       </svg>
@@ -69,7 +69,7 @@ describe('RelationshipEdge label visibility', () => {
 
   it('does not render labels when showRelationshipLabels is false and edge is not emphasized', () => {
     setupMock({ showRelationshipLabels: false, selectedRelationshipId: null, hoveredContextId: null })
-    const { container } = render(
+    const { container: _container } = render(
       <svg>
         <RelationshipEdge {...baseProps} />
       </svg>

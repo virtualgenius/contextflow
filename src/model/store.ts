@@ -1,11 +1,11 @@
 import { create } from 'zustand'
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, FlowStageMarker, Team } from './types'
-import { saveProject, loadProject } from './persistence'
+import type { Project, BoundedContext, User, UserNeed, FlowStageMarker, TemporalKeyframe } from './types'
+import { saveProject } from './persistence'
 import { config } from '../config'
 import { trackEvent, trackPropertyChange, trackTextFieldEdit, trackFTUEMilestone } from '../utils/analytics'
-import { classifyFromDistillationPosition, classifyFromStrategicPosition } from './classification'
+import { classifyFromDistillationPosition } from './classification'
 import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
-import { initialProjects, initialActiveProjectId, BUILT_IN_PROJECTS, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
+import { initialProjects, initialActiveProjectId, sampleProject, cbioportal, initializeBuiltInProjects } from './builtInProjects'
 import {
   getCollabMutations,
   getCollabUndoRedo,

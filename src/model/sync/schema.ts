@@ -36,23 +36,6 @@
  */
 
 import * as Y from 'yjs';
-import type {
-  Project,
-  BoundedContext,
-  Relationship,
-  Group,
-  Repo,
-  Person,
-  Team,
-  FlowStageMarker,
-  User,
-  UserNeed,
-  UserNeedConnection,
-  NeedContextConnection,
-  TemporalKeyframe,
-  Issue,
-  ContributorRef,
-} from '../types';
 
 /**
  * Root Yjs document structure for a ContextFlow project.

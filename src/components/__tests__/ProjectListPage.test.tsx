@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { ProjectListPage } from '../ProjectListPage'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 
-function createMockProject(overrides: Partial<Project> = {}): Project {
+function _createMockProject(overrides: Partial<Project> = {}): Project {
   return {
     id: 'project-1',
     name: 'Test Project',

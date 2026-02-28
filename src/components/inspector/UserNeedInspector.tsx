@@ -1,7 +1,7 @@
 import React from 'react'
 import { Trash2, X } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
-import type { Project, UserNeedConnection, NeedContextConnection, User } from '../../model/types'
+import type { Project } from '../../model/types'
 import { SimpleTooltip } from '../SimpleTooltip'
 import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 

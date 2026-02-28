@@ -28,7 +28,7 @@ export function ProjectListContent({
   activeProjectId,
   onSelectProject,
   onCreateProject,
-  onCreateFromTemplate,
+  onCreateFromTemplate: _onCreateFromTemplate,
   onDeleteProject,
   onRenameProject,
   onDuplicateProject,

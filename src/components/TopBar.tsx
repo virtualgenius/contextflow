@@ -125,7 +125,7 @@ export function TopBar() {
           } else {
             importProject(project)
           }
-        } catch (err) {
+        } catch (_err) {
           alert('Failed to import project: Invalid JSON file')
         }
       }

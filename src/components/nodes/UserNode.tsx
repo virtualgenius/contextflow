@@ -17,7 +17,7 @@ export function UserNode({ data }: NodeProps) {
   const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
   const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
-  const { x: vpX, y: vpY, zoom } = useViewport()
+  const { x: _vpX, y: _vpY, zoom: _zoom } = useViewport()
   const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const isHighlighted = isSelected || isHighlightedByConnection

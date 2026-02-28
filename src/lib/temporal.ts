@@ -1,6 +1,6 @@
 // Temporal evolution utilities for interpolation and date conversion
 
-import type { TemporalKeyframe, BoundedContext } from '../model/types'
+import type { TemporalKeyframe } from '../model/types'
 
 /**
  * Convert a date string (year or year-quarter) to a numeric value for calculations

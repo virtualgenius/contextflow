@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import * as Y from 'yjs';
 
-import { useCollabStore, type CollabStore, type CollabStoreOptions } from '../useCollabStore';
-import { projectToYDoc, yDocToProject } from '../projectSync';
+import { useCollabStore, type CollabStore } from '../useCollabStore';
 import type { Project, BoundedContext } from '../../types';
 
 function createTestProject(): Project {

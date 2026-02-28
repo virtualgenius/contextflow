@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getConnectedUsers, categorizeRelationships } from '../inspectorHelpers'
-import type { Project, User, Relationship } from '../../model/types'
+import type { Project, Relationship } from '../../model/types'
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {

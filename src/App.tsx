@@ -17,7 +17,7 @@ const MILLISECONDS_PER_SECOND = 1000
 
 function App() {
   const projectId = useEditorStore(s => s.activeProjectId)
-  const { route, params } = useUrlRouter()
+  const { route, params: _params } = useUrlRouter()
 
   // Show project list page when no active project and not on a shared-project route
   if (!projectId && route !== 'shared-project') {
@@ -246,7 +246,7 @@ function Workspace() {
                 <RepoSidebar
                   repos={unassignedRepos}
                   teams={project?.teams || []}
-                  onRepoAssign={(repoId, contextId) => {
+                  onRepoAssign={(_repoId, _contextId) => {
                     // Will be implemented with drag-and-drop
                   }}
                 />

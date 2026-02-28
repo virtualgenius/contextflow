@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Project } from './types';
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
