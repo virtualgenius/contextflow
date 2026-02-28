@@ -35,19 +35,19 @@ VITE_COLLAB_HOST=localhost:8787 npm run dev
 
 ## Deployment
 
-**Staging** (for testing before production):
+**Production** deploys automatically via GitHub Actions on every push to `main`. The workflow (`.github/workflows/deploy.yml`) runs typecheck, lint, and build, then deploys to GitHub Pages. There is no manual deploy step for production.
+
+- URL: https://contextflow.virtualgenius.com
+- Check deploy status: `gh run list --limit 3`
+
+**Staging** is a manual deploy to Cloudflare Pages, for testing before pushing to main:
 
 ```bash
 VITE_COLLAB_HOST=contextflow-collab-staging.paul-162.workers.dev npm run build
 npx wrangler pages deploy dist --project-name contextflow-staging --branch main
 ```
 
-**Production**:
-
-```bash
-VITE_COLLAB_HOST=contextflow-collab.paul-162.workers.dev npm run build
-npx wrangler pages deploy dist --project-name contextflow --branch main
-```
+Do NOT use `wrangler pages deploy` for production. The Cloudflare Pages project `contextflow` does not exist; production is on GitHub Pages.
 
 The `VITE_COLLAB_HOST` environment variable is required at build time to configure which collaboration server the app connects to. Without it, the app defaults to `localhost:8787`.
 
