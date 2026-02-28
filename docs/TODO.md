@@ -8,7 +8,6 @@
 
 ### 0.9.0
 
-- [ ] Not clear how to add a context to a group
 - [ ] Bug - Add group didn't work for Leads Management. It added a group blob, but it is outside of leads management!
 - [ ] Add new project description: goal/purpose, scope, creator name? created? last modified? (how does this match to Wardley Mapping step 1 - Purpose?)
 
@@ -31,8 +30,6 @@
 - [ ] Enable contexts to be connected by top and bottom as well as the sides
 - [ ] Check how shared kernel is represented (should probably be overlapping contexts?)
 - [ ] Add optional user attributes: goal(s), challenges
-- [ ] Accessibility checks
-- [ ] Responsive design
 - [ ] Distillation - can a context overlap subdomain boundaries? what would this tell us if it did?
 - In ~/Documents/EventStormer, you enter your name when you join a board and then you can see other people's cursors with their names moving around on the board. Enable this for ContextFlow
 - "Add Team" button in top menu?
