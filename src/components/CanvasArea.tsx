@@ -428,7 +428,7 @@ function CanvasContent() {
       : []
 
     return [...relationshipEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
-  }, [project, viewMode, showRelationships, selectedUserId, selectedRelationshipId])
+  }, [project, viewMode, showRelationships])
 
   // Handle edge click
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
@@ -665,7 +665,7 @@ function CanvasContent() {
       // Normal change, pass through
       onNodesChangeOriginal(changes)
     }
-  }, [nodes, selectedContextIds, onNodesChangeOriginal])
+  }, [nodes, selectedContextIds, onNodesChangeOriginal, project, updateMultipleContextPositions, viewMode])
 
   const constrainNodePosition: NodeDragHandler = useCallback((event, node) => {
     if (node.type === 'user') {

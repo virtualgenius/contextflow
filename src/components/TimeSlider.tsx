@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useEditorStore } from '../model/store'
 import type { TemporalKeyframe } from '../model/types'
 import { dateToNumeric, findNearestKeyframe, shouldSnapToKeyframe } from '../lib/temporal'
@@ -45,7 +45,7 @@ export function TimeSlider() {
   const yearRange = maxYear - minYear
 
   // Convert position (0-100%) to date
-  const positionToDate = (position: number): string => {
+  const positionToDate = useCallback((position: number): string => {
     const fraction = position / 100
     const yearValue = minYear + fraction * yearRange
     const year = Math.floor(yearValue)
@@ -57,7 +57,7 @@ export function TimeSlider() {
 
     // Always use quarter granularity for smooth scrubbing
     return `${year}-Q${quarter}`
-  }
+  }, [minYear, yearRange])
 
   // Convert date to position (0-100%)
   const dateToPosition = (date: string): number => {
@@ -112,7 +112,7 @@ export function TimeSlider() {
     handleSliderClick(e)
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !sliderRef.current) return
 
     const rect = sliderRef.current.getBoundingClientRect()
@@ -124,13 +124,13 @@ export function TimeSlider() {
     // Snapping only happens on mouse up
     setCurrentDate(newDate)
     setActiveKeyframe(null)
-  }
+  }, [isDragging, positionToDate, setCurrentDate, setActiveKeyframe])
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false)
     // Don't auto-lock to keyframes when releasing the slider
     // User can explicitly click on a keyframe marker to lock if desired
-  }
+  }, [])
 
   const handleKeyframeClick = (e: React.MouseEvent, keyframe: TemporalKeyframe) => {
     e.stopPropagation()
@@ -264,6 +264,7 @@ export function TimeSlider() {
         playbackIntervalRef.current = null
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally captures values at play-start; adding deps would restart the interval each frame
   }, [isPlaying])
 
   // Close context menu when clicking outside
@@ -285,7 +286,7 @@ export function TimeSlider() {
         window.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [isDragging, minYear, maxYear, yearRange])
+  }, [isDragging, handleMouseMove, handleMouseUp])
 
   // Don't show time slider if not in Strategic View or temporal mode not enabled
   if (viewMode !== 'strategic' || !project?.temporal?.enabled) {

@@ -57,8 +57,8 @@ export function useCloudMigration() {
       },
     });
 
-    if (result.total === 0 && state.status !== 'error') {
-      setState((s) => ({ ...s, status: 'complete' }));
+    if (result.total === 0) {
+      setState((s) => s.status !== 'error' ? { ...s, status: 'complete' } : s);
     }
   }, []);
 
