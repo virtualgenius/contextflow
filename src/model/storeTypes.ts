@@ -1,15 +1,59 @@
-import type { Project, BoundedContext, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Issue, IssueSeverity, Relationship } from './types'
+import type {
+  Project,
+  BoundedContext,
+  User,
+  UserNeed,
+  UserNeedConnection,
+  NeedContextConnection,
+  TemporalKeyframe,
+  Issue,
+  IssueSeverity,
+  Relationship,
+} from './types'
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation'
 
 export interface EditorCommand {
-  type: 'moveContext' | 'moveContextGroup' | 'addContext' | 'deleteContext' | 'assignRepo' | 'unassignRepo' | 'addGroup' | 'deleteGroup' | 'removeFromGroup' | 'addToGroup' | 'addRelationship' | 'deleteRelationship' | 'updateRelationship' | 'addUser' | 'deleteUser' | 'moveUser' | 'addUserNeed' | 'deleteUserNeed' | 'moveUserNeed' | 'addUserNeedConnection' | 'deleteUserNeedConnection' | 'addNeedContextConnection' | 'deleteNeedContextConnection' | 'createKeyframe' | 'deleteKeyframe' | 'moveContextInKeyframe' | 'updateKeyframe' | 'updateFlowStage' | 'addFlowStage' | 'deleteFlowStage'
+  type:
+    | 'moveContext'
+    | 'moveContextGroup'
+    | 'addContext'
+    | 'deleteContext'
+    | 'assignRepo'
+    | 'unassignRepo'
+    | 'addGroup'
+    | 'deleteGroup'
+    | 'removeFromGroup'
+    | 'addToGroup'
+    | 'addRelationship'
+    | 'deleteRelationship'
+    | 'updateRelationship'
+    | 'addUser'
+    | 'deleteUser'
+    | 'moveUser'
+    | 'addUserNeed'
+    | 'deleteUserNeed'
+    | 'moveUserNeed'
+    | 'addUserNeedConnection'
+    | 'deleteUserNeedConnection'
+    | 'addNeedContextConnection'
+    | 'deleteNeedContextConnection'
+    | 'createKeyframe'
+    | 'deleteKeyframe'
+    | 'moveContextInKeyframe'
+    | 'updateKeyframe'
+    | 'updateFlowStage'
+    | 'addFlowStage'
+    | 'deleteFlowStage'
   payload: {
     contextId?: string
     contextIds?: string[]
     oldPositions?: BoundedContext['positions']
     newPositions?: BoundedContext['positions']
-    positionsMap?: Record<string, { old: BoundedContext['positions'], new: BoundedContext['positions'] }>
+    positionsMap?: Record<
+      string,
+      { old: BoundedContext['positions']; new: BoundedContext['positions'] }
+    >
     context?: BoundedContext
     repoId?: string
     oldContextId?: string
@@ -34,9 +78,27 @@ export interface EditorCommand {
     oldKeyframeData?: Partial<TemporalKeyframe>
     newKeyframeData?: Partial<TemporalKeyframe>
     flowStageIndex?: number
-    flowStage?: { name: string; position: number; description?: string; owner?: string; notes?: string }
-    oldFlowStage?: { name: string; position: number; description?: string; owner?: string; notes?: string }
-    newFlowStage?: { name: string; position: number; description?: string; owner?: string; notes?: string }
+    flowStage?: {
+      name: string
+      position: number
+      description?: string
+      owner?: string
+      notes?: string
+    }
+    oldFlowStage?: {
+      name: string
+      position: number
+      description?: string
+      owner?: string
+      notes?: string
+    }
+    newFlowStage?: {
+      name: string
+      position: number
+      description?: string
+      owner?: string
+      notes?: string
+    }
     oldRelationship?: any
     newRelationship?: any
   }
@@ -99,12 +161,19 @@ export interface EditorState {
   addKeyframe: (date: string, label?: string) => string | null
   deleteKeyframe: (keyframeId: string) => void
   updateKeyframe: (keyframeId: string, updates: Partial<TemporalKeyframe>) => void
-  updateKeyframeContextPosition: (keyframeId: string, contextId: string, x: number, y: number) => void
+  updateKeyframeContextPosition: (
+    keyframeId: string,
+    contextId: string,
+    x: number,
+    y: number
+  ) => void
 
   // Actions
   updateContext: (contextId: string, updates: Partial<BoundedContext>) => void
   updateContextPosition: (contextId: string, newPositions: BoundedContext['positions']) => void
-  updateMultipleContextPositions: (positionsMap: Record<string, BoundedContext['positions']>) => void
+  updateMultipleContextPositions: (
+    positionsMap: Record<string, BoundedContext['positions']>
+  ) => void
   setSelectedContext: (contextId: string | null) => void
   toggleContextSelection: (contextId: string) => void
   clearContextSelection: () => void
@@ -126,19 +195,37 @@ export interface EditorState {
   assignRepoToContext: (repoId: string, contextId: string) => void
   unassignRepo: (repoId: string) => void
   createGroup: (label: string, color?: string, notes?: string) => void
-  updateGroup: (groupId: string, updates: Partial<{ label: string; notes: string; color: string }>) => void
+  updateGroup: (
+    groupId: string,
+    updates: Partial<{ label: string; notes: string; color: string }>
+  ) => void
   deleteGroup: (groupId: string) => void
   removeContextFromGroup: (groupId: string, contextId: string) => void
   addContextToGroup: (groupId: string, contextId: string) => void
   addContextsToGroup: (groupId: string, contextIds: string[]) => void
-  addRelationship: (fromContextId: string, toContextId: string, pattern: Relationship['pattern'], description?: string) => void
+  addRelationship: (
+    fromContextId: string,
+    toContextId: string,
+    pattern: Relationship['pattern'],
+    description?: string
+  ) => void
   deleteRelationship: (relationshipId: string) => void
-  updateRelationship: (relationshipId: string, updates: Partial<Pick<Relationship, 'pattern' | 'communicationMode' | 'description'>>) => void
+  updateRelationship: (
+    relationshipId: string,
+    updates: Partial<Pick<Relationship, 'pattern' | 'communicationMode' | 'description'>>
+  ) => void
   swapRelationshipDirection: (relationshipId: string) => void
   setSelectedRelationship: (relationshipId: string | null) => void
   setSelectedStage: (stageIndex: number | null) => void
   setSelectedTeam: (teamId: string | null) => void
-  updateTeam: (teamId: string, updates: Partial<{ name: string; jiraBoard: string; topologyType: 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem' | 'unknown' }>) => void
+  updateTeam: (
+    teamId: string,
+    updates: Partial<{
+      name: string
+      jiraBoard: string
+      topologyType: 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem' | 'unknown'
+    }>
+  ) => void
   addTeam: (name: string) => string
   addRepo: (name: string) => string
   deleteTeam: (teamId: string) => void
@@ -159,7 +246,10 @@ export interface EditorState {
   updateUserNeedConnection: (connectionId: string, updates: Partial<UserNeedConnection>) => void
   createNeedContextConnection: (userNeedId: string, contextId: string) => string | null
   deleteNeedContextConnection: (connectionId: string) => void
-  updateNeedContextConnection: (connectionId: string, updates: Partial<NeedContextConnection>) => void
+  updateNeedContextConnection: (
+    connectionId: string,
+    updates: Partial<NeedContextConnection>
+  ) => void
   toggleShowGroups: () => void
   toggleShowRelationships: () => void
   toggleIssueLabels: () => void
@@ -169,7 +259,16 @@ export interface EditorState {
   clearActiveProject: () => void
   setGroupOpacity: (opacity: number, options?: { skipAnalytics?: boolean }) => void
   setColorByMode: (mode: 'strategic' | 'ownership') => void
-  updateFlowStage: (index: number, updates: Partial<{ name: string; position: number; description: string; owner: string; notes: string }>) => void
+  updateFlowStage: (
+    index: number,
+    updates: Partial<{
+      name: string
+      position: number
+      description: string
+      owner: string
+      notes: string
+    }>
+  ) => void
   completeFlowStageMove: (index: number, startPosition: number) => void
   addFlowStage: (name: string, position?: number) => void
   deleteFlowStage: (index: number) => void

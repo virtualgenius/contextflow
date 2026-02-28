@@ -4,22 +4,26 @@ import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 import { INPUT_TITLE_CLASS, INPUT_TEXT_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
-export function FlowStageInspector({ project, stageIndex }: { project: Project; stageIndex: number }) {
-  const updateFlowStage = useEditorStore(s => s.updateFlowStage)
-  const deleteFlowStage = useEditorStore(s => s.deleteFlowStage)
-  const setSelectedStage = useEditorStore(s => s.setSelectedStage)
+export function FlowStageInspector({
+  project,
+  stageIndex,
+}: {
+  project: Project
+  stageIndex: number
+}) {
+  const updateFlowStage = useEditorStore((s) => s.updateFlowStage)
+  const deleteFlowStage = useEditorStore((s) => s.deleteFlowStage)
+  const setSelectedStage = useEditorStore((s) => s.setSelectedStage)
 
   const stages = project.viewConfig?.flowStages || []
   const stage = stages[stageIndex]
   if (!stage) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        Stage not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">Stage not found.</div>
   }
 
-  const handleStageUpdate = (updates: Partial<{ name: string; description: string; owner: string; notes: string }>) => {
+  const handleStageUpdate = (
+    updates: Partial<{ name: string; description: string; owner: string; notes: string }>
+  ) => {
     updateFlowStage(stageIndex, updates)
   }
 
@@ -33,20 +37,21 @@ export function FlowStageInspector({ project, stageIndex }: { project: Project; 
   // Find users and user needs whose positions fall within this stage's boundary
   // Calculate stage boundaries (midpoints between adjacent stages)
   const sortedStages = [...stages].sort((a, b) => a.position - b.position)
-  const stageIdx = sortedStages.findIndex(s => s.position === stage.position)
+  const stageIdx = sortedStages.findIndex((s) => s.position === stage.position)
   const prevPosition = stageIdx > 0 ? sortedStages[stageIdx - 1].position : 0
-  const nextPosition = stageIdx < sortedStages.length - 1 ? sortedStages[stageIdx + 1].position : 100
+  const nextPosition =
+    stageIdx < sortedStages.length - 1 ? sortedStages[stageIdx + 1].position : 100
   const startBound = stageIdx === 0 ? 0 : (prevPosition + stage.position) / 2
   const endBound = stageIdx === sortedStages.length - 1 ? 100 : (stage.position + nextPosition) / 2
 
   // Find users in this stage
-  const usersInStage = (project.users || []).filter(user => {
+  const usersInStage = (project.users || []).filter((user) => {
     const userPosition = user.position ?? 0
     return userPosition >= startBound && userPosition < endBound
   })
 
   // Find user needs in this stage
-  const userNeedsInStage = (project.userNeeds || []).filter(need => {
+  const userNeedsInStage = (project.userNeeds || []).filter((need) => {
     const needPosition = need.position ?? 0
     return needPosition >= startBound && needPosition < endBound
   })
@@ -89,10 +94,12 @@ export function FlowStageInspector({ project, stageIndex }: { project: Project; 
       {usersInStage.length > 0 && (
         <Section label={`Users in Stage (${usersInStage.length})`}>
           <div className="space-y-1">
-            {usersInStage.map(user => (
+            {usersInStage.map((user) => (
               <button
                 key={user.id}
-                onClick={() => useEditorStore.setState({ selectedUserId: user.id, selectedStageIndex: null })}
+                onClick={() =>
+                  useEditorStore.setState({ selectedUserId: user.id, selectedStageIndex: null })
+                }
                 className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-2"
               >
                 <Users size={12} className="text-blue-500 flex-shrink-0" />
@@ -107,10 +114,12 @@ export function FlowStageInspector({ project, stageIndex }: { project: Project; 
       {userNeedsInStage.length > 0 && (
         <Section label={`User Needs in Stage (${userNeedsInStage.length})`}>
           <div className="space-y-1">
-            {userNeedsInStage.map(need => (
+            {userNeedsInStage.map((need) => (
               <button
                 key={need.id}
-                onClick={() => useEditorStore.setState({ selectedUserNeedId: need.id, selectedStageIndex: null })}
+                onClick={() =>
+                  useEditorStore.setState({ selectedUserNeedId: need.id, selectedStageIndex: null })
+                }
                 className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
               >
                 {need.name}

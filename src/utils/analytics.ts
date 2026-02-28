@@ -17,7 +17,7 @@ export function getDeploymentContext(): DeploymentContext {
 export function hashProjectId(id: string): string {
   let hash = 0
   for (let i = 0; i < id.length; i++) {
-    hash = ((hash << 5) - hash) + id.charCodeAt(i)
+    hash = (hash << 5) - hash + id.charCodeAt(i)
     hash = hash & hash
   }
   const base36 = Math.abs(hash).toString(36)
@@ -116,8 +116,8 @@ export function getProjectMetadata(project: Project | null): ProjectMetadata | n
     relationship_count: project.relationships.length,
     group_count: project.groups.length,
     repo_count: project.repos.length,
-    repo_assignment_count: project.repos.filter(r => r.contextId).length,
-    repo_with_url_count: project.repos.filter(r => r.remoteUrl).length,
+    repo_assignment_count: project.repos.filter((r) => r.contextId).length,
+    repo_with_url_count: project.repos.filter((r) => r.remoteUrl).length,
     person_count: project.people.length,
     team_count: project.teams.length,
     contributor_count: project.repos.reduce((sum, r) => sum + r.contributors.length, 0),
@@ -127,7 +127,7 @@ export function getProjectMetadata(project: Project | null): ProjectMetadata | n
     need_count: project.userNeeds.length,
     user_need_connection_count: project.userNeedConnections.length,
     need_context_connection_count: project.needContextConnections.length,
-    flow_stage_marker_count: project.viewConfig.flowStages.length
+    flow_stage_marker_count: project.viewConfig.flowStages.length,
   }
 }
 
@@ -142,7 +142,7 @@ export function trackEvent(
     const globalMetadata = {
       deployment: getDeploymentContext(),
       app_version: getAppVersion(),
-      ...getProjectMetadata(project)
+      ...getProjectMetadata(project),
     }
 
     const fullMetadata = { ...globalMetadata, ...metadata }
@@ -171,7 +171,7 @@ export function trackPropertyChange(
     entity_id: entityId,
     property_changed: propertyName,
     old_value: oldValue,
-    new_value: newValue
+    new_value: newValue,
   }
 
   if (sourceView) {
@@ -216,12 +216,14 @@ export function trackTextFieldEdit(
     old_char_count: oldCharCount,
     new_char_count: newCharCount,
     edit_type: editType,
-    source
+    source,
   })
 }
 
 // Helper to extract URL platform type (for repo URLs)
-export function extractUrlPlatform(url: string | undefined): 'github' | 'gitlab' | 'bitbucket' | 'other' | null {
+export function extractUrlPlatform(
+  url: string | undefined
+): 'github' | 'gitlab' | 'bitbucket' | 'other' | null {
   if (!url) return null
 
   const lower = url.toLowerCase()
@@ -248,7 +250,11 @@ export function getSessionStartTime(): number {
 }
 
 export function trackFTUEMilestone(
-  milestoneName: 'first_context_added' | 'first_relationship_added' | 'first_group_created' | 'second_view_discovered',
+  milestoneName:
+    | 'first_context_added'
+    | 'first_relationship_added'
+    | 'first_group_created'
+    | 'second_view_discovered',
   project: Project | null,
   metadata?: Record<string, any>
 ): void {
@@ -264,7 +270,7 @@ export function trackFTUEMilestone(
 
   const eventMetadata = {
     time_since_load_seconds: timeSinceLoad,
-    ...metadata
+    ...metadata,
   }
 
   trackEvent(milestoneName, project, eventMetadata)
@@ -274,7 +280,11 @@ export function trackFTUEMilestone(
 }
 
 export function hasCompletedFTUEMilestone(
-  milestoneName: 'first_context_added' | 'first_relationship_added' | 'first_group_created' | 'second_view_discovered'
+  milestoneName:
+    | 'first_context_added'
+    | 'first_relationship_added'
+    | 'first_group_created'
+    | 'second_view_discovered'
 ): boolean {
   const sessionKey = `${SESSION_STORAGE_KEY_PREFIX}${milestoneName}`
   return sessionStorage.getItem(sessionKey) === 'true'

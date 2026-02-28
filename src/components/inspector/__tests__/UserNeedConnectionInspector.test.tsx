@@ -23,7 +23,9 @@ function makeProject(): Project {
     people: [],
     users: [{ id: 'user-1', name: 'Customer' }],
     userNeeds: [{ id: 'need-1', name: 'Place Order' }],
-    userNeedConnections: [{ id: 'uc-1', userId: 'user-1', userNeedId: 'need-1', notes: 'Primary flow' }],
+    userNeedConnections: [
+      { id: 'uc-1', userId: 'user-1', userNeedId: 'need-1', notes: 'Primary flow' },
+    ],
   } as unknown as Project
 }
 
@@ -60,6 +62,9 @@ describe('UserNeedConnectionInspector', () => {
   it('navigates to user on click', () => {
     render(<UserNeedConnectionInspector project={makeProject()} connectionId="uc-1" />)
     fireEvent.click(screen.getByText('Customer'))
-    expect(useEditorStore.setState).toHaveBeenCalledWith({ selectedUserId: 'user-1', selectedUserNeedConnectionId: null })
+    expect(useEditorStore.setState).toHaveBeenCalledWith({
+      selectedUserId: 'user-1',
+      selectedUserNeedConnectionId: null,
+    })
   })
 })

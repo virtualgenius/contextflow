@@ -1,6 +1,10 @@
 import { useViewport } from 'reactflow'
 
-export function StageBoundaryLines({ stages }: { stages: Array<{ name: string; position: number }> }) {
+export function StageBoundaryLines({
+  stages,
+}: {
+  stages: Array<{ name: string; position: number }>
+}) {
   const { x, y, zoom } = useViewport()
 
   // Sort stages by position
@@ -40,7 +44,8 @@ export function StageBoundaryLines({ stages }: { stages: Array<{ name: string; p
               top: 0,
               width: '1px',
               height: `${1000 * zoom}px`,
-              background: 'repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.3) 0px, rgba(148, 163, 184, 0.3) 5px, transparent 5px, transparent 10px)',
+              background:
+                'repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.3) 0px, rgba(148, 163, 184, 0.3) 5px, transparent 5px, transparent 10px)',
               marginTop: `${y}px`,
             }}
           />

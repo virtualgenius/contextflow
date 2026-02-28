@@ -7,7 +7,17 @@ import { interpolatePosition } from '../../lib/temporal'
 import { classifyFromStrategicPosition } from '../../model/classification'
 import { InfoTooltip } from '../InfoTooltip'
 import { SimpleTooltip } from '../SimpleTooltip'
-import { EVOLUTION_STAGES, STRATEGIC_CLASSIFICATIONS, BOUNDARY_INTEGRITY, CODE_SIZE_TIERS, LEGACY_CONTEXT, BIG_BALL_OF_MUD, BUSINESS_MODEL_ROLE, POWER_DYNAMICS, OWNERSHIP_DEFINITIONS } from '../../model/conceptDefinitions'
+import {
+  EVOLUTION_STAGES,
+  STRATEGIC_CLASSIFICATIONS,
+  BOUNDARY_INTEGRITY,
+  CODE_SIZE_TIERS,
+  LEGACY_CONTEXT,
+  BIG_BALL_OF_MUD,
+  BUSINESS_MODEL_ROLE,
+  POWER_DYNAMICS,
+  OWNERSHIP_DEFINITIONS,
+} from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
 import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
 import { RepoCard } from './ContextRepoCard'
@@ -16,25 +26,25 @@ import { IssueSeverityButton } from './IssueSeverityButton'
 import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
 export function ContextInspector({ project, contextId }: { project: Project; contextId: string }) {
-  const viewMode = useEditorStore(s => s.activeViewMode)
-  const updateContext = useEditorStore(s => s.updateContext)
-  const deleteContext = useEditorStore(s => s.deleteContext)
-  const unassignRepo = useEditorStore(s => s.unassignRepo)
-  const addRelationship = useEditorStore(s => s.addRelationship)
-  const deleteRelationship = useEditorStore(s => s.deleteRelationship)
-  const addContextIssue = useEditorStore(s => s.addContextIssue)
-  const updateContextIssue = useEditorStore(s => s.updateContextIssue)
-  const deleteContextIssue = useEditorStore(s => s.deleteContextIssue)
-  const assignTeamToContext = useEditorStore(s => s.assignTeamToContext)
-  const unassignTeamFromContext = useEditorStore(s => s.unassignTeamFromContext)
-  const removeContextFromGroup = useEditorStore(s => s.removeContextFromGroup)
-  const addTeam = useEditorStore(s => s.addTeam)
-  const addRepo = useEditorStore(s => s.addRepo)
-  const assignRepoToContext = useEditorStore(s => s.assignRepoToContext)
+  const viewMode = useEditorStore((s) => s.activeViewMode)
+  const updateContext = useEditorStore((s) => s.updateContext)
+  const deleteContext = useEditorStore((s) => s.deleteContext)
+  const unassignRepo = useEditorStore((s) => s.unassignRepo)
+  const addRelationship = useEditorStore((s) => s.addRelationship)
+  const deleteRelationship = useEditorStore((s) => s.deleteRelationship)
+  const addContextIssue = useEditorStore((s) => s.addContextIssue)
+  const updateContextIssue = useEditorStore((s) => s.updateContextIssue)
+  const deleteContextIssue = useEditorStore((s) => s.deleteContextIssue)
+  const assignTeamToContext = useEditorStore((s) => s.assignTeamToContext)
+  const unassignTeamFromContext = useEditorStore((s) => s.unassignTeamFromContext)
+  const removeContextFromGroup = useEditorStore((s) => s.removeContextFromGroup)
+  const addTeam = useEditorStore((s) => s.addTeam)
+  const addRepo = useEditorStore((s) => s.addRepo)
+  const assignRepoToContext = useEditorStore((s) => s.assignRepoToContext)
 
   // Temporal state
-  const currentDate = useEditorStore(s => s.temporal.currentDate)
-  const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
+  const currentDate = useEditorStore((s) => s.temporal.currentDate)
+  const activeKeyframeId = useEditorStore((s) => s.temporal.activeKeyframeId)
 
   const [expandedTeamId, setExpandedTeamId] = React.useState<string | null>(null)
   const [expandedRepoId, setExpandedRepoId] = React.useState<string | null>(null)
@@ -44,24 +54,20 @@ export function ContextInspector({ project, contextId }: { project: Project; con
     return stored === 'true'
   })
 
-  const context = project.contexts.find(c => c.id === contextId)
+  const context = project.contexts.find((c) => c.id === contextId)
   if (!context) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        Context not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">Context not found.</div>
   }
 
   // Find assigned repos
-  const assignedRepos = project.repos.filter(r => r.contextId === context.id)
+  const assignedRepos = project.repos.filter((r) => r.contextId === context.id)
 
   // Get team names from repos
-  const teamIds = new Set(assignedRepos.flatMap(r => r.teamIds))
-  const teams = project.teams.filter(t => teamIds.has(t.id))
+  const teamIds = new Set(assignedRepos.flatMap((r) => r.teamIds))
+  const teams = project.teams.filter((t) => teamIds.has(t.id))
 
   // Find groups this context is a member of
-  const memberOfGroups = project.groups.filter(g => g.contextIds.includes(context.id))
+  const memberOfGroups = project.groups.filter((g) => g.contextIds.includes(context.id))
 
   const handleUpdate = (updates: Partial<typeof context>) => {
     updateContext(context.id, updates)
@@ -92,12 +98,11 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         return usersForContext.length > 0 ? (
           <div className="space-y-1">
             {usersForContext.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center gap-2 group/user"
-              >
+              <div key={user.id} className="flex items-center gap-2 group/user">
                 <button
-                  onClick={() => useEditorStore.setState({ selectedUserId: user.id, selectedContextId: null })}
+                  onClick={() =>
+                    useEditorStore.setState({ selectedUserId: user.id, selectedContextId: null })
+                  }
                   className="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-400"
                 >
                   <Users size={12} className="text-blue-500 flex-shrink-0" />
@@ -121,7 +126,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {/* Teams - under purpose, no heading */}
       {teams.length > 0 && (
         <div className="space-y-1">
-          {teams.map(team => (
+          {teams.map((team) => (
             <div key={team.id} className="text-xs text-slate-600 dark:text-slate-400">
               {team.name}
               {team.topologyType && (
@@ -149,8 +154,8 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                     ? value === 'ours'
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 ring-1 ring-green-400'
                       : value === 'internal'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 ring-1 ring-blue-400'
-                      : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 ring-1 ring-orange-400'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 ring-1 ring-blue-400'
+                        : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 ring-1 ring-orange-400'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
@@ -192,7 +197,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Role</span>
         <select
           value={context.businessModelRole || ''}
-          onChange={(e) => handleUpdate({ businessModelRole: (e.target.value || undefined) as any })}
+          onChange={(e) =>
+            handleUpdate({ businessModelRole: (e.target.value || undefined) as any })
+          }
           className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
         >
           <option value="">Not set</option>
@@ -227,9 +234,10 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                 className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
               >
                 <option value="">No team assigned</option>
-                {project.teams.map(team => (
+                {project.teams.map((team) => (
                   <option key={team.id} value={team.id}>
-                    {team.name}{team.topologyType ? ` (${team.topologyType})` : ''}
+                    {team.name}
+                    {team.topologyType ? ` (${team.topologyType})` : ''}
                   </option>
                 ))}
               </select>
@@ -254,7 +262,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {/* Member of Groups - under pills, no heading */}
       {memberOfGroups.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {memberOfGroups.map(group => (
+          {memberOfGroups.map((group) => (
             <div
               key={group.id}
               className="inline-flex items-center gap-1.5 px-2 py-1 rounded border transition-all group/chip"
@@ -264,7 +272,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
               }}
             >
               <button
-                onClick={() => useEditorStore.setState({ selectedGroupId: group.id, selectedContextId: null })}
+                onClick={() =>
+                  useEditorStore.setState({ selectedGroupId: group.id, selectedContextId: null })
+                }
                 className="text-xs font-medium hover:underline"
                 style={{ color: group.color || '#3b82f6' }}
               >
@@ -285,15 +295,19 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
       {/* Domain Classification - position-based, no section header */}
       <div>
-        {context.strategicClassification && STRATEGIC_CLASSIFICATIONS[context.strategicClassification] ? (
-          <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[context.strategicClassification]} position="bottom">
+        {context.strategicClassification &&
+        STRATEGIC_CLASSIFICATIONS[context.strategicClassification] ? (
+          <InfoTooltip
+            content={STRATEGIC_CLASSIFICATIONS[context.strategicClassification]}
+            position="bottom"
+          >
             <span
               className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
                 context.strategicClassification === 'core'
                   ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
                   : context.strategicClassification === 'supporting'
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
               }`}
             >
               {context.strategicClassification === 'core' && '⚡ Core'}
@@ -331,12 +345,18 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
       {/* Temporal Position (only in Strategic View with temporal mode enabled) */}
       {viewMode === 'strategic' && project.temporal?.enabled && currentDate && (
-        <Section label={<div className="flex items-center gap-1"><Clock size={14} /> Position at {currentDate}</div>}>
+        <Section
+          label={
+            <div className="flex items-center gap-1">
+              <Clock size={14} /> Position at {currentDate}
+            </div>
+          }
+        >
           <div className="space-y-2">
             {(() => {
               const keyframes = project.temporal.keyframes || []
               const activeKeyframe = activeKeyframeId
-                ? keyframes.find(kf => kf.id === activeKeyframeId)
+                ? keyframes.find((kf) => kf.id === activeKeyframeId)
                 : null
 
               // Calculate interpolated position
@@ -350,7 +370,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
               return (
                 <>
                   <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-                    <div>Evolution: {position.x.toFixed(1)}% ({evolutionStage.replace('-', ' ')})</div>
+                    <div>
+                      Evolution: {position.x.toFixed(1)}% ({evolutionStage.replace('-', ' ')})
+                    </div>
                     <div>Value Chain: {position.y.toFixed(1)}%</div>
                   </div>
                   {activeKeyframe ? (
@@ -371,7 +393,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
       {/* Assigned Repos */}
       <div className="space-y-2">
-        {assignedRepos.map(repo => {
+        {assignedRepos.map((repo) => {
           return (
             <RepoCard
               key={repo.id}
@@ -406,7 +428,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Code</span>
         <select
           value={context.codeSize?.bucket || ''}
-          onChange={(e) => handleUpdate({ codeSize: { ...context.codeSize, bucket: e.target.value as any } })}
+          onChange={(e) =>
+            handleUpdate({ codeSize: { ...context.codeSize, bucket: e.target.value as any } })
+          }
           className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
         >
           <option value="">Not set</option>
@@ -424,7 +448,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {/* Boundary */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Boundary</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">
+            Boundary
+          </span>
           <select
             value={context.boundaryIntegrity || ''}
             onChange={(e) => handleUpdate({ boundaryIntegrity: e.target.value as any })}
@@ -468,7 +494,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
             {context.issues.map((issue, index) => (
               <div key={issue.id} className="group/issue flex items-center gap-1.5">
                 <div className="flex-shrink-0 flex items-center gap-0.5">
-                  {(['info', 'warning', 'critical'] as const).map(severity => (
+                  {(['info', 'warning', 'critical'] as const).map((severity) => (
                     <IssueSeverityButton
                       key={severity}
                       severity={severity}
@@ -480,7 +506,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                 <input
                   type="text"
                   value={issue.title}
-                  onChange={(e) => updateContextIssue(context.id, issue.id, { title: e.target.value })}
+                  onChange={(e) =>
+                    updateContextIssue(context.id, issue.id, { title: e.target.value })
+                  }
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
@@ -492,7 +520,10 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                       e.target.select()
                     }
                   }}
-                  autoFocus={index === context.issues!.length - 1 && (issue.title === '' || issue.title === 'New issue')}
+                  autoFocus={
+                    index === context.issues!.length - 1 &&
+                    (issue.title === '' || issue.title === 'New issue')
+                  }
                   placeholder="Issue title..."
                   className="flex-1 min-w-0 text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 outline-none"
                 />
@@ -519,7 +550,10 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
       {/* Relationships */}
       {(() => {
-        const { upstream, downstream, mutual } = categorizeRelationships(project.relationships, context.id)
+        const { upstream, downstream, mutual } = categorizeRelationships(
+          project.relationships,
+          context.id
+        )
 
         return (
           <div>
@@ -532,39 +566,41 @@ export function ContextInspector({ project, contextId }: { project: Project; con
               </InfoTooltip>
             </div>
             <div className="text-[13px]">
-            <RelationshipGroup
-              title="Upstream"
-              relationships={upstream}
-              contexts={project.contexts}
-              onDelete={deleteRelationship}
-              icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0" />}
-              getTargetContextId={rel => rel.toContextId}
-            />
-            <RelationshipGroup
-              title="Downstream"
-              relationships={downstream}
-              contexts={project.contexts}
-              onDelete={deleteRelationship}
-              icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />}
-              getTargetContextId={rel => rel.fromContextId}
-            />
-            <RelationshipGroup
-              title="Mutual"
-              relationships={mutual}
-              contexts={project.contexts}
-              onDelete={deleteRelationship}
-              icon={<span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>}
-              getTargetContextId={rel => rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId}
-            />
+              <RelationshipGroup
+                title="Upstream"
+                relationships={upstream}
+                contexts={project.contexts}
+                onDelete={deleteRelationship}
+                icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0" />}
+                getTargetContextId={(rel) => rel.toContextId}
+              />
+              <RelationshipGroup
+                title="Downstream"
+                relationships={downstream}
+                contexts={project.contexts}
+                onDelete={deleteRelationship}
+                icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />}
+                getTargetContextId={(rel) => rel.fromContextId}
+              />
+              <RelationshipGroup
+                title="Mutual"
+                relationships={mutual}
+                contexts={project.contexts}
+                onDelete={deleteRelationship}
+                icon={<span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>}
+                getTargetContextId={(rel) =>
+                  rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId
+                }
+              />
 
-            {/* Add Relationship button */}
-            <button
-              onClick={() => setShowRelationshipDialog(true)}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-300 rounded transition-colors"
-            >
-              <Plus size={12} />
-              Add Relationship
-            </button>
+              {/* Add Relationship button */}
+              <button
+                onClick={() => setShowRelationshipDialog(true)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-300 rounded transition-colors"
+              >
+                <Plus size={12} />
+                Add Relationship
+              </button>
             </div>
           </div>
         )
@@ -574,7 +610,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {showRelationshipDialog && (
         <RelationshipCreateDialog
           fromContext={context}
-          availableContexts={project.contexts.filter(c => c.id !== context.id)}
+          availableContexts={project.contexts.filter((c) => c.id !== context.id)}
           onConfirm={(toContextId, pattern, description) => {
             addRelationship(context.id, toContextId, pattern, description)
             setShowRelationshipDialog(false)

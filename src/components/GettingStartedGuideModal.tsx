@@ -20,12 +20,8 @@ function StepCard({ number, title, children }: StepCardProps) {
           {number}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">
-            {title}
-          </h4>
-          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
-            {children}
-          </div>
+          <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-2">{title}</h4>
+          <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">{children}</div>
         </div>
       </div>
     </div>
@@ -36,9 +32,7 @@ function TipBox({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3 mt-3">
       <Lightbulb size={14} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-      <p className="text-xs text-amber-700 dark:text-amber-400">
-        {children}
-      </p>
+      <p className="text-xs text-amber-700 dark:text-amber-400">{children}</p>
     </div>
   )
 }
@@ -60,39 +54,41 @@ function UserJourneySteps() {
       </StepCard>
 
       <StepCard number={2} title="Add the User">
-        <p>
-          Add the person or role at the center of this journey.
-        </p>
+        <p>Add the person or role at the center of this journey.</p>
         <div className="flex items-center gap-2 mt-2">
           <Users size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> in the toolbar</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> in the
+            toolbar
+          </span>
         </div>
         <p className="mt-2">
-          Mark as <em>external</em> (customers, partners) or <em>internal</em> (employees) in the inspector panel.
+          Mark as <em>external</em> (customers, partners) or <em>internal</em> (employees) in the
+          inspector panel.
         </p>
       </StepCard>
 
       <StepCard number={3} title="Add Their Needs">
-        <p>
-          What is this user trying to accomplish? Add each need they have.
-        </p>
+        <p>What is this user trying to accomplish? Add each need they have.</p>
         <div className="flex items-center gap-2 mt-2">
           <FileText size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g., "Browse products", "Make payment", "Track order"</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g.,
+            "Browse products", "Make payment", "Track order"
+          </span>
         </div>
       </StepCard>
 
       <StepCard number={4} title="Map Needs to Systems">
-        <p>
-          For each need, add the system or service that fulfills it.
-        </p>
+        <p>For each need, add the system or service that fulfills it.</p>
         <div className="flex items-center gap-2 mt-2">
           <Box size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> — mark as external for third-party systems</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> — mark
+            as external for third-party systems
+          </span>
         </div>
-        <p className="mt-3">
-          Connect needs to contexts by dragging between them.
-        </p>
+        <p className="mt-3">Connect needs to contexts by dragging between them.</p>
       </StepCard>
 
       <StepCard number={5} title="Connect the Systems">
@@ -101,7 +97,8 @@ function UserJourneySteps() {
           <span>Drag from one context to another to show how they integrate.</span>
         </div>
         <p className="mt-2">
-          Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or <em>Shared Kernel</em> to describe the relationship.
+          Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or{' '}
+          <em>Shared Kernel</em> to describe the relationship.
         </p>
         <TipBox>
           Don't worry about getting patterns perfect at first. You can always change them later.
@@ -110,11 +107,15 @@ function UserJourneySteps() {
 
       <StepCard number={6} title="Add Value Stream Stages">
         <p>
-          Stages represent phases in your value stream—how value flows from user need to fulfillment.
+          Stages represent phases in your value stream—how value flows from user need to
+          fulfillment.
         </p>
         <div className="flex items-center gap-2 mt-2">
           <LayoutGrid size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — e.g., "Discovery", "Selection", "Transaction", "Fulfillment"</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — e.g.,
+            "Discovery", "Selection", "Transaction", "Fulfillment"
+          </span>
         </div>
         <p className="mt-2">
           Drag contexts into stages to show which phase of the value stream they support.
@@ -125,15 +126,18 @@ function UserJourneySteps() {
       </StepCard>
 
       <StepCard number={7} title="Go Deeper with Strategic Views">
-        <p>
-          Move beyond context mapping with two complementary strategic lenses:
-        </p>
+        <p>Move beyond context mapping with two complementary strategic lenses:</p>
         <ul className="list-disc ml-5 space-y-2 mt-2 text-slate-500 dark:text-slate-400">
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> (DDD) — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> (DDD)
+            — Classify contexts as Core (competitive advantage), Supporting (necessary but not
+            differentiating), or Generic (commodity). Helps prioritize where to invest engineering
+            effort.
           </li>
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> (Wardley Mapping) — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> (Wardley
+            Mapping) — Position contexts by evolution stage (Genesis → Custom → Product →
+            Commodity). Reveals build-vs-buy decisions and where disruption may come.
           </li>
         </ul>
       </StepCard>
@@ -145,12 +149,13 @@ function SystemsFirstSteps() {
   return (
     <>
       <StepCard number={1} title="Add Your Known Contexts">
-        <p>
-          Map out the systems and services you already know about.
-        </p>
+        <p>Map out the systems and services you already know about.</p>
         <div className="flex items-center gap-2 mt-2">
           <Box size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> for each system</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ Context</strong> for each
+            system
+          </span>
         </div>
         <p className="mt-2">
           Mark contexts as <em>external</em> for third-party systems you don't own.
@@ -164,7 +169,8 @@ function SystemsFirstSteps() {
           <span>Drag from one context to another to show how they integrate.</span>
         </div>
         <p className="mt-2">
-          Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or <em>Shared Kernel</em> to describe the relationship.
+          Choose patterns like <em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>, or{' '}
+          <em>Shared Kernel</em> to describe the relationship.
         </p>
         <TipBox>
           Don't worry about getting patterns perfect at first. You can always change them later.
@@ -172,12 +178,13 @@ function SystemsFirstSteps() {
       </StepCard>
 
       <StepCard number={3} title="Add Users">
-        <p>
-          Now connect the problem space—who uses these systems?
-        </p>
+        <p>Now connect the problem space—who uses these systems?</p>
         <div className="flex items-center gap-2 mt-2">
           <Users size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> for each person or role</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ User</strong> for each
+            person or role
+          </span>
         </div>
         <p className="mt-2">
           Mark as <em>external</em> (customers, partners) or <em>internal</em> (employees).
@@ -185,12 +192,13 @@ function SystemsFirstSteps() {
       </StepCard>
 
       <StepCard number={4} title="Add Their Needs">
-        <p>
-          For each user, what are they trying to accomplish?
-        </p>
+        <p>For each user, what are they trying to accomplish?</p>
         <div className="flex items-center gap-2 mt-2">
           <FileText size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g., "Browse products", "Make payment", "Track order"</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ Need</strong> — e.g.,
+            "Browse products", "Make payment", "Track order"
+          </span>
         </div>
         <p className="mt-3">
           Connect needs to the contexts that fulfill them by dragging between them.
@@ -199,11 +207,15 @@ function SystemsFirstSteps() {
 
       <StepCard number={5} title="Add Value Stream Stages">
         <p>
-          Stages represent phases in your value stream—how value flows from user need to fulfillment.
+          Stages represent phases in your value stream—how value flows from user need to
+          fulfillment.
         </p>
         <div className="flex items-center gap-2 mt-2">
           <LayoutGrid size={14} className="text-slate-400" />
-          <span className="text-xs">Click <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — e.g., "Discovery", "Selection", "Transaction", "Fulfillment"</span>
+          <span className="text-xs">
+            Click <strong className="text-slate-700 dark:text-slate-300">+ Stage</strong> — e.g.,
+            "Discovery", "Selection", "Transaction", "Fulfillment"
+          </span>
         </div>
         <p className="mt-2">
           Drag contexts into stages to show which phase of the value stream they support.
@@ -214,15 +226,18 @@ function SystemsFirstSteps() {
       </StepCard>
 
       <StepCard number={6} title="Go Deeper with Strategic Views">
-        <p>
-          Move beyond context mapping with two complementary strategic lenses:
-        </p>
+        <p>Move beyond context mapping with two complementary strategic lenses:</p>
         <ul className="list-disc ml-5 space-y-2 mt-2 text-slate-500 dark:text-slate-400">
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> (DDD) — Classify contexts as Core (competitive advantage), Supporting (necessary but not differentiating), or Generic (commodity). Helps prioritize where to invest engineering effort.
+            <strong className="text-slate-700 dark:text-slate-300">Distillation View</strong> (DDD)
+            — Classify contexts as Core (competitive advantage), Supporting (necessary but not
+            differentiating), or Generic (commodity). Helps prioritize where to invest engineering
+            effort.
           </li>
           <li>
-            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> (Wardley Mapping) — Position contexts by evolution stage (Genesis → Custom → Product → Commodity). Reveals build-vs-buy decisions and where disruption may come.
+            <strong className="text-slate-700 dark:text-slate-300">Strategic View</strong> (Wardley
+            Mapping) — Position contexts by evolution stage (Genesis → Custom → Product →
+            Commodity). Reveals build-vs-buy decisions and where disruption may come.
           </li>
         </ul>
       </StepCard>
@@ -260,7 +275,8 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
           {/* Introduction */}
           <div className="text-sm text-slate-600 dark:text-slate-400">
             <p>
-              Context mapping helps you visualize how different parts of your system connect and serve your users.
+              Context mapping helps you visualize how different parts of your system connect and
+              serve your users.
             </p>
           </div>
 

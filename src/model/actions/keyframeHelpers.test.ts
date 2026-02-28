@@ -62,15 +62,15 @@ describe('keyframeHelpers', () => {
         date: '2025',
         label: 'Future',
         positions: {},
-        activeContextIds: []
+        activeContextIds: [],
       },
       {
         id: 'kf-2',
         date: '2025-Q2',
         label: 'Q2',
         positions: {},
-        activeContextIds: []
-      }
+        activeContextIds: [],
+      },
     ]
 
     it('should detect duplicate year', () => {
@@ -162,10 +162,10 @@ describe('keyframeHelpers', () => {
             flow: { x: 10 },
             strategic: { x: 50 },
             distillation: { x: 50, y: 50 },
-            shared: { y: 100 }
+            shared: { y: 100 },
           },
           evolutionStage: 'custom-built',
-          strategicClassification: 'core'
+          strategicClassification: 'core',
         },
         {
           id: 'ctx-2',
@@ -174,18 +174,18 @@ describe('keyframeHelpers', () => {
             flow: { x: 20 },
             strategic: { x: 75 },
             distillation: { x: 75, y: 75 },
-            shared: { y: 200 }
+            shared: { y: 200 },
           },
           evolutionStage: 'product/rental',
-          strategicClassification: 'supporting'
-        }
+          strategicClassification: 'supporting',
+        },
       ]
 
       const result = captureContextPositions(contexts)
 
       expect(result).toEqual({
         'ctx-1': { x: 50, y: 100 },
-        'ctx-2': { x: 75, y: 200 }
+        'ctx-2': { x: 75, y: 200 },
       })
     })
 
@@ -203,17 +203,17 @@ describe('keyframeHelpers', () => {
             flow: { x: 0 },
             strategic: { x: 25 },
             distillation: { x: 25, y: 25 },
-            shared: { y: 50 }
+            shared: { y: 50 },
           },
           evolutionStage: 'custom-built',
-          strategicClassification: 'core'
-        }
+          strategicClassification: 'core',
+        },
       ]
 
       const result = captureContextPositions(contexts)
 
       expect(result).toEqual({
-        'ctx-1': { x: 25, y: 50 }
+        'ctx-1': { x: 25, y: 50 },
       })
     })
   })
@@ -226,7 +226,12 @@ describe('keyframeHelpers', () => {
       const keyframeYear = currentYear + 5
       const date = keyframeYear.toString()
 
-      const result = shouldAutoCreateCurrentKeyframe(existingKeyframes, keyframeYear, currentYear, date)
+      const result = shouldAutoCreateCurrentKeyframe(
+        existingKeyframes,
+        keyframeYear,
+        currentYear,
+        date
+      )
 
       expect(result).toBe(true)
     })
@@ -236,7 +241,12 @@ describe('keyframeHelpers', () => {
       const keyframeYear = currentYear
       const date = currentYear.toString()
 
-      const result = shouldAutoCreateCurrentKeyframe(existingKeyframes, keyframeYear, currentYear, date)
+      const result = shouldAutoCreateCurrentKeyframe(
+        existingKeyframes,
+        keyframeYear,
+        currentYear,
+        date
+      )
 
       expect(result).toBe(false)
     })
@@ -248,13 +258,18 @@ describe('keyframeHelpers', () => {
           date: '2024',
           label: 'Now',
           positions: {},
-          activeContextIds: []
-        }
+          activeContextIds: [],
+        },
       ]
       const keyframeYear = currentYear + 5
       const date = keyframeYear.toString()
 
-      const result = shouldAutoCreateCurrentKeyframe(existingKeyframes, keyframeYear, currentYear, date)
+      const result = shouldAutoCreateCurrentKeyframe(
+        existingKeyframes,
+        keyframeYear,
+        currentYear,
+        date
+      )
 
       expect(result).toBe(false)
     })
@@ -264,7 +279,12 @@ describe('keyframeHelpers', () => {
       const keyframeYear = currentYear - 5
       const date = keyframeYear.toString()
 
-      const result = shouldAutoCreateCurrentKeyframe(existingKeyframes, keyframeYear, currentYear, date)
+      const result = shouldAutoCreateCurrentKeyframe(
+        existingKeyframes,
+        keyframeYear,
+        currentYear,
+        date
+      )
 
       expect(result).toBe(false)
     })
@@ -274,7 +294,7 @@ describe('keyframeHelpers', () => {
     it('should create keyframe with "Current" label at current year', () => {
       const currentYear = new Date().getFullYear()
       const positions = {
-        'ctx-1': { x: 50, y: 100 }
+        'ctx-1': { x: 50, y: 100 },
       }
       const activeContextIds = ['ctx-1']
 
@@ -291,7 +311,7 @@ describe('keyframeHelpers', () => {
       const currentYear = new Date().getFullYear()
       const positions = {
         'ctx-1': { x: 50, y: 100 },
-        'ctx-2': { x: 75, y: 200 }
+        'ctx-2': { x: 75, y: 200 },
       }
       const activeContextIds = ['ctx-1', 'ctx-2']
 
@@ -319,22 +339,22 @@ describe('keyframeHelpers', () => {
           date: '2026',
           label: 'Later',
           positions: {},
-          activeContextIds: []
+          activeContextIds: [],
         },
         {
           id: 'kf-1',
           date: '2024',
           label: 'Earlier',
           positions: {},
-          activeContextIds: []
+          activeContextIds: [],
         },
         {
           id: 'kf-3',
           date: '2025',
           label: 'Middle',
           positions: {},
-          activeContextIds: []
-        }
+          activeContextIds: [],
+        },
       ]
 
       const result = sortKeyframes(keyframes)
@@ -351,29 +371,29 @@ describe('keyframeHelpers', () => {
           date: '2025-Q3',
           label: 'Q3',
           positions: {},
-          activeContextIds: []
+          activeContextIds: [],
         },
         {
           id: 'kf-1',
           date: '2025-Q1',
           label: 'Q1',
           positions: {},
-          activeContextIds: []
+          activeContextIds: [],
         },
         {
           id: 'kf-3',
           date: '2025',
           label: 'Year',
           positions: {},
-          activeContextIds: []
+          activeContextIds: [],
         },
         {
           id: 'kf-4',
           date: '2025-Q2',
           label: 'Q2',
           positions: {},
-          activeContextIds: []
-        }
+          activeContextIds: [],
+        },
       ]
 
       const result = sortKeyframes(keyframes)
@@ -391,15 +411,15 @@ describe('keyframeHelpers', () => {
           date: '2026',
           label: 'Later',
           positions: {},
-          activeContextIds: []
+          activeContextIds: [],
         },
         {
           id: 'kf-1',
           date: '2024',
           label: 'Earlier',
           positions: {},
-          activeContextIds: []
-        }
+          activeContextIds: [],
+        },
       ]
       const originalOrder = [...keyframes]
 
@@ -420,8 +440,8 @@ describe('keyframeHelpers', () => {
           date: '2025',
           label: 'Only',
           positions: {},
-          activeContextIds: []
-        }
+          activeContextIds: [],
+        },
       ]
 
       const result = sortKeyframes(keyframes)

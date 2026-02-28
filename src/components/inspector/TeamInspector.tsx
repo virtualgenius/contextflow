@@ -9,21 +9,17 @@ import { INPUT_TITLE_CLASS, Section } from './inspectorShared'
 import { getTopologyColors } from '../../lib/teamColors'
 
 export function TeamInspector({ project, teamId }: { project: Project; teamId: string }) {
-  const updateTeam = useEditorStore(s => s.updateTeam)
-  const addTeam = useEditorStore(s => s.addTeam)
-  const deleteTeam = useEditorStore(s => s.deleteTeam)
+  const updateTeam = useEditorStore((s) => s.updateTeam)
+  const addTeam = useEditorStore((s) => s.addTeam)
+  const deleteTeam = useEditorStore((s) => s.deleteTeam)
 
-  const team = project.teams?.find(t => t.id === teamId)
+  const team = project.teams?.find((t) => t.id === teamId)
   if (!team) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        Team not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">Team not found.</div>
   }
 
   // Find contexts assigned to this team
-  const assignedContexts = project.contexts.filter(c => c.teamId === teamId)
+  const assignedContexts = project.contexts.filter((c) => c.teamId === teamId)
 
   return (
     <div className="space-y-5">
@@ -47,40 +43,52 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
                 ? 'ring-1'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
-            style={!team.topologyType ? {
-              backgroundColor: getTopologyColors('unknown').light.bg,
-              color: getTopologyColors('unknown').light.text,
-              '--tw-ring-color': getTopologyColors('unknown').light.border,
-            } as React.CSSProperties : undefined}
+            style={
+              !team.topologyType
+                ? ({
+                    backgroundColor: getTopologyColors('unknown').light.bg,
+                    color: getTopologyColors('unknown').light.text,
+                    '--tw-ring-color': getTopologyColors('unknown').light.border,
+                  } as React.CSSProperties)
+                : undefined
+            }
           >
             Undefined
           </button>
-          {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map((value) => {
-            const isActive = team.topologyType === value
-            const colors = isActive ? getTopologyColors(value).light : null
-            return (
-              <InfoTooltip key={value} content={TEAM_TOPOLOGIES[value]} position="bottom">
-                <button
-                  onClick={() => updateTeam(team.id, { topologyType: isActive ? undefined : value })}
-                  className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
-                    isActive
-                      ? 'ring-1'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                  style={colors ? {
-                    backgroundColor: colors.bg,
-                    color: colors.text,
-                    '--tw-ring-color': colors.border,
-                  } as React.CSSProperties : undefined}
-                >
-                  {value === 'stream-aligned' && 'Stream'}
-                  {value === 'platform' && 'Platform'}
-                  {value === 'enabling' && 'Enabling'}
-                  {value === 'complicated-subsystem' && 'Subsystem'}
-                </button>
-              </InfoTooltip>
-            )
-          })}
+          {(['stream-aligned', 'platform', 'enabling', 'complicated-subsystem'] as const).map(
+            (value) => {
+              const isActive = team.topologyType === value
+              const colors = isActive ? getTopologyColors(value).light : null
+              return (
+                <InfoTooltip key={value} content={TEAM_TOPOLOGIES[value]} position="bottom">
+                  <button
+                    onClick={() =>
+                      updateTeam(team.id, { topologyType: isActive ? undefined : value })
+                    }
+                    className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
+                      isActive
+                        ? 'ring-1'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                    style={
+                      colors
+                        ? ({
+                            backgroundColor: colors.bg,
+                            color: colors.text,
+                            '--tw-ring-color': colors.border,
+                          } as React.CSSProperties)
+                        : undefined
+                    }
+                  >
+                    {value === 'stream-aligned' && 'Stream'}
+                    {value === 'platform' && 'Platform'}
+                    {value === 'enabling' && 'Enabling'}
+                    {value === 'complicated-subsystem' && 'Subsystem'}
+                  </button>
+                </InfoTooltip>
+              )
+            }
+          )}
         </div>
       </Section>
 
@@ -117,7 +125,7 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
           </div>
         ) : (
           <div className="space-y-1">
-            {assignedContexts.map(ctx => (
+            {assignedContexts.map((ctx) => (
               <div
                 key={ctx.id}
                 className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-neutral-800 px-2 py-1 rounded"
@@ -144,7 +152,11 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
       <div className="pt-2">
         <button
           onClick={() => {
-            if (window.confirm(`Delete team "${team.name}"? ${assignedContexts.length > 0 ? `${assignedContexts.length} context${assignedContexts.length > 1 ? 's' : ''} will be unassigned.` : ''}`)) {
+            if (
+              window.confirm(
+                `Delete team "${team.name}"? ${assignedContexts.length > 0 ? `${assignedContexts.length} context${assignedContexts.length > 1 ? 's' : ''} will be unassigned.` : ''}`
+              )
+            ) {
               deleteTeam(team.id)
             }
           }}

@@ -1,19 +1,18 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
-import {
-  EdgeProps,
-  EdgeLabelRenderer,
-  getBezierPath,
-  useViewport,
-  useReactFlow,
-} from 'reactflow'
+import { EdgeProps, EdgeLabelRenderer, getBezierPath, useViewport, useReactFlow } from 'reactflow'
 import { ArrowLeftRight, Trash2 } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Relationship } from '../../model/types'
 import { getEdgeLabelInfo } from '../../lib/canvasHelpers'
 import { getIndicatorBoxPosition } from '../../lib/edgeUtils'
 import { getEdgeParams, getBoxEdgePoint } from '../../lib/edgeGeometry'
-import { EDGE_HIT_AREA_WIDTH, EDGE_STROKE_WIDTH, EDGE_TRANSITION, PATTERN_EDGE_INDICATORS } from '../../lib/canvasConstants'
+import {
+  EDGE_HIT_AREA_WIDTH,
+  EDGE_STROKE_WIDTH,
+  EDGE_TRANSITION,
+  PATTERN_EDGE_INDICATORS,
+} from '../../lib/canvasConstants'
 import { EDGE_INDICATORS, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
 import { createSelectionState } from '../../model/validation'
 
@@ -32,12 +31,12 @@ function RelationshipEdge({
   const [isHovered, setIsHovered] = React.useState(false)
   const [isIndicatorHovered, setIsIndicatorHovered] = React.useState(false)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
-  const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
-  const deleteRelationship = useEditorStore(s => s.deleteRelationship)
-  const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
-  const showRelationshipLabels = useEditorStore(s => s.showRelationshipLabels)
-  const hoveredContextId = useEditorStore(s => s.hoveredContextId)
+  const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
+  const deleteRelationship = useEditorStore((s) => s.deleteRelationship)
+  const swapRelationshipDirection = useEditorStore((s) => s.swapRelationshipDirection)
+  const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
+  const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
+  const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
   const isSelected = id === selectedRelationshipId
@@ -65,9 +64,14 @@ function RelationshipEdge({
   let sourcePos = sourcePosition
   let targetPos = targetPosition
 
-  if (sourceNode && targetNode &&
-      sourceNode.width && sourceNode.height &&
-      targetNode.width && targetNode.height) {
+  if (
+    sourceNode &&
+    targetNode &&
+    sourceNode.width &&
+    sourceNode.height &&
+    targetNode.width &&
+    targetNode.height
+  ) {
     const edgeParams = getEdgeParams(sourceNode, targetNode)
     sx = edgeParams.sx
     sy = edgeParams.sy
@@ -87,10 +91,15 @@ function RelationshipEdge({
   })
 
   // Non-directional patterns (no arrow)
-  const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
+  const isSymmetric =
+    pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
 
   // Use ReactFlow's built-in marker system (automatically handles rotation)
-  const markerId = isSelected ? 'arrow-selected' : (isHovered || isHighlightedByHover) ? 'arrow-hover' : 'arrow-default'
+  const markerId = isSelected
+    ? 'arrow-selected'
+    : isHovered || isHighlightedByHover
+      ? 'arrow-hover'
+      : 'arrow-default'
 
   const indicatorConfig = PATTERN_EDGE_INDICATORS[pattern as Relationship['pattern']]
   const isACL = pattern === 'anti-corruption-layer'
@@ -100,17 +109,23 @@ function RelationshipEdge({
   const indicatorEdgePos = indicatorConfig?.position === 'source' ? sourcePos : targetPos
 
   const boxPos = indicatorConfig
-    ? getIndicatorBoxPosition(indicatorNode, indicatorEdgePos, indicatorConfig.boxWidth, indicatorConfig.boxHeight)
-    : null
-
-  const boxEdgePoint = boxPos && indicatorConfig
-    ? getBoxEdgePoint(
-        boxPos,
+    ? getIndicatorBoxPosition(
+        indicatorNode,
+        indicatorEdgePos,
         indicatorConfig.boxWidth,
-        indicatorConfig.boxHeight,
-        indicatorConfig.position === 'source' ? { x: tx, y: ty } : { x: sx, y: sy }
+        indicatorConfig.boxHeight
       )
     : null
+
+  const boxEdgePoint =
+    boxPos && indicatorConfig
+      ? getBoxEdgePoint(
+          boxPos,
+          indicatorConfig.boxWidth,
+          indicatorConfig.boxHeight,
+          indicatorConfig.position === 'source' ? { x: tx, y: ty } : { x: sx, y: sy }
+        )
+      : null
 
   const [aclOhsPath] = boxEdgePoint
     ? getBezierPath({
@@ -125,7 +140,13 @@ function RelationshipEdge({
 
   // Edge color based on state
   const isEmphasized = isSelected || isHovered || isHighlightedByHover
-  const edgeColor = isSelected ? '#3b82f6' : isHighlightedByHover ? '#64748b' : isHovered ? '#475569' : '#cbd5e1'
+  const edgeColor = isSelected
+    ? '#3b82f6'
+    : isHighlightedByHover
+      ? '#64748b'
+      : isHovered
+        ? '#475569'
+        : '#cbd5e1'
   const strokeWidth = isEmphasized ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default
 
   return (
@@ -217,39 +238,47 @@ function RelationshipEdge({
         </g>
       )}
       {/* Indicator box tooltip */}
-      {showHelpTooltips && isIndicatorHovered && indicatorConfig && boxPos && (() => {
-        const indicatorContent = isACL ? EDGE_INDICATORS.acl : EDGE_INDICATORS.ohs
-        // Convert canvas coordinates to screen coordinates
-        const screenX = boxPos.x * zoom + vpX
-        const screenY = boxPos.y * zoom + vpY
+      {showHelpTooltips &&
+        isIndicatorHovered &&
+        indicatorConfig &&
+        boxPos &&
+        (() => {
+          const indicatorContent = isACL ? EDGE_INDICATORS.acl : EDGE_INDICATORS.ohs
+          // Convert canvas coordinates to screen coordinates
+          const screenX = boxPos.x * zoom + vpX
+          const screenY = boxPos.y * zoom + vpY
 
-        const tooltipWidth = 256
-        const tooltipX = Math.max(8, Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8))
-        const tooltipY = Math.max(8, screenY - 8)
+          const tooltipWidth = 256
+          const tooltipX = Math.max(
+            8,
+            Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8)
+          )
+          const tooltipY = Math.max(8, screenY - 8)
 
-        return createPortal(
-          <div
-            className="fixed z-[9999] pointer-events-none"
-            style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
-          >
-            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-              <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
-              <div className="text-xs text-slate-300 mb-2">{indicatorContent.description}</div>
-              {indicatorContent.characteristics && indicatorContent.characteristics.length > 0 && (
-                <ul className="text-xs text-slate-300 space-y-0.5">
-                  {indicatorContent.characteristics.map((item, index) => (
-                    <li key={index} className="flex items-start gap-1.5">
-                      <span className="text-slate-500 mt-0.5">•</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>,
-          document.body
-        )
-      })()}
+          return createPortal(
+            <div
+              className="fixed z-[9999] pointer-events-none"
+              style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
+            >
+              <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+                <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
+                <div className="text-xs text-slate-300 mb-2">{indicatorContent.description}</div>
+                {indicatorContent.characteristics &&
+                  indicatorContent.characteristics.length > 0 && (
+                    <ul className="text-xs text-slate-300 space-y-0.5">
+                      {indicatorContent.characteristics.map((item, index) => (
+                        <li key={index} className="flex items-start gap-1.5">
+                          <span className="text-slate-500 mt-0.5">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+              </div>
+            </div>,
+            document.body
+          )
+        })()}
       {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
@@ -278,42 +307,47 @@ function RelationshipEdge({
         <title>{pattern}</title>
       </path>
       {/* Tooltip on hover or when selected - uses portal to render above all layers */}
-      {showHelpTooltips && (isHovered || isSelected) && (() => {
-        const patternContent = RELATIONSHIP_PATTERNS[pattern]
-        if (!patternContent) return null
+      {showHelpTooltips &&
+        (isHovered || isSelected) &&
+        (() => {
+          const patternContent = RELATIONSHIP_PATTERNS[pattern]
+          if (!patternContent) return null
 
-        // Convert canvas coordinates to screen coordinates
-        const screenX = labelX * zoom + vpX
-        const screenY = labelY * zoom + vpY
+          // Convert canvas coordinates to screen coordinates
+          const screenX = labelX * zoom + vpX
+          const screenY = labelY * zoom + vpY
 
-        // Position tooltip above the edge label point
-        const tooltipWidth = 256
-        const tooltipX = Math.max(8, Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8))
-        const tooltipY = Math.max(8, screenY - 8) // 8px above the label point
+          // Position tooltip above the edge label point
+          const tooltipWidth = 256
+          const tooltipX = Math.max(
+            8,
+            Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8)
+          )
+          const tooltipY = Math.max(8, screenY - 8) // 8px above the label point
 
-        return createPortal(
-          <div
-            className="fixed z-[9999] pointer-events-none"
-            style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
-          >
-            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-              <div className="font-semibold text-sm mb-1">{patternContent.title}</div>
-              <div className="text-xs text-slate-300 mb-2">{patternContent.description}</div>
-              {patternContent.characteristics && patternContent.characteristics.length > 0 && (
-                <ul className="text-xs text-slate-300 space-y-0.5">
-                  {patternContent.characteristics.map((item, index) => (
-                    <li key={index} className="flex items-start gap-1.5">
-                      <span className="text-slate-500 mt-0.5">•</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>,
-          document.body
-        )
-      })()}
+          return createPortal(
+            <div
+              className="fixed z-[9999] pointer-events-none"
+              style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
+            >
+              <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+                <div className="font-semibold text-sm mb-1">{patternContent.title}</div>
+                <div className="text-xs text-slate-300 mb-2">{patternContent.description}</div>
+                {patternContent.characteristics && patternContent.characteristics.length > 0 && (
+                  <ul className="text-xs text-slate-300 space-y-0.5">
+                    {patternContent.characteristics.map((item, index) => (
+                      <li key={index} className="flex items-start gap-1.5">
+                        <span className="text-slate-500 mt-0.5">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>,
+            document.body
+          )
+        })()}
       {/* Context Menu */}
       {contextMenu && (
         <foreignObject x={0} y={0} width={1} height={1} style={{ overflow: 'visible' }}>
@@ -353,26 +387,29 @@ function RelationshipEdge({
         </foreignObject>
       )}
       {/* Edge label showing pattern name and direction */}
-      {(showRelationshipLabels || isEmphasized || isHighlightedByHover) && (() => {
-        const labelInfo = getEdgeLabelInfo(pattern)
-        if (!labelInfo) return null
-        return (
-          <EdgeLabelRenderer>
-            <div
-              style={{
-                position: 'absolute',
-                transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-                pointerEvents: 'none',
-                zIndex: 10,
-              }}
-              className="text-[10px] font-medium leading-tight whitespace-nowrap px-1.5 py-0.5 rounded bg-white/90 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-600 text-slate-600 dark:text-slate-300 shadow-sm"
-            >
-              {labelInfo.directionIcon && <span className="mr-0.5">{labelInfo.directionIcon}</span>}
-              {labelInfo.label}
-            </div>
-          </EdgeLabelRenderer>
-        )
-      })()}
+      {(showRelationshipLabels || isEmphasized || isHighlightedByHover) &&
+        (() => {
+          const labelInfo = getEdgeLabelInfo(pattern)
+          if (!labelInfo) return null
+          return (
+            <EdgeLabelRenderer>
+              <div
+                style={{
+                  position: 'absolute',
+                  transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+                  pointerEvents: 'none',
+                  zIndex: 10,
+                }}
+                className="text-[10px] font-medium leading-tight whitespace-nowrap px-1.5 py-0.5 rounded bg-white/90 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-600 text-slate-600 dark:text-slate-300 shadow-sm"
+              >
+                {labelInfo.directionIcon && (
+                  <span className="mr-0.5">{labelInfo.directionIcon}</span>
+                )}
+                {labelInfo.label}
+              </div>
+            </EdgeLabelRenderer>
+          )
+        })()}
     </>
   )
 }

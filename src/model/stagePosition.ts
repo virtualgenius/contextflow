@@ -5,7 +5,7 @@ type HasPosition = { position: number }
 export function calculateNextPosition(items: HasPosition[]): number {
   if (items.length === 0) return 50
 
-  const positions = [0, ...items.map(s => s.position).sort((a, b) => a - b), 100]
+  const positions = [0, ...items.map((s) => s.position).sort((a, b) => a - b), 100]
 
   let maxGap = 0
   let gapStart = 0

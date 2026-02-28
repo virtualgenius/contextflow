@@ -1,8 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { getGridPosition, needsRedistribution, findFirstUnoccupiedGridPosition, findFirstUnoccupiedFlowPosition } from './distillationGrid'
+import {
+  getGridPosition,
+  needsRedistribution,
+  findFirstUnoccupiedGridPosition,
+  findFirstUnoccupiedFlowPosition,
+} from './distillationGrid'
 import type { BoundedContext } from '../model/types'
 
-function makeContext(distillation: { x: number; y: number }, flow?: { x: number }, sharedY?: number): BoundedContext {
+function makeContext(
+  distillation: { x: number; y: number },
+  flow?: { x: number },
+  sharedY?: number
+): BoundedContext {
   return {
     id: `ctx-${Math.random()}`,
     name: 'Test',
@@ -49,18 +58,12 @@ describe('needsRedistribution', () => {
   })
 
   it('returns true when all contexts at default position', () => {
-    const contexts = [
-      makeContext({ x: 50, y: 50 }),
-      makeContext({ x: 50, y: 50 }),
-    ]
+    const contexts = [makeContext({ x: 50, y: 50 }), makeContext({ x: 50, y: 50 })]
     expect(needsRedistribution(contexts)).toBe(true)
   })
 
   it('returns false when any context has been moved', () => {
-    const contexts = [
-      makeContext({ x: 50, y: 50 }),
-      makeContext({ x: 60, y: 40 }),
-    ]
+    const contexts = [makeContext({ x: 50, y: 50 }), makeContext({ x: 60, y: 40 })]
     expect(needsRedistribution(contexts)).toBe(false)
   })
 })

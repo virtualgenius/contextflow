@@ -1,5 +1,13 @@
 import React from 'react'
-import { ArrowRight, ArrowLeftRight, Trash2, ChevronDown, ChevronRight, HelpCircle, BookOpen } from 'lucide-react'
+import {
+  ArrowRight,
+  ArrowLeftRight,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  HelpCircle,
+  BookOpen,
+} from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 import {
@@ -12,29 +20,35 @@ import { PatternsGuideModal } from '../PatternsGuideModal'
 import { COMMUNICATION_MODE } from '../../model/conceptDefinitions'
 import { INPUT_TEXT_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
-export function RelationshipInspector({ project, relationshipId }: { project: Project; relationshipId: string }) {
-  const deleteRelationship = useEditorStore(s => s.deleteRelationship)
-  const updateRelationship = useEditorStore(s => s.updateRelationship)
-  const swapRelationshipDirection = useEditorStore(s => s.swapRelationshipDirection)
+export function RelationshipInspector({
+  project,
+  relationshipId,
+}: {
+  project: Project
+  relationshipId: string
+}) {
+  const deleteRelationship = useEditorStore((s) => s.deleteRelationship)
+  const updateRelationship = useEditorStore((s) => s.updateRelationship)
+  const swapRelationshipDirection = useEditorStore((s) => s.swapRelationshipDirection)
 
   const [showPatternDetails, setShowPatternDetails] = React.useState(false)
   const [showPatternsGuide, setShowPatternsGuide] = React.useState(false)
 
-  const relationship = project.relationships.find(r => r.id === relationshipId)
+  const relationship = project.relationships.find((r) => r.id === relationshipId)
   if (!relationship) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        Relationship not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">Relationship not found.</div>
   }
 
-  const fromContext = project.contexts.find(c => c.id === relationship.fromContextId)
-  const toContext = project.contexts.find(c => c.id === relationship.toContextId)
+  const fromContext = project.contexts.find((c) => c.id === relationship.fromContextId)
+  const toContext = project.contexts.find((c) => c.id === relationship.toContextId)
   const patternDef = getPatternDefinition(relationship.pattern)
 
   const handleDeleteRelationship = () => {
-    if (window.confirm(`Delete relationship from "${fromContext?.name}" to "${toContext?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+    if (
+      window.confirm(
+        `Delete relationship from "${fromContext?.name}" to "${toContext?.name}"? This can be undone with Cmd/Ctrl+Z.`
+      )
+    ) {
       deleteRelationship(relationship.id)
     }
   }
@@ -65,10 +79,21 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
       </div>
 
       {/* From/To Contexts */}
-      <Section label={patternDef?.powerDynamics === 'mutual' || patternDef?.powerDynamics === 'none' ? "Contexts" : "Direction"}>
+      <Section
+        label={
+          patternDef?.powerDynamics === 'mutual' || patternDef?.powerDynamics === 'none'
+            ? 'Contexts'
+            : 'Direction'
+        }
+      >
         <div className="flex items-center gap-2 text-sm">
           <button
-            onClick={() => useEditorStore.setState({ selectedContextId: fromContext?.id, selectedRelationshipId: null })}
+            onClick={() =>
+              useEditorStore.setState({
+                selectedContextId: fromContext?.id,
+                selectedRelationshipId: null,
+              })
+            }
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             {fromContext?.name || 'Unknown'}
@@ -81,7 +106,12 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
             <ArrowRight size={14} className="text-slate-400" />
           )}
           <button
-            onClick={() => useEditorStore.setState({ selectedContextId: toContext?.id, selectedRelationshipId: null })}
+            onClick={() =>
+              useEditorStore.setState({
+                selectedContextId: toContext?.id,
+                selectedRelationshipId: null,
+              })
+            }
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             {toContext?.name || 'Unknown'}
@@ -105,7 +135,7 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
           onChange={(e) => handlePatternChange(e.target.value)}
           className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
         >
-          {PATTERN_DEFINITIONS.map(p => (
+          {PATTERN_DEFINITIONS.map((p) => (
             <option key={p.value} value={p.value}>
               {POWER_DYNAMICS_ICONS[p.powerDynamics]} {p.label}
             </option>
@@ -138,9 +168,12 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
                       Power Dynamics
                     </div>
                     <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <span className="text-base">{POWER_DYNAMICS_ICONS[patternDef.powerDynamics]}</span>
+                      <span className="text-base">
+                        {POWER_DYNAMICS_ICONS[patternDef.powerDynamics]}
+                      </span>
                       {patternDef.powerDynamics === 'upstream' && 'Upstream team has control'}
-                      {patternDef.powerDynamics === 'downstream' && 'Downstream team protects itself'}
+                      {patternDef.powerDynamics === 'downstream' &&
+                        'Downstream team protects itself'}
                       {patternDef.powerDynamics === 'mutual' && 'Shared control between teams'}
                       {patternDef.powerDynamics === 'none' && 'No integration or dependency'}
                     </div>
@@ -163,7 +196,9 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
                     </div>
                     <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1 ml-3">
                       {patternDef.whenToUse.map((item, i) => (
-                        <li key={i} className="list-disc">{item}</li>
+                        <li key={i} className="list-disc">
+                          {item}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -194,14 +229,16 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
       </Section>
 
       {/* Communication Mode (autosaves) */}
-      <Section label={
-        <div className="flex items-center gap-1.5">
-          <span>Communication Mode</span>
-          <InfoTooltip content={COMMUNICATION_MODE} position="bottom">
-            <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
-          </InfoTooltip>
-        </div>
-      }>
+      <Section
+        label={
+          <div className="flex items-center gap-1.5">
+            <span>Communication Mode</span>
+            <InfoTooltip content={COMMUNICATION_MODE} position="bottom">
+              <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          </div>
+        }
+      >
         <input
           type="text"
           defaultValue={relationship.communicationMode || ''}
@@ -234,9 +271,7 @@ export function RelationshipInspector({ project, relationshipId }: { project: Pr
       </div>
 
       {/* Patterns Guide Modal */}
-      {showPatternsGuide && (
-        <PatternsGuideModal onClose={() => setShowPatternsGuide(false)} />
-      )}
+      {showPatternsGuide && <PatternsGuideModal onClose={() => setShowPatternsGuide(false)} />}
     </div>
   )
 }

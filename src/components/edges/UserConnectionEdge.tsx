@@ -1,13 +1,14 @@
 import React from 'react'
-import {
-  EdgeProps,
-  getStraightPath,
-  useReactFlow,
-} from 'reactflow'
+import { EdgeProps, getStraightPath, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { UserNeedConnection } from '../../model/types'
 import { getVerticalEdgeEndpoints, getEdgeState, getEdgeStrokeWidth } from '../../lib/edgeUtils'
-import { EDGE_HIT_AREA_WIDTH, EDGE_STROKE_WIDTH, EDGE_TRANSITION, EDGE_DASH_ARRAY } from '../../lib/canvasConstants'
+import {
+  EDGE_HIT_AREA_WIDTH,
+  EDGE_STROKE_WIDTH,
+  EDGE_TRANSITION,
+  EDGE_DASH_ARRAY,
+} from '../../lib/canvasConstants'
 
 function UserConnectionEdge({
   id,
@@ -22,7 +23,7 @@ function UserConnectionEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
-  const selectedUserId = useEditorStore(s => s.selectedUserId)
+  const selectedUserId = useEditorStore((s) => s.selectedUserId)
   const connection = data?.connection as UserNeedConnection | undefined
 
   // Highlight if this connection belongs to the selected user

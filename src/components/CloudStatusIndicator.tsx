@@ -1,13 +1,6 @@
 import { useCollabStore, ConnectionState } from '../model/collabStore'
 import { SimpleTooltip } from './SimpleTooltip'
-import {
-  Cloud,
-  CloudOff,
-  Loader2,
-  WifiOff,
-  AlertCircle,
-  CloudCog,
-} from 'lucide-react'
+import { Cloud, CloudOff, Loader2, WifiOff, AlertCircle, CloudCog } from 'lucide-react'
 
 interface StatusConfig {
   icon: React.ReactNode
@@ -74,15 +67,9 @@ export function CloudStatusIndicator() {
 
   return (
     <SimpleTooltip text={tooltipText}>
-      <div
-        className={`flex items-center gap-1.5 px-2 py-1 rounded ${config.color}`}
-      >
-        <span className={config.animate ? 'animate-spin' : ''}>
-          {config.icon}
-        </span>
-        {config.label && (
-          <span className="text-xs font-medium">{config.label}</span>
-        )}
+      <div className={`flex items-center gap-1.5 px-2 py-1 rounded ${config.color}`}>
+        <span className={config.animate ? 'animate-spin' : ''}>{config.icon}</span>
+        {config.label && <span className="text-xs font-medium">{config.label}</span>}
       </div>
     </SimpleTooltip>
   )

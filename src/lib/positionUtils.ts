@@ -25,7 +25,7 @@ export function getContextCanvasPosition(
   currentDate: string | null,
   keyframes: Keyframe[],
   interpolatePosition: InterpolatePositionFn,
-  contextId: string = '',
+  contextId: string = ''
 ): { x: number; y: number } {
   if (viewMode === 'distillation') {
     // Distillation view uses independent 2D space
@@ -77,7 +77,7 @@ interface CanvasBounds {
 export function clampDragDelta(
   delta: { x: number; y: number },
   selectedNodes: DragNode[],
-  canvasBounds: CanvasBounds,
+  canvasBounds: CanvasBounds
 ): { x: number; y: number } {
   let maxDeltaLeft = Infinity
   let maxDeltaRight = Infinity

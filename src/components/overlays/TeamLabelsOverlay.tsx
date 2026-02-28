@@ -8,8 +8,8 @@ import { TEAM_TOPOLOGIES } from '../../model/conceptDefinitions'
 
 const TOPOLOGY_SHORT_LABELS: Record<string, string> = {
   'stream-aligned': 'Stream',
-  'platform': 'Platform',
-  'enabling': 'Enabling',
+  platform: 'Platform',
+  enabling: 'Enabling',
   'complicated-subsystem': 'Subsystem',
 }
 
@@ -30,10 +30,10 @@ export function TeamLabelsOverlay({
   if (zoom < 0.4) return null
 
   // Create a map for quick team lookup
-  const teamMap = new Map(teams.map(t => [t.id, t]))
+  const teamMap = new Map(teams.map((t) => [t.id, t]))
 
   // Filter contexts with team assignments
-  const contextsWithTeams = contexts.filter(ctx => ctx.teamId && teamMap.has(ctx.teamId))
+  const contextsWithTeams = contexts.filter((ctx) => ctx.teamId && teamMap.has(ctx.teamId))
 
   if (contextsWithTeams.length === 0) return null
 
@@ -47,7 +47,7 @@ export function TeamLabelsOverlay({
         zIndex: 14,
       }}
     >
-      {contextsWithTeams.map(context => {
+      {contextsWithTeams.map((context) => {
         const team = teamMap.get(context.teamId!)!
         const nodeSize = NODE_SIZES[context.codeSize?.bucket || 'medium']
         const colors = getTopologyColors(team.topologyType).light
@@ -72,13 +72,12 @@ export function TeamLabelsOverlay({
         const transformedX = labelX * zoom + x
         const transformedY = labelY * zoom + y
 
-        const truncatedName = team.name.length > 25
-          ? team.name.substring(0, 22) + '...'
-          : team.name
+        const truncatedName = team.name.length > 25 ? team.name.substring(0, 22) + '...' : team.name
 
-        const topologyDef = team.topologyType && team.topologyType !== 'unknown'
-          ? TEAM_TOPOLOGIES[team.topologyType]
-          : null
+        const topologyDef =
+          team.topologyType && team.topologyType !== 'unknown'
+            ? TEAM_TOPOLOGIES[team.topologyType]
+            : null
         const tooltipText = topologyDef
           ? `${topologyDef.title}: ${topologyDef.description}`
           : team.name
@@ -86,7 +85,14 @@ export function TeamLabelsOverlay({
         return (
           <SimpleTooltip key={`team-label-${context.id}`} text={tooltipText} position="top">
             <div
-              onClick={onTeamClick ? (e) => { e.stopPropagation(); onTeamClick(team.id) } : undefined}
+              onClick={
+                onTeamClick
+                  ? (e) => {
+                      e.stopPropagation()
+                      onTeamClick(team.id)
+                    }
+                  : undefined
+              }
               style={{
                 position: 'absolute',
                 left: transformedX,
@@ -111,11 +117,13 @@ export function TeamLabelsOverlay({
               <Users size={Math.max(10, 12 * zoom)} />
               <span>{truncatedName}</span>
               {team.topologyType && team.topologyType !== 'unknown' && (
-                <span style={{
-                  fontSize: `${8 * zoom}px`,
-                  opacity: 0.7,
-                  fontWeight: 400,
-                }}>
+                <span
+                  style={{
+                    fontSize: `${8 * zoom}px`,
+                    opacity: 0.7,
+                    fontWeight: 400,
+                  }}
+                >
                   ({TOPOLOGY_SHORT_LABELS[team.topologyType]})
                 </span>
               )}

@@ -125,14 +125,14 @@ describe('projectActions', () => {
       const result = createProjectAction(mockState, 'New Project')
 
       expect(Object.keys(result.projects!)).toHaveLength(2)
-      const newProject = Object.values(result.projects!).find(p => p.name === 'New Project')
+      const newProject = Object.values(result.projects!).find((p) => p.name === 'New Project')
       expect(newProject).toBeDefined()
     })
 
     it('should set new project as active', () => {
       const result = createProjectAction(mockState, 'New Project')
 
-      const newProject = Object.values(result.projects!).find(p => p.name === 'New Project')
+      const newProject = Object.values(result.projects!).find((p) => p.name === 'New Project')
       expect(result.activeProjectId).toBe(newProject!.id)
     })
 
@@ -384,7 +384,12 @@ describe('projectActions', () => {
     })
 
     it('should find next available number', () => {
-      const existingNames = ['My Project', 'My Project (Copy)', 'My Project (Copy 2)', 'My Project (Copy 3)']
+      const existingNames = [
+        'My Project',
+        'My Project (Copy)',
+        'My Project (Copy 2)',
+        'My Project (Copy 3)',
+      ]
 
       const result = generateUniqueProjectName('My Project', existingNames)
 
@@ -417,7 +422,12 @@ describe('projectActions', () => {
         } as any,
       ]
       mockState.projects['test-project'].relationships = [
-        { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'customer-supplier' } as any,
+        {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+          pattern: 'customer-supplier',
+        } as any,
       ]
     })
 
@@ -425,21 +435,27 @@ describe('projectActions', () => {
       const result = duplicateProjectAction(mockState, 'test-project')
 
       expect(Object.keys(result.projects!)).toHaveLength(2)
-      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const duplicatedProject = Object.values(result.projects!).find(
+        (p) => p.name === 'Original Project (Copy)'
+      )
       expect(duplicatedProject).toBeDefined()
     })
 
     it('should generate new IDs for the duplicated project', () => {
       const result = duplicateProjectAction(mockState, 'test-project')
 
-      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const duplicatedProject = Object.values(result.projects!).find(
+        (p) => p.name === 'Original Project (Copy)'
+      )
       expect(duplicatedProject!.id).not.toBe('test-project')
     })
 
     it('should deep copy contexts with new IDs', () => {
       const result = duplicateProjectAction(mockState, 'test-project')
 
-      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const duplicatedProject = Object.values(result.projects!).find(
+        (p) => p.name === 'Original Project (Copy)'
+      )
       expect(duplicatedProject!.contexts).toHaveLength(1)
       expect(duplicatedProject!.contexts[0].id).not.toBe('ctx-1')
       expect(duplicatedProject!.contexts[0].name).toBe('Context 1')
@@ -456,7 +472,9 @@ describe('projectActions', () => {
 
       const result = duplicateProjectAction(mockState, 'test-project')
 
-      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const duplicatedProject = Object.values(result.projects!).find(
+        (p) => p.name === 'Original Project (Copy)'
+      )
       const dupRelationship = duplicatedProject!.relationships[0]
 
       // Relationship should have new ID and reference the new context IDs
@@ -468,7 +486,9 @@ describe('projectActions', () => {
     it('should set the duplicated project as active', () => {
       const result = duplicateProjectAction(mockState, 'test-project')
 
-      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const duplicatedProject = Object.values(result.projects!).find(
+        (p) => p.name === 'Original Project (Copy)'
+      )
       expect(result.activeProjectId).toBe(duplicatedProject!.id)
     })
 
@@ -504,7 +524,9 @@ describe('projectActions', () => {
 
       const result = duplicateProjectAction(mockState, 'test-project')
 
-      const duplicatedProject = Object.values(result.projects!).find(p => p.name === 'Original Project (Copy)')
+      const duplicatedProject = Object.values(result.projects!).find(
+        (p) => p.name === 'Original Project (Copy)'
+      )
       expect(duplicatedProject!.createdAt).not.toBe('2024-01-01T00:00:00.000Z')
       expect(duplicatedProject!.updatedAt).not.toBe('2024-01-01T00:00:00.000Z')
     })
@@ -517,7 +539,7 @@ describe('projectActions', () => {
       const result = duplicateProjectAction(mockState, 'test-project')
 
       const duplicatedProject = Object.values(result.projects!).find(
-        p => p.name !== 'Original Project' && p.name !== 'Original Project (Copy)'
+        (p) => p.name !== 'Original Project' && p.name !== 'Original Project (Copy)'
       )
       expect(duplicatedProject!.name).toBe('Original Project (Copy 2)')
     })
@@ -551,7 +573,12 @@ describe('projectActions', () => {
     it('should regenerate context IDs', () => {
       const project = generateEmptyProject('Test')
       project.contexts = [
-        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+        {
+          id: 'ctx-1',
+          name: 'Context 1',
+          strategicClassification: 'core',
+          positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } },
+        } as any,
       ]
 
       const result = regenerateAllIds(project)
@@ -563,11 +590,26 @@ describe('projectActions', () => {
     it('should update relationship references to new context IDs', () => {
       const project = generateEmptyProject('Test')
       project.contexts = [
-        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
-        { id: 'ctx-2', name: 'Context 2', strategicClassification: 'supporting', positions: { flow: { x: 200 }, strategic: { x: 300 }, shared: { y: 100 } } } as any,
+        {
+          id: 'ctx-1',
+          name: 'Context 1',
+          strategicClassification: 'core',
+          positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } },
+        } as any,
+        {
+          id: 'ctx-2',
+          name: 'Context 2',
+          strategicClassification: 'supporting',
+          positions: { flow: { x: 200 }, strategic: { x: 300 }, shared: { y: 100 } },
+        } as any,
       ]
       project.relationships = [
-        { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'customer-supplier' } as any,
+        {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+          pattern: 'customer-supplier',
+        } as any,
       ]
 
       const result = regenerateAllIds(project)
@@ -582,11 +624,14 @@ describe('projectActions', () => {
     it('should regenerate group IDs and update context references', () => {
       const project = generateEmptyProject('Test')
       project.contexts = [
-        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+        {
+          id: 'ctx-1',
+          name: 'Context 1',
+          strategicClassification: 'core',
+          positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } },
+        } as any,
       ]
-      project.groups = [
-        { id: 'group-1', label: 'Group 1', contextIds: ['ctx-1'] } as any,
-      ]
+      project.groups = [{ id: 'group-1', label: 'Group 1', contextIds: ['ctx-1'] } as any]
 
       const result = regenerateAllIds(project)
 
@@ -675,7 +720,12 @@ describe('projectActions', () => {
     it('should regenerate all entity IDs', () => {
       const project = generateEmptyProject('Test')
       project.contexts = [
-        { id: 'ctx-1', name: 'Context 1', strategicClassification: 'core', positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } } } as any,
+        {
+          id: 'ctx-1',
+          name: 'Context 1',
+          strategicClassification: 'core',
+          positions: { flow: { x: 100 }, strategic: { x: 200 }, shared: { y: 50 } },
+        } as any,
       ]
 
       const result = importProjectAsNew(project, [])

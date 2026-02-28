@@ -13,7 +13,7 @@ interface TeamSidebarProps {
 }
 
 function contextCountForTeam(teamId: string, contexts: BoundedContext[]): number {
-  return contexts.filter(c => c.teamId === teamId).length
+  return contexts.filter((c) => c.teamId === teamId).length
 }
 
 function contextCountLabel(count: number): string {
@@ -34,7 +34,7 @@ export function TeamSidebar({
   const filteredTeams = React.useMemo(() => {
     if (!searchQuery.trim()) return teams
     const query = searchQuery.toLowerCase()
-    return teams.filter(t => t.name.toLowerCase().includes(query))
+    return teams.filter((t) => t.name.toLowerCase().includes(query))
   }, [teams, searchQuery])
 
   const handleDragStart = (e: React.DragEvent, teamId: string) => {
@@ -58,9 +58,7 @@ export function TeamSidebar({
   return (
     <div className="space-y-2">
       {teams.length === 0 && (
-        <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
-          No teams yet
-        </div>
+        <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">No teams yet</div>
       )}
 
       {teams.length > 1 && (
@@ -98,7 +96,7 @@ export function TeamSidebar({
         </div>
       )}
 
-      {filteredTeams.map(team => {
+      {filteredTeams.map((team) => {
         const count = contextCountForTeam(team.id, contexts)
         const isSelected = team.id === selectedTeamId
         const badgeColors = team.topologyType ? getTopologyColors(team.topologyType).light : null
@@ -117,14 +115,16 @@ export function TeamSidebar({
             }`}
           >
             <div className="flex items-center justify-between">
-              <div className="font-medium text-slate-900 dark:text-slate-100">
-                {team.name}
-              </div>
+              <div className="font-medium text-slate-900 dark:text-slate-100">{team.name}</div>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   if (count > 0) {
-                    if (!window.confirm(`Delete team "${team.name}"? ${count} context${count > 1 ? 's' : ''} will be unassigned.`)) {
+                    if (
+                      !window.confirm(
+                        `Delete team "${team.name}"? ${count} context${count > 1 ? 's' : ''} will be unassigned.`
+                      )
+                    ) {
                       return
                     }
                   }

@@ -40,7 +40,7 @@ describe('Store - Relationship Editing', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedRel = updatedProject.relationships.find(r => r.id === relationshipId)
+      const updatedRel = updatedProject.relationships.find((r) => r.id === relationshipId)
       expect(updatedRel?.pattern).toBe('partnership')
     })
 
@@ -55,7 +55,7 @@ describe('Store - Relationship Editing', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedRel = updatedProject.relationships.find(r => r.id === relationshipId)
+      const updatedRel = updatedProject.relationships.find((r) => r.id === relationshipId)
       expect(updatedRel?.communicationMode).toBe('REST API')
     })
 
@@ -70,7 +70,7 @@ describe('Store - Relationship Editing', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedRel = updatedProject.relationships.find(r => r.id === relationshipId)
+      const updatedRel = updatedProject.relationships.find((r) => r.id === relationshipId)
       expect(updatedRel?.description).toBe('New description')
     })
   })
@@ -106,7 +106,7 @@ describe('Store - Relationship Editing', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedRel = updatedProject.relationships.find(r => r.id === relationshipId)
+      const updatedRel = updatedProject.relationships.find((r) => r.id === relationshipId)
       expect(updatedRel?.pattern).toBe(originalPattern)
     })
 
@@ -123,7 +123,7 @@ describe('Store - Relationship Editing', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedRel = updatedProject.relationships.find(r => r.id === relationshipId)
+      const updatedRel = updatedProject.relationships.find((r) => r.id === relationshipId)
       expect(updatedRel?.pattern).toBe('partnership')
     })
   })

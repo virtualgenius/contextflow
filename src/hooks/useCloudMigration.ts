@@ -1,16 +1,16 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react'
 import {
   runMigration,
   hasPendingMigration,
   cleanupMigrationBackup,
   type MigrationResult,
-} from '../model/migrations/cloudMigration';
+} from '../model/migrations/cloudMigration'
 
 export interface MigrationState {
-  status: 'idle' | 'checking' | 'migrating' | 'complete' | 'error';
-  progress: { current: number; total: number } | null;
-  result: MigrationResult | null;
-  error: string | null;
+  status: 'idle' | 'checking' | 'migrating' | 'complete' | 'error'
+  progress: { current: number; total: number } | null
+  result: MigrationResult | null
+  error: string | null
 }
 
 export function useCloudMigration() {
@@ -19,25 +19,25 @@ export function useCloudMigration() {
     progress: null,
     result: null,
     error: null,
-  });
+  })
 
   const migrate = useCallback(async () => {
-    setState((s) => ({ ...s, status: 'checking' }));
+    setState((s) => ({ ...s, status: 'checking' }))
 
-    const hasPending = await hasPendingMigration();
+    const hasPending = await hasPendingMigration()
     if (!hasPending) {
-      setState((s) => ({ ...s, status: 'complete', result: null }));
-      return;
+      setState((s) => ({ ...s, status: 'complete', result: null }))
+      return
     }
 
-    setState((s) => ({ ...s, status: 'migrating' }));
+    setState((s) => ({ ...s, status: 'migrating' }))
 
     const result = await runMigration({
       onStart: (total) => {
-        setState((s) => ({ ...s, progress: { current: 0, total } }));
+        setState((s) => ({ ...s, progress: { current: 0, total } }))
       },
       onProgress: (current, total) => {
-        setState((s) => ({ ...s, progress: { current, total } }));
+        setState((s) => ({ ...s, progress: { current, total } }))
       },
       onComplete: (migrationResult) => {
         setState({
@@ -45,7 +45,7 @@ export function useCloudMigration() {
           progress: null,
           result: migrationResult,
           error: null,
-        });
+        })
       },
       onError: (err) => {
         setState({
@@ -53,19 +53,19 @@ export function useCloudMigration() {
           progress: null,
           result: null,
           error: err.message,
-        });
+        })
       },
-    });
+    })
 
     if (result.total === 0) {
-      setState((s) => s.status !== 'error' ? { ...s, status: 'complete' } : s);
+      setState((s) => (s.status !== 'error' ? { ...s, status: 'complete' } : s))
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    migrate();
-    cleanupMigrationBackup().catch(console.error);
-  }, [migrate]);
+    migrate()
+    cleanupMigrationBackup().catch(console.error)
+  }, [migrate])
 
-  return state;
+  return state
 }

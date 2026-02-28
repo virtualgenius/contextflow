@@ -3,25 +3,27 @@ import { useTheme } from '../../hooks/useTheme'
 import { Switch } from '../Switch'
 
 export function SettingsViewOptions() {
-  const showGroups = useEditorStore(s => s.showGroups)
-  const showRelationships = useEditorStore(s => s.showRelationships)
-  const showIssueLabels = useEditorStore(s => s.showIssueLabels)
-  const showTeamLabels = useEditorStore(s => s.showTeamLabels)
-  const showRelationshipLabels = useEditorStore(s => s.showRelationshipLabels)
-  const toggleShowGroups = useEditorStore(s => s.toggleShowGroups)
-  const toggleShowRelationships = useEditorStore(s => s.toggleShowRelationships)
-  const toggleIssueLabels = useEditorStore(s => s.toggleIssueLabels)
-  const toggleTeamLabels = useEditorStore(s => s.toggleTeamLabels)
-  const toggleRelationshipLabels = useEditorStore(s => s.toggleRelationshipLabels)
-  const groupOpacity = useEditorStore(s => s.groupOpacity)
-  const setGroupOpacity = useEditorStore(s => s.setGroupOpacity)
-  const colorByMode = useEditorStore(s => s.colorByMode)
-  const setColorByMode = useEditorStore(s => s.setColorByMode)
+  const showGroups = useEditorStore((s) => s.showGroups)
+  const showRelationships = useEditorStore((s) => s.showRelationships)
+  const showIssueLabels = useEditorStore((s) => s.showIssueLabels)
+  const showTeamLabels = useEditorStore((s) => s.showTeamLabels)
+  const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
+  const toggleShowGroups = useEditorStore((s) => s.toggleShowGroups)
+  const toggleShowRelationships = useEditorStore((s) => s.toggleShowRelationships)
+  const toggleIssueLabels = useEditorStore((s) => s.toggleIssueLabels)
+  const toggleTeamLabels = useEditorStore((s) => s.toggleTeamLabels)
+  const toggleRelationshipLabels = useEditorStore((s) => s.toggleRelationshipLabels)
+  const groupOpacity = useEditorStore((s) => s.groupOpacity)
+  const setGroupOpacity = useEditorStore((s) => s.setGroupOpacity)
+  const colorByMode = useEditorStore((s) => s.colorByMode)
+  const setColorByMode = useEditorStore((s) => s.setColorByMode)
   const { theme } = useTheme()
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">View Options</h3>
+      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">
+        View Options
+      </h3>
       <div className="space-y-4">
         <div>
           <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">
@@ -60,8 +62,13 @@ export function SettingsViewOptions() {
             <Switch checked={showRelationships} onCheckedChange={() => toggleShowRelationships()} />
           </div>
           <div className="flex items-center justify-between pl-3">
-            <span className="text-xs text-slate-600 dark:text-slate-400">Show Relationship Labels</span>
-            <Switch checked={showRelationshipLabels} onCheckedChange={() => toggleRelationshipLabels()} />
+            <span className="text-xs text-slate-600 dark:text-slate-400">
+              Show Relationship Labels
+            </span>
+            <Switch
+              checked={showRelationshipLabels}
+              onCheckedChange={() => toggleRelationshipLabels()}
+            />
           </div>
           <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
             Available in Flow & Strategic views
@@ -90,14 +97,16 @@ export function SettingsViewOptions() {
             min="0"
             max="100"
             value={groupOpacity * 100}
-            onChange={(e) => setGroupOpacity(parseInt(e.target.value) / 100, { skipAnalytics: true })}
+            onChange={(e) =>
+              setGroupOpacity(parseInt(e.target.value) / 100, { skipAnalytics: true })
+            }
             onPointerUp={(e) => {
               const value = parseInt((e.target as HTMLInputElement).value) / 100
               setGroupOpacity(value)
             }}
             className="w-full h-2 bg-slate-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer"
             style={{
-              accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa'
+              accentColor: theme === 'light' ? '#3b82f6' : '#60a5fa',
             }}
           />
         </div>

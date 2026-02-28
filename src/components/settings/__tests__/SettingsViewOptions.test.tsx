@@ -61,7 +61,10 @@ describe('SettingsViewOptions', () => {
   it('calls toggleRelationshipLabels when clicked', () => {
     setupMock()
     render(<SettingsViewOptions />)
-    const toggle = screen.getByText('Show Relationship Labels').closest('div')!.querySelector('button')!
+    const toggle = screen
+      .getByText('Show Relationship Labels')
+      .closest('div')!
+      .querySelector('button')!
     fireEvent.click(toggle)
     expect(mockToggleRelationshipLabels).toHaveBeenCalledOnce()
   })
@@ -69,14 +72,20 @@ describe('SettingsViewOptions', () => {
   it('renders in checked state when showRelationshipLabels is true', () => {
     setupMock({ showRelationshipLabels: true })
     render(<SettingsViewOptions />)
-    const toggle = screen.getByText('Show Relationship Labels').closest('div')!.querySelector('[role="switch"]')!
+    const toggle = screen
+      .getByText('Show Relationship Labels')
+      .closest('div')!
+      .querySelector('[role="switch"]')!
     expect(toggle.getAttribute('aria-checked')).toBe('true')
   })
 
   it('renders in unchecked state when showRelationshipLabels is false', () => {
     setupMock({ showRelationshipLabels: false })
     render(<SettingsViewOptions />)
-    const toggle = screen.getByText('Show Relationship Labels').closest('div')!.querySelector('[role="switch"]')!
+    const toggle = screen
+      .getByText('Show Relationship Labels')
+      .closest('div')!
+      .querySelector('[role="switch"]')!
     expect(toggle.getAttribute('aria-checked')).toBe('false')
   })
 })

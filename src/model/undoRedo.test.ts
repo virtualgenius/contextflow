@@ -1,6 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import { applyUndo, applyRedo } from './undoRedo'
-import type { Project, BoundedContext, Group, Relationship, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe } from './types'
+import type {
+  Project,
+  BoundedContext,
+  Group,
+  Relationship,
+  User,
+  UserNeed,
+  UserNeedConnection,
+  NeedContextConnection,
+  TemporalKeyframe,
+} from './types'
 import type { EditorCommand } from './storeTypes'
 
 // Helper to create minimal project for testing
@@ -55,7 +65,7 @@ describe('applyUndo', () => {
           flow: { x: 200 },
           strategic: { x: 200 },
           distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+          shared: { y: 200 },
         },
       })
       const project = createTestProject({ contexts: [context] })
@@ -67,13 +77,13 @@ shared: { y: 200 },
             flow: { x: 100 },
             strategic: { x: 100 },
             distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+            shared: { y: 100 },
           },
           newPositions: {
             flow: { x: 200 },
             strategic: { x: 200 },
             distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+            shared: { y: 200 },
           },
         },
       }
@@ -84,7 +94,7 @@ shared: { y: 200 },
         flow: { x: 100 },
         strategic: { x: 100 },
         distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+        shared: { y: 100 },
       })
     })
 
@@ -98,13 +108,13 @@ shared: { y: 100 },
             flow: { x: 100 },
             strategic: { x: 100 },
             distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+            shared: { y: 100 },
           },
           newPositions: {
             flow: { x: 200 },
             strategic: { x: 200 },
             distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+            shared: { y: 200 },
           },
         },
       }
@@ -122,7 +132,7 @@ shared: { y: 200 },
           flow: { x: 200 },
           strategic: { x: 200 },
           distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+          shared: { y: 200 },
         },
       })
       const ctx2 = createTestContext('ctx2', {
@@ -130,7 +140,7 @@ shared: { y: 200 },
           flow: { x: 300 },
           strategic: { x: 300 },
           distillation: { x: 50, y: 50 },
-shared: { y: 300 },
+          shared: { y: 300 },
         },
       })
       const project = createTestProject({ contexts: [ctx1, ctx2] })
@@ -138,32 +148,32 @@ shared: { y: 300 },
         type: 'moveContextGroup',
         payload: {
           positionsMap: {
-            'ctx1': {
+            ctx1: {
               old: {
                 flow: { x: 100 },
                 strategic: { x: 100 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+                shared: { y: 100 },
               },
               new: {
                 flow: { x: 200 },
                 strategic: { x: 200 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+                shared: { y: 200 },
               },
             },
-            'ctx2': {
+            ctx2: {
               old: {
                 flow: { x: 150 },
                 strategic: { x: 150 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 150 },
+                shared: { y: 150 },
               },
               new: {
                 flow: { x: 300 },
                 strategic: { x: 300 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 300 },
+                shared: { y: 300 },
               },
             },
           },
@@ -176,13 +186,13 @@ shared: { y: 300 },
         flow: { x: 100 },
         strategic: { x: 100 },
         distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+        shared: { y: 100 },
       })
       expect(result.contexts[1].positions).toEqual({
         flow: { x: 150 },
         strategic: { x: 150 },
         distillation: { x: 50, y: 50 },
-shared: { y: 150 },
+        shared: { y: 150 },
       })
     })
   })
@@ -220,7 +230,7 @@ shared: { y: 150 },
   describe('assignRepo command', () => {
     it('should restore old context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2' , teamIds: [], contributors: []}],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2', teamIds: [], contributors: [] }],
       })
       const command: EditorCommand = {
         type: 'assignRepo',
@@ -238,7 +248,7 @@ shared: { y: 150 },
 
     it('should handle undefined old context', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2' , teamIds: [], contributors: []}],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx2', teamIds: [], contributors: [] }],
       })
       const command: EditorCommand = {
         type: 'assignRepo',
@@ -258,7 +268,9 @@ shared: { y: 150 },
   describe('unassignRepo command', () => {
     it('should restore context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: undefined , teamIds: [], contributors: []}],
+        repos: [
+          { id: 'repo1', name: 'Repo 1', contextId: undefined, teamIds: [], contributors: [] },
+        ],
       })
       const command: EditorCommand = {
         type: 'unassignRepo',
@@ -812,7 +824,7 @@ shared: { y: 150 },
         date: '2024-01-01',
         label: 'Q1',
         positions: {
-          'ctx1': { x: 200, y: 200 },
+          ctx1: { x: 200, y: 200 },
         },
         activeContextIds: [],
       }
@@ -831,13 +843,13 @@ shared: { y: 150 },
             flow: { x: 100 },
             strategic: { x: 100 },
             distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+            shared: { y: 100 },
           },
           newPositions: {
             flow: { x: 200 },
             strategic: { x: 200 },
             distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+            shared: { y: 200 },
           },
         },
       }
@@ -857,7 +869,7 @@ describe('applyRedo', () => {
           flow: { x: 100 },
           strategic: { x: 100 },
           distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+          shared: { y: 100 },
         },
       })
       const project = createTestProject({ contexts: [context] })
@@ -869,13 +881,13 @@ shared: { y: 100 },
             flow: { x: 100 },
             strategic: { x: 100 },
             distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+            shared: { y: 100 },
           },
           newPositions: {
             flow: { x: 200 },
             strategic: { x: 200 },
             distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+            shared: { y: 200 },
           },
         },
       }
@@ -886,7 +898,7 @@ shared: { y: 200 },
         flow: { x: 200 },
         strategic: { x: 200 },
         distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+        shared: { y: 200 },
       })
     })
   })
@@ -898,7 +910,7 @@ shared: { y: 200 },
           flow: { x: 100 },
           strategic: { x: 100 },
           distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+          shared: { y: 100 },
         },
       })
       const ctx2 = createTestContext('ctx2', {
@@ -906,7 +918,7 @@ shared: { y: 100 },
           flow: { x: 150 },
           strategic: { x: 150 },
           distillation: { x: 50, y: 50 },
-shared: { y: 150 },
+          shared: { y: 150 },
         },
       })
       const project = createTestProject({ contexts: [ctx1, ctx2] })
@@ -914,32 +926,32 @@ shared: { y: 150 },
         type: 'moveContextGroup',
         payload: {
           positionsMap: {
-            'ctx1': {
+            ctx1: {
               old: {
                 flow: { x: 100 },
                 strategic: { x: 100 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+                shared: { y: 100 },
               },
               new: {
                 flow: { x: 200 },
                 strategic: { x: 200 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+                shared: { y: 200 },
               },
             },
-            'ctx2': {
+            ctx2: {
               old: {
                 flow: { x: 150 },
                 strategic: { x: 150 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 150 },
+                shared: { y: 150 },
               },
               new: {
                 flow: { x: 300 },
                 strategic: { x: 300 },
                 distillation: { x: 50, y: 50 },
-shared: { y: 300 },
+                shared: { y: 300 },
               },
             },
           },
@@ -952,13 +964,13 @@ shared: { y: 300 },
         flow: { x: 200 },
         strategic: { x: 200 },
         distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+        shared: { y: 200 },
       })
       expect(result.contexts[1].positions).toEqual({
         flow: { x: 300 },
         strategic: { x: 300 },
         distillation: { x: 50, y: 50 },
-shared: { y: 300 },
+        shared: { y: 300 },
       })
     })
   })
@@ -996,7 +1008,7 @@ shared: { y: 300 },
   describe('assignRepo command', () => {
     it('should apply new context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1' , teamIds: [], contributors: []}],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1', teamIds: [], contributors: [] }],
       })
       const command: EditorCommand = {
         type: 'assignRepo',
@@ -1016,7 +1028,7 @@ shared: { y: 300 },
   describe('unassignRepo command', () => {
     it('should remove context assignment', () => {
       const project = createTestProject({
-        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1' , teamIds: [], contributors: []}],
+        repos: [{ id: 'repo1', name: 'Repo 1', contextId: 'ctx1', teamIds: [], contributors: [] }],
       })
       const command: EditorCommand = {
         type: 'unassignRepo',
@@ -1282,7 +1294,7 @@ shared: { y: 300 },
         date: '2024-01-01',
         label: 'Q1',
         positions: {
-          'ctx1': { x: 100, y: 100 },
+          ctx1: { x: 100, y: 100 },
         },
         activeContextIds: [],
       }
@@ -1301,13 +1313,13 @@ shared: { y: 300 },
             flow: { x: 100 },
             strategic: { x: 100 },
             distillation: { x: 50, y: 50 },
-shared: { y: 100 },
+            shared: { y: 100 },
           },
           newPositions: {
             flow: { x: 200 },
             strategic: { x: 200 },
             distillation: { x: 50, y: 50 },
-shared: { y: 200 },
+            shared: { y: 200 },
           },
         },
       }

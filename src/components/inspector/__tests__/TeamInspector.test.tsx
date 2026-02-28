@@ -17,7 +17,12 @@ function makeProject(): Project {
     id: 'proj-1',
     name: 'Test',
     contexts: [
-      { id: 'ctx-1', name: 'Orders', teamId: 'team-1', positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } } },
+      {
+        id: 'ctx-1',
+        name: 'Orders',
+        teamId: 'team-1',
+        positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } },
+      },
     ],
     relationships: [],
     repos: [],

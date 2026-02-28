@@ -53,16 +53,16 @@ describe('Yjs bypass guard', () => {
     const source = readFileSync(storePath, 'utf-8')
 
     const violations = findProjectWriters(source).filter(
-      name => !ALLOWED_PROJECT_WRITERS.has(name)
+      (name) => !ALLOWED_PROJECT_WRITERS.has(name)
     )
 
     if (violations.length > 0) {
-      const list = violations.map(v => `  - ${v}`).join('\n')
+      const list = violations.map((v) => `  - ${v}`).join('\n')
       throw new Error(
         `Store action(s) write to \`projects:\` without routing through Yjs:\n${list}\n\n` +
-        'All project entity mutations must go through getCollabMutations(). ' +
-        'If this is a project-lifecycle operation (create/delete/import/reset), ' +
-        'add it to ALLOWED_PROJECT_WRITERS in this test with a comment explaining why.'
+          'All project entity mutations must go through getCollabMutations(). ' +
+          'If this is a project-lifecycle operation (create/delete/import/reset), ' +
+          'add it to ALLOWED_PROJECT_WRITERS in this test with a comment explaining why.'
       )
     }
   })

@@ -8,12 +8,12 @@ interface KeyframeManagerProps {
 }
 
 export function KeyframeManager({ onClose }: KeyframeManagerProps) {
-  const projectId = useEditorStore(s => s.activeProjectId)
-  const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
-  const setCurrentDate = useEditorStore(s => s.setCurrentDate)
-  const setActiveKeyframe = useEditorStore(s => s.setActiveKeyframe)
-  const addKeyframe = useEditorStore(s => s.addKeyframe)
-  const deleteKeyframe = useEditorStore(s => s.deleteKeyframe)
+  const projectId = useEditorStore((s) => s.activeProjectId)
+  const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
+  const setCurrentDate = useEditorStore((s) => s.setCurrentDate)
+  const setActiveKeyframe = useEditorStore((s) => s.setActiveKeyframe)
+  const addKeyframe = useEditorStore((s) => s.addKeyframe)
+  const deleteKeyframe = useEditorStore((s) => s.deleteKeyframe)
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [newDate, setNewDate] = useState('')
@@ -35,7 +35,7 @@ export function KeyframeManager({ onClose }: KeyframeManagerProps) {
     }
 
     // Check for duplicate date
-    if (keyframes.some(kf => kf.date === newDate)) {
+    if (keyframes.some((kf) => kf.date === newDate)) {
       setError('A keyframe already exists at this date')
       return
     }
@@ -69,7 +69,10 @@ export function KeyframeManager({ onClose }: KeyframeManagerProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
       <div
         className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl p-6 w-[500px] max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
@@ -94,7 +97,8 @@ export function KeyframeManager({ onClose }: KeyframeManagerProps) {
             </div>
           ) : (
             keyframes.map((keyframe) => {
-              const contextCount = keyframe.activeContextIds?.length || Object.keys(keyframe.positions).length
+              const contextCount =
+                keyframe.activeContextIds?.length || Object.keys(keyframe.positions).length
 
               return (
                 <div
@@ -163,9 +167,7 @@ export function KeyframeManager({ onClose }: KeyframeManagerProps) {
                 placeholder="2027 or 2027-Q2"
                 className="w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              {error && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
-              )}
+              {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
             </div>
 
             <div>

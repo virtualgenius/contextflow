@@ -43,9 +43,7 @@ function buildSections(): ShortcutSection[] {
     },
     {
       title: 'General',
-      shortcuts: [
-        { label: 'Show keyboard shortcuts', keys: [mod, '?'] },
-      ],
+      shortcuts: [{ label: 'Show keyboard shortcuts', keys: [mod, '?'] }],
     },
   ]
 }
@@ -92,10 +90,7 @@ export function KeyboardShortcutsModal({ onClose }: KeyboardShortcutsModalProps)
               </h3>
               <div className="space-y-1">
                 {section.shortcuts.map((shortcut) => (
-                  <div
-                    key={shortcut.label}
-                    className="flex items-center justify-between py-1.5"
-                  >
+                  <div key={shortcut.label} className="flex items-center justify-between py-1.5">
                     <span className="text-sm text-slate-700 dark:text-slate-300">
                       {shortcut.label}
                     </span>

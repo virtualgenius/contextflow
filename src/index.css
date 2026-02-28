@@ -37,7 +37,10 @@
   background-color: #94a3b8;
   border: 2px solid white;
   opacity: 0;
-  transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+  transition:
+    opacity 0.15s ease-in-out,
+    background-color 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
 }
 
 .react-flow__node-context:hover .react-flow__handle,
@@ -49,7 +52,7 @@
 }
 
 /* Keep the top handle on contexts always hidden (used for Need→Context connections) */
-.react-flow__node-context .react-flow__handle[data-handlepos="top"] {
+.react-flow__node-context .react-flow__handle[data-handlepos='top'] {
   opacity: 0 !important;
   transform: none !important;
 }
@@ -69,6 +72,11 @@
 }
 
 @keyframes pulse-handle {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.4); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
 }

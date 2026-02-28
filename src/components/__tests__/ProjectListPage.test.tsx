@@ -53,7 +53,7 @@ describe('ProjectListPage', () => {
     const projects = useEditorStore.getState().projects
     render(<ProjectListPage />)
 
-    const projectNames = Object.values(projects).map(p => p.name)
+    const projectNames = Object.values(projects).map((p) => p.name)
     for (const name of projectNames) {
       expect(screen.getByText(name)).toBeInTheDocument()
     }

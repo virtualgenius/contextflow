@@ -31,16 +31,18 @@ type PatternIndicatorConfig = {
   }
 }
 
-export const PATTERN_EDGE_INDICATORS: Partial<Record<Relationship['pattern'], PatternIndicatorConfig>> = {
+export const PATTERN_EDGE_INDICATORS: Partial<
+  Record<Relationship['pattern'], PatternIndicatorConfig>
+> = {
   'anti-corruption-layer': {
     label: 'ACL',
     position: 'source', // downstream end
     boxWidth: 28,
     boxHeight: 18,
     colors: {
-      bg: '#fef3c7',     // amber-100
+      bg: '#fef3c7', // amber-100
       border: '#f59e0b', // amber-500
-      text: '#d97706',   // amber-600
+      text: '#d97706', // amber-600
       bgDark: 'rgba(146, 64, 14, 0.4)',
       borderDark: '#fbbf24',
       textDark: '#fbbf24',
@@ -52,9 +54,9 @@ export const PATTERN_EDGE_INDICATORS: Partial<Record<Relationship['pattern'], Pa
     boxWidth: 28,
     boxHeight: 18,
     colors: {
-      bg: '#dcfce7',     // green-100
+      bg: '#dcfce7', // green-100
       border: '#22c55e', // green-500
-      text: '#16a34a',   // green-600
+      text: '#16a34a', // green-600
       bgDark: 'rgba(20, 83, 45, 0.4)',
       borderDark: '#4ade80',
       textDark: '#4ade80',

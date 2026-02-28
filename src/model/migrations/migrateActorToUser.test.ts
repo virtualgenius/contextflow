@@ -5,30 +5,38 @@ describe('migrateActorToUser', () => {
   describe('actors array migration', () => {
     it('renames actors array to users', () => {
       const input = {
-        actors: [
-          { id: 'actor-1', name: 'Shopper', position: 20 }
-        ]
+        actors: [{ id: 'actor-1', name: 'Shopper', position: 20 }],
       }
 
       const result = migrateActorToUser(input)
 
-      expect(result.users).toEqual([
-        { id: 'actor-1', name: 'Shopper', position: 20 }
-      ])
+      expect(result.users).toEqual([{ id: 'actor-1', name: 'Shopper', position: 20 }])
       expect(result).not.toHaveProperty('actors')
     })
 
     it('preserves all actor properties when renaming to user', () => {
       const input = {
         actors: [
-          { id: 'actor-1', name: 'Admin', description: 'System admin', position: 50, isExternal: false }
-        ]
+          {
+            id: 'actor-1',
+            name: 'Admin',
+            description: 'System admin',
+            position: 50,
+            isExternal: false,
+          },
+        ],
       }
 
       const result = migrateActorToUser(input)
 
       expect(result.users).toEqual([
-        { id: 'actor-1', name: 'Admin', description: 'System admin', position: 50, isExternal: false }
+        {
+          id: 'actor-1',
+          name: 'Admin',
+          description: 'System admin',
+          position: 50,
+          isExternal: false,
+        },
       ])
     })
 
@@ -37,8 +45,8 @@ describe('migrateActorToUser', () => {
         actors: [
           { id: 'actor-1', name: 'Shopper', position: 20 },
           { id: 'actor-2', name: 'Admin', position: 50 },
-          { id: 'actor-3', name: 'Guest', position: 80, isExternal: true }
-        ]
+          { id: 'actor-3', name: 'Guest', position: 80, isExternal: true },
+        ],
       }
 
       const result = migrateActorToUser(input)
@@ -61,9 +69,7 @@ describe('migrateActorToUser', () => {
   describe('actorNeedConnections migration', () => {
     it('renames actorNeedConnections to userNeedConnections', () => {
       const input = {
-        actorNeedConnections: [
-          { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }
-        ]
+        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }],
       }
 
       const result = migrateActorToUser(input)
@@ -74,9 +80,7 @@ describe('migrateActorToUser', () => {
 
     it('renames actorId to userId in connections', () => {
       const input = {
-        actorNeedConnections: [
-          { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }
-        ]
+        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }],
       }
 
       const result = migrateActorToUser(input)
@@ -84,7 +88,7 @@ describe('migrateActorToUser', () => {
       expect(result.userNeedConnections[0]).toEqual({
         id: 'conn-1',
         userId: 'actor-1',
-        userNeedId: 'need-1'
+        userNeedId: 'need-1',
       })
       expect(result.userNeedConnections[0]).not.toHaveProperty('actorId')
     })
@@ -92,8 +96,8 @@ describe('migrateActorToUser', () => {
     it('preserves notes in connections', () => {
       const input = {
         actorNeedConnections: [
-          { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1', notes: 'Important connection' }
-        ]
+          { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1', notes: 'Important connection' },
+        ],
       }
 
       const result = migrateActorToUser(input)
@@ -105,8 +109,8 @@ describe('migrateActorToUser', () => {
       const input = {
         actorNeedConnections: [
           { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' },
-          { id: 'conn-2', actorId: 'actor-2', userNeedId: 'need-2', notes: 'Note' }
-        ]
+          { id: 'conn-2', actorId: 'actor-2', userNeedId: 'need-2', notes: 'Note' },
+        ],
       }
 
       const result = migrateActorToUser(input)
@@ -128,9 +132,7 @@ describe('migrateActorToUser', () => {
   describe('legacy actorConnections cleanup', () => {
     it('removes legacy actorConnections array', () => {
       const input = {
-        actorConnections: [
-          { id: 'conn-1', actorId: 'actor-1', contextId: 'ctx-1' }
-        ]
+        actorConnections: [{ id: 'conn-1', actorId: 'actor-1', contextId: 'ctx-1' }],
       }
 
       const result = migrateActorToUser(input)
@@ -142,36 +144,30 @@ describe('migrateActorToUser', () => {
   describe('already migrated data', () => {
     it('does not modify data that already has users array', () => {
       const input = {
-        users: [
-          { id: 'user-1', name: 'Shopper', position: 20 }
-        ]
+        users: [{ id: 'user-1', name: 'Shopper', position: 20 }],
       }
 
       const result = migrateActorToUser(input)
 
-      expect(result.users).toEqual([
-        { id: 'user-1', name: 'Shopper', position: 20 }
-      ])
+      expect(result.users).toEqual([{ id: 'user-1', name: 'Shopper', position: 20 }])
     })
 
     it('does not modify data that already has userNeedConnections', () => {
       const input = {
-        userNeedConnections: [
-          { id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' }
-        ]
+        userNeedConnections: [{ id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' }],
       }
 
       const result = migrateActorToUser(input)
 
       expect(result.userNeedConnections).toEqual([
-        { id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' }
+        { id: 'conn-1', userId: 'user-1', userNeedId: 'need-1' },
       ])
     })
 
     it('prefers existing users over actors if both present', () => {
       const input = {
         actors: [{ id: 'actor-1', name: 'Old', position: 10 }],
-        users: [{ id: 'user-1', name: 'New', position: 20 }]
+        users: [{ id: 'user-1', name: 'New', position: 20 }],
       }
 
       const result = migrateActorToUser(input)
@@ -188,16 +184,14 @@ describe('migrateActorToUser', () => {
         name: 'Test Project',
         actors: [
           { id: 'actor-1', name: 'Shopper', position: 20, isExternal: true },
-          { id: 'actor-2', name: 'Admin', position: 50 }
+          { id: 'actor-2', name: 'Admin', position: 50 },
         ],
         actorNeedConnections: [
           { id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' },
-          { id: 'conn-2', actorId: 'actor-2', userNeedId: 'need-2', notes: 'Admin access' }
+          { id: 'conn-2', actorId: 'actor-2', userNeedId: 'need-2', notes: 'Admin access' },
         ],
-        userNeeds: [
-          { id: 'need-1', name: 'Browse Products', position: 30 }
-        ],
-        contexts: []
+        userNeeds: [{ id: 'need-1', name: 'Browse Products', position: 30 }],
+        contexts: [],
       }
 
       const result = migrateActorToUser(input)
@@ -219,7 +213,7 @@ describe('migrateActorToUser', () => {
     it('does not mutate the input object', () => {
       const input = {
         actors: [{ id: 'actor-1', name: 'Shopper', position: 20 }],
-        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }]
+        actorNeedConnections: [{ id: 'conn-1', actorId: 'actor-1', userNeedId: 'need-1' }],
       }
       const inputCopy = JSON.parse(JSON.stringify(input))
 

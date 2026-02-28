@@ -16,7 +16,7 @@ import { useUrlRouter } from './hooks/useUrlRouter'
 const MILLISECONDS_PER_SECOND = 1000
 
 function App() {
-  const projectId = useEditorStore(s => s.activeProjectId)
+  const projectId = useEditorStore((s) => s.activeProjectId)
   const { route, params: _params } = useUrlRouter()
 
   // Show project list page when no active project and not on a shared-project route
@@ -28,24 +28,24 @@ function App() {
 }
 
 function Workspace() {
-  const projectId = useEditorStore(s => s.activeProjectId)
-  const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
-  const selectedContextId = useEditorStore(s => s.selectedContextId)
-  const selectedGroupId = useEditorStore(s => s.selectedGroupId)
-  const selectedUserId = useEditorStore(s => s.selectedUserId)
-  const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
-  const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
-  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
-  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
-  const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
-  const selectedTeamId = useEditorStore(s => s.selectedTeamId)
-  const selectedContextIds = useEditorStore(s => s.selectedContextIds)
-  const clearContextSelection = useEditorStore(s => s.clearContextSelection)
-  const createGroup = useEditorStore(s => s.createGroup)
-  const loadSharedProject = useEditorStore(s => s.loadSharedProject)
-  const addTeam = useEditorStore(s => s.addTeam)
-  const deleteTeam = useEditorStore(s => s.deleteTeam)
-  const setSelectedTeam = useEditorStore(s => s.setSelectedTeam)
+  const projectId = useEditorStore((s) => s.activeProjectId)
+  const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
+  const selectedContextId = useEditorStore((s) => s.selectedContextId)
+  const selectedGroupId = useEditorStore((s) => s.selectedGroupId)
+  const selectedUserId = useEditorStore((s) => s.selectedUserId)
+  const selectedUserNeedId = useEditorStore((s) => s.selectedUserNeedId)
+  const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
+  const selectedUserNeedConnectionId = useEditorStore((s) => s.selectedUserNeedConnectionId)
+  const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
+  const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
+  const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
+  const selectedContextIds = useEditorStore((s) => s.selectedContextIds)
+  const clearContextSelection = useEditorStore((s) => s.clearContextSelection)
+  const createGroup = useEditorStore((s) => s.createGroup)
+  const loadSharedProject = useEditorStore((s) => s.loadSharedProject)
+  const addTeam = useEditorStore((s) => s.addTeam)
+  const deleteTeam = useEditorStore((s) => s.deleteTeam)
+  const setSelectedTeam = useEditorStore((s) => s.setSelectedTeam)
 
   const { route, params } = useUrlRouter()
 
@@ -54,7 +54,9 @@ function Workspace() {
   const [showGroupDialog, setShowGroupDialog] = React.useState(false)
   const [isLoadingSharedProject, setIsLoadingSharedProject] = React.useState(false)
 
-  const [initializedSharedProjectId, setInitializedSharedProjectId] = React.useState<string | null>(null)
+  const [initializedSharedProjectId, setInitializedSharedProjectId] = React.useState<string | null>(
+    null
+  )
 
   React.useEffect(() => {
     if (route === 'shared-project' && params.projectId) {
@@ -77,7 +79,7 @@ function Workspace() {
       if (project) {
         const sessionDuration = Math.floor((Date.now() - sessionStart) / MILLISECONDS_PER_SECOND)
         trackEvent('project_closed', project, {
-          session_duration_seconds: sessionDuration
+          session_duration_seconds: sessionDuration,
         })
       }
     }
@@ -90,7 +92,7 @@ function Workspace() {
   }, [project])
 
   const unassignedRepos = React.useMemo(() => {
-    return project?.repos?.filter(r => !r.contextId) || []
+    return project?.repos?.filter((r) => !r.contextId) || []
   }, [project?.repos])
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
@@ -110,18 +112,34 @@ function Workspace() {
   const showLeftSidebar = hasLeftSidebarContent && !isSidebarCollapsed
 
   // Auto-select appropriate tab when content changes
-  const activeTab = sidebarTab === 'repos' && !hasUnassignedRepos && hasTeams ? 'teams'
-    : sidebarTab === 'teams' && !hasTeams && hasUnassignedRepos ? 'repos'
-    : sidebarTab
-  const hasRightSidebar = !!selectedContextId || !!selectedGroupId || !!selectedUserId || !!selectedUserNeedId || !!selectedRelationshipId || !!selectedUserNeedConnectionId || !!selectedNeedContextConnectionId || selectedStageIndex !== null || !!selectedTeamId
+  const activeTab =
+    sidebarTab === 'repos' && !hasUnassignedRepos && hasTeams
+      ? 'teams'
+      : sidebarTab === 'teams' && !hasTeams && hasUnassignedRepos
+        ? 'repos'
+        : sidebarTab
+  const hasRightSidebar =
+    !!selectedContextId ||
+    !!selectedGroupId ||
+    !!selectedUserId ||
+    !!selectedUserNeedId ||
+    !!selectedRelationshipId ||
+    !!selectedUserNeedConnectionId ||
+    !!selectedNeedContextConnectionId ||
+    selectedStageIndex !== null ||
+    !!selectedTeamId
 
-  const gridCols = showLeftSidebar && hasRightSidebar ? 'grid-cols-[240px_1fr_320px]'
-                 : showLeftSidebar ? 'grid-cols-[240px_1fr]'
-                 : hasRightSidebar ? 'grid-cols-[1fr_320px]'
-                 : 'grid-cols-[1fr]'
+  const gridCols =
+    showLeftSidebar && hasRightSidebar
+      ? 'grid-cols-[240px_1fr_320px]'
+      : showLeftSidebar
+        ? 'grid-cols-[240px_1fr]'
+        : hasRightSidebar
+          ? 'grid-cols-[1fr_320px]'
+          : 'grid-cols-[1fr]'
 
   const toggleSidebar = () => {
-    setIsSidebarCollapsed(prev => {
+    setIsSidebarCollapsed((prev) => {
       const newValue = !prev
       localStorage.setItem('contextflow.sidebar.collapsed', String(newValue))
       return newValue
@@ -185,9 +203,9 @@ function Workspace() {
       )}
 
       {/* Offline blocking modal for shared projects */}
-      {route === 'shared-project' && !isLoadingSharedProject && (connectionState === 'offline' || connectionState === 'error') && (
-        <OfflineBlockingModal />
-      )}
+      {route === 'shared-project' &&
+        !isLoadingSharedProject &&
+        (connectionState === 'offline' || connectionState === 'error') && <OfflineBlockingModal />}
 
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
         {/* Left Sidebar - collapsible, with Repos/Teams tabs */}
@@ -220,7 +238,15 @@ function Workspace() {
                   onClick={toggleSidebar}
                   className="px-2 py-2 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
                     <path d="M9 3L3 9M3 3l6 6" />
                   </svg>
                 </button>
@@ -228,13 +254,23 @@ function Workspace() {
             ) : (
               <div className="flex items-center justify-between p-4 pb-2">
                 <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-                  {activeTab === 'repos' ? `Unassigned Repos (${unassignedRepos.length})` : `Teams (${project?.teams?.length ?? 0})`}
+                  {activeTab === 'repos'
+                    ? `Unassigned Repos (${unassignedRepos.length})`
+                    : `Teams (${project?.teams?.length ?? 0})`}
                 </div>
                 <button
                   onClick={toggleSidebar}
                   className="p-1 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
                     <path d="M9 3L3 9M3 3l6 6" />
                   </svg>
                 </button>
@@ -273,7 +309,15 @@ function Workspace() {
               className="absolute left-2 top-2 z-10 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded px-2 py-1.5 text-xs text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:text-slate-700 dark:hover:text-slate-300 shadow-sm"
             >
               <div className="flex items-center gap-1">
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
                   <path d="M4 9l3-3-3-3" />
                 </svg>
                 <span className="font-medium">
@@ -286,7 +330,15 @@ function Workspace() {
         </section>
 
         {/* Inspector Panel - shown when context, group, user, userNeed, relationship, connection, stage, or team is selected */}
-        {(selectedContextId || selectedGroupId || selectedUserId || selectedUserNeedId || selectedRelationshipId || selectedUserNeedConnectionId || selectedNeedContextConnectionId || selectedStageIndex !== null || selectedTeamId) && (
+        {(selectedContextId ||
+          selectedGroupId ||
+          selectedUserId ||
+          selectedUserNeedId ||
+          selectedRelationshipId ||
+          selectedUserNeedConnectionId ||
+          selectedNeedContextConnectionId ||
+          selectedStageIndex !== null ||
+          selectedTeamId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>

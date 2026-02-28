@@ -1,8 +1,24 @@
-import * as Y from 'yjs';
-import type { Project, BoundedContext, Relationship, Group, FlowStageMarker, User, UserNeed, UserNeedConnection, NeedContextConnection, TemporalKeyframe, Team, Repo, Person, Issue, IssueSeverity } from '../types';
-import { projectToYDoc, yDocToProject } from './projectSync';
-import { SyncManager } from './syncManager';
-import { CollabUndoManager, createUndoManager } from './undoManager';
+import * as Y from 'yjs'
+import type {
+  Project,
+  BoundedContext,
+  Relationship,
+  Group,
+  FlowStageMarker,
+  User,
+  UserNeed,
+  UserNeedConnection,
+  NeedContextConnection,
+  TemporalKeyframe,
+  Team,
+  Repo,
+  Person,
+  Issue,
+  IssueSeverity,
+} from '../types'
+import { projectToYDoc, yDocToProject } from './projectSync'
+import { SyncManager } from './syncManager'
+import { CollabUndoManager, createUndoManager } from './undoManager'
 import {
   addContextMutation,
   updateContextMutation,
@@ -11,12 +27,12 @@ import {
   addContextIssueMutation,
   updateContextIssueMutation,
   deleteContextIssueMutation,
-} from './contextMutations';
+} from './contextMutations'
 import {
   addRelationshipMutation,
   updateRelationshipMutation,
   deleteRelationshipMutation,
-} from './relationshipMutations';
+} from './relationshipMutations'
 import {
   addGroupMutation,
   updateGroupMutation,
@@ -24,24 +40,24 @@ import {
   addContextToGroupMutation,
   addContextsToGroupMutation,
   removeContextFromGroupMutation,
-} from './groupMutations';
+} from './groupMutations'
 import {
   addFlowStageMutation,
   updateFlowStageMutation,
   deleteFlowStageMutation,
-} from './flowMutations';
+} from './flowMutations'
 import {
   addUserMutation,
   updateUserMutation,
   deleteUserMutation,
   updateUserPositionMutation,
-} from './userMutations';
+} from './userMutations'
 import {
   addUserNeedMutation,
   updateUserNeedMutation,
   deleteUserNeedMutation,
   updateUserNeedPositionMutation,
-} from './userNeedMutations';
+} from './userNeedMutations'
 import {
   addUserNeedConnectionMutation,
   updateUserNeedConnectionMutation,
@@ -49,14 +65,14 @@ import {
   addNeedContextConnectionMutation,
   updateNeedContextConnectionMutation,
   deleteNeedContextConnectionMutation,
-} from './connectionMutations';
+} from './connectionMutations'
 import {
   addKeyframeMutation,
   updateKeyframeMutation,
   deleteKeyframeMutation,
   updateKeyframeContextPositionMutation,
   toggleTemporalMutation,
-} from './keyframeMutations';
+} from './keyframeMutations'
 import {
   addTeamMutation,
   updateTeamMutation,
@@ -67,580 +83,601 @@ import {
   addPersonMutation,
   updatePersonMutation,
   deletePersonMutation,
-} from './metadataMutations';
-import { renameProjectMutation } from './projectMutations';
+} from './metadataMutations'
+import { renameProjectMutation } from './projectMutations'
 
 export interface CollabStoreOptions {
-  onProjectChange?: (project: Project) => void;
+  onProjectChange?: (project: Project) => void
 }
 
 export interface CollabStore {
-  getYDoc(): Y.Doc;
-  getProject(): Project;
-  addContext(context: BoundedContext): void;
-  updateContext(contextId: string, updates: Partial<BoundedContext>): void;
-  deleteContext(contextId: string): void;
-  updateContextPosition(contextId: string, positions: BoundedContext['positions']): void;
-  addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue;
-  updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void;
-  deleteContextIssue(contextId: string, issueId: string): void;
-  addRelationship(relationship: Relationship): void;
-  updateRelationship(relationshipId: string, updates: Partial<Relationship>): void;
-  deleteRelationship(relationshipId: string): void;
-  addGroup(group: Group): void;
-  updateGroup(groupId: string, updates: Partial<Group>): void;
-  deleteGroup(groupId: string): void;
-  addContextToGroup(groupId: string, contextId: string): void;
-  addContextsToGroup(groupId: string, contextIds: string[]): void;
-  removeContextFromGroup(groupId: string, contextId: string): void;
-  addFlowStage(stage: FlowStageMarker): void;
-  updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void;
-  deleteFlowStage(stageIndex: number): void;
-  addUser(user: User): void;
-  updateUser(userId: string, updates: Partial<User>): void;
-  deleteUser(userId: string): void;
-  updateUserPosition(userId: string, position: number): void;
-  addUserNeed(userNeed: UserNeed): void;
-  updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void;
-  deleteUserNeed(userNeedId: string): void;
-  updateUserNeedPosition(userNeedId: string, position: number): void;
-  addUserNeedConnection(connection: UserNeedConnection): void;
-  updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void;
-  deleteUserNeedConnection(connectionId: string): void;
-  addNeedContextConnection(connection: NeedContextConnection): void;
-  updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void;
-  deleteNeedContextConnection(connectionId: string): void;
-  addKeyframe(keyframe: TemporalKeyframe): void;
-  updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void;
-  deleteKeyframe(keyframeId: string): void;
-  updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void;
-  toggleTemporal(enabled: boolean): void;
-  addTeam(team: Team): void;
-  updateTeam(teamId: string, updates: Partial<Team>): void;
-  deleteTeam(teamId: string): void;
-  addRepo(repo: Repo): void;
-  updateRepo(repoId: string, updates: Partial<Repo>): void;
-  deleteRepo(repoId: string): void;
-  addPerson(person: Person): void;
-  updatePerson(personId: string, updates: Partial<Person>): void;
-  deletePerson(personId: string): void;
-  renameProject(name: string): void;
-  canUndo(): boolean;
-  canRedo(): boolean;
-  undo(): void;
-  redo(): void;
-  reset(project: Project): void;
-  destroy(): void;
+  getYDoc(): Y.Doc
+  getProject(): Project
+  addContext(context: BoundedContext): void
+  updateContext(contextId: string, updates: Partial<BoundedContext>): void
+  deleteContext(contextId: string): void
+  updateContextPosition(contextId: string, positions: BoundedContext['positions']): void
+  addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue
+  updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void
+  deleteContextIssue(contextId: string, issueId: string): void
+  addRelationship(relationship: Relationship): void
+  updateRelationship(relationshipId: string, updates: Partial<Relationship>): void
+  deleteRelationship(relationshipId: string): void
+  addGroup(group: Group): void
+  updateGroup(groupId: string, updates: Partial<Group>): void
+  deleteGroup(groupId: string): void
+  addContextToGroup(groupId: string, contextId: string): void
+  addContextsToGroup(groupId: string, contextIds: string[]): void
+  removeContextFromGroup(groupId: string, contextId: string): void
+  addFlowStage(stage: FlowStageMarker): void
+  updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void
+  deleteFlowStage(stageIndex: number): void
+  addUser(user: User): void
+  updateUser(userId: string, updates: Partial<User>): void
+  deleteUser(userId: string): void
+  updateUserPosition(userId: string, position: number): void
+  addUserNeed(userNeed: UserNeed): void
+  updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void
+  deleteUserNeed(userNeedId: string): void
+  updateUserNeedPosition(userNeedId: string, position: number): void
+  addUserNeedConnection(connection: UserNeedConnection): void
+  updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void
+  deleteUserNeedConnection(connectionId: string): void
+  addNeedContextConnection(connection: NeedContextConnection): void
+  updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void
+  deleteNeedContextConnection(connectionId: string): void
+  addKeyframe(keyframe: TemporalKeyframe): void
+  updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void
+  deleteKeyframe(keyframeId: string): void
+  updateKeyframeContextPosition(
+    keyframeId: string,
+    contextId: string,
+    position: { x: number; y: number }
+  ): void
+  toggleTemporal(enabled: boolean): void
+  addTeam(team: Team): void
+  updateTeam(teamId: string, updates: Partial<Team>): void
+  deleteTeam(teamId: string): void
+  addRepo(repo: Repo): void
+  updateRepo(repoId: string, updates: Partial<Repo>): void
+  deleteRepo(repoId: string): void
+  addPerson(person: Person): void
+  updatePerson(personId: string, updates: Partial<Person>): void
+  deletePerson(personId: string): void
+  renameProject(name: string): void
+  canUndo(): boolean
+  canRedo(): boolean
+  undo(): void
+  redo(): void
+  reset(project: Project): void
+  destroy(): void
 }
 
 export function useCollabStore(project: Project, options: CollabStoreOptions = {}): CollabStore {
-  let ydoc = projectToYDoc(project);
-  let syncManager: SyncManager | null = null;
-  let undoManager: CollabUndoManager | null = null;
-  let isDestroyed = false;
+  let ydoc = projectToYDoc(project)
+  let syncManager: SyncManager | null = null
+  let undoManager: CollabUndoManager | null = null
+  let isDestroyed = false
 
   const handleProjectChange = (updatedProject: Project): void => {
     if (options.onProjectChange) {
-      options.onProjectChange(updatedProject);
+      options.onProjectChange(updatedProject)
     }
-  };
+  }
 
-  syncManager = new SyncManager(ydoc, handleProjectChange);
-  undoManager = createUndoManager(ydoc);
+  syncManager = new SyncManager(ydoc, handleProjectChange)
+  undoManager = createUndoManager(ydoc)
 
   const store: CollabStore = {
     getYDoc(): Y.Doc {
-      return ydoc;
+      return ydoc
     },
 
     getProject(): Project {
-      return yDocToProject(ydoc);
+      return yDocToProject(ydoc)
     },
 
     addContext(context: BoundedContext): void {
-      addContextMutation(ydoc, context);
+      addContextMutation(ydoc, context)
     },
 
     updateContext(contextId: string, updates: Partial<BoundedContext>): void {
-      updateContextMutation(ydoc, contextId, updates);
+      updateContextMutation(ydoc, contextId, updates)
     },
 
     deleteContext(contextId: string): void {
-      deleteContextMutation(ydoc, contextId);
+      deleteContextMutation(ydoc, contextId)
     },
 
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
-      updateContextPositionMutation(ydoc, contextId, positions);
+      updateContextPositionMutation(ydoc, contextId, positions)
     },
 
     addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue {
-      return addContextIssueMutation(ydoc, contextId, title, severity);
+      return addContextIssueMutation(ydoc, contextId, title, severity)
     },
 
     updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void {
-      updateContextIssueMutation(ydoc, contextId, issueId, updates);
+      updateContextIssueMutation(ydoc, contextId, issueId, updates)
     },
 
     deleteContextIssue(contextId: string, issueId: string): void {
-      deleteContextIssueMutation(ydoc, contextId, issueId);
+      deleteContextIssueMutation(ydoc, contextId, issueId)
     },
 
     addRelationship(relationship: Relationship): void {
-      addRelationshipMutation(ydoc, relationship);
+      addRelationshipMutation(ydoc, relationship)
     },
 
     updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
-      updateRelationshipMutation(ydoc, relationshipId, updates);
+      updateRelationshipMutation(ydoc, relationshipId, updates)
     },
 
     deleteRelationship(relationshipId: string): void {
-      deleteRelationshipMutation(ydoc, relationshipId);
+      deleteRelationshipMutation(ydoc, relationshipId)
     },
 
     addGroup(group: Group): void {
-      addGroupMutation(ydoc, group);
+      addGroupMutation(ydoc, group)
     },
 
     updateGroup(groupId: string, updates: Partial<Group>): void {
-      updateGroupMutation(ydoc, groupId, updates);
+      updateGroupMutation(ydoc, groupId, updates)
     },
 
     deleteGroup(groupId: string): void {
-      deleteGroupMutation(ydoc, groupId);
+      deleteGroupMutation(ydoc, groupId)
     },
 
     addContextToGroup(groupId: string, contextId: string): void {
-      addContextToGroupMutation(ydoc, groupId, contextId);
+      addContextToGroupMutation(ydoc, groupId, contextId)
     },
 
     addContextsToGroup(groupId: string, contextIds: string[]): void {
-      addContextsToGroupMutation(ydoc, groupId, contextIds);
+      addContextsToGroupMutation(ydoc, groupId, contextIds)
     },
 
     removeContextFromGroup(groupId: string, contextId: string): void {
-      removeContextFromGroupMutation(ydoc, groupId, contextId);
+      removeContextFromGroupMutation(ydoc, groupId, contextId)
     },
 
     addFlowStage(stage: FlowStageMarker): void {
-      addFlowStageMutation(ydoc, stage);
+      addFlowStageMutation(ydoc, stage)
     },
 
     updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void {
-      updateFlowStageMutation(ydoc, stageIndex, updates);
+      updateFlowStageMutation(ydoc, stageIndex, updates)
     },
 
     deleteFlowStage(stageIndex: number): void {
-      deleteFlowStageMutation(ydoc, stageIndex);
+      deleteFlowStageMutation(ydoc, stageIndex)
     },
 
     addUser(user: User): void {
-      addUserMutation(ydoc, user);
+      addUserMutation(ydoc, user)
     },
 
     updateUser(userId: string, updates: Partial<User>): void {
-      updateUserMutation(ydoc, userId, updates);
+      updateUserMutation(ydoc, userId, updates)
     },
 
     deleteUser(userId: string): void {
-      deleteUserMutation(ydoc, userId);
+      deleteUserMutation(ydoc, userId)
     },
 
     updateUserPosition(userId: string, position: number): void {
-      updateUserPositionMutation(ydoc, userId, position);
+      updateUserPositionMutation(ydoc, userId, position)
     },
 
     addUserNeed(userNeed: UserNeed): void {
-      addUserNeedMutation(ydoc, userNeed);
+      addUserNeedMutation(ydoc, userNeed)
     },
 
     updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void {
-      updateUserNeedMutation(ydoc, userNeedId, updates);
+      updateUserNeedMutation(ydoc, userNeedId, updates)
     },
 
     deleteUserNeed(userNeedId: string): void {
-      deleteUserNeedMutation(ydoc, userNeedId);
+      deleteUserNeedMutation(ydoc, userNeedId)
     },
 
     updateUserNeedPosition(userNeedId: string, position: number): void {
-      updateUserNeedPositionMutation(ydoc, userNeedId, position);
+      updateUserNeedPositionMutation(ydoc, userNeedId, position)
     },
 
     addUserNeedConnection(connection: UserNeedConnection): void {
-      addUserNeedConnectionMutation(ydoc, connection);
+      addUserNeedConnectionMutation(ydoc, connection)
     },
 
     updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void {
-      updateUserNeedConnectionMutation(ydoc, connectionId, updates);
+      updateUserNeedConnectionMutation(ydoc, connectionId, updates)
     },
 
     deleteUserNeedConnection(connectionId: string): void {
-      deleteUserNeedConnectionMutation(ydoc, connectionId);
+      deleteUserNeedConnectionMutation(ydoc, connectionId)
     },
 
     addNeedContextConnection(connection: NeedContextConnection): void {
-      addNeedContextConnectionMutation(ydoc, connection);
+      addNeedContextConnectionMutation(ydoc, connection)
     },
 
-    updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void {
-      updateNeedContextConnectionMutation(ydoc, connectionId, updates);
+    updateNeedContextConnection(
+      connectionId: string,
+      updates: Partial<NeedContextConnection>
+    ): void {
+      updateNeedContextConnectionMutation(ydoc, connectionId, updates)
     },
 
     deleteNeedContextConnection(connectionId: string): void {
-      deleteNeedContextConnectionMutation(ydoc, connectionId);
+      deleteNeedContextConnectionMutation(ydoc, connectionId)
     },
 
     addKeyframe(keyframe: TemporalKeyframe): void {
-      addKeyframeMutation(ydoc, keyframe);
+      addKeyframeMutation(ydoc, keyframe)
     },
 
     updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void {
-      updateKeyframeMutation(ydoc, keyframeId, updates);
+      updateKeyframeMutation(ydoc, keyframeId, updates)
     },
 
     deleteKeyframe(keyframeId: string): void {
-      deleteKeyframeMutation(ydoc, keyframeId);
+      deleteKeyframeMutation(ydoc, keyframeId)
     },
 
-    updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
-      updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position);
+    updateKeyframeContextPosition(
+      keyframeId: string,
+      contextId: string,
+      position: { x: number; y: number }
+    ): void {
+      updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position)
     },
 
     toggleTemporal(enabled: boolean): void {
-      toggleTemporalMutation(ydoc, enabled);
+      toggleTemporalMutation(ydoc, enabled)
     },
 
     addTeam(team: Team): void {
-      addTeamMutation(ydoc, team);
+      addTeamMutation(ydoc, team)
     },
 
     updateTeam(teamId: string, updates: Partial<Team>): void {
-      updateTeamMutation(ydoc, teamId, updates);
+      updateTeamMutation(ydoc, teamId, updates)
     },
 
     deleteTeam(teamId: string): void {
-      deleteTeamMutation(ydoc, teamId);
+      deleteTeamMutation(ydoc, teamId)
     },
 
     addRepo(repo: Repo): void {
-      addRepoMutation(ydoc, repo);
+      addRepoMutation(ydoc, repo)
     },
 
     updateRepo(repoId: string, updates: Partial<Repo>): void {
-      updateRepoMutation(ydoc, repoId, updates);
+      updateRepoMutation(ydoc, repoId, updates)
     },
 
     deleteRepo(repoId: string): void {
-      deleteRepoMutation(ydoc, repoId);
+      deleteRepoMutation(ydoc, repoId)
     },
 
     addPerson(person: Person): void {
-      addPersonMutation(ydoc, person);
+      addPersonMutation(ydoc, person)
     },
 
     updatePerson(personId: string, updates: Partial<Person>): void {
-      updatePersonMutation(ydoc, personId, updates);
+      updatePersonMutation(ydoc, personId, updates)
     },
 
     deletePerson(personId: string): void {
-      deletePersonMutation(ydoc, personId);
+      deletePersonMutation(ydoc, personId)
     },
 
     renameProject(name: string): void {
-      renameProjectMutation(ydoc, name);
+      renameProjectMutation(ydoc, name)
     },
 
     canUndo(): boolean {
-      return undoManager?.canUndo() ?? false;
+      return undoManager?.canUndo() ?? false
     },
 
     canRedo(): boolean {
-      return undoManager?.canRedo() ?? false;
+      return undoManager?.canRedo() ?? false
     },
 
     undo(): void {
-      undoManager?.undo();
+      undoManager?.undo()
     },
 
     redo(): void {
-      undoManager?.redo();
+      undoManager?.redo()
     },
 
     reset(newProject: Project): void {
-      syncManager?.destroy();
-      undoManager?.destroy();
+      syncManager?.destroy()
+      undoManager?.destroy()
 
-      ydoc = projectToYDoc(newProject);
-      syncManager = new SyncManager(ydoc, handleProjectChange);
-      undoManager = createUndoManager(ydoc);
+      ydoc = projectToYDoc(newProject)
+      syncManager = new SyncManager(ydoc, handleProjectChange)
+      undoManager = createUndoManager(ydoc)
     },
 
     destroy(): void {
-      if (isDestroyed) return;
-      isDestroyed = true;
+      if (isDestroyed) return
+      isDestroyed = true
 
-      syncManager?.destroy();
-      syncManager = null;
+      syncManager?.destroy()
+      syncManager = null
 
-      undoManager?.destroy();
-      undoManager = null;
+      undoManager?.destroy()
+      undoManager = null
     },
-  };
+  }
 
-  return store;
+  return store
 }
 
 /**
  * Creates a CollabStore from an existing Y.Doc.
  * Use this when you have a Y.Doc from a network provider and want to attach mutation handlers.
  */
-export function createCollabStoreFromYDoc(ydoc: Y.Doc, options: CollabStoreOptions = {}): CollabStore {
-  let syncManager: SyncManager | null = null;
-  let undoManager: CollabUndoManager | null = null;
-  let isDestroyed = false;
+export function createCollabStoreFromYDoc(
+  ydoc: Y.Doc,
+  options: CollabStoreOptions = {}
+): CollabStore {
+  let syncManager: SyncManager | null = null
+  let undoManager: CollabUndoManager | null = null
+  let isDestroyed = false
 
   const handleProjectChange = (updatedProject: Project): void => {
     if (options.onProjectChange) {
-      options.onProjectChange(updatedProject);
+      options.onProjectChange(updatedProject)
     }
-  };
+  }
 
-  syncManager = new SyncManager(ydoc, handleProjectChange);
-  undoManager = createUndoManager(ydoc);
+  syncManager = new SyncManager(ydoc, handleProjectChange)
+  undoManager = createUndoManager(ydoc)
 
   const store: CollabStore = {
     getYDoc(): Y.Doc {
-      return ydoc;
+      return ydoc
     },
 
     getProject(): Project {
-      return yDocToProject(ydoc);
+      return yDocToProject(ydoc)
     },
 
     addContext(context: BoundedContext): void {
-      addContextMutation(ydoc, context);
+      addContextMutation(ydoc, context)
     },
 
     updateContext(contextId: string, updates: Partial<BoundedContext>): void {
-      updateContextMutation(ydoc, contextId, updates);
+      updateContextMutation(ydoc, contextId, updates)
     },
 
     deleteContext(contextId: string): void {
-      deleteContextMutation(ydoc, contextId);
+      deleteContextMutation(ydoc, contextId)
     },
 
     updateContextPosition(contextId: string, positions: BoundedContext['positions']): void {
-      updateContextPositionMutation(ydoc, contextId, positions);
+      updateContextPositionMutation(ydoc, contextId, positions)
     },
 
     addContextIssue(contextId: string, title: string, severity?: IssueSeverity): Issue {
-      return addContextIssueMutation(ydoc, contextId, title, severity);
+      return addContextIssueMutation(ydoc, contextId, title, severity)
     },
 
     updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void {
-      updateContextIssueMutation(ydoc, contextId, issueId, updates);
+      updateContextIssueMutation(ydoc, contextId, issueId, updates)
     },
 
     deleteContextIssue(contextId: string, issueId: string): void {
-      deleteContextIssueMutation(ydoc, contextId, issueId);
+      deleteContextIssueMutation(ydoc, contextId, issueId)
     },
 
     addRelationship(relationship: Relationship): void {
-      addRelationshipMutation(ydoc, relationship);
+      addRelationshipMutation(ydoc, relationship)
     },
 
     updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
-      updateRelationshipMutation(ydoc, relationshipId, updates);
+      updateRelationshipMutation(ydoc, relationshipId, updates)
     },
 
     deleteRelationship(relationshipId: string): void {
-      deleteRelationshipMutation(ydoc, relationshipId);
+      deleteRelationshipMutation(ydoc, relationshipId)
     },
 
     addGroup(group: Group): void {
-      addGroupMutation(ydoc, group);
+      addGroupMutation(ydoc, group)
     },
 
     updateGroup(groupId: string, updates: Partial<Group>): void {
-      updateGroupMutation(ydoc, groupId, updates);
+      updateGroupMutation(ydoc, groupId, updates)
     },
 
     deleteGroup(groupId: string): void {
-      deleteGroupMutation(ydoc, groupId);
+      deleteGroupMutation(ydoc, groupId)
     },
 
     addContextToGroup(groupId: string, contextId: string): void {
-      addContextToGroupMutation(ydoc, groupId, contextId);
+      addContextToGroupMutation(ydoc, groupId, contextId)
     },
 
     addContextsToGroup(groupId: string, contextIds: string[]): void {
-      addContextsToGroupMutation(ydoc, groupId, contextIds);
+      addContextsToGroupMutation(ydoc, groupId, contextIds)
     },
 
     removeContextFromGroup(groupId: string, contextId: string): void {
-      removeContextFromGroupMutation(ydoc, groupId, contextId);
+      removeContextFromGroupMutation(ydoc, groupId, contextId)
     },
 
     addFlowStage(stage: FlowStageMarker): void {
-      addFlowStageMutation(ydoc, stage);
+      addFlowStageMutation(ydoc, stage)
     },
 
     updateFlowStage(stageIndex: number, updates: Partial<FlowStageMarker>): void {
-      updateFlowStageMutation(ydoc, stageIndex, updates);
+      updateFlowStageMutation(ydoc, stageIndex, updates)
     },
 
     deleteFlowStage(stageIndex: number): void {
-      deleteFlowStageMutation(ydoc, stageIndex);
+      deleteFlowStageMutation(ydoc, stageIndex)
     },
 
     addUser(user: User): void {
-      addUserMutation(ydoc, user);
+      addUserMutation(ydoc, user)
     },
 
     updateUser(userId: string, updates: Partial<User>): void {
-      updateUserMutation(ydoc, userId, updates);
+      updateUserMutation(ydoc, userId, updates)
     },
 
     deleteUser(userId: string): void {
-      deleteUserMutation(ydoc, userId);
+      deleteUserMutation(ydoc, userId)
     },
 
     updateUserPosition(userId: string, position: number): void {
-      updateUserPositionMutation(ydoc, userId, position);
+      updateUserPositionMutation(ydoc, userId, position)
     },
 
     addUserNeed(userNeed: UserNeed): void {
-      addUserNeedMutation(ydoc, userNeed);
+      addUserNeedMutation(ydoc, userNeed)
     },
 
     updateUserNeed(userNeedId: string, updates: Partial<UserNeed>): void {
-      updateUserNeedMutation(ydoc, userNeedId, updates);
+      updateUserNeedMutation(ydoc, userNeedId, updates)
     },
 
     deleteUserNeed(userNeedId: string): void {
-      deleteUserNeedMutation(ydoc, userNeedId);
+      deleteUserNeedMutation(ydoc, userNeedId)
     },
 
     updateUserNeedPosition(userNeedId: string, position: number): void {
-      updateUserNeedPositionMutation(ydoc, userNeedId, position);
+      updateUserNeedPositionMutation(ydoc, userNeedId, position)
     },
 
     addUserNeedConnection(connection: UserNeedConnection): void {
-      addUserNeedConnectionMutation(ydoc, connection);
+      addUserNeedConnectionMutation(ydoc, connection)
     },
 
     updateUserNeedConnection(connectionId: string, updates: Partial<UserNeedConnection>): void {
-      updateUserNeedConnectionMutation(ydoc, connectionId, updates);
+      updateUserNeedConnectionMutation(ydoc, connectionId, updates)
     },
 
     deleteUserNeedConnection(connectionId: string): void {
-      deleteUserNeedConnectionMutation(ydoc, connectionId);
+      deleteUserNeedConnectionMutation(ydoc, connectionId)
     },
 
     addNeedContextConnection(connection: NeedContextConnection): void {
-      addNeedContextConnectionMutation(ydoc, connection);
+      addNeedContextConnectionMutation(ydoc, connection)
     },
 
-    updateNeedContextConnection(connectionId: string, updates: Partial<NeedContextConnection>): void {
-      updateNeedContextConnectionMutation(ydoc, connectionId, updates);
+    updateNeedContextConnection(
+      connectionId: string,
+      updates: Partial<NeedContextConnection>
+    ): void {
+      updateNeedContextConnectionMutation(ydoc, connectionId, updates)
     },
 
     deleteNeedContextConnection(connectionId: string): void {
-      deleteNeedContextConnectionMutation(ydoc, connectionId);
+      deleteNeedContextConnectionMutation(ydoc, connectionId)
     },
 
     addKeyframe(keyframe: TemporalKeyframe): void {
-      addKeyframeMutation(ydoc, keyframe);
+      addKeyframeMutation(ydoc, keyframe)
     },
 
     updateKeyframe(keyframeId: string, updates: Partial<TemporalKeyframe>): void {
-      updateKeyframeMutation(ydoc, keyframeId, updates);
+      updateKeyframeMutation(ydoc, keyframeId, updates)
     },
 
     deleteKeyframe(keyframeId: string): void {
-      deleteKeyframeMutation(ydoc, keyframeId);
+      deleteKeyframeMutation(ydoc, keyframeId)
     },
 
-    updateKeyframeContextPosition(keyframeId: string, contextId: string, position: { x: number; y: number }): void {
-      updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position);
+    updateKeyframeContextPosition(
+      keyframeId: string,
+      contextId: string,
+      position: { x: number; y: number }
+    ): void {
+      updateKeyframeContextPositionMutation(ydoc, keyframeId, contextId, position)
     },
 
     toggleTemporal(enabled: boolean): void {
-      toggleTemporalMutation(ydoc, enabled);
+      toggleTemporalMutation(ydoc, enabled)
     },
 
     addTeam(team: Team): void {
-      addTeamMutation(ydoc, team);
+      addTeamMutation(ydoc, team)
     },
 
     updateTeam(teamId: string, updates: Partial<Team>): void {
-      updateTeamMutation(ydoc, teamId, updates);
+      updateTeamMutation(ydoc, teamId, updates)
     },
 
     deleteTeam(teamId: string): void {
-      deleteTeamMutation(ydoc, teamId);
+      deleteTeamMutation(ydoc, teamId)
     },
 
     addRepo(repo: Repo): void {
-      addRepoMutation(ydoc, repo);
+      addRepoMutation(ydoc, repo)
     },
 
     updateRepo(repoId: string, updates: Partial<Repo>): void {
-      updateRepoMutation(ydoc, repoId, updates);
+      updateRepoMutation(ydoc, repoId, updates)
     },
 
     deleteRepo(repoId: string): void {
-      deleteRepoMutation(ydoc, repoId);
+      deleteRepoMutation(ydoc, repoId)
     },
 
     addPerson(person: Person): void {
-      addPersonMutation(ydoc, person);
+      addPersonMutation(ydoc, person)
     },
 
     updatePerson(personId: string, updates: Partial<Person>): void {
-      updatePersonMutation(ydoc, personId, updates);
+      updatePersonMutation(ydoc, personId, updates)
     },
 
     deletePerson(personId: string): void {
-      deletePersonMutation(ydoc, personId);
+      deletePersonMutation(ydoc, personId)
     },
 
     renameProject(name: string): void {
-      renameProjectMutation(ydoc, name);
+      renameProjectMutation(ydoc, name)
     },
 
     canUndo(): boolean {
-      return undoManager?.canUndo() ?? false;
+      return undoManager?.canUndo() ?? false
     },
 
     canRedo(): boolean {
-      return undoManager?.canRedo() ?? false;
+      return undoManager?.canRedo() ?? false
     },
 
     undo(): void {
-      undoManager?.undo();
+      undoManager?.undo()
     },
 
     redo(): void {
-      undoManager?.redo();
+      undoManager?.redo()
     },
 
     reset(_newProject: Project): void {
       // For network-connected docs, reset is not supported
       // The Y.Doc is managed by the network provider
-      console.warn('reset() is not supported for network-connected CollabStore');
+      console.warn('reset() is not supported for network-connected CollabStore')
     },
 
     destroy(): void {
-      if (isDestroyed) return;
-      isDestroyed = true;
+      if (isDestroyed) return
+      isDestroyed = true
 
-      syncManager?.destroy();
-      syncManager = null;
+      syncManager?.destroy()
+      syncManager = null
 
-      undoManager?.destroy();
-      undoManager = null;
+      undoManager?.destroy()
+      undoManager = null
     },
-  };
+  }
 
-  return store;
+  return store
 }

@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { useEditorStore } from '../../model/store'
 import { Switch } from '../Switch'
-import { isAnalyticsEnabled, setAnalyticsEnabled, getAnalyticsPreference, getDeploymentContext } from '../../utils/analytics'
+import {
+  isAnalyticsEnabled,
+  setAnalyticsEnabled,
+  getAnalyticsPreference,
+  getDeploymentContext,
+} from '../../utils/analytics'
 import { ChevronRight } from 'lucide-react'
 
 interface SettingsHelpProps {
@@ -10,8 +15,8 @@ interface SettingsHelpProps {
 }
 
 export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: SettingsHelpProps) {
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
-  const toggleHelpTooltips = useEditorStore(s => s.toggleHelpTooltips)
+  const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
+  const toggleHelpTooltips = useEditorStore((s) => s.toggleHelpTooltips)
   const [analyticsOn, setAnalyticsOn] = useState(isAnalyticsEnabled)
   const [showDetails, setShowDetails] = useState(false)
 
@@ -51,7 +56,9 @@ export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: 
       </p>
 
       <div className="flex items-center justify-between mt-3">
-        <span className="text-xs text-slate-600 dark:text-slate-400">Anonymous usage analytics</span>
+        <span className="text-xs text-slate-600 dark:text-slate-400">
+          Anonymous usage analytics
+        </span>
         <Switch checked={analyticsOn} onCheckedChange={handleAnalyticsToggle} />
       </div>
       <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
@@ -62,7 +69,7 @@ export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: 
       </p>
 
       <button
-        onClick={() => setShowDetails(v => !v)}
+        onClick={() => setShowDetails((v) => !v)}
         className="flex items-center gap-0.5 mt-2 text-[10px] text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
       >
         <ChevronRight

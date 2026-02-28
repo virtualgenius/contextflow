@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  getContextNodeBorderStyle,
-  parseRgbColor,
-} from '../nodeStyles'
+import { getContextNodeBorderStyle, parseRgbColor } from '../nodeStyles'
 
 describe('getContextNodeBorderStyle', () => {
   describe('border width by boundary integrity', () => {
@@ -12,7 +9,12 @@ describe('getContextNodeBorderStyle', () => {
     })
 
     it('returns 2px for moderate integrity', () => {
-      const result = getContextNodeBorderStyle({ boundaryIntegrity: 'moderate' }, false, false, false)
+      const result = getContextNodeBorderStyle(
+        { boundaryIntegrity: 'moderate' },
+        false,
+        false,
+        false
+      )
       expect(result.borderWidth).toBe('2px')
     })
 
@@ -39,7 +41,12 @@ describe('getContextNodeBorderStyle', () => {
     })
 
     it('returns solid for moderate integrity', () => {
-      const result = getContextNodeBorderStyle({ boundaryIntegrity: 'moderate' }, false, false, false)
+      const result = getContextNodeBorderStyle(
+        { boundaryIntegrity: 'moderate' },
+        false,
+        false,
+        false
+      )
       expect(result.borderStyle).toBe('solid')
     })
   })

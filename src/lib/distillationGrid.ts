@@ -34,12 +34,15 @@ export function needsRedistribution(contexts: BoundedContext[]): boolean {
   )
 }
 
-export function findFirstUnoccupiedGridPosition(contexts: BoundedContext[]): { x: number; y: number } {
+export function findFirstUnoccupiedGridPosition(contexts: BoundedContext[]): {
+  x: number
+  y: number
+} {
   const MAX_ITERATIONS = 50
 
   for (let index = 0; index < MAX_ITERATIONS; index++) {
     const gridPos = getGridPosition(index)
-    const isOccupied = contexts.some(ctx => {
+    const isOccupied = contexts.some((ctx) => {
       const dx = Math.abs(ctx.positions.distillation.x - gridPos.x)
       const dy = Math.abs(ctx.positions.distillation.y - gridPos.y)
       return dx < OCCUPIED_THRESHOLD && dy < OCCUPIED_THRESHOLD
@@ -69,12 +72,15 @@ function getFlowGridPosition(index: number): { x: number; y: number } {
   }
 }
 
-export function findFirstUnoccupiedFlowPosition(contexts: BoundedContext[]): { x: number; y: number } {
+export function findFirstUnoccupiedFlowPosition(contexts: BoundedContext[]): {
+  x: number
+  y: number
+} {
   const MAX_ITERATIONS = 50
 
   for (let index = 0; index < MAX_ITERATIONS; index++) {
     const gridPos = getFlowGridPosition(index)
-    const isOccupied = contexts.some(ctx => {
+    const isOccupied = contexts.some((ctx) => {
       const dx = Math.abs(ctx.positions.flow.x - gridPos.x)
       const dy = Math.abs(ctx.positions.shared.y - gridPos.y)
       return dx < OCCUPIED_THRESHOLD && dy < OCCUPIED_THRESHOLD

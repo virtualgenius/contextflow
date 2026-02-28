@@ -37,7 +37,10 @@ export function KeyframeEditor({ keyframe, onClose, onUpdate, onDelete }: Keyfra
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
       <div
         className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl p-6 w-96"
         onClick={(e) => e.stopPropagation()}
@@ -69,9 +72,7 @@ export function KeyframeEditor({ keyframe, onClose, onUpdate, onDelete }: Keyfra
               placeholder="2027 or 2027-Q2"
               className="w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {error && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
-            )}
+            {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
           </div>
 
           <div>

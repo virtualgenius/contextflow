@@ -25,7 +25,11 @@ function parseSvgPath(d: string): [number, number][] {
 
   for (const cmd of commands) {
     const type = cmd[0]
-    const coords = cmd.slice(1).trim().split(/[\s,]+/).map(parseFloat)
+    const coords = cmd
+      .slice(1)
+      .trim()
+      .split(/[\s,]+/)
+      .map(parseFloat)
 
     if (type === 'M' || type === 'm') {
       // MoveTo
@@ -49,14 +53,10 @@ function parseSvgPath(d: string): [number, number][] {
       // Sample 10 points along the bezier curve
       for (let t = 0.1; t <= 1; t += 0.1) {
         const mt = 1 - t
-        const x = mt * mt * mt * currentX +
-                  3 * mt * mt * t * x1 +
-                  3 * mt * t * t * x2 +
-                  t * t * t * x3
-        const y = mt * mt * mt * currentY +
-                  3 * mt * mt * t * y1 +
-                  3 * mt * t * t * y2 +
-                  t * t * t * y3
+        const x =
+          mt * mt * mt * currentX + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3
+        const y =
+          mt * mt * mt * currentY + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3
         points.push([x, y])
       }
 
@@ -120,8 +120,7 @@ function isPointInPolygon(point: [number, number], polygon: [number, number][]):
     const [xi, yi] = polygon[i]
     const [xj, yj] = polygon[j]
 
-    const intersect = ((yi > y) !== (yj > y)) &&
-                      (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+    const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
 
     if (intersect) inside = !inside
   }
@@ -186,7 +185,11 @@ function pointToSegmentDistance(
  * Returns 180° for straight line, 90° for right angle, etc.
  * Returns null for degenerate cases (very short segments).
  */
-function getSegmentAngle(p1: [number, number], p2: [number, number], p3: [number, number]): number | null {
+function getSegmentAngle(
+  p1: [number, number],
+  p2: [number, number],
+  p3: [number, number]
+): number | null {
   const v1x = p2[0] - p1[0]
   const v1y = p2[1] - p1[1]
   const v2x = p3[0] - p2[0]
@@ -271,7 +274,7 @@ describe('generateBlobPath', () => {
   it('should generate a blob path for two contexts', () => {
     const points = [
       { x: 300, y: 400, width: 140, height: 80 },
-      { x: 600, y: 400, width: 170, height: 100 }
+      { x: 600, y: 400, width: 170, height: 100 },
     ]
     const path = generateBlobPath(points, 60)
 
@@ -285,7 +288,7 @@ describe('generateBlobPath', () => {
       { x: 200, y: 300, width: 170, height: 100 },
       { x: 500, y: 200, width: 170, height: 100 },
       { x: 800, y: 300, width: 170, height: 100 },
-      { x: 650, y: 600, width: 170, height: 100 }
+      { x: 650, y: 600, width: 170, height: 100 },
     ]
     const path = generateBlobPath(points, 60)
 
@@ -298,7 +301,7 @@ describe('generateBlobPath', () => {
     const points = [
       { x: 100, y: 100, width: 120, height: 70 },
       { x: 200, y: 100, width: 120, height: 70 },
-      { x: 300, y: 100, width: 120, height: 70 }
+      { x: 300, y: 100, width: 120, height: 70 },
     ]
     const path = generateBlobPath(points, 50)
 
@@ -325,7 +328,7 @@ describe('generateBlobPath', () => {
     const points = [
       { x: 100, y: 100, width: 170, height: 100 },
       { x: 400, y: 100, width: 170, height: 100 },
-      { x: 100, y: 300, width: 170, height: 100 }
+      { x: 100, y: 300, width: 170, height: 100 },
     ]
     const padding = 40
     const path = generateBlobPath(points, padding)
@@ -378,15 +381,21 @@ describe('generateBlobPath', () => {
     const nodeLeft = context.x - context.width / 2
     const nodeTop = context.y - context.height / 2
 
-    console.log(`Node with edge at 0: center=(${context.x}, ${context.y}), left edge=${nodeLeft}, top edge=${nodeTop}`)
+    console.log(
+      `Node with edge at 0: center=(${context.x}, ${context.y}), left edge=${nodeLeft}, top edge=${nodeTop}`
+    )
     console.log(`Blob: minX=${pathMinX.toFixed(1)}, minY=${pathMinY.toFixed(1)}`)
-    console.log(`Expected: Blob should extend to at least (${nodeLeft - padding}, ${nodeTop - padding})`)
+    console.log(
+      `Expected: Blob should extend to at least (${nodeLeft - padding}, ${nodeTop - padding})`
+    )
 
-    expect(pathMinX,
+    expect(
+      pathMinX,
       `Blob left ${pathMinX.toFixed(1)} should be <= ${nodeLeft - padding} (node edge ${nodeLeft} - padding ${padding})`
     ).toBeLessThanOrEqual(nodeLeft - padding + 1)
 
-    expect(pathMinY,
+    expect(
+      pathMinY,
       `Blob top ${pathMinY.toFixed(1)} should be <= ${nodeTop - padding} (node edge ${nodeTop} - padding ${padding})`
     ).toBeLessThanOrEqual(nodeTop - padding + 1)
   })
@@ -397,11 +406,10 @@ describe('generateBlobPath', () => {
 // ============================================================================
 
 describe('generateBlobPath - encapsulation tests', () => {
-
   it('should encapsulate two horizontally aligned contexts with full padding', () => {
     const contexts = [
       { x: 100, y: 200, width: 120, height: 80 },
-      { x: 400, y: 200, width: 150, height: 90 }
+      { x: 400, y: 200, width: 150, height: 90 },
     ]
     const padding = 40
 
@@ -418,13 +426,15 @@ describe('generateBlobPath - encapsulation tests', () => {
 
       for (const point of perimeterPoints) {
         // Point must be inside blob
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should be inside blob`
         ).toBe(true)
 
         // Point must have at least 'padding' clearance from blob edge
         const distance = minDistanceToPolygonEdge(point, polygon)
-        expect(distance,
+        expect(
+          distance,
           `Context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should have ${padding}px clearance, got ${distance.toFixed(1)}px`
         ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
@@ -434,7 +444,7 @@ describe('generateBlobPath - encapsulation tests', () => {
   it('should encapsulate two vertically aligned contexts with full padding', () => {
     const contexts = [
       { x: 200, y: 100, width: 120, height: 80 },
-      { x: 200, y: 400, width: 120, height: 80 }
+      { x: 200, y: 400, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -450,12 +460,14 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(context, 20)
 
       for (const point of perimeterPoints) {
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should be inside blob`
         ).toBe(true)
 
         const distance = minDistanceToPolygonEdge(point, polygon)
-        expect(distance,
+        expect(
+          distance,
           `Context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should have ${padding}px clearance, got ${distance.toFixed(1)}px`
         ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
@@ -466,7 +478,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 200, y: 100, width: 120, height: 80 },
       { x: 100, y: 300, width: 120, height: 80 },
-      { x: 300, y: 300, width: 120, height: 80 }
+      { x: 300, y: 300, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -476,11 +488,13 @@ describe('generateBlobPath - encapsulation tests', () => {
     for (let i = 0; i < contexts.length; i++) {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Context ${i} point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should be inside blob`
         ).toBe(true)
         const distance = minDistanceToPolygonEdge(point, polygon)
-        expect(distance,
+        expect(
+          distance,
           `Context ${i} should have ${padding}px clearance, got ${distance.toFixed(1)}px`
         ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
@@ -492,7 +506,7 @@ describe('generateBlobPath - encapsulation tests', () => {
       { x: 100, y: 100, width: 120, height: 80 },
       { x: 400, y: 100, width: 120, height: 80 },
       { x: 100, y: 400, width: 120, height: 80 },
-      { x: 400, y: 400, width: 120, height: 80 }
+      { x: 400, y: 400, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -503,17 +517,18 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
 
   it('should encapsulate contexts of different sizes with uniform padding', () => {
     const contexts = [
-      { x: 100, y: 200, width: 80, height: 50 },    // small
-      { x: 300, y: 200, width: 170, height: 100 },  // medium
-      { x: 550, y: 200, width: 250, height: 150 }   // large
+      { x: 100, y: 200, width: 80, height: 50 }, // small
+      { x: 300, y: 200, width: 170, height: 100 }, // medium
+      { x: 550, y: 200, width: 250, height: 150 }, // large
     ]
     const padding = 40
 
@@ -523,11 +538,13 @@ describe('generateBlobPath - encapsulation tests', () => {
     for (let i = 0; i < contexts.length; i++) {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Context ${i} (size ${contexts[i].width}x${contexts[i].height}) point should be inside`
         ).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -536,7 +553,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 100, y: 200, width: 120, height: 80 },
       { x: 300, y: 200, width: 120, height: 80 },
-      { x: 500, y: 200, width: 120, height: 80 }
+      { x: 500, y: 200, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -547,8 +564,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -557,7 +575,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 100, y: 100, width: 120, height: 80 },
       { x: 300, y: 300, width: 120, height: 80 },
-      { x: 500, y: 500, width: 120, height: 80 }
+      { x: 500, y: 500, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -568,8 +586,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -578,7 +597,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 100, y: 100, width: 120, height: 80 },
       { x: 300, y: 100, width: 120, height: 80 },
-      { x: 300, y: 300, width: 120, height: 80 }
+      { x: 300, y: 300, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -589,8 +608,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -604,7 +624,7 @@ describe('generateBlobPath - encapsulation tests', () => {
         x: 400 + radius * Math.cos(angle),
         y: 400 + radius * Math.sin(angle),
         width: 120,
-        height: 80
+        height: 80,
       })
     }
     const padding = 40
@@ -615,11 +635,13 @@ describe('generateBlobPath - encapsulation tests', () => {
     for (let i = 0; i < contexts.length; i++) {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Context ${i} at angle ${((i / 6) * 360).toFixed(0)}° should be inside`
         ).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -628,7 +650,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 200, y: 200, width: 120, height: 80 },
       { x: 250, y: 220, width: 120, height: 80 },
-      { x: 280, y: 270, width: 120, height: 80 }
+      { x: 280, y: 270, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -639,8 +661,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -649,7 +672,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 100, y: 100, width: 120, height: 80 },
       { x: 800, y: 100, width: 120, height: 80 },
-      { x: 100, y: 700, width: 120, height: 80 }
+      { x: 100, y: 700, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -660,8 +683,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -669,7 +693,7 @@ describe('generateBlobPath - encapsulation tests', () => {
   it('should encapsulate with very small padding (5px)', () => {
     const contexts = [
       { x: 100, y: 200, width: 120, height: 80 },
-      { x: 300, y: 200, width: 120, height: 80 }
+      { x: 300, y: 200, width: 120, height: 80 },
     ]
     const padding = 5
 
@@ -680,27 +704,26 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
 
   it('should encapsulate with very large padding (200px)', () => {
-    const contexts = [
-      { x: 300, y: 300, width: 120, height: 80 }
-    ]
+    const contexts = [{ x: 300, y: 300, width: 120, height: 80 }]
     const padding = 200
 
     const path = generateBlobPath(contexts, padding)
     const polygon = parseSvgPath(path)
 
-
     const perimeterPoints = getContextPerimeterPoints(contexts[0], 20)
     for (const point of perimeterPoints) {
       expect(isPointInPolygon(point, polygon)).toBe(true)
       const distance = minDistanceToPolygonEdge(point, polygon)
-      expect(distance,
+      expect(
+        distance,
         `Point should have ~${padding}px clearance, got ${distance.toFixed(1)}px`
       ).toBeGreaterThanOrEqual(padding - LARGE_PADDING_TOLERANCE_PX)
     }
@@ -708,9 +731,9 @@ describe('generateBlobPath - encapsulation tests', () => {
 
   it('should encapsulate contexts with mixed aspect ratios', () => {
     const contexts = [
-      { x: 100, y: 300, width: 200, height: 60 },  // very wide
-      { x: 400, y: 200, width: 80, height: 200 },  // very tall
-      { x: 650, y: 300, width: 120, height: 120 }  // square
+      { x: 100, y: 300, width: 200, height: 60 }, // very wide
+      { x: 400, y: 200, width: 80, height: 200 }, // very tall
+      { x: 650, y: 300, width: 120, height: 120 }, // square
     ]
     const padding = 40
 
@@ -721,8 +744,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -731,7 +755,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     const contexts = [
       { x: 100, y: 100, width: 120, height: 70 },
       { x: 200, y: 100, width: 120, height: 70 },
-      { x: 300, y: 100, width: 120, height: 70 }
+      { x: 300, y: 100, width: 120, height: 70 },
     ]
     const padding = 50
 
@@ -743,8 +767,9 @@ describe('generateBlobPath - encapsulation tests', () => {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
         expect(isPointInPolygon(point, polygon)).toBe(true)
-        expect(minDistanceToPolygonEdge(point, polygon))
-          .toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
+        expect(minDistanceToPolygonEdge(point, polygon)).toBeGreaterThanOrEqual(
+          padding - CURVE_SMOOTHING_TOLERANCE_PX
+        )
       }
     }
   })
@@ -753,7 +778,7 @@ describe('generateBlobPath - encapsulation tests', () => {
     // Real-world large context sizes like "Warehouse Management System"
     const contexts = [
       { x: 300, y: 300, width: 250, height: 150 },
-      { x: 650, y: 300, width: 250, height: 150 }
+      { x: 650, y: 300, width: 250, height: 150 },
     ]
     const padding = 40
 
@@ -764,12 +789,14 @@ describe('generateBlobPath - encapsulation tests', () => {
     for (let i = 0; i < contexts.length; i++) {
       const perimeterPoints = getContextPerimeterPoints(contexts[i], 20)
       for (const point of perimeterPoints) {
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Large context ${i} perimeter point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should be inside blob`
         ).toBe(true)
 
         const distance = minDistanceToPolygonEdge(point, polygon)
-        expect(distance,
+        expect(
+          distance,
           `Large context ${i} point should have ${padding}px clearance, got ${distance.toFixed(1)}px`
         ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
@@ -782,15 +809,14 @@ describe('generateBlobPath - encapsulation tests', () => {
 // ============================================================================
 
 describe('generateBlobPath - visual quality tests', () => {
-
   it('should generate sufficient hull vertices for smooth curves (>= 40 vertices for 5 contexts)', () => {
     // Real Fulfillment & Shipping group from screenshot
     const contexts = [
-      { x: 200, y: 150, width: 170, height: 100 },  // Inventory Management
-      { x: 500, y: 200, width: 150, height: 90 },   // Stripe Payment
-      { x: 350, y: 350, width: 140, height: 85 },   // Tax Calculation
-      { x: 700, y: 150, width: 170, height: 100 },  // Shipping Integration
-      { x: 850, y: 100, width: 250, height: 150 }   // Warehouse Management (large)
+      { x: 200, y: 150, width: 170, height: 100 }, // Inventory Management
+      { x: 500, y: 200, width: 150, height: 90 }, // Stripe Payment
+      { x: 350, y: 350, width: 140, height: 85 }, // Tax Calculation
+      { x: 700, y: 150, width: 170, height: 100 }, // Shipping Integration
+      { x: 850, y: 100, width: 250, height: 150 }, // Warehouse Management (large)
     ]
     const padding = 40
 
@@ -800,7 +826,8 @@ describe('generateBlobPath - visual quality tests', () => {
     // With sparse sampling (12 edge + 6 corner samples), convex hull will have too few vertices
     // Need >= 40 vertices for truly smooth Catmull-Rom interpolation
     console.log(`Sampled path has ${polygon.length} points`)
-    expect(polygon.length,
+    expect(
+      polygon.length,
       `Sampled path should have many points after Catmull-Rom, got ${polygon.length}`
     ).toBeGreaterThanOrEqual(100) // After sampling beziers
   })
@@ -810,7 +837,7 @@ describe('generateBlobPath - visual quality tests', () => {
     const contexts = [
       { x: 200, y: 150, width: 170, height: 100 },
       { x: 700, y: 150, width: 170, height: 100 },
-      { x: 850, y: 100, width: 250, height: 150 }
+      { x: 850, y: 100, width: 250, height: 150 },
     ]
     const padding = 40
 
@@ -829,8 +856,10 @@ describe('generateBlobPath - visual quality tests', () => {
       const p2 = polygon[i + 1]
 
       // Calculate angle change
-      const dx1 = p1[0] - p0[0], dy1 = p1[1] - p0[1]
-      const dx2 = p2[0] - p1[0], dy2 = p2[1] - p1[1]
+      const dx1 = p1[0] - p0[0],
+        dy1 = p1[1] - p0[1]
+      const dx2 = p2[0] - p1[0],
+        dy2 = p2[1] - p1[1]
       const angle1 = Math.atan2(dy1, dx1)
       const angle2 = Math.atan2(dy2, dx2)
       let angleDiff = angle2 - angle1
@@ -844,7 +873,8 @@ describe('generateBlobPath - visual quality tests', () => {
 
     // Calculate curvature variance (high variance = jagged/inconsistent)
     const avgCurvature = curvatures.reduce((a, b) => a + b, 0) / curvatures.length
-    const variance = curvatures.reduce((sum, c) => sum + Math.pow(c - avgCurvature, 2), 0) / curvatures.length
+    const variance =
+      curvatures.reduce((sum, c) => sum + Math.pow(c - avgCurvature, 2), 0) / curvatures.length
     const stdDev = Math.sqrt(variance)
 
     console.log(`Curvature std dev: ${stdDev.toFixed(4)} (lower = smoother)`)
@@ -852,7 +882,8 @@ describe('generateBlobPath - visual quality tests', () => {
 
     // With alpha=0, expect high variance (jagged). With alpha=0.5, expect low variance.
     // This test will FAIL with alpha=0, documenting the visual quality issue
-    expect(stdDev,
+    expect(
+      stdDev,
       `Curvature variance should be < 0.05 for smooth curves, got ${stdDev.toFixed(4)}`
     ).toBeLessThan(0.05)
   })
@@ -862,20 +893,20 @@ describe('generateBlobPath - visual quality tests', () => {
     const absoluteContexts = [
       { x: 300, y: 200, width: 170, height: 100 },
       { x: 700, y: 200, width: 170, height: 100 },
-      { x: 850, y: 150, width: 250, height: 150 }
+      { x: 850, y: 150, width: 250, height: 150 },
     ]
 
-    const minX = Math.min(...absoluteContexts.map(c => c.x - c.width / 2))
-    const _maxX = Math.max(...absoluteContexts.map(c => c.x + c.width / 2))
-    const minY = Math.min(...absoluteContexts.map(c => c.y - c.height / 2))
-    const _maxY = Math.max(...absoluteContexts.map(c => c.y + c.height / 2))
+    const minX = Math.min(...absoluteContexts.map((c) => c.x - c.width / 2))
+    const _maxX = Math.max(...absoluteContexts.map((c) => c.x + c.width / 2))
+    const minY = Math.min(...absoluteContexts.map((c) => c.y - c.height / 2))
+    const _maxY = Math.max(...absoluteContexts.map((c) => c.y + c.height / 2))
 
     // Translate to relative coordinates (what CanvasArea does)
-    const relativeContexts = absoluteContexts.map(c => ({
+    const relativeContexts = absoluteContexts.map((c) => ({
       x: c.x - minX,
       y: c.y - minY,
       width: c.width,
-      height: c.height
+      height: c.height,
     }))
 
     const padding = 60
@@ -887,20 +918,24 @@ describe('generateBlobPath - visual quality tests', () => {
       console.log(`  Context ${i}: x=${c.x.toFixed(0)}, y=${c.y.toFixed(0)}`)
     })
 
-    const pathMinX = Math.min(...polygon.map(p => p[0]))
-    const pathMaxX = Math.max(...polygon.map(p => p[0]))
-    const pathMinY = Math.min(...polygon.map(p => p[1]))
-    const pathMaxY = Math.max(...polygon.map(p => p[1]))
+    const pathMinX = Math.min(...polygon.map((p) => p[0]))
+    const pathMaxX = Math.max(...polygon.map((p) => p[0]))
+    const pathMinY = Math.min(...polygon.map((p) => p[1]))
+    const pathMaxY = Math.max(...polygon.map((p) => p[1]))
 
-    console.log(`Blob bounds: minX=${pathMinX.toFixed(0)}, maxX=${pathMaxX.toFixed(0)}, minY=${pathMinY.toFixed(0)}, maxY=${pathMaxY.toFixed(0)}`)
+    console.log(
+      `Blob bounds: minX=${pathMinX.toFixed(0)}, maxX=${pathMaxX.toFixed(0)}, minY=${pathMinY.toFixed(0)}, maxY=${pathMaxY.toFixed(0)}`
+    )
 
     // With translation, leftmost context edge is at relative x=width/2
-    const leftmostEdge = Math.min(...relativeContexts.map(c => c.x - c.width / 2))
-    const rightmostEdge = Math.max(...relativeContexts.map(c => c.x + c.width / 2))
-    const topmostEdge = Math.min(...relativeContexts.map(c => c.y - c.height / 2))
-    const bottommostEdge = Math.max(...relativeContexts.map(c => c.y + c.height / 2))
+    const leftmostEdge = Math.min(...relativeContexts.map((c) => c.x - c.width / 2))
+    const rightmostEdge = Math.max(...relativeContexts.map((c) => c.x + c.width / 2))
+    const topmostEdge = Math.min(...relativeContexts.map((c) => c.y - c.height / 2))
+    const bottommostEdge = Math.max(...relativeContexts.map((c) => c.y + c.height / 2))
 
-    console.log(`Context bounds: left=${leftmostEdge.toFixed(0)}, right=${rightmostEdge.toFixed(0)}, top=${topmostEdge.toFixed(0)}, bottom=${bottommostEdge.toFixed(0)}`)
+    console.log(
+      `Context bounds: left=${leftmostEdge.toFixed(0)}, right=${rightmostEdge.toFixed(0)}, top=${topmostEdge.toFixed(0)}, bottom=${bottommostEdge.toFixed(0)}`
+    )
 
     // After translation to positive space, blob path starts near (0, 0)
     // and extends padding distance beyond context bounds
@@ -908,20 +943,24 @@ describe('generateBlobPath - visual quality tests', () => {
     const expectedHeight = bottommostEdge - topmostEdge + 2 * padding
 
     // Blob should start near (0, 0) after translation
-    expect(pathMinX,
+    expect(
+      pathMinX,
       `Blob left edge should start near 0 after translation, got ${pathMinX.toFixed(1)}`
     ).toBeLessThan(5)
 
-    expect(pathMinY,
+    expect(
+      pathMinY,
       `Blob top edge should start near 0 after translation, got ${pathMinY.toFixed(1)}`
     ).toBeLessThan(5)
 
     // Blob should extend to expected dimensions
-    expect(pathMaxX,
+    expect(
+      pathMaxX,
       `Blob right edge (${pathMaxX.toFixed(0)}) should be near ${expectedWidth.toFixed(0)}`
     ).toBeGreaterThan(expectedWidth - 10)
 
-    expect(pathMaxY,
+    expect(
+      pathMaxY,
       `Blob bottom edge (${pathMaxY.toFixed(0)}) should be near ${expectedHeight.toFixed(0)}`
     ).toBeGreaterThan(expectedHeight - 10)
   })
@@ -930,9 +969,9 @@ describe('generateBlobPath - visual quality tests', () => {
     // Real-world scenario: 3 contexts with different Y positions
     // When translated to relative coords, the leftmost context won't be at (0,0)
     const contexts = [
-      { x: 85, y: 200, width: 170, height: 100 },   // left-middle
-      { x: 785, y: 50, width: 170, height: 100 },   // right-top
-      { x: 885, y: 250, width: 170, height: 100 }   // right-bottom
+      { x: 85, y: 200, width: 170, height: 100 }, // left-middle
+      { x: 785, y: 50, width: 170, height: 100 }, // right-top
+      { x: 885, y: 250, width: 170, height: 100 }, // right-bottom
     ]
     const padding = 60
 
@@ -947,39 +986,47 @@ describe('generateBlobPath - visual quality tests', () => {
     const pathMinY = Math.min(...pathYCoords)
     const pathMaxY = Math.max(...pathYCoords)
 
-    console.log(`Path bounds: minX=${pathMinX.toFixed(1)}, maxX=${pathMaxX.toFixed(1)}, minY=${pathMinY.toFixed(1)}, maxY=${pathMaxY.toFixed(1)}`)
+    console.log(
+      `Path bounds: minX=${pathMinX.toFixed(1)}, maxX=${pathMaxX.toFixed(1)}, minY=${pathMinY.toFixed(1)}, maxY=${pathMaxY.toFixed(1)}`
+    )
 
     // Find context bounds
-    const leftmost = Math.min(...contexts.map(c => c.x - c.width / 2))
-    const rightmost = Math.max(...contexts.map(c => c.x + c.width / 2))
-    const topmost = Math.min(...contexts.map(c => c.y - c.height / 2))
-    const bottommost = Math.max(...contexts.map(c => c.y + c.height / 2))
+    const leftmost = Math.min(...contexts.map((c) => c.x - c.width / 2))
+    const rightmost = Math.max(...contexts.map((c) => c.x + c.width / 2))
+    const topmost = Math.min(...contexts.map((c) => c.y - c.height / 2))
+    const bottommost = Math.max(...contexts.map((c) => c.y + c.height / 2))
 
-    console.log(`Context bounds: left=${leftmost}, right=${rightmost}, top=${topmost}, bottom=${bottommost}`)
+    console.log(
+      `Context bounds: left=${leftmost}, right=${rightmost}, top=${topmost}, bottom=${bottommost}`
+    )
 
     // Calculate expected viewport size needed to contain the blob
-    const expectedViewportWidth = (rightmost - leftmost) + 2 * padding
-    const expectedViewportHeight = (bottommost - topmost) + 2 * padding
+    const expectedViewportWidth = rightmost - leftmost + 2 * padding
+    const expectedViewportHeight = bottommost - topmost + 2 * padding
 
     console.log(`Expected viewport: ${expectedViewportWidth} × ${expectedViewportHeight}`)
 
     // CRITICAL TEST: Path coordinates should fit within (0, 0) to (expectedWidth, expectedHeight)
     // After translation, path should start at (0, 0) - no negative coords
-    expect(pathMinX,
+    expect(
+      pathMinX,
       `Path should start at X=0 after translation (got ${pathMinX.toFixed(1)})`
     ).toBeLessThan(1)
 
-    expect(pathMinY,
+    expect(
+      pathMinY,
       `Path should start at Y=0 after translation (got ${pathMinY.toFixed(1)})`
     ).toBeLessThan(1)
 
     // Path should not exceed expected viewport size
     // Catmull-Rom curves can overshoot hull slightly, but should be within tolerance
-    expect(pathMaxX,
+    expect(
+      pathMaxX,
       `Path maxX (${pathMaxX.toFixed(1)}) should fit within viewport width (${expectedViewportWidth})`
     ).toBeLessThanOrEqual(expectedViewportWidth + 2)
 
-    expect(pathMaxY,
+    expect(
+      pathMaxY,
       `Path maxY (${pathMaxY.toFixed(1)}) should fit within viewport height (${expectedViewportHeight})`
     ).toBeLessThanOrEqual(expectedViewportHeight + 2)
   })
@@ -988,9 +1035,9 @@ describe('generateBlobPath - visual quality tests', () => {
     // Exact scenario from the screenshot that's failing
     // These are TRANSLATED coordinates (relative to group bounding box)
     const contexts = [
-      { x: 85, y: 200, width: 170, height: 100 },   // Inventory Management
-      { x: 785, y: 50, width: 170, height: 100 },   // Shipping Integration
-      { x: 885, y: 250, width: 170, height: 100 }   // Warehouse Management System (Legacy) - large!
+      { x: 85, y: 200, width: 170, height: 100 }, // Inventory Management
+      { x: 785, y: 50, width: 170, height: 100 }, // Shipping Integration
+      { x: 885, y: 250, width: 170, height: 100 }, // Warehouse Management System (Legacy) - large!
     ]
     const padding = 60
 
@@ -1003,12 +1050,14 @@ describe('generateBlobPath - visual quality tests', () => {
       const perimeterPoints = getContextPerimeterPoints(context, 20)
 
       for (const point of perimeterPoints) {
-        expect(isPointInPolygon(point, polygon),
+        expect(
+          isPointInPolygon(point, polygon),
           `Context ${i} (${context.width}×${context.height}) point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should be inside blob`
         ).toBe(true)
 
         const distance = minDistanceToPolygonEdge(point, polygon)
-        expect(distance,
+        expect(
+          distance,
           `Context ${i} point [${point[0].toFixed(1)}, ${point[1].toFixed(1)}] should have ${padding}px clearance, got ${distance.toFixed(1)}px`
         ).toBeGreaterThanOrEqual(padding - CURVE_SMOOTHING_TOLERANCE_PX)
       }
@@ -1025,7 +1074,7 @@ describe('generateBlobPath - smoothness tests', () => {
     const contexts = [
       { x: 100, y: 100, width: 120, height: 80 },
       { x: 300, y: 100, width: 120, height: 80 },
-      { x: 300, y: 300, width: 120, height: 80 }
+      { x: 300, y: 300, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -1034,16 +1083,19 @@ describe('generateBlobPath - smoothness tests', () => {
 
     const smoothness = verifyPathSmoothness(polygon)
 
-    expect(smoothness.sharpCorners,
+    expect(
+      smoothness.sharpCorners,
       `Found ${smoothness.sharpCorners} sharp corners (angles > ${SHARP_CORNER_THRESHOLD_DEGREES}°), expected 0. Max angle: ${smoothness.maxAngle.toFixed(1)}°`
     ).toBe(0)
 
-    expect(smoothness.maxAngle,
+    expect(
+      smoothness.maxAngle,
       `Max turn angle ${smoothness.maxAngle.toFixed(1)}° should be < ${SHARP_CORNER_THRESHOLD_DEGREES}°`
     ).toBeLessThan(SHARP_CORNER_THRESHOLD_DEGREES)
 
     // Angle changes should be gradual (max delta < 20°)
-    expect(smoothness.maxAngleDelta,
+    expect(
+      smoothness.maxAngleDelta,
       `Max angle change ${smoothness.maxAngleDelta.toFixed(1)}° should be < 20°`
     ).toBeLessThan(20)
   })
@@ -1051,7 +1103,7 @@ describe('generateBlobPath - smoothness tests', () => {
   it('should create organic smooth boundaries for two contexts', () => {
     const contexts = [
       { x: 100, y: 200, width: 120, height: 80 },
-      { x: 400, y: 200, width: 150, height: 90 }
+      { x: 400, y: 200, width: 150, height: 90 },
     ]
     const padding = 40
 
@@ -1074,7 +1126,7 @@ describe('generateBlobPath - smoothness tests', () => {
         x: 400 + radius * Math.cos(angle),
         y: 400 + radius * Math.sin(angle),
         width: 120,
-        height: 80
+        height: 80,
       })
     }
     const padding = 40
@@ -1093,7 +1145,7 @@ describe('generateBlobPath - smoothness tests', () => {
     const contexts = [
       { x: 100, y: 200, width: 120, height: 80 },
       { x: 300, y: 200, width: 120, height: 80 },
-      { x: 500, y: 200, width: 120, height: 80 }
+      { x: 500, y: 200, width: 120, height: 80 },
     ]
     const padding = 40
 
@@ -1104,13 +1156,15 @@ describe('generateBlobPath - smoothness tests', () => {
 
     // Linear arrangements have rounded ends which create tighter curves
     // The ends can have angles up to ~160° (tight turns but not reversals)
-    expect(smoothness.maxAngle,
+    expect(
+      smoothness.maxAngle,
       `Max angle ${smoothness.maxAngle.toFixed(1)}° should be < 165° for linear arrangement`
     ).toBeLessThan(165)
 
     // Most of the boundary should be smooth (< 30°)
     // Only allow a few sharp turns at the ends
-    expect(smoothness.sharpCorners,
+    expect(
+      smoothness.sharpCorners,
       `Found ${smoothness.sharpCorners} corners with angles > ${SHARP_CORNER_THRESHOLD_DEGREES}°, most should be smooth`
     ).toBeLessThan(20)
   })
@@ -1121,21 +1175,21 @@ describe('generateBlobPath - smoothness tests', () => {
       // Two contexts
       [
         { x: 100, y: 200, width: 120, height: 80 },
-        { x: 400, y: 200, width: 150, height: 90 }
+        { x: 400, y: 200, width: 150, height: 90 },
       ],
       // Triangle
       [
         { x: 200, y: 100, width: 120, height: 80 },
         { x: 100, y: 300, width: 120, height: 80 },
-        { x: 300, y: 300, width: 120, height: 80 }
+        { x: 300, y: 300, width: 120, height: 80 },
       ],
       // Square
       [
         { x: 100, y: 100, width: 120, height: 80 },
         { x: 400, y: 100, width: 120, height: 80 },
         { x: 100, y: 400, width: 120, height: 80 },
-        { x: 400, y: 400, width: 120, height: 80 }
-      ]
+        { x: 400, y: 400, width: 120, height: 80 },
+      ],
     ]
 
     for (let caseIdx = 0; caseIdx < testCases.length; caseIdx++) {
@@ -1144,10 +1198,12 @@ describe('generateBlobPath - smoothness tests', () => {
       const polygon = parseSvgPath(path)
       const smoothness = verifyPathSmoothness(polygon)
 
-      expect(smoothness.sharpCorners,
+      expect(
+        smoothness.sharpCorners,
         `Test case ${caseIdx + 1}: Found ${smoothness.sharpCorners} sharp corners (angles > ${SHARP_CORNER_THRESHOLD_DEGREES}°), expected 0. Max: ${smoothness.maxAngle.toFixed(1)}°`
       ).toBe(0)
-      expect(smoothness.maxAngle,
+      expect(
+        smoothness.maxAngle,
         `Test case ${caseIdx + 1}: Max angle ${smoothness.maxAngle.toFixed(1)}° should be < ${SHARP_CORNER_THRESHOLD_DEGREES}°`
       ).toBeLessThan(SHARP_CORNER_THRESHOLD_DEGREES)
     }

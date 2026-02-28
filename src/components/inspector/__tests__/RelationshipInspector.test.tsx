@@ -10,7 +10,9 @@ vi.mock('../../../model/store', () => ({
 
 vi.mock('../../PatternsGuideModal', () => ({
   PatternsGuideModal: ({ onClose }: { onClose: () => void }) => (
-    <div data-testid="patterns-guide"><button onClick={onClose}>Close</button></div>
+    <div data-testid="patterns-guide">
+      <button onClick={onClose}>Close</button>
+    </div>
   ),
 }))
 
@@ -23,8 +25,16 @@ function makeProject(overrides: Partial<Project> = {}): Project {
     id: 'proj-1',
     name: 'Test',
     contexts: [
-      { id: 'ctx-1', name: 'Orders', positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } } },
-      { id: 'ctx-2', name: 'Billing', positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } } },
+      {
+        id: 'ctx-1',
+        name: 'Orders',
+        positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } },
+      },
+      {
+        id: 'ctx-2',
+        name: 'Billing',
+        positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } },
+      },
     ],
     relationships: [
       { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'customer-supplier' },
@@ -71,12 +81,17 @@ describe('RelationshipInspector', () => {
   it('navigates to from-context on click', () => {
     render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
     fireEvent.click(screen.getByText('Orders'))
-    expect(useEditorStore.setState).toHaveBeenCalledWith({ selectedContextId: 'ctx-1', selectedRelationshipId: null })
+    expect(useEditorStore.setState).toHaveBeenCalledWith({
+      selectedContextId: 'ctx-1',
+      selectedRelationshipId: null,
+    })
   })
 
   it('calls updateRelationship when pattern changes', () => {
     render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
-    fireEvent.change(screen.getByDisplayValue(/Customer-Supplier/i), { target: { value: 'conformist' } })
+    fireEvent.change(screen.getByDisplayValue(/Customer-Supplier/i), {
+      target: { value: 'conformist' },
+    })
     expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', { pattern: 'conformist' })
   })
 })

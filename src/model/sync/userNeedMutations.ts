@@ -1,14 +1,14 @@
-import * as Y from 'yjs';
-import type { UserNeed } from '../types';
-import { populateUserNeedYMap } from './strategicSync';
+import * as Y from 'yjs'
+import type { UserNeed } from '../types'
+import { populateUserNeedYMap } from './strategicSync'
 
 export function addUserNeedMutation(ydoc: Y.Doc, userNeed: UserNeed): void {
-  const yProject = ydoc.getMap('project');
-  const yUserNeeds = yProject.get('userNeeds') as Y.Array<Y.Map<unknown>>;
+  const yProject = ydoc.getMap('project')
+  const yUserNeeds = yProject.get('userNeeds') as Y.Array<Y.Map<unknown>>
 
-  const yUserNeed = new Y.Map<unknown>();
-  populateUserNeedYMap(yUserNeed, userNeed);
-  yUserNeeds.push([yUserNeed]);
+  const yUserNeed = new Y.Map<unknown>()
+  populateUserNeedYMap(yUserNeed, userNeed)
+  yUserNeeds.push([yUserNeed])
 }
 
 export function updateUserNeedMutation(
@@ -16,22 +16,22 @@ export function updateUserNeedMutation(
   userNeedId: string,
   updates: Partial<UserNeed>
 ): void {
-  const yUserNeed = findUserNeedById(ydoc, userNeedId);
-  if (!yUserNeed) return;
+  const yUserNeed = findUserNeedById(ydoc, userNeedId)
+  if (!yUserNeed) return
 
   ydoc.transact(() => {
-    applyUserNeedUpdates(yUserNeed, updates);
-  });
+    applyUserNeedUpdates(yUserNeed, updates)
+  })
 }
 
 export function deleteUserNeedMutation(ydoc: Y.Doc, userNeedId: string): void {
-  const yProject = ydoc.getMap('project');
-  const yUserNeeds = yProject.get('userNeeds') as Y.Array<Y.Map<unknown>>;
+  const yProject = ydoc.getMap('project')
+  const yUserNeeds = yProject.get('userNeeds') as Y.Array<Y.Map<unknown>>
 
-  const index = findUserNeedIndexById(yUserNeeds, userNeedId);
-  if (index === -1) return;
+  const index = findUserNeedIndexById(yUserNeeds, userNeedId)
+  if (index === -1) return
 
-  yUserNeeds.delete(index);
+  yUserNeeds.delete(index)
 }
 
 export function updateUserNeedPositionMutation(
@@ -39,55 +39,55 @@ export function updateUserNeedPositionMutation(
   userNeedId: string,
   position: number
 ): void {
-  const yUserNeed = findUserNeedById(ydoc, userNeedId);
-  if (!yUserNeed) return;
+  const yUserNeed = findUserNeedById(ydoc, userNeedId)
+  if (!yUserNeed) return
 
   ydoc.transact(() => {
-    yUserNeed.set('position', position);
-  });
+    yUserNeed.set('position', position)
+  })
 }
 
 function findUserNeedById(ydoc: Y.Doc, userNeedId: string): Y.Map<unknown> | null {
-  const yProject = ydoc.getMap('project');
-  const yUserNeeds = yProject.get('userNeeds') as Y.Array<Y.Map<unknown>>;
+  const yProject = ydoc.getMap('project')
+  const yUserNeeds = yProject.get('userNeeds') as Y.Array<Y.Map<unknown>>
 
   for (let i = 0; i < yUserNeeds.length; i++) {
-    const yUserNeed = yUserNeeds.get(i);
+    const yUserNeed = yUserNeeds.get(i)
     if (yUserNeed.get('id') === userNeedId) {
-      return yUserNeed;
+      return yUserNeed
     }
   }
-  return null;
+  return null
 }
 
 function findUserNeedIndexById(yUserNeeds: Y.Array<Y.Map<unknown>>, userNeedId: string): number {
   for (let i = 0; i < yUserNeeds.length; i++) {
-    const yUserNeed = yUserNeeds.get(i);
+    const yUserNeed = yUserNeeds.get(i)
     if (yUserNeed.get('id') === userNeedId) {
-      return i;
+      return i
     }
   }
-  return -1;
+  return -1
 }
 
 function applyUserNeedUpdates(yUserNeed: Y.Map<unknown>, updates: Partial<UserNeed>): void {
   if ('name' in updates) {
-    yUserNeed.set('name', updates.name);
+    yUserNeed.set('name', updates.name)
   }
 
   if ('position' in updates) {
-    yUserNeed.set('position', updates.position);
+    yUserNeed.set('position', updates.position)
   }
 
   const optionalFields: (keyof Pick<UserNeed, 'description' | 'visibility'>)[] = [
     'description',
     'visibility',
-  ];
+  ]
 
   for (const field of optionalFields) {
     if (field in updates) {
-      const value = updates[field];
-      yUserNeed.set(field, value ?? null);
+      const value = updates[field]
+      yUserNeed.set(field, value ?? null)
     }
   }
 }

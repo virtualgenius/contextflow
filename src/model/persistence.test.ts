@@ -1,7 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import {
-  migrateProject,
-} from './persistence'
+import { migrateProject } from './persistence'
 import type { Project } from './types'
 
 vi.mock('./classification', () => ({
@@ -13,7 +11,7 @@ vi.mock('./classification', () => ({
   },
   STRATEGIC_GENESIS_MAX_X: 25,
   STRATEGIC_CUSTOM_BUILT_MAX_X: 50,
-  STRATEGIC_PRODUCT_RENTAL_MAX_X: 75
+  STRATEGIC_PRODUCT_RENTAL_MAX_X: 75,
 }))
 
 describe('migrateProject', () => {
@@ -55,7 +53,11 @@ describe('migrateProject', () => {
       contexts: [
         {
           id: 'ctx1',
-          positions: { strategic: { x: 30, y: 50 }, flow: { x: 10 }, distillation: { x: 50, y: 50 } },
+          positions: {
+            strategic: { x: 30, y: 50 },
+            flow: { x: 10 },
+            distillation: { x: 50, y: 50 },
+          },
         },
       ],
     } as unknown as Project
@@ -72,7 +74,11 @@ describe('migrateProject', () => {
       contexts: [
         {
           id: 'ctx1',
-          positions: { strategic: { x: 30, y: 50 }, flow: { x: 10 }, distillation: { x: 50, y: 50 } },
+          positions: {
+            strategic: { x: 30, y: 50 },
+            flow: { x: 10 },
+            distillation: { x: 50, y: 50 },
+          },
         },
       ],
     } as unknown as Project

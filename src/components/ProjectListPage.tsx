@@ -6,14 +6,14 @@ import { useUrlRouter } from '../hooks/useUrlRouter'
 import { version } from '../../package.json'
 
 export function ProjectListPage() {
-  const projects = useEditorStore(s => s.projects)
-  const activeProjectId = useEditorStore(s => s.activeProjectId)
-  const setActiveProject = useEditorStore(s => s.setActiveProject)
-  const createProject = useEditorStore(s => s.createProject)
-  const createFromTemplate = useEditorStore(s => s.createFromTemplate)
-  const deleteProject = useEditorStore(s => s.deleteProject)
-  const renameProject = useEditorStore(s => s.renameProject)
-  const duplicateProject = useEditorStore(s => s.duplicateProject)
+  const projects = useEditorStore((s) => s.projects)
+  const activeProjectId = useEditorStore((s) => s.activeProjectId)
+  const setActiveProject = useEditorStore((s) => s.setActiveProject)
+  const createProject = useEditorStore((s) => s.createProject)
+  const createFromTemplate = useEditorStore((s) => s.createFromTemplate)
+  const deleteProject = useEditorStore((s) => s.deleteProject)
+  const renameProject = useEditorStore((s) => s.renameProject)
+  const duplicateProject = useEditorStore((s) => s.duplicateProject)
   const { route, navigate } = useUrlRouter()
 
   const handleSelectProject = (projectId: string) => {

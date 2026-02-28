@@ -9,18 +9,30 @@ interface ValueChainGuideModalProps {
  * Large SVG diagram showing the complete value chain model
  */
 function ValueChainDiagram() {
-  const _boxStyle = "fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500"
-  const textStyle = "fill-slate-700 dark:fill-slate-200 text-[11px] font-medium"
-  const subtextStyle = "fill-slate-500 dark:fill-slate-400 text-[9px]"
-  const arrowStyle = "stroke-slate-400 dark:stroke-slate-500"
+  const _boxStyle = 'fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500'
+  const textStyle = 'fill-slate-700 dark:fill-slate-200 text-[11px] font-medium'
+  const subtextStyle = 'fill-slate-500 dark:fill-slate-400 text-[9px]'
+  const arrowStyle = 'stroke-slate-400 dark:stroke-slate-500'
 
   return (
     <svg viewBox="0 0 440 80" className="w-full h-20">
       {/* User */}
       <g>
-        <rect x={10} y={20} width={100} height={40} rx={8} className="fill-slate-50 dark:fill-neutral-800 stroke-slate-300 dark:stroke-neutral-600" strokeWidth={2} />
-        <text x={60} y={38} textAnchor="middle" className={textStyle}>User</text>
-        <text x={60} y={52} textAnchor="middle" className={subtextStyle}>(who)</text>
+        <rect
+          x={10}
+          y={20}
+          width={100}
+          height={40}
+          rx={8}
+          className="fill-slate-50 dark:fill-neutral-800 stroke-slate-300 dark:stroke-neutral-600"
+          strokeWidth={2}
+        />
+        <text x={60} y={38} textAnchor="middle" className={textStyle}>
+          User
+        </text>
+        <text x={60} y={52} textAnchor="middle" className={subtextStyle}>
+          (who)
+        </text>
       </g>
 
       {/* Arrow 1 */}
@@ -31,9 +43,31 @@ function ValueChainDiagram() {
 
       {/* User Need */}
       <g>
-        <rect x={165} y={20} width={110} height={40} rx={6} className="fill-blue-50 dark:fill-blue-900/30 stroke-blue-400 dark:stroke-blue-500" strokeWidth={2} />
-        <text x={220} y={38} textAnchor="middle" className="fill-blue-700 dark:fill-blue-300 text-[11px] font-medium">User Need</text>
-        <text x={220} y={52} textAnchor="middle" className="fill-blue-500 dark:fill-blue-400 text-[9px]">(what problem)</text>
+        <rect
+          x={165}
+          y={20}
+          width={110}
+          height={40}
+          rx={6}
+          className="fill-blue-50 dark:fill-blue-900/30 stroke-blue-400 dark:stroke-blue-500"
+          strokeWidth={2}
+        />
+        <text
+          x={220}
+          y={38}
+          textAnchor="middle"
+          className="fill-blue-700 dark:fill-blue-300 text-[11px] font-medium"
+        >
+          User Need
+        </text>
+        <text
+          x={220}
+          y={52}
+          textAnchor="middle"
+          className="fill-blue-500 dark:fill-blue-400 text-[9px]"
+        >
+          (what problem)
+        </text>
       </g>
 
       {/* Arrow 2 */}
@@ -44,9 +78,21 @@ function ValueChainDiagram() {
 
       {/* Context */}
       <g>
-        <rect x={330} y={20} width={100} height={40} rx={4} className="fill-slate-50 dark:fill-neutral-800 stroke-slate-300 dark:stroke-neutral-600" strokeWidth={2} />
-        <text x={380} y={38} textAnchor="middle" className={textStyle}>Context</text>
-        <text x={380} y={52} textAnchor="middle" className={subtextStyle}>(how / solution)</text>
+        <rect
+          x={330}
+          y={20}
+          width={100}
+          height={40}
+          rx={4}
+          className="fill-slate-50 dark:fill-neutral-800 stroke-slate-300 dark:stroke-neutral-600"
+          strokeWidth={2}
+        />
+        <text x={380} y={38} textAnchor="middle" className={textStyle}>
+          Context
+        </text>
+        <text x={380} y={52} textAnchor="middle" className={subtextStyle}>
+          (how / solution)
+        </text>
       </g>
     </svg>
   )
@@ -80,25 +126,25 @@ function LayerCard({ icon, title, description, connectionRule, examples, color }
   return (
     <div className={`border ${colors.border} rounded-lg p-4`}>
       <div className="flex items-start gap-3">
-        <div className={`${colors.iconBg} ${colors.iconText} p-2 rounded-lg shrink-0`}>
-          {icon}
-        </div>
+        <div className={`${colors.iconBg} ${colors.iconText} p-2 rounded-lg shrink-0`}>{icon}</div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-1">
-            {title}
-          </h4>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-            {description}
-          </p>
+          <h4 className="font-medium text-slate-900 dark:text-slate-100 mb-1">{title}</h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{description}</p>
 
           <div className="space-y-2">
             <div>
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Connections: </span>
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                Connections:{' '}
+              </span>
               <span className="text-xs text-slate-500 dark:text-slate-400">{connectionRule}</span>
             </div>
             <div>
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Examples: </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">{examples.join(', ')}</span>
+              <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                Examples:{' '}
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {examples.join(', ')}
+              </span>
             </div>
           </div>
         </div>
@@ -139,12 +185,22 @@ export function ValueChainGuideModal({ onClose }: ValueChainGuideModalProps) {
           {/* Explanation */}
           <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
             <p>
-              The <strong className="text-slate-700 dark:text-slate-300">value chain</strong> shows how your system delivers value to users:
+              The <strong className="text-slate-700 dark:text-slate-300">value chain</strong> shows
+              how your system delivers value to users:
             </p>
             <ol className="list-decimal ml-5 space-y-1">
-              <li><strong className="text-slate-700 dark:text-slate-300">Actors</strong> represent the people or systems that use your product</li>
-              <li><strong className="text-slate-700 dark:text-slate-300">User Needs</strong> capture the problems or jobs those actors are trying to accomplish</li>
-              <li><strong className="text-slate-700 dark:text-slate-300">Contexts</strong> are the bounded contexts (parts of your system) that address those needs</li>
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">Actors</strong> represent the
+                people or systems that use your product
+              </li>
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">User Needs</strong> capture
+                the problems or jobs those actors are trying to accomplish
+              </li>
+              <li>
+                <strong className="text-slate-700 dark:text-slate-300">Contexts</strong> are the
+                bounded contexts (parts of your system) that address those needs
+              </li>
             </ol>
           </div>
 
@@ -184,9 +240,10 @@ export function ValueChainGuideModal({ onClose }: ValueChainGuideModalProps) {
               Why can't I connect Actors directly to Contexts?
             </h4>
             <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-              User Needs act as the bridge between <em>who</em> uses your system and <em>how</em> it's built.
-              This ensures your architecture is driven by real user problems, not just technical boundaries.
-              It also helps identify which contexts are user-facing vs. supporting infrastructure.
+              User Needs act as the bridge between <em>who</em> uses your system and <em>how</em>{' '}
+              it's built. This ensures your architecture is driven by real user problems, not just
+              technical boundaries. It also helps identify which contexts are user-facing vs.
+              supporting infrastructure.
             </p>
           </div>
         </div>

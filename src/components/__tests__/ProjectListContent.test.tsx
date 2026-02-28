@@ -34,8 +34,8 @@ const defaultProps = {
 describe('ProjectListContent', () => {
   it('renders project cards', () => {
     const projects = {
-      'p1': createMockProject({ id: 'p1', name: 'Alpha Project' }),
-      'p2': createMockProject({ id: 'p2', name: 'Beta Project' }),
+      p1: createMockProject({ id: 'p1', name: 'Alpha Project' }),
+      p2: createMockProject({ id: 'p2', name: 'Beta Project' }),
     }
 
     render(<ProjectListContent {...defaultProps} projects={projects} />)
@@ -47,15 +47,11 @@ describe('ProjectListContent', () => {
   it('calls onSelectProject when clicking a project card', () => {
     const onSelectProject = vi.fn()
     const projects = {
-      'p1': createMockProject({ id: 'p1', name: 'Alpha Project' }),
+      p1: createMockProject({ id: 'p1', name: 'Alpha Project' }),
     }
 
     render(
-      <ProjectListContent
-        {...defaultProps}
-        projects={projects}
-        onSelectProject={onSelectProject}
-      />
+      <ProjectListContent {...defaultProps} projects={projects} onSelectProject={onSelectProject} />
     )
 
     fireEvent.click(screen.getByText('Alpha Project'))
@@ -65,8 +61,8 @@ describe('ProjectListContent', () => {
 
   it('shows search input and filters projects', () => {
     const projects = {
-      'p1': createMockProject({ id: 'p1', name: 'Alpha Project' }),
-      'p2': createMockProject({ id: 'p2', name: 'Beta Project' }),
+      p1: createMockProject({ id: 'p1', name: 'Alpha Project' }),
+      p2: createMockProject({ id: 'p2', name: 'Beta Project' }),
     }
 
     render(<ProjectListContent {...defaultProps} projects={projects} />)
@@ -80,7 +76,7 @@ describe('ProjectListContent', () => {
 
   it('shows no-match message when search has no results', () => {
     const projects = {
-      'p1': createMockProject({ id: 'p1', name: 'Alpha Project' }),
+      p1: createMockProject({ id: 'p1', name: 'Alpha Project' }),
     }
 
     render(<ProjectListContent {...defaultProps} projects={projects} />)
@@ -93,7 +89,7 @@ describe('ProjectListContent', () => {
 
   it('shows New Project button', () => {
     const projects = {
-      'p1': createMockProject({ id: 'p1', name: 'Alpha Project' }),
+      p1: createMockProject({ id: 'p1', name: 'Alpha Project' }),
     }
 
     render(<ProjectListContent {...defaultProps} projects={projects} />)
@@ -103,16 +99,10 @@ describe('ProjectListContent', () => {
 
   it('marks active project with Active badge', () => {
     const projects = {
-      'p1': createMockProject({ id: 'p1', name: 'Alpha Project' }),
+      p1: createMockProject({ id: 'p1', name: 'Alpha Project' }),
     }
 
-    render(
-      <ProjectListContent
-        {...defaultProps}
-        projects={projects}
-        activeProjectId="p1"
-      />
-    )
+    render(<ProjectListContent {...defaultProps} projects={projects} activeProjectId="p1" />)
 
     expect(screen.getByText('Active')).toBeInTheDocument()
   })

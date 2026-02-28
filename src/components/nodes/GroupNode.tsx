@@ -10,8 +10,8 @@ export function GroupNode({ data }: NodeProps) {
   const group = data.group as Group
   const isSelected = data.isSelected as boolean
   const [isHovered, setIsHovered] = React.useState(false)
-  const groupOpacity = useEditorStore(s => s.groupOpacity)
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const groupOpacity = useEditorStore((s) => s.groupOpacity)
+  const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const blobPath = data.blobPath as string
   const blobBounds = data.blobBounds as { width: number; height: number }
   const nodeRef = React.useRef<HTMLDivElement>(null)
@@ -96,30 +96,31 @@ export function GroupNode({ data }: NodeProps) {
       </div>
 
       {/* Tooltip on hover */}
-      {showHelpTooltips && isHovered && hasTooltipContent && (() => {
-        const tooltipPos = getTooltipPosition()
-        return createPortal(
-          <div
-            className="fixed z-[9999] pointer-events-none"
-            style={{
-              left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
-              top: tooltipPos.y,
-              transform: 'translateY(-100%)',
-            }}
-          >
-            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-              <div className="font-semibold text-sm mb-1">{group.label}</div>
-              {group.notes && (
-                <div className="text-xs text-slate-300 mb-2">{group.notes}</div>
-              )}
-              <div className="text-xs text-slate-400">
-                {memberCount} {memberCount === 1 ? 'context' : 'contexts'}
+      {showHelpTooltips &&
+        isHovered &&
+        hasTooltipContent &&
+        (() => {
+          const tooltipPos = getTooltipPosition()
+          return createPortal(
+            <div
+              className="fixed z-[9999] pointer-events-none"
+              style={{
+                left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+                top: tooltipPos.y,
+                transform: 'translateY(-100%)',
+              }}
+            >
+              <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+                <div className="font-semibold text-sm mb-1">{group.label}</div>
+                {group.notes && <div className="text-xs text-slate-300 mb-2">{group.notes}</div>}
+                <div className="text-xs text-slate-400">
+                  {memberCount} {memberCount === 1 ? 'context' : 'contexts'}
+                </div>
               </div>
-            </div>
-          </div>,
-          document.body
-        )
-      })()}
+            </div>,
+            document.body
+          )
+        })()}
     </div>
   )
 }

@@ -141,8 +141,12 @@ describe('getEdgeParams', () => {
     expect(typeof result.sy).toBe('number')
     expect(typeof result.tx).toBe('number')
     expect(typeof result.ty).toBe('number')
-    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(result.sourcePos)
-    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(result.targetPos)
+    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(
+      result.sourcePos
+    )
+    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(
+      result.targetPos
+    )
     // Source x should be to the left of target x
     expect(result.sx).toBeLessThan(result.tx)
   })
@@ -169,7 +173,11 @@ describe('getEdgeParams', () => {
     expect(typeof result.sy).toBe('number')
     expect(typeof result.tx).toBe('number')
     expect(typeof result.ty).toBe('number')
-    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(result.sourcePos)
-    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(result.targetPos)
+    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(
+      result.sourcePos
+    )
+    expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(
+      result.targetPos
+    )
   })
 })

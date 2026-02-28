@@ -46,12 +46,13 @@ export function IssueSeverityButton({ severity, isActive, onClick }: IssueSeveri
       <button
         onClick={onClick}
         className={`p-0.5 rounded transition-colors ${
-          isActive
-            ? config.activeBg
-            : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
+          isActive ? config.activeBg : 'hover:bg-slate-200 dark:hover:bg-neutral-700'
         }`}
       >
-        <Icon size={14} className={isActive ? config.activeText : 'text-slate-400 dark:text-slate-500'} />
+        <Icon
+          size={14}
+          className={isActive ? config.activeText : 'text-slate-400 dark:text-slate-500'}
+        />
       </button>
     </SimpleTooltip>
   )

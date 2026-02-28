@@ -3,7 +3,7 @@ import {
   calculateBoundingBox,
   translateContextsToRelative,
   calculateBlobPosition,
-  type ContextWithSize
+  type ContextWithSize,
 } from './blobPositioning'
 import { type BlobMetadata } from './blobShape'
 
@@ -13,9 +13,9 @@ describe('blobPositioning', () => {
       // Real data from ACME E-Commerce demo project
       // React Flow positions nodes by their TOP-LEFT corner
       const contexts: ContextWithSize[] = [
-        { x: 700, y: 550, width: 200, height: 120 },   // Inventory Management
-        { x: 1400, y: 400, width: 240, height: 140 },  // Warehouse Management System
-        { x: 1500, y: 600, width: 170, height: 100 }   // Shipping Integration
+        { x: 700, y: 550, width: 200, height: 120 }, // Inventory Management
+        { x: 1400, y: 400, width: 240, height: 140 }, // Warehouse Management System
+        { x: 1500, y: 600, width: 170, height: 100 }, // Shipping Integration
       ]
 
       const result = calculateBoundingBox(contexts)
@@ -24,32 +24,30 @@ describe('blobPositioning', () => {
       // Warehouse: L=1400, R=1640 (1400+240), T=400, B=540 (400+140)
       // Shipping: L=1500, R=1670 (1500+170), T=600, B=700 (600+100)
       expect(result).toEqual({
-        minX: 700,   // min(700, 1400, 1500) = 700
-        maxX: 1670,  // max(900, 1640, 1670) = 1670
-        minY: 400,   // min(550, 400, 600) = 400
-        maxY: 700    // max(670, 540, 700) = 700
+        minX: 700, // min(700, 1400, 1500) = 700
+        maxX: 1670, // max(900, 1640, 1670) = 1670
+        minY: 400, // min(550, 400, 600) = 400
+        maxY: 700, // max(670, 540, 700) = 700
       })
     })
 
     it('calculates correct bounding box for single context', () => {
-      const contexts: ContextWithSize[] = [
-        { x: 100, y: 200, width: 50, height: 30 }
-      ]
+      const contexts: ContextWithSize[] = [{ x: 100, y: 200, width: 50, height: 30 }]
 
       const result = calculateBoundingBox(contexts)
 
       expect(result).toEqual({
-        minX: 100,  // x (top-left)
-        maxX: 150,  // x + width
-        minY: 200,  // y (top-left)
-        maxY: 230   // y + height
+        minX: 100, // x (top-left)
+        maxX: 150, // x + width
+        minY: 200, // y (top-left)
+        maxY: 230, // y + height
       })
     })
 
     it('calculates correct bounding box for multiple contexts', () => {
       const contexts: ContextWithSize[] = [
         { x: 100, y: 200, width: 50, height: 30 },
-        { x: 300, y: 400, width: 80, height: 60 }
+        { x: 300, y: 400, width: 80, height: 60 },
       ]
 
       const result = calculateBoundingBox(contexts)
@@ -58,7 +56,7 @@ describe('blobPositioning', () => {
         minX: 100, // min(100, 300) = 100
         maxX: 380, // max(100+50, 300+80) = max(150, 380) = 380
         minY: 200, // min(200, 400) = 200
-        maxY: 460  // max(200+30, 400+60) = max(230, 460) = 460
+        maxY: 460, // max(200+30, 400+60) = max(230, 460) = 460
       })
     })
   })
@@ -67,15 +65,15 @@ describe('blobPositioning', () => {
     it('translates contexts to relative coordinates', () => {
       const contexts: ContextWithSize[] = [
         { x: 100, y: 200, width: 50, height: 30 },
-        { x: 300, y: 400, width: 80, height: 60 }
+        { x: 300, y: 400, width: 80, height: 60 },
       ]
       const boundingBox = { minX: 100, maxX: 380, minY: 200, maxY: 460 }
 
       const result = translateContextsToRelative(contexts, boundingBox)
 
       expect(result).toEqual([
-        { x: 0, y: 0, width: 50, height: 30 },      // (100-100, 200-200)
-        { x: 200, y: 200, width: 80, height: 60 }   // (300-100, 400-200)
+        { x: 0, y: 0, width: 50, height: 30 }, // (100-100, 200-200)
+        { x: 200, y: 200, width: 80, height: 60 }, // (300-100, 400-200)
       ])
     })
   })
@@ -84,9 +82,9 @@ describe('blobPositioning', () => {
     it('REAL DATA: Fulfillment & Shipping group from actual console output', () => {
       // Real data from console
       const contexts: ContextWithSize[] = [
-        { x: 700, y: 550, width: 200, height: 120 },   // Inventory
-        { x: 1400, y: 400, width: 240, height: 140 },  // Warehouse
-        { x: 1500, y: 600, width: 170, height: 100 }   // Shipping
+        { x: 700, y: 550, width: 200, height: 120 }, // Inventory
+        { x: 1400, y: 400, width: 240, height: 140 }, // Warehouse
+        { x: 1500, y: 600, width: 170, height: 100 }, // Shipping
       ]
       const boundingBox = { minX: 700, maxX: 1670, minY: 400, maxY: 700 }
 
@@ -96,11 +94,11 @@ describe('blobPositioning', () => {
         translateX: 180.803,
         translateY: 181.248,
         bounds: {
-          minX: -180.803,  // ORIGINAL bounds in relative space (before translation)
+          minX: -180.803, // ORIGINAL bounds in relative space (before translation)
           maxX: 1165.712,
           minY: -181.248,
-          maxY: 501.907
-        }
+          maxY: 501.907,
+        },
       }
 
       const result = calculateBlobPosition(contexts, blobMetadata, boundingBox)
@@ -120,23 +118,21 @@ describe('blobPositioning', () => {
     })
 
     it('positions blob container correctly when blob has negative bounds (padding)', () => {
-      const contexts: ContextWithSize[] = [
-        { x: 100, y: 200, width: 50, height: 30 }
-      ]
+      const contexts: ContextWithSize[] = [{ x: 100, y: 200, width: 50, height: 30 }]
       const boundingBox = { minX: 100, maxX: 150, minY: 200, maxY: 230 }
 
       // Relative context at (0, 0) with size (50, 30)
       // Blob wraps with padding, extends from -60 to 110 in relative X (padding causes negative)
       const blobMetadata: BlobMetadata = {
         path: 'M 0 0 L 100 0 L 100 100 L 0 100 Z', // Translated to (0,0)
-        translateX: 60,  // We translated by +60 to move -60 to 0
+        translateX: 60, // We translated by +60 to move -60 to 0
         translateY: 45,
         bounds: {
-          minX: -60,  // ORIGINAL bounds (before translation)
+          minX: -60, // ORIGINAL bounds (before translation)
           maxX: 110,
           minY: -45,
-          maxY: 75
-        }
+          maxY: 75,
+        },
       }
 
       const result = calculateBlobPosition(contexts, blobMetadata, boundingBox)
@@ -151,7 +147,7 @@ describe('blobPositioning', () => {
     it('positions blob correctly with multiple contexts', () => {
       const contexts: ContextWithSize[] = [
         { x: 1000, y: 2000, width: 100, height: 80 },
-        { x: 1200, y: 2100, width: 100, height: 80 }
+        { x: 1200, y: 2100, width: 100, height: 80 },
       ]
       const boundingBox = { minX: 1000, maxX: 1300, minY: 2000, maxY: 2180 }
 
@@ -165,13 +161,13 @@ describe('blobPositioning', () => {
           minX: -40,
           maxX: 340,
           minY: -30,
-          maxY: 230
-        }
+          maxY: 230,
+        },
       }
 
       const result = calculateBlobPosition(contexts, blobMetadata, boundingBox)
 
-      expect(result.containerX).toBe(960)  // 1000 + (-40)
+      expect(result.containerX).toBe(960) // 1000 + (-40)
       expect(result.containerY).toBe(1970) // 2000 + (-30)
       expect(result.containerWidth).toBe(380)
       expect(result.containerHeight).toBe(260)

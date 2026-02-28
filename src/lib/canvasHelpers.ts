@@ -7,7 +7,7 @@ import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefin
  */
 export function getHoverConnectedContextIds(
   hoveredContextId: string | null,
-  relationships: Relationship[],
+  relationships: Relationship[]
 ): Set<string> {
   const connected = new Set<string>()
   if (!hoveredContextId) return connected
@@ -29,7 +29,7 @@ export interface EdgeLabelInfo {
  * Returns null if the pattern is not found.
  */
 export function getEdgeLabelInfo(pattern: string): EdgeLabelInfo | null {
-  const patternDef = PATTERN_DEFINITIONS.find(p => p.value === pattern)
+  const patternDef = PATTERN_DEFINITIONS.find((p) => p.value === pattern)
   if (!patternDef) return null
 
   const icon = POWER_DYNAMICS_ICONS[patternDef.powerDynamics]

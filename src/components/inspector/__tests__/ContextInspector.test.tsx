@@ -160,7 +160,9 @@ describe('ContextInspector', () => {
     const container = roleLabel.closest('div')!
     const select = container.querySelector('select')!
     fireEvent.change(select, { target: { value: 'revenue-generator' } })
-    expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { businessModelRole: 'revenue-generator' })
+    expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', {
+      businessModelRole: 'revenue-generator',
+    })
   })
 
   it('shows Add Team button when no teams exist and context is non-external', () => {
@@ -194,15 +196,22 @@ describe('ContextInspector', () => {
 
   it('hides Team section for external contexts', () => {
     const project = makeProject({
-      contexts: [{
-        id: 'ctx-1',
-        name: 'External API',
-        purpose: '',
-        ownership: 'external',
-        positions: { flow: { x: 0 }, strategic: { x: 50 }, distillation: { x: 40, y: 60 }, shared: { y: 30 } },
-        evolutionStage: 'custom-built',
-        issues: [],
-      }],
+      contexts: [
+        {
+          id: 'ctx-1',
+          name: 'External API',
+          purpose: '',
+          ownership: 'external',
+          positions: {
+            flow: { x: 0 },
+            strategic: { x: 50 },
+            distillation: { x: 40, y: 60 },
+            shared: { y: 30 },
+          },
+          evolutionStage: 'custom-built',
+          issues: [],
+        },
+      ],
     })
     render(<ContextInspector project={project} contextId="ctx-1" />)
     // Should not show Add Team for external contexts
@@ -218,7 +227,9 @@ describe('ContextInspector', () => {
 
   it('shows Add Repo button alongside assigned repos', () => {
     const project = makeProject({
-      repos: [{ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1', teamIds: [], contributors: [] }],
+      repos: [
+        { id: 'repo-1', name: 'orders-service', contextId: 'ctx-1', teamIds: [], contributors: [] },
+      ],
     })
     render(<ContextInspector project={project} contextId="ctx-1" />)
     expect(screen.getByText('Add Repo')).toBeInTheDocument()
@@ -243,17 +254,24 @@ describe('ContextInspector', () => {
 
   it('calls updateContext with undefined when Business Model Role is cleared', () => {
     const project = makeProject({
-      contexts: [{
-        id: 'ctx-1',
-        name: 'Orders',
-        purpose: 'Manage orders',
-        ownership: 'ours',
-        positions: { flow: { x: 0 }, strategic: { x: 50 }, distillation: { x: 40, y: 60 }, shared: { y: 30 } },
-        strategicClassification: 'core',
-        evolutionStage: 'custom-built',
-        businessModelRole: 'revenue-generator',
-        issues: [],
-      }],
+      contexts: [
+        {
+          id: 'ctx-1',
+          name: 'Orders',
+          purpose: 'Manage orders',
+          ownership: 'ours',
+          positions: {
+            flow: { x: 0 },
+            strategic: { x: 50 },
+            distillation: { x: 40, y: 60 },
+            shared: { y: 30 },
+          },
+          strategicClassification: 'core',
+          evolutionStage: 'custom-built',
+          businessModelRole: 'revenue-generator',
+          issues: [],
+        },
+      ],
     })
     render(<ContextInspector project={project} contextId="ctx-1" />)
     const roleSelect = screen.getByDisplayValue('Revenue Generator')

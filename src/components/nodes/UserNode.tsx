@@ -1,11 +1,6 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
-import {
-  NodeProps,
-  Position,
-  Handle,
-  useViewport,
-} from 'reactflow'
+import { NodeProps, Position, Handle, useViewport } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { User as UserType } from '../../model/types'
 import { User as UserIcon } from 'lucide-react'
@@ -16,7 +11,7 @@ export function UserNode({ data }: NodeProps) {
   const isSelected = data.isSelected as boolean
   const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const { x: _vpX, y: _vpY, zoom: _zoom } = useViewport()
   const nodeRef = React.useRef<HTMLDivElement>(null)
 
@@ -55,12 +50,12 @@ export function UserNode({ data }: NodeProps) {
           boxShadow: isHighlighted
             ? '0 0 0 3px #3b82f6, 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
-            ? user.isExternal
-              ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 4px 8px -1px rgba(0, 0, 0, 0.12)'
-              : '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
-            : user.isExternal
-            ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 2px 6px 0 rgba(0, 0, 0, 0.06)'
-            : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
+              ? user.isExternal
+                ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 4px 8px -1px rgba(0, 0, 0, 0.12)'
+                : '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+              : user.isExternal
+                ? '0 0 0 2px white, 0 0 0 3px #cbd5e1, 0 2px 6px 0 rgba(0, 0, 0, 0.06)'
+                : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -78,7 +73,12 @@ export function UserNode({ data }: NodeProps) {
             gap: '4px',
           }}
         >
-          <UserIcon size={12} color="#3b82f6" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '1px' }} />
+          <UserIcon
+            size={12}
+            color="#3b82f6"
+            strokeWidth={2.5}
+            style={{ flexShrink: 0, marginTop: '1px' }}
+          />
           <div
             style={{
               fontSize: '11px',
@@ -98,29 +98,32 @@ export function UserNode({ data }: NodeProps) {
       </div>
 
       {/* Tooltip on hover */}
-      {showHelpTooltips && isHovered && hasTooltipContent && createPortal(
-        <div
-          className="fixed z-[9999] pointer-events-none"
-          style={{
-            left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
-            top: tooltipPos.y,
-            transform: 'translateY(-100%)',
-          }}
-        >
-          <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-            <div className="font-semibold text-sm mb-1 flex items-center gap-2">
-              {user.name}
-              {user.isExternal && (
-                <span className="text-[10px] bg-slate-600 px-1.5 py-0.5 rounded uppercase">External</span>
-              )}
+      {showHelpTooltips &&
+        isHovered &&
+        hasTooltipContent &&
+        createPortal(
+          <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{
+              left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+              top: tooltipPos.y,
+              transform: 'translateY(-100%)',
+            }}
+          >
+            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="font-semibold text-sm mb-1 flex items-center gap-2">
+                {user.name}
+                {user.isExternal && (
+                  <span className="text-[10px] bg-slate-600 px-1.5 py-0.5 rounded uppercase">
+                    External
+                  </span>
+                )}
+              </div>
+              {user.description && <div className="text-xs text-slate-300">{user.description}</div>}
             </div>
-            {user.description && (
-              <div className="text-xs text-slate-300">{user.description}</div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </>
   )
 }

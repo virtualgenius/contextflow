@@ -4,24 +4,30 @@ import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 import { TEXTAREA_CLASS, Section } from './inspectorShared'
 
-export function NeedContextConnectionInspector({ project, connectionId }: { project: Project; connectionId: string }) {
-  const deleteNeedContextConnection = useEditorStore(s => s.deleteNeedContextConnection)
-  const updateNeedContextConnection = useEditorStore(s => s.updateNeedContextConnection)
+export function NeedContextConnectionInspector({
+  project,
+  connectionId,
+}: {
+  project: Project
+  connectionId: string
+}) {
+  const deleteNeedContextConnection = useEditorStore((s) => s.deleteNeedContextConnection)
+  const updateNeedContextConnection = useEditorStore((s) => s.updateNeedContextConnection)
 
-  const connection = project.needContextConnections?.find(c => c.id === connectionId)
+  const connection = project.needContextConnections?.find((c) => c.id === connectionId)
   if (!connection) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        Connection not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">Connection not found.</div>
   }
 
-  const userNeed = project.userNeeds?.find(n => n.id === connection.userNeedId)
-  const context = project.contexts?.find(c => c.id === connection.contextId)
+  const userNeed = project.userNeeds?.find((n) => n.id === connection.userNeedId)
+  const context = project.contexts?.find((c) => c.id === connection.contextId)
 
   const handleDeleteConnection = () => {
-    if (window.confirm(`Delete connection from "${userNeed?.name}" to "${context?.name}"? This can be undone with Cmd/Ctrl+Z.`)) {
+    if (
+      window.confirm(
+        `Delete connection from "${userNeed?.name}" to "${context?.name}"? This can be undone with Cmd/Ctrl+Z.`
+      )
+    ) {
       deleteNeedContextConnection(connection.id)
     }
   }
@@ -44,14 +50,24 @@ export function NeedContextConnectionInspector({ project, connectionId }: { proj
       <Section label="Connection">
         <div className="flex items-center gap-2 text-sm">
           <button
-            onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed?.id, selectedNeedContextConnectionId: null })}
+            onClick={() =>
+              useEditorStore.setState({
+                selectedUserNeedId: userNeed?.id,
+                selectedNeedContextConnectionId: null,
+              })
+            }
             className="text-emerald-600 dark:text-emerald-400 hover:underline"
           >
             {userNeed?.name || 'Unknown'}
           </button>
           <ArrowRight size={14} className="text-slate-400" />
           <button
-            onClick={() => useEditorStore.setState({ selectedContextId: context?.id, selectedNeedContextConnectionId: null })}
+            onClick={() =>
+              useEditorStore.setState({
+                selectedContextId: context?.id,
+                selectedNeedContextConnectionId: null,
+              })
+            }
             className="text-emerald-600 dark:text-emerald-400 hover:underline"
           >
             {context?.name || 'Unknown'}

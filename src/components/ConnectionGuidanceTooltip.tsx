@@ -19,15 +19,17 @@ const TYPE_LABELS: Record<string, string> = {
  * SVG diagram showing User → UserNeed → Context flow
  */
 function ValueChainDiagram() {
-  const boxStyle = "fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500"
-  const textStyle = "fill-slate-600 dark:fill-slate-300 text-[8px]"
-  const arrowStyle = "stroke-slate-400 dark:stroke-slate-500"
+  const boxStyle = 'fill-slate-100 dark:fill-neutral-700 stroke-slate-400 dark:stroke-neutral-500'
+  const textStyle = 'fill-slate-600 dark:fill-slate-300 text-[8px]'
+  const arrowStyle = 'stroke-slate-400 dark:stroke-slate-500'
 
   return (
     <svg viewBox="0 0 200 40" className="w-full h-10">
       {/* User - octagon approximated as rounded rect */}
       <rect x={5} y={10} width={50} height={20} rx={6} className={boxStyle} strokeWidth={1.5} />
-      <text x={30} y={23} textAnchor="middle" className={textStyle}>User</text>
+      <text x={30} y={23} textAnchor="middle" className={textStyle}>
+        User
+      </text>
 
       {/* Arrow 1 */}
       <g className={arrowStyle}>
@@ -36,8 +38,23 @@ function ValueChainDiagram() {
       </g>
 
       {/* User Need - rounded rect */}
-      <rect x={75} y={10} width={50} height={20} rx={4} className="fill-blue-50 dark:fill-blue-900/30 stroke-blue-400 dark:stroke-blue-500" strokeWidth={1.5} />
-      <text x={100} y={23} textAnchor="middle" className="fill-blue-600 dark:fill-blue-400 text-[8px]">User Need</text>
+      <rect
+        x={75}
+        y={10}
+        width={50}
+        height={20}
+        rx={4}
+        className="fill-blue-50 dark:fill-blue-900/30 stroke-blue-400 dark:stroke-blue-500"
+        strokeWidth={1.5}
+      />
+      <text
+        x={100}
+        y={23}
+        textAnchor="middle"
+        className="fill-blue-600 dark:fill-blue-400 text-[8px]"
+      >
+        User Need
+      </text>
 
       {/* Arrow 2 */}
       <g className={arrowStyle}>
@@ -47,7 +64,9 @@ function ValueChainDiagram() {
 
       {/* Context - rect */}
       <rect x={145} y={10} width={50} height={20} rx={3} className={boxStyle} strokeWidth={1.5} />
-      <text x={170} y={23} textAnchor="middle" className={textStyle}>Context</text>
+      <text x={170} y={23} textAnchor="middle" className={textStyle}>
+        Context
+      </text>
     </svg>
   )
 }
@@ -123,10 +142,12 @@ export function ConnectionGuidanceTooltip({
 
         {/* Explanation text */}
         <p className="text-sm text-slate-700 dark:text-slate-300 mb-1">
-          <span className="font-medium">{sourceLabel}</span> cannot connect directly to <span className="font-medium">{targetLabel}</span>.
+          <span className="font-medium">{sourceLabel}</span> cannot connect directly to{' '}
+          <span className="font-medium">{targetLabel}</span>.
         </p>
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-          Users connect through User Needs, which represent the problems your users are trying to solve.
+          Users connect through User Needs, which represent the problems your users are trying to
+          solve.
         </p>
 
         {/* Action buttons */}

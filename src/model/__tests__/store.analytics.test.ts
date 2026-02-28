@@ -2,8 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useEditorStore } from '../store'
 import * as analytics from '../../utils/analytics'
 
-function findProjectByName(projects: Record<string, { name: string }>, name: string): string | undefined {
-  return Object.keys(projects).find(id => projects[id].name === name)
+function findProjectByName(
+  projects: Record<string, { name: string }>,
+  name: string
+): string | undefined {
+  return Object.keys(projects).find((id) => projects[id].name === name)
 }
 
 function activateSampleProject(): string {
@@ -45,7 +48,7 @@ describe('store analytics integration', () => {
         expect.any(Object), // project
         {
           from_view: 'flow',
-          to_view: 'strategic'
+          to_view: 'strategic',
         }
       )
     })
@@ -56,14 +59,10 @@ describe('store analytics integration', () => {
       // Switch to distillation view
       state.setViewMode('distillation')
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_switched',
-        expect.any(Object),
-        {
-          from_view: 'flow',
-          to_view: 'distillation'
-        }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_switched', expect.any(Object), {
+        from_view: 'flow',
+        to_view: 'distillation',
+      })
     })
 
     it('includes project metadata in view_switched event', () => {
@@ -73,11 +72,7 @@ describe('store analytics integration', () => {
 
       state.setViewMode('strategic')
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_switched',
-        project,
-        expect.any(Object)
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_switched', project, expect.any(Object))
     })
   })
 
@@ -92,13 +87,9 @@ describe('store analytics integration', () => {
 
       const project = state.projects[cbioportalId!]
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_opened',
-        project,
-        {
-          project_origin: 'sample'
-        }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('project_opened', project, {
+        project_origin: 'sample',
+      })
     })
 
     it('tracks project_opened with sample origin for ACME E-Commerce Platform', () => {
@@ -109,13 +100,9 @@ describe('store analytics integration', () => {
 
       state.setActiveProject(acmeId!)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_opened',
-        expect.any(Object),
-        {
-          project_origin: 'sample'
-        }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('project_opened', expect.any(Object), {
+        project_origin: 'sample',
+      })
     })
 
     it('tracks project_opened with sample origin for Elan Extended Warranty', () => {
@@ -126,13 +113,9 @@ describe('store analytics integration', () => {
 
       state.setActiveProject(elanId!)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_opened',
-        expect.any(Object),
-        {
-          project_origin: 'sample'
-        }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('project_opened', expect.any(Object), {
+        project_origin: 'sample',
+      })
     })
 
     it('tracks project_opened with sample origin when switching between sample projects', () => {
@@ -150,13 +133,9 @@ describe('store analytics integration', () => {
       // Then switch to cbioportal (still 'sample' since it's a built-in sample)
       state.setActiveProject(cbioportalId!)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_opened',
-        expect.any(Object),
-        {
-          project_origin: 'sample'
-        }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('project_opened', expect.any(Object), {
+        project_origin: 'sample',
+      })
     })
 
     it('does not track event for non-existent project', () => {
@@ -216,11 +195,9 @@ describe('store analytics integration', () => {
 
       state.duplicateProject(sampleId!)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_created',
-        expect.any(Object),
-        { creation_method: 'duplicate' }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('project_created', expect.any(Object), {
+        creation_method: 'duplicate',
+      })
     })
   })
 
@@ -255,10 +232,7 @@ describe('store analytics integration', () => {
 
       state.renameProject(sampleId!, 'Renamed Project')
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'project_renamed',
-        expect.any(Object)
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('project_renamed', expect.any(Object))
     })
   })
 
@@ -295,11 +269,13 @@ describe('store analytics integration', () => {
 
       state.addUser('Test User')
       const afterUser = useEditorStore.getState()
-      const user = afterUser.projects[projectId].users[afterUser.projects[projectId].users.length - 1]
+      const user =
+        afterUser.projects[projectId].users[afterUser.projects[projectId].users.length - 1]
 
       state.addUserNeed('Test Need')
       const afterNeed = useEditorStore.getState()
-      const need = afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
+      const need =
+        afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
 
       const connId = state.createUserNeedConnection(user.id, need.id)
       expect(connId).toBeDefined()
@@ -308,11 +284,10 @@ describe('store analytics integration', () => {
 
       state.deleteUserNeedConnection(connId!)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'user_need_connection_deleted',
-        null,
-        { entity_type: 'user_need_connection', entity_id: connId }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('user_need_connection_deleted', null, {
+        entity_type: 'user_need_connection',
+        entity_id: connId,
+      })
     })
 
     it('tracks need_context_connection_deleted event', () => {
@@ -322,7 +297,8 @@ describe('store analytics integration', () => {
 
       state.addUserNeed('Test Need')
       const afterNeed = useEditorStore.getState()
-      const need = afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
+      const need =
+        afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
       const contextId = project.contexts[0].id
 
       const connId = state.createNeedContextConnection(need.id, contextId)
@@ -332,11 +308,10 @@ describe('store analytics integration', () => {
 
       state.deleteNeedContextConnection(connId!)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'need_context_connection_deleted',
-        null,
-        { entity_type: 'need_context_connection', entity_id: connId }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('need_context_connection_deleted', null, {
+        entity_type: 'need_context_connection',
+        entity_id: connId,
+      })
     })
   })
 
@@ -509,7 +484,15 @@ describe('store analytics integration', () => {
         ...project,
         temporal: {
           enabled: true,
-          keyframes: [{ id: keyframeId, date: '2030', label: 'Original Label', positions: {}, activeContextIds: [] }],
+          keyframes: [
+            {
+              id: keyframeId,
+              date: '2030',
+              label: 'Original Label',
+              positions: {},
+              activeContextIds: [],
+            },
+          ],
         },
       }
       useEditorStore.setState({
@@ -560,11 +543,13 @@ describe('store analytics integration', () => {
 
       state.addUser('Conn User')
       const afterUser = useEditorStore.getState()
-      const user = afterUser.projects[projectId].users[afterUser.projects[projectId].users.length - 1]
+      const user =
+        afterUser.projects[projectId].users[afterUser.projects[projectId].users.length - 1]
 
       state.addUserNeed('Conn Need')
       const afterNeed = useEditorStore.getState()
-      const need = afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
+      const need =
+        afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
 
       const connId = state.createUserNeedConnection(user.id, need.id)
       expect(connId).toBeDefined()
@@ -573,11 +558,10 @@ describe('store analytics integration', () => {
 
       state.updateUserNeedConnection(connId!, { userId: user.id })
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'user_need_connection_updated',
-        null,
-        { entity_type: 'user_need_connection', entity_id: connId }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('user_need_connection_updated', null, {
+        entity_type: 'user_need_connection',
+        entity_id: connId,
+      })
     })
 
     it('tracks updateNeedContextConnection event', () => {
@@ -587,7 +571,8 @@ describe('store analytics integration', () => {
 
       state.addUserNeed('NCC Need')
       const afterNeed = useEditorStore.getState()
-      const need = afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
+      const need =
+        afterNeed.projects[projectId].userNeeds[afterNeed.projects[projectId].userNeeds.length - 1]
 
       const connId = state.createNeedContextConnection(need.id, project.contexts[0].id)
       expect(connId).toBeDefined()
@@ -596,11 +581,10 @@ describe('store analytics integration', () => {
 
       state.updateNeedContextConnection(connId!, { contextId: project.contexts[0].id })
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'need_context_connection_updated',
-        null,
-        { entity_type: 'need_context_connection', entity_id: connId }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('need_context_connection_updated', null, {
+        entity_type: 'need_context_connection',
+        entity_id: connId,
+      })
     })
   })
 
@@ -616,17 +600,17 @@ describe('store analytics integration', () => {
       useEditorStore.setState({ selectedContextIds: [ctx1, ctx2] })
       state.createGroup('Membership Group')
       const afterGroup = useEditorStore.getState()
-      const group = afterGroup.projects[projectId].groups[afterGroup.projects[projectId].groups.length - 1]
+      const group =
+        afterGroup.projects[projectId].groups[afterGroup.projects[projectId].groups.length - 1]
 
       trackEventSpy.mockClear()
 
       state.removeContextFromGroup(group.id, ctx1)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'context_removed_from_group',
-        null,
-        { entity_type: 'group', entity_id: group.id }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('context_removed_from_group', null, {
+        entity_type: 'group',
+        entity_id: group.id,
+      })
     })
 
     it('tracks context_added_to_group event', () => {
@@ -639,17 +623,17 @@ describe('store analytics integration', () => {
       useEditorStore.setState({ selectedContextIds: [ctx1] })
       state.createGroup('Add To Group')
       const afterGroup = useEditorStore.getState()
-      const group = afterGroup.projects[projectId].groups[afterGroup.projects[projectId].groups.length - 1]
+      const group =
+        afterGroup.projects[projectId].groups[afterGroup.projects[projectId].groups.length - 1]
 
       trackEventSpy.mockClear()
 
       state.addContextToGroup(group.id, ctx2)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'context_added_to_group',
-        null,
-        { entity_type: 'group', entity_id: group.id }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('context_added_to_group', null, {
+        entity_type: 'group',
+        entity_id: group.id,
+      })
     })
 
     it('tracks context_added_to_group event with context_count for bulk add', () => {
@@ -661,18 +645,19 @@ describe('store analytics integration', () => {
       useEditorStore.setState({ selectedContextIds: [ctx1] })
       state.createGroup('Bulk Group')
       const afterGroup = useEditorStore.getState()
-      const group = afterGroup.projects[projectId].groups[afterGroup.projects[projectId].groups.length - 1]
+      const group =
+        afterGroup.projects[projectId].groups[afterGroup.projects[projectId].groups.length - 1]
 
       trackEventSpy.mockClear()
 
-      const newContextIds = project.contexts.slice(1, 3).map(c => c.id)
+      const newContextIds = project.contexts.slice(1, 3).map((c) => c.id)
       state.addContextsToGroup(group.id, newContextIds)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'context_added_to_group',
-        null,
-        { entity_type: 'group', entity_id: group.id, context_count: newContextIds.length }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('context_added_to_group', null, {
+        entity_type: 'group',
+        entity_id: group.id,
+        context_count: newContextIds.length,
+      })
     })
   })
 
@@ -684,11 +669,10 @@ describe('store analytics integration', () => {
 
       state.toggleShowGroups()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'showGroups', new_value: !currentValue }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'showGroups',
+        new_value: !currentValue,
+      })
     })
 
     it('tracks view_preference_changed for toggleShowRelationships', () => {
@@ -697,11 +681,10 @@ describe('store analytics integration', () => {
 
       state.toggleShowRelationships()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'showRelationships', new_value: !currentValue }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'showRelationships',
+        new_value: !currentValue,
+      })
     })
 
     it('tracks view_preference_changed for toggleIssueLabels', () => {
@@ -710,11 +693,10 @@ describe('store analytics integration', () => {
 
       state.toggleIssueLabels()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'showIssueLabels', new_value: !currentValue }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'showIssueLabels',
+        new_value: !currentValue,
+      })
     })
 
     it('tracks view_preference_changed for toggleTeamLabels', () => {
@@ -723,11 +705,10 @@ describe('store analytics integration', () => {
 
       state.toggleTeamLabels()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'showTeamLabels', new_value: !currentValue }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'showTeamLabels',
+        new_value: !currentValue,
+      })
     })
 
     it('tracks view_preference_changed for toggleRelationshipLabels', () => {
@@ -736,11 +717,10 @@ describe('store analytics integration', () => {
 
       state.toggleRelationshipLabels()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'showRelationshipLabels', new_value: !currentValue }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'showRelationshipLabels',
+        new_value: !currentValue,
+      })
     })
 
     it('tracks view_preference_changed for toggleHelpTooltips', () => {
@@ -749,11 +729,10 @@ describe('store analytics integration', () => {
 
       state.toggleHelpTooltips()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'showHelpTooltips', new_value: !currentValue }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'showHelpTooltips',
+        new_value: !currentValue,
+      })
     })
 
     it('tracks view_preference_changed for setGroupOpacity', () => {
@@ -761,11 +740,10 @@ describe('store analytics integration', () => {
 
       state.setGroupOpacity(0.5)
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'groupOpacity', new_value: 0.5 }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'groupOpacity',
+        new_value: 0.5,
+      })
     })
 
     it('skips analytics for setGroupOpacity when skipAnalytics is true', () => {
@@ -782,11 +760,10 @@ describe('store analytics integration', () => {
 
       state.setColorByMode('strategic')
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'view_preference_changed',
-        null,
-        { preference_name: 'colorByMode', new_value: 'strategic' }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('view_preference_changed', null, {
+        preference_name: 'colorByMode',
+        new_value: 'strategic',
+      })
     })
   })
 
@@ -799,11 +776,9 @@ describe('store analytics integration', () => {
 
       state.toggleTemporalMode()
 
-      expect(trackEventSpy).toHaveBeenCalledWith(
-        'temporal_mode_toggled',
-        expect.any(Object),
-        { enabled: true }
-      )
+      expect(trackEventSpy).toHaveBeenCalledWith('temporal_mode_toggled', expect.any(Object), {
+        enabled: true,
+      })
     })
   })
 

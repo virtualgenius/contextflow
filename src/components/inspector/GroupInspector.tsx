@@ -6,33 +6,36 @@ import { SimpleTooltip } from '../SimpleTooltip'
 import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
 export function GroupInspector({ project, groupId }: { project: Project; groupId: string }) {
-  const updateGroup = useEditorStore(s => s.updateGroup)
-  const deleteGroup = useEditorStore(s => s.deleteGroup)
-  const removeContextFromGroup = useEditorStore(s => s.removeContextFromGroup)
-  const addContextToGroup = useEditorStore(s => s.addContextToGroup)
-  const addContextsToGroup = useEditorStore(s => s.addContextsToGroup)
+  const updateGroup = useEditorStore((s) => s.updateGroup)
+  const deleteGroup = useEditorStore((s) => s.deleteGroup)
+  const removeContextFromGroup = useEditorStore((s) => s.removeContextFromGroup)
+  const addContextToGroup = useEditorStore((s) => s.addContextToGroup)
+  const addContextsToGroup = useEditorStore((s) => s.addContextsToGroup)
 
-  const group = project.groups.find(g => g.id === groupId)
+  const group = project.groups.find((g) => g.id === groupId)
   if (!group) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        Group not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">Group not found.</div>
   }
 
   const handleDeleteGroup = () => {
-    if (window.confirm(`Delete group "${group.label}"? Member contexts will not be deleted. This can be undone with Cmd/Ctrl+Z.`)) {
+    if (
+      window.confirm(
+        `Delete group "${group.label}"? Member contexts will not be deleted. This can be undone with Cmd/Ctrl+Z.`
+      )
+    ) {
       deleteGroup(group.id)
     }
   }
 
-  const memberContexts = project.contexts.filter(c => group.contextIds.includes(c.id))
-  const availableContexts = project.contexts.filter(c => !group.contextIds.includes(c.id))
+  const memberContexts = project.contexts.filter((c) => group.contextIds.includes(c.id))
+  const availableContexts = project.contexts.filter((c) => !group.contextIds.includes(c.id))
 
   const handleAddAllContexts = () => {
     if (availableContexts.length > 0) {
-      addContextsToGroup(group.id, availableContexts.map(c => c.id))
+      addContextsToGroup(
+        group.id,
+        availableContexts.map((c) => c.id)
+      )
     }
   }
 
@@ -62,13 +65,12 @@ export function GroupInspector({ project, groupId }: { project: Project; groupId
       {/* Member Contexts */}
       <Section label={`Member Contexts (${memberContexts.length})`}>
         <div className="space-y-1">
-          {memberContexts.map(context => (
-            <div
-              key={context.id}
-              className="flex items-center gap-2 group"
-            >
+          {memberContexts.map((context) => (
+            <div key={context.id} className="flex items-center gap-2 group">
               <button
-                onClick={() => useEditorStore.setState({ selectedContextId: context.id, selectedGroupId: null })}
+                onClick={() =>
+                  useEditorStore.setState({ selectedContextId: context.id, selectedGroupId: null })
+                }
                 className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
               >
                 {context.name}
@@ -91,7 +93,7 @@ export function GroupInspector({ project, groupId }: { project: Project; groupId
         <Section label={`Add Contexts (${availableContexts.length} available)`}>
           <div className="space-y-2">
             <div className="space-y-1">
-              {availableContexts.map(context => (
+              {availableContexts.map((context) => (
                 <button
                   key={context.id}
                   onClick={() => addContextToGroup(group.id, context.id)}

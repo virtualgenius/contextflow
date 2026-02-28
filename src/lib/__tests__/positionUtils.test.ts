@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  getContextCanvasPosition,
-  clampDragDelta,
-} from '../positionUtils'
+import { getContextCanvasPosition, clampDragDelta } from '../positionUtils'
 
 describe('getContextCanvasPosition', () => {
   const makePositions = (overrides?: {
@@ -21,21 +18,30 @@ describe('getContextCanvasPosition', () => {
   describe('distillation view', () => {
     it('maps distillation position to canvas coordinates with inverted Y', () => {
       const positions = makePositions({ distillationX: 0, distillationY: 0 })
-      const result = getContextCanvasPosition(positions, 'distillation', null, [], () => ({ x: 0, y: 0 }))
+      const result = getContextCanvasPosition(positions, 'distillation', null, [], () => ({
+        x: 0,
+        y: 0,
+      }))
       expect(result.x).toBe(0) // (0/100) * 2000
       expect(result.y).toBe(1000) // (1 - 0/100) * 1000, inverted
     })
 
     it('maps center distillation position', () => {
       const positions = makePositions({ distillationX: 50, distillationY: 50 })
-      const result = getContextCanvasPosition(positions, 'distillation', null, [], () => ({ x: 50, y: 50 }))
+      const result = getContextCanvasPosition(positions, 'distillation', null, [], () => ({
+        x: 50,
+        y: 50,
+      }))
       expect(result.x).toBe(1000) // (50/100) * 2000
       expect(result.y).toBe(500) // (1 - 50/100) * 1000
     })
 
     it('maps max distillation position', () => {
       const positions = makePositions({ distillationX: 100, distillationY: 100 })
-      const result = getContextCanvasPosition(positions, 'distillation', null, [], () => ({ x: 100, y: 100 }))
+      const result = getContextCanvasPosition(positions, 'distillation', null, [], () => ({
+        x: 100,
+        y: 100,
+      }))
       expect(result.x).toBe(2000) // (100/100) * 2000
       expect(result.y).toBe(0) // (1 - 100/100) * 1000
     })
@@ -60,7 +66,10 @@ describe('getContextCanvasPosition', () => {
   describe('strategic view', () => {
     it('uses strategic.x and shared.y for strategic view (non-temporal)', () => {
       const positions = makePositions({ strategicX: 80, sharedY: 20 })
-      const result = getContextCanvasPosition(positions, 'strategic', null, [], () => ({ x: 0, y: 0 }))
+      const result = getContextCanvasPosition(positions, 'strategic', null, [], () => ({
+        x: 0,
+        y: 0,
+      }))
       expect(result.x).toBe(1600) // (80/100) * 2000
       expect(result.y).toBe(200) // (20/100) * 1000
     })
@@ -71,14 +80,23 @@ describe('getContextCanvasPosition', () => {
       const keyframes = [{ date: '2026-01-01', contextPositions: {} }]
       const mockInterpolate = () => ({ x: 60, y: 40 })
 
-      const result = getContextCanvasPosition(positions, 'strategic', currentDate, keyframes, mockInterpolate)
+      const result = getContextCanvasPosition(
+        positions,
+        'strategic',
+        currentDate,
+        keyframes,
+        mockInterpolate
+      )
       expect(result.x).toBe(1200) // (60/100) * 2000
       expect(result.y).toBe(400) // (40/100) * 1000
     })
 
     it('uses base positions when temporal mode has no keyframes', () => {
       const positions = makePositions({ strategicX: 80, sharedY: 20 })
-      const result = getContextCanvasPosition(positions, 'strategic', '2026-01-15', [], () => ({ x: 0, y: 0 }))
+      const result = getContextCanvasPosition(positions, 'strategic', '2026-01-15', [], () => ({
+        x: 0,
+        y: 0,
+      }))
       expect(result.x).toBe(1600) // base position
       expect(result.y).toBe(200)
     })
@@ -86,7 +104,10 @@ describe('getContextCanvasPosition', () => {
     it('uses base positions when currentDate is null', () => {
       const positions = makePositions({ strategicX: 80, sharedY: 20 })
       const keyframes = [{ date: '2026-01-01', contextPositions: {} }]
-      const result = getContextCanvasPosition(positions, 'strategic', null, keyframes, () => ({ x: 0, y: 0 }))
+      const result = getContextCanvasPosition(positions, 'strategic', null, keyframes, () => ({
+        x: 0,
+        y: 0,
+      }))
       expect(result.x).toBe(1600)
       expect(result.y).toBe(200)
     })

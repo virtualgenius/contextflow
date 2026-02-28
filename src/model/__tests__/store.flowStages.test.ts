@@ -114,7 +114,7 @@ describe('Store - Flow Stage Management', () => {
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
       expect(updatedProject!.viewConfig.flowStages.length).toBe(initialCount + 1)
 
-      const newStage = updatedProject!.viewConfig.flowStages.find(s => s.name === 'New Stage')
+      const newStage = updatedProject!.viewConfig.flowStages.find((s) => s.name === 'New Stage')
       expect(newStage).toBeDefined()
       expect(newStage?.position).toBe(55)
     })
@@ -155,7 +155,9 @@ describe('Store - Flow Stage Management', () => {
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
       expect(updatedProject!.viewConfig.flowStages.length).toBe(initialCount - 1)
-      expect(updatedProject!.viewConfig.flowStages.find(s => s.name === deletedName)).toBeUndefined()
+      expect(
+        updatedProject!.viewConfig.flowStages.find((s) => s.name === deletedName)
+      ).toBeUndefined()
     })
 
     it('should handle out of bounds index gracefully', () => {
@@ -213,7 +215,7 @@ describe('Store - Flow Stage Management', () => {
 
       const updatedState = useEditorStore.getState()
       const afterUndo = updatedState.projects[updatedState.activeProjectId!]
-      const restoredStage = afterUndo!.viewConfig.flowStages.find(s => s.name === deletedName)
+      const restoredStage = afterUndo!.viewConfig.flowStages.find((s) => s.name === deletedName)
       expect(restoredStage).toBeDefined()
       expect(restoredStage?.position).toBe(deletedPosition)
     })

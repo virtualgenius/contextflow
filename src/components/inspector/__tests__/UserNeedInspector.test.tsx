@@ -17,7 +17,13 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   return {
     id: 'proj-1',
     name: 'Test',
-    contexts: [{ id: 'ctx-1', name: 'Orders', positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } } }],
+    contexts: [
+      {
+        id: 'ctx-1',
+        name: 'Orders',
+        positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } },
+      },
+    ],
     relationships: [],
     repos: [],
     teams: [],
@@ -85,6 +91,9 @@ describe('UserNeedInspector', () => {
   it('navigates to user on click', () => {
     render(<UserNeedInspector project={makeProject()} userNeedId="need-1" />)
     fireEvent.click(screen.getByText('Customer'))
-    expect(useEditorStore.setState).toHaveBeenCalledWith({ selectedUserId: 'user-1', selectedUserNeedId: null })
+    expect(useEditorStore.setState).toHaveBeenCalledWith({
+      selectedUserId: 'user-1',
+      selectedUserNeedId: null,
+    })
   })
 })

@@ -5,33 +5,43 @@ import type { Project } from '../../model/types'
 import { SimpleTooltip } from '../SimpleTooltip'
 import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
-export function UserNeedInspector({ project, userNeedId }: { project: Project; userNeedId: string }) {
-  const updateUserNeed = useEditorStore(s => s.updateUserNeed)
-  const deleteUserNeed = useEditorStore(s => s.deleteUserNeed)
-  const deleteUserNeedConnection = useEditorStore(s => s.deleteUserNeedConnection)
-  const deleteNeedContextConnection = useEditorStore(s => s.deleteNeedContextConnection)
+export function UserNeedInspector({
+  project,
+  userNeedId,
+}: {
+  project: Project
+  userNeedId: string
+}) {
+  const updateUserNeed = useEditorStore((s) => s.updateUserNeed)
+  const deleteUserNeed = useEditorStore((s) => s.deleteUserNeed)
+  const deleteUserNeedConnection = useEditorStore((s) => s.deleteUserNeedConnection)
+  const deleteNeedContextConnection = useEditorStore((s) => s.deleteNeedContextConnection)
 
-  const userNeed = project.userNeeds?.find(n => n.id === userNeedId)
+  const userNeed = project.userNeeds?.find((n) => n.id === userNeedId)
   if (!userNeed) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        User Need not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">User Need not found.</div>
   }
 
   // Find connections for this user need
-  const userConnections = (project.userNeedConnections || []).filter(c => c.userNeedId === userNeed.id)
-  const connectedUsers = userConnections.map(conn => {
-    const user = project.users?.find(u => u.id === conn.userId)
-    return { connection: conn, user }
-  }).filter(item => item.user)
+  const userConnections = (project.userNeedConnections || []).filter(
+    (c) => c.userNeedId === userNeed.id
+  )
+  const connectedUsers = userConnections
+    .map((conn) => {
+      const user = project.users?.find((u) => u.id === conn.userId)
+      return { connection: conn, user }
+    })
+    .filter((item) => item.user)
 
-  const contextConnections = (project.needContextConnections || []).filter(c => c.userNeedId === userNeed.id)
-  const connectedContexts = contextConnections.map(conn => {
-    const context = project.contexts.find(c => c.id === conn.contextId)
-    return { connection: conn, context }
-  }).filter(item => item.context)
+  const contextConnections = (project.needContextConnections || []).filter(
+    (c) => c.userNeedId === userNeed.id
+  )
+  const connectedContexts = contextConnections
+    .map((conn) => {
+      const context = project.contexts.find((c) => c.id === conn.contextId)
+      return { connection: conn, context }
+    })
+    .filter((item) => item.context)
 
   const handleUpdate = (updates: Partial<typeof userNeed>) => {
     updateUserNeed(userNeed.id, updates)
@@ -75,12 +85,11 @@ export function UserNeedInspector({ project, userNeedId }: { project: Project; u
             </div>
           ) : (
             connectedUsers.map(({ connection, user }) => (
-              <div
-                key={connection.id}
-                className="flex items-center gap-2 group"
-              >
+              <div key={connection.id} className="flex items-center gap-2 group">
                 <button
-                  onClick={() => useEditorStore.setState({ selectedUserId: user!.id, selectedUserNeedId: null })}
+                  onClick={() =>
+                    useEditorStore.setState({ selectedUserId: user!.id, selectedUserNeedId: null })
+                  }
                   className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
                 >
                   {user!.name}
@@ -108,12 +117,14 @@ export function UserNeedInspector({ project, userNeedId }: { project: Project; u
             </div>
           ) : (
             connectedContexts.map(({ connection, context }) => (
-              <div
-                key={connection.id}
-                className="flex items-center gap-2 group"
-              >
+              <div key={connection.id} className="flex items-center gap-2 group">
                 <button
-                  onClick={() => useEditorStore.setState({ selectedContextId: context!.id, selectedUserNeedId: null })}
+                  onClick={() =>
+                    useEditorStore.setState({
+                      selectedContextId: context!.id,
+                      selectedUserNeedId: null,
+                    })
+                  }
                   className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
                 >
                   {context!.name}

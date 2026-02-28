@@ -7,7 +7,11 @@ interface ProjectDeleteDialogProps {
   onCancel: () => void
 }
 
-export function ProjectDeleteDialog({ projectName, onConfirm, onCancel }: ProjectDeleteDialogProps) {
+export function ProjectDeleteDialog({
+  projectName,
+  onConfirm,
+  onCancel,
+}: ProjectDeleteDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[400px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
@@ -30,7 +34,8 @@ export function ProjectDeleteDialog({ projectName, onConfirm, onCancel }: Projec
         {/* Content */}
         <div className="p-4">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Are you sure you want to delete <strong className="text-slate-800 dark:text-slate-200">"{projectName}"</strong>?
+            Are you sure you want to delete{' '}
+            <strong className="text-slate-800 dark:text-slate-200">"{projectName}"</strong>?
           </p>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">
             This action cannot be undone.

@@ -25,7 +25,12 @@ function makeContext(overrides: Partial<BoundedContext> = {}): BoundedContext {
     id: 'ctx-1',
     name: 'Orders',
     ownership: 'ours',
-    positions: { flow: { x: 0 }, strategic: { x: 0 }, distillation: { x: 0, y: 0 }, shared: { y: 0 } },
+    positions: {
+      flow: { x: 0 },
+      strategic: { x: 0 },
+      distillation: { x: 0, y: 0 },
+      shared: { y: 0 },
+    },
     evolutionStage: 'custom-built',
     strategicClassification: 'core',
     ...overrides,

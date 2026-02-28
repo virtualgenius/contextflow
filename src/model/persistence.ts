@@ -103,13 +103,14 @@ export function migrateProject(project: Project): Project {
     project.viewConfig.flowStages = []
   }
 
-  project.contexts = project.contexts.map(context => {
+  project.contexts = project.contexts.map((context) => {
     const needsDistillation = !context.positions.distillation
     const needsEvolution = !context.evolutionStage
 
     // Migrate isExternal → ownership
     const contextAny = context as any
-    const needsOwnershipMigration = contextAny.isExternal !== undefined && context.ownership === undefined
+    const needsOwnershipMigration =
+      contextAny.isExternal !== undefined && context.ownership === undefined
     let ownership: ContextOwnership | undefined = context.ownership
     if (needsOwnershipMigration) {
       ownership = contextAny.isExternal === true ? 'external' : 'ours'
@@ -124,7 +125,8 @@ export function migrateProject(project: Project): Project {
           distillation: context.positions.distillation || { x: 50, y: 50 },
         },
         strategicClassification: context.strategicClassification || 'supporting',
-        evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
+        evolutionStage:
+          context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
         ...(ownership !== undefined && { ownership }),
       }
     }

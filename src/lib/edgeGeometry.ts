@@ -98,18 +98,30 @@ export function getEdgeParams(source: GeometryNode, target: GeometryNode) {
   const targetY = target.position.y + (target.height ?? 0) / 2
 
   // Adjust to edge center based on position
-  const sx = sourcePos === Position.Left ? source.position.x
-           : sourcePos === Position.Right ? source.position.x + (source.width ?? 0)
-           : sourceX
-  const sy = sourcePos === Position.Top ? source.position.y
-           : sourcePos === Position.Bottom ? source.position.y + (source.height ?? 0)
-           : sourceY
-  const tx = targetPos === Position.Left ? target.position.x
-           : targetPos === Position.Right ? target.position.x + (target.width ?? 0)
-           : targetX
-  const ty = targetPos === Position.Top ? target.position.y
-           : targetPos === Position.Bottom ? target.position.y + (target.height ?? 0)
-           : targetY
+  const sx =
+    sourcePos === Position.Left
+      ? source.position.x
+      : sourcePos === Position.Right
+        ? source.position.x + (source.width ?? 0)
+        : sourceX
+  const sy =
+    sourcePos === Position.Top
+      ? source.position.y
+      : sourcePos === Position.Bottom
+        ? source.position.y + (source.height ?? 0)
+        : sourceY
+  const tx =
+    targetPos === Position.Left
+      ? target.position.x
+      : targetPos === Position.Right
+        ? target.position.x + (target.width ?? 0)
+        : targetX
+  const ty =
+    targetPos === Position.Top
+      ? target.position.y
+      : targetPos === Position.Bottom
+        ? target.position.y + (target.height ?? 0)
+        : targetY
 
   return { sx, sy, tx, ty, sourcePos, targetPos }
 }

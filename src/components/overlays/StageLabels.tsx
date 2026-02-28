@@ -2,12 +2,22 @@ import React from 'react'
 import { useViewport } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 
-export function StageLabels({ stages }: { stages: Array<{ name: string; position: number; description?: string; owner?: string; notes?: string }> }) {
+export function StageLabels({
+  stages,
+}: {
+  stages: Array<{
+    name: string
+    position: number
+    description?: string
+    owner?: string
+    notes?: string
+  }>
+}) {
   const { x, y, zoom } = useViewport()
-  const updateFlowStage = useEditorStore(s => s.updateFlowStage)
-  const completeFlowStageMove = useEditorStore(s => s.completeFlowStageMove)
-  const setSelectedStage = useEditorStore(s => s.setSelectedStage)
-  const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
+  const updateFlowStage = useEditorStore((s) => s.updateFlowStage)
+  const completeFlowStageMove = useEditorStore((s) => s.completeFlowStageMove)
+  const setSelectedStage = useEditorStore((s) => s.setSelectedStage)
+  const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
   const [draggingIndex, setDraggingIndex] = React.useState<number | null>(null)
   const [dragStartX, setDragStartX] = React.useState(0)
   const [dragStartPosition, setDragStartPosition] = React.useState(0)
@@ -54,7 +64,15 @@ export function StageLabels({ stages }: { stages: Array<{ name: string; position
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [draggingIndex, dragStartX, dragStartPosition, stages, updateFlowStage, completeFlowStageMove, zoom])
+  }, [
+    draggingIndex,
+    dragStartX,
+    dragStartPosition,
+    stages,
+    updateFlowStage,
+    completeFlowStageMove,
+    zoom,
+  ])
 
   return (
     <div

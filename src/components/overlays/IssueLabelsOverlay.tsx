@@ -5,7 +5,7 @@ import { NODE_SIZES } from '../../lib/canvasConstants'
 
 export function IssueLabelsOverlay({
   contexts,
-  viewMode
+  viewMode,
 }: {
   contexts: BoundedContext[]
   viewMode: 'flow' | 'strategic' | 'distillation'
@@ -16,7 +16,7 @@ export function IssueLabelsOverlay({
   if (zoom < 0.4) return null
 
   // Filter contexts with issues
-  const contextsWithIssues = contexts.filter(ctx => ctx.issues && ctx.issues.length > 0)
+  const contextsWithIssues = contexts.filter((ctx) => ctx.issues && ctx.issues.length > 0)
 
   if (contextsWithIssues.length === 0) return null
 
@@ -36,7 +36,7 @@ export function IssueLabelsOverlay({
         zIndex: 15,
       }}
     >
-      {contextsWithIssues.map(context => {
+      {contextsWithIssues.map((context) => {
         const nodeSize = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
         // Calculate position based on view mode
@@ -77,7 +77,7 @@ export function IssueLabelsOverlay({
               gap: `${6 * zoom}px`,
             }}
           >
-            {visibleIssues.map(issue => {
+            {visibleIssues.map((issue) => {
               const colors = severityStyles[issue.severity]
 
               return (
@@ -96,17 +96,23 @@ export function IssueLabelsOverlay({
                     boxShadow: `0 ${3 * zoom}px ${6 * zoom}px rgba(0,0,0,0.1)`,
                   }}
                 >
-                  <span style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 6,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    lineHeight: 1.3,
-                    wordBreak: 'break-word',
-                  }}>
+                  <span
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 6,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: 1.3,
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     <span style={{ float: 'left', marginRight: `${3 * zoom}px` }}>
-                      {issue.severity === 'critical' && <AlertOctagon size={Math.max(10, 12 * zoom)} />}
-                      {issue.severity === 'warning' && <AlertTriangle size={Math.max(10, 12 * zoom)} />}
+                      {issue.severity === 'critical' && (
+                        <AlertOctagon size={Math.max(10, 12 * zoom)} />
+                      )}
+                      {issue.severity === 'warning' && (
+                        <AlertTriangle size={Math.max(10, 12 * zoom)} />
+                      )}
                       {issue.severity === 'info' && <Info size={Math.max(10, 12 * zoom)} />}
                     </span>
                     {issue.title}

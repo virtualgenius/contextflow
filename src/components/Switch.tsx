@@ -11,9 +11,7 @@ export function Switch({ checked, onCheckedChange, label, className = '' }: Swit
   return (
     <label className={`flex items-center gap-2 cursor-pointer ${className}`}>
       {label && (
-        <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
-          {label}
-        </span>
+        <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">{label}</span>
       )}
       <button
         type="button"
@@ -25,10 +23,7 @@ export function Switch({ checked, onCheckedChange, label, className = '' }: Swit
           transition-colors duration-200 ease-in-out
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
           dark:focus:ring-offset-neutral-900
-          ${checked
-            ? 'bg-blue-600 dark:bg-blue-500'
-            : 'bg-slate-300 dark:bg-neutral-600'
-          }
+          ${checked ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-300 dark:bg-neutral-600'}
         `}
       >
         <span

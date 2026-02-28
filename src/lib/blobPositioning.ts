@@ -25,10 +25,10 @@ export interface BlobPositionResult {
 export function calculateBoundingBox(contexts: ContextWithSize[]): BoundingBox {
   // React Flow positions nodes by their TOP-LEFT corner (not center)
   // So position.x is the left edge, position.x + width is the right edge
-  const minX = Math.min(...contexts.map(c => c.x))
-  const maxX = Math.max(...contexts.map(c => c.x + c.width))
-  const minY = Math.min(...contexts.map(c => c.y))
-  const maxY = Math.max(...contexts.map(c => c.y + c.height))
+  const minX = Math.min(...contexts.map((c) => c.x))
+  const maxX = Math.max(...contexts.map((c) => c.x + c.width))
+  const minY = Math.min(...contexts.map((c) => c.y))
+  const maxY = Math.max(...contexts.map((c) => c.y + c.height))
 
   return { minX, maxX, minY, maxY }
 }
@@ -37,11 +37,11 @@ export function translateContextsToRelative(
   contexts: ContextWithSize[],
   boundingBox: BoundingBox
 ): Point[] {
-  return contexts.map(c => ({
+  return contexts.map((c) => ({
     x: c.x - boundingBox.minX,
     y: c.y - boundingBox.minY,
     width: c.width,
-    height: c.height
+    height: c.height,
   }))
 }
 
@@ -68,6 +68,6 @@ export function calculateBlobPosition(
     containerY,
     containerWidth,
     containerHeight,
-    blobPath: blobMetadata.path
+    blobPath: blobMetadata.path,
   }
 }

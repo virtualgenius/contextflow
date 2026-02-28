@@ -45,7 +45,7 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         expect(updatedProject.userNeedConnections.length).toBe(initialCount + 1)
 
-        const connection = updatedProject.userNeedConnections.find(c => c.id === connectionId)
+        const connection = updatedProject.userNeedConnections.find((c) => c.id === connectionId)
         expect(connection).toBeDefined()
         expect(connection?.userId).toBe(userId)
         expect(connection?.userNeedId).toBe(needId)
@@ -73,13 +73,17 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const afterUndo = useEditorStore.getState()
         const projectAfterUndo = afterUndo.projects[afterUndo.activeProjectId!]
-        expect(projectAfterUndo.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterUndo.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
 
         redo()
 
         const afterRedo = useEditorStore.getState()
         const projectAfterRedo = afterRedo.projects[afterRedo.activeProjectId!]
-        expect(projectAfterRedo.userNeedConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(
+          projectAfterRedo.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeDefined()
       }
     })
   })
@@ -98,13 +102,17 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const beforeDelete = useEditorStore.getState()
         const projectBeforeDelete = beforeDelete.projects[beforeDelete.activeProjectId!]
-        expect(projectBeforeDelete.userNeedConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(
+          projectBeforeDelete.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeDefined()
 
         deleteUserNeedConnection(connectionId!)
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterDelete.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
       }
     })
 
@@ -123,19 +131,25 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterDelete.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
 
         undo()
 
         const afterUndo = useEditorStore.getState()
         const projectAfterUndo = afterUndo.projects[afterUndo.activeProjectId!]
-        expect(projectAfterUndo.userNeedConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(
+          projectAfterUndo.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeDefined()
 
         redo()
 
         const afterRedo = useEditorStore.getState()
         const projectAfterRedo = afterRedo.projects[afterRedo.activeProjectId!]
-        expect(projectAfterRedo.userNeedConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterRedo.userNeedConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
       }
     })
   })
@@ -159,7 +173,7 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         expect(updatedProject.needContextConnections.length).toBe(initialCount + 1)
 
-        const connection = updatedProject.needContextConnections.find(c => c.id === connectionId)
+        const connection = updatedProject.needContextConnections.find((c) => c.id === connectionId)
         expect(connection).toBeDefined()
         expect(connection?.userNeedId).toBe(needId)
         expect(connection?.contextId).toBe(contextId)
@@ -187,13 +201,17 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const afterUndo = useEditorStore.getState()
         const projectAfterUndo = afterUndo.projects[afterUndo.activeProjectId!]
-        expect(projectAfterUndo.needContextConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterUndo.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
 
         redo()
 
         const afterRedo = useEditorStore.getState()
         const projectAfterRedo = afterRedo.projects[afterRedo.activeProjectId!]
-        expect(projectAfterRedo.needContextConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(
+          projectAfterRedo.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeDefined()
       }
     })
   })
@@ -212,20 +230,25 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const beforeDelete = useEditorStore.getState()
         const projectBeforeDelete = beforeDelete.projects[beforeDelete.activeProjectId!]
-        expect(projectBeforeDelete.needContextConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(
+          projectBeforeDelete.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeDefined()
 
         deleteNeedContextConnection(connectionId!)
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.needContextConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterDelete.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
       }
     })
 
     it('should support undo/redo for deleting need-context connections', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { createNeedContextConnection, deleteNeedContextConnection, addUserNeed, undo, redo } = state
+      const { createNeedContextConnection, deleteNeedContextConnection, addUserNeed, undo, redo } =
+        state
 
       const needId = addUserNeed('Test Need')
       const contextId = project.contexts[0]?.id
@@ -237,19 +260,25 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.needContextConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterDelete.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
 
         undo()
 
         const afterUndo = useEditorStore.getState()
         const projectAfterUndo = afterUndo.projects[afterUndo.activeProjectId!]
-        expect(projectAfterUndo.needContextConnections.find(c => c.id === connectionId)).toBeDefined()
+        expect(
+          projectAfterUndo.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeDefined()
 
         redo()
 
         const afterRedo = useEditorStore.getState()
         const projectAfterRedo = afterRedo.projects[afterRedo.activeProjectId!]
-        expect(projectAfterRedo.needContextConnections.find(c => c.id === connectionId)).toBeUndefined()
+        expect(
+          projectAfterRedo.needContextConnections.find((c) => c.id === connectionId)
+        ).toBeUndefined()
       }
     })
   })
@@ -270,7 +299,7 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const updatedState = useEditorStore.getState()
         const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-        const connection = updatedProject.userNeedConnections.find(c => c.id === connectionId)
+        const connection = updatedProject.userNeedConnections.find((c) => c.id === connectionId)
 
         expect(connection?.notes).toBe('Important connection')
       }
@@ -293,7 +322,7 @@ describe('Store - User-Need-Context Connection Management', () => {
 
         const updatedState = useEditorStore.getState()
         const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-        const connection = updatedProject.needContextConnections.find(c => c.id === connectionId)
+        const connection = updatedProject.needContextConnections.find((c) => c.id === connectionId)
 
         expect(connection?.notes).toBe('Critical path')
       }

@@ -18,10 +18,10 @@ export interface PatternDefinition {
  * Power dynamics icons for visual indication in dropdowns
  */
 export const POWER_DYNAMICS_ICONS: Record<PowerDynamics, string> = {
-  upstream: '↑',    // Upstream has control
-  downstream: '↓',  // Downstream has control (defensive)
-  mutual: '↔',      // Shared control
-  none: '○',        // No integration
+  upstream: '↑', // Upstream has control
+  downstream: '↓', // Downstream has control (defensive)
+  mutual: '↔', // Shared control
+  none: '○', // No integration
 }
 
 export const PATTERN_DEFINITIONS: PatternDefinition[] = [
@@ -39,7 +39,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       'Downstream has some negotiating power over priorities',
     ],
     example:
-      'An Order Management context depends on Product Catalog for product information. Product Catalog prioritizes Order Management\'s needs but owns the product model.',
+      "An Order Management context depends on Product Catalog for product information. Product Catalog prioritizes Order Management's needs but owns the product model.",
   },
   {
     value: 'conformist',
@@ -56,7 +56,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
       'Integrating with a dominant external system or standard',
     ],
     example:
-      'A reporting context conforms to an ERP system\'s data model rather than maintaining its own translation, accepting the ERP\'s terminology and structure.',
+      "A reporting context conforms to an ERP system's data model rather than maintaining its own translation, accepting the ERP's terminology and structure.",
   },
   {
     value: 'anti-corruption-layer',
@@ -67,9 +67,9 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
     detailedDescription:
       'The downstream team creates a translation layer to isolate their model from the upstream model. This prevents upstream concepts from "corrupting" the downstream domain model. The ACL translates between the two models.',
     whenToUse: [
-      'Upstream model is legacy, poorly designed, or doesn\'t fit your domain',
-      'You need to protect your model\'s integrity',
-      'Integrating with external systems you don\'t control',
+      "Upstream model is legacy, poorly designed, or doesn't fit your domain",
+      "You need to protect your model's integrity",
+      "Integrating with external systems you don't control",
       'The upstream model changes frequently',
     ],
     example:
@@ -135,7 +135,7 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
     detailedDescription:
       'Two contexts have a mutual dependency where both teams must coordinate closely. Neither team is upstream or downstream—they depend on each other and must plan together. Failure in either context affects both.',
     whenToUse: [
-      'Mutual dependencies that can\'t be untangled',
+      "Mutual dependencies that can't be untangled",
       'Teams are willing to coordinate release schedules',
       'Features span both contexts and must ship together',
       'High trust and communication between teams',
@@ -165,8 +165,10 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
 /**
  * Get pattern definition by value
  */
-export function getPatternDefinition(pattern: Relationship['pattern']): PatternDefinition | undefined {
-  return PATTERN_DEFINITIONS.find(p => p.value === pattern)
+export function getPatternDefinition(
+  pattern: Relationship['pattern']
+): PatternDefinition | undefined {
+  return PATTERN_DEFINITIONS.find((p) => p.value === pattern)
 }
 
 /**
@@ -174,16 +176,16 @@ export function getPatternDefinition(pattern: Relationship['pattern']): PatternD
  */
 export function getPatternsByCategory(): Record<PatternCategory, PatternDefinition[]> {
   return {
-    'upstream-downstream': PATTERN_DEFINITIONS.filter(p => p.category === 'upstream-downstream'),
-    'mutual': PATTERN_DEFINITIONS.filter(p => p.category === 'mutual'),
-    'autonomous': PATTERN_DEFINITIONS.filter(p => p.category === 'autonomous'),
+    'upstream-downstream': PATTERN_DEFINITIONS.filter((p) => p.category === 'upstream-downstream'),
+    mutual: PATTERN_DEFINITIONS.filter((p) => p.category === 'mutual'),
+    autonomous: PATTERN_DEFINITIONS.filter((p) => p.category === 'autonomous'),
   }
 }
 
 /**
  * Simple pattern list for dropdowns (backward compatible with old DDD_PATTERNS)
  */
-export const DDD_PATTERNS = PATTERN_DEFINITIONS.map(p => ({
+export const DDD_PATTERNS = PATTERN_DEFINITIONS.map((p) => ({
   value: p.value,
   label: p.label,
   description: p.shortDescription,

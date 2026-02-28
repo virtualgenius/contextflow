@@ -118,7 +118,7 @@ describe('getIndicatorBoxPosition', () => {
 
     expect(result).toEqual({
       x: 100 + 160 / 2,
-      y: 200 - gap - boxHeight / 2
+      y: 200 - gap - boxHeight / 2,
     })
   })
 
@@ -127,7 +127,7 @@ describe('getIndicatorBoxPosition', () => {
 
     expect(result).toEqual({
       x: 100 + 160 / 2,
-      y: 200 + 100 + gap + boxHeight / 2
+      y: 200 + 100 + gap + boxHeight / 2,
     })
   })
 
@@ -136,7 +136,7 @@ describe('getIndicatorBoxPosition', () => {
 
     expect(result).toEqual({
       x: 100 - gap - boxWidth / 2,
-      y: 200 + 100 / 2
+      y: 200 + 100 / 2,
     })
   })
 
@@ -145,7 +145,7 @@ describe('getIndicatorBoxPosition', () => {
 
     expect(result).toEqual({
       x: 100 + 160 + gap + boxWidth / 2,
-      y: 200 + 100 / 2
+      y: 200 + 100 / 2,
     })
   })
 

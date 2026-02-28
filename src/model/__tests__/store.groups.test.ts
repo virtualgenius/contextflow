@@ -36,14 +36,14 @@ describe('Store - Group Membership Management', () => {
       expect(group).toBeDefined()
       const initialMemberCount = group.contextIds.length
 
-      const contextNotInGroup = project.contexts.find(c => !group.contextIds.includes(c.id))
+      const contextNotInGroup = project.contexts.find((c) => !group.contextIds.includes(c.id))
       expect(contextNotInGroup).toBeDefined()
 
       addContextToGroup(group.id, contextNotInGroup!.id)
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedGroup = updatedProject.groups.find(g => g.id === group.id)
+      const updatedGroup = updatedProject.groups.find((g) => g.id === group.id)
 
       expect(updatedGroup?.contextIds.length).toBe(initialMemberCount + 1)
       expect(updatedGroup?.contextIds).toContain(contextNotInGroup!.id)
@@ -62,7 +62,7 @@ describe('Store - Group Membership Management', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedGroup = updatedProject.groups.find(g => g.id === group.id)
+      const updatedGroup = updatedProject.groups.find((g) => g.id === group.id)
 
       expect(updatedGroup?.contextIds.length).toBe(initialMemberCount)
     })
@@ -78,9 +78,9 @@ describe('Store - Group Membership Management', () => {
       const initialMemberCount = group.contextIds.length
 
       const contextsNotInGroup = project.contexts
-        .filter(c => !group.contextIds.includes(c.id))
+        .filter((c) => !group.contextIds.includes(c.id))
         .slice(0, 2)
-        .map(c => c.id)
+        .map((c) => c.id)
 
       expect(contextsNotInGroup.length).toBe(2)
 
@@ -88,10 +88,10 @@ describe('Store - Group Membership Management', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedGroup = updatedProject.groups.find(g => g.id === group.id)
+      const updatedGroup = updatedProject.groups.find((g) => g.id === group.id)
 
       expect(updatedGroup?.contextIds.length).toBe(initialMemberCount + 2)
-      contextsNotInGroup.forEach(contextId => {
+      contextsNotInGroup.forEach((contextId) => {
         expect(updatedGroup?.contextIds).toContain(contextId)
       })
     })
@@ -105,14 +105,14 @@ describe('Store - Group Membership Management', () => {
 
       const group = project.groups[0]
       const initialMemberCount = group.contextIds.length
-      const contextNotInGroup = project.contexts.find(c => !group.contextIds.includes(c.id))
+      const contextNotInGroup = project.contexts.find((c) => !group.contextIds.includes(c.id))
 
       addContextToGroup(group.id, contextNotInGroup!.id)
       undo()
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedGroup = updatedProject.groups.find(g => g.id === group.id)
+      const updatedGroup = updatedProject.groups.find((g) => g.id === group.id)
 
       expect(updatedGroup?.contextIds.length).toBe(initialMemberCount)
       expect(updatedGroup?.contextIds).not.toContain(contextNotInGroup!.id)
@@ -126,16 +126,16 @@ describe('Store - Group Membership Management', () => {
       const group = project.groups[0]
       const initialMemberCount = group.contextIds.length
       const contextsNotInGroup = project.contexts
-        .filter(c => !group.contextIds.includes(c.id))
+        .filter((c) => !group.contextIds.includes(c.id))
         .slice(0, 2)
-        .map(c => c.id)
+        .map((c) => c.id)
 
       addContextsToGroup(group.id, contextsNotInGroup)
       undo()
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedGroup = updatedProject.groups.find(g => g.id === group.id)
+      const updatedGroup = updatedProject.groups.find((g) => g.id === group.id)
 
       expect(updatedGroup?.contextIds.length).toBe(initialMemberCount)
     })
@@ -146,7 +146,7 @@ describe('Store - Group Membership Management', () => {
       const { addContextToGroup, undo, redo } = state
 
       const group = project.groups[0]
-      const contextNotInGroup = project.contexts.find(c => !group.contextIds.includes(c.id))
+      const contextNotInGroup = project.contexts.find((c) => !group.contextIds.includes(c.id))
 
       addContextToGroup(group.id, contextNotInGroup!.id)
       undo()
@@ -154,7 +154,7 @@ describe('Store - Group Membership Management', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedGroup = updatedProject.groups.find(g => g.id === group.id)
+      const updatedGroup = updatedProject.groups.find((g) => g.id === group.id)
 
       expect(updatedGroup?.contextIds).toContain(contextNotInGroup!.id)
     })

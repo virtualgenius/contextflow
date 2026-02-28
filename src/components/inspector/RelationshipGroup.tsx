@@ -28,8 +28,8 @@ export function RelationshipGroup({
         {title}
       </div>
       <div className="space-y-2">
-        {relationships.map(rel => {
-          const targetContext = contexts.find(c => c.id === getTargetContextId(rel))
+        {relationships.map((rel) => {
+          const targetContext = contexts.find((c) => c.id === getTargetContextId(rel))
           return (
             <div key={rel.id} className="flex items-start justify-between gap-2 group/rel">
               <div className="flex-1">

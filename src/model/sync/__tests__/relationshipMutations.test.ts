@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import * as Y from 'yjs';
+import { describe, it, expect, beforeEach } from 'vitest'
+import * as Y from 'yjs'
 
-import { projectToYDoc, yDocToProject } from '../projectSync';
+import { projectToYDoc, yDocToProject } from '../projectSync'
 import {
   addRelationshipMutation,
   updateRelationshipMutation,
   deleteRelationshipMutation,
-} from '../relationshipMutations';
-import type { Project, Relationship } from '../../types';
+} from '../relationshipMutations'
+import type { Project, Relationship } from '../../types'
 
 function createTestProject(): Project {
   return {
@@ -60,17 +60,17 @@ function createTestProject(): Project {
       enabled: false,
       keyframes: [],
     },
-  };
+  }
 }
 
 describe('relationshipMutations', () => {
-  let project: Project;
-  let ydoc: Y.Doc;
+  let project: Project
+  let ydoc: Y.Doc
 
   beforeEach(() => {
-    project = createTestProject();
-    ydoc = projectToYDoc(project);
-  });
+    project = createTestProject()
+    ydoc = projectToYDoc(project)
+  })
 
   describe('addRelationshipMutation', () => {
     it('should add a new relationship to the Y.Doc', () => {
@@ -79,17 +79,17 @@ describe('relationshipMutations', () => {
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
         pattern: 'conformist',
-      };
+      }
 
-      addRelationshipMutation(ydoc, newRelationship);
+      addRelationshipMutation(ydoc, newRelationship)
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(2);
-      expect(result.relationships[1].id).toBe('rel-2');
-      expect(result.relationships[1].fromContextId).toBe('ctx-2');
-      expect(result.relationships[1].toContextId).toBe('ctx-1');
-      expect(result.relationships[1].pattern).toBe('conformist');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(2)
+      expect(result.relationships[1].id).toBe('rel-2')
+      expect(result.relationships[1].fromContextId).toBe('ctx-2')
+      expect(result.relationships[1].toContextId).toBe('ctx-1')
+      expect(result.relationships[1].pattern).toBe('conformist')
+    })
 
     it('should add a relationship with optional fields', () => {
       const newRelationship: Relationship = {
@@ -99,16 +99,16 @@ describe('relationshipMutations', () => {
         pattern: 'anti-corruption-layer',
         communicationMode: 'async',
         description: 'ACL protects downstream from upstream changes',
-      };
+      }
 
-      addRelationshipMutation(ydoc, newRelationship);
+      addRelationshipMutation(ydoc, newRelationship)
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(2);
-      const addedRel = result.relationships[1];
-      expect(addedRel.communicationMode).toBe('async');
-      expect(addedRel.description).toBe('ACL protects downstream from upstream changes');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(2)
+      const addedRel = result.relationships[1]
+      expect(addedRel.communicationMode).toBe('async')
+      expect(addedRel.description).toBe('ACL protects downstream from upstream changes')
+    })
 
     it('should add a relationship with all pattern types', () => {
       const patterns: Relationship['pattern'][] = [
@@ -117,7 +117,7 @@ describe('relationshipMutations', () => {
         'open-host-service',
         'published-language',
         'separate-ways',
-      ];
+      ]
 
       for (const pattern of patterns) {
         const rel: Relationship = {
@@ -125,74 +125,74 @@ describe('relationshipMutations', () => {
           fromContextId: 'ctx-1',
           toContextId: 'ctx-2',
           pattern,
-        };
-        addRelationshipMutation(ydoc, rel);
+        }
+        addRelationshipMutation(ydoc, rel)
       }
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(6); // 1 original + 5 new
-    });
-  });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(6) // 1 original + 5 new
+    })
+  })
 
   describe('updateRelationshipMutation', () => {
     it('should update the pattern of an existing relationship', () => {
-      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'conformist' });
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'conformist' })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships[0].pattern).toBe('conformist');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBe('conformist')
+    })
 
     it('should update fromContextId and toContextId', () => {
       updateRelationshipMutation(ydoc, 'rel-1', {
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
-      });
+      })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships[0].fromContextId).toBe('ctx-2');
-      expect(result.relationships[0].toContextId).toBe('ctx-1');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].fromContextId).toBe('ctx-2')
+      expect(result.relationships[0].toContextId).toBe('ctx-1')
+    })
 
     it('should update communicationMode', () => {
-      updateRelationshipMutation(ydoc, 'rel-1', { communicationMode: 'sync' });
+      updateRelationshipMutation(ydoc, 'rel-1', { communicationMode: 'sync' })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships[0].communicationMode).toBe('sync');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].communicationMode).toBe('sync')
+    })
 
     it('should update description', () => {
       updateRelationshipMutation(ydoc, 'rel-1', {
         description: 'Updated description',
-      });
+      })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships[0].description).toBe('Updated description');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].description).toBe('Updated description')
+    })
 
     it('should update multiple fields at once', () => {
       updateRelationshipMutation(ydoc, 'rel-1', {
         pattern: 'partnership',
         communicationMode: 'async',
         description: 'Equal collaboration',
-      });
+      })
 
-      const result = yDocToProject(ydoc);
-      const rel = result.relationships[0];
-      expect(rel.pattern).toBe('partnership');
-      expect(rel.communicationMode).toBe('async');
-      expect(rel.description).toBe('Equal collaboration');
-    });
+      const result = yDocToProject(ydoc)
+      const rel = result.relationships[0]
+      expect(rel.pattern).toBe('partnership')
+      expect(rel.communicationMode).toBe('async')
+      expect(rel.description).toBe('Equal collaboration')
+    })
 
     it('should not clobber fields not included in the update', () => {
-      updateRelationshipMutation(ydoc, 'rel-1', { description: 'Data flows downstream' });
+      updateRelationshipMutation(ydoc, 'rel-1', { description: 'Data flows downstream' })
 
-      const result = yDocToProject(ydoc);
-      const rel = result.relationships[0];
-      expect(rel.description).toBe('Data flows downstream');
-      expect(rel.pattern).toBe('customer-supplier');
-      expect(rel.fromContextId).toBe('ctx-1');
-      expect(rel.toContextId).toBe('ctx-2');
-    });
+      const result = yDocToProject(ydoc)
+      const rel = result.relationships[0]
+      expect(rel.description).toBe('Data flows downstream')
+      expect(rel.pattern).toBe('customer-supplier')
+      expect(rel.fromContextId).toBe('ctx-1')
+      expect(rel.toContextId).toBe('ctx-2')
+    })
 
     it('should not modify other relationships', () => {
       // Add a second relationship first
@@ -201,51 +201,51 @@ describe('relationshipMutations', () => {
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
         pattern: 'conformist',
-      };
-      addRelationshipMutation(ydoc, secondRel);
+      }
+      addRelationshipMutation(ydoc, secondRel)
 
       // Update only the first relationship
-      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' });
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships[0].pattern).toBe('partnership');
-      expect(result.relationships[1].pattern).toBe('conformist');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBe('partnership')
+      expect(result.relationships[1].pattern).toBe('conformist')
+    })
 
     it('should do nothing for non-existent relationship', () => {
-      updateRelationshipMutation(ydoc, 'non-existent', { pattern: 'conformist' });
+      updateRelationshipMutation(ydoc, 'non-existent', { pattern: 'conformist' })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(1);
-      expect(result.relationships[0].pattern).toBe('customer-supplier');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(1)
+      expect(result.relationships[0].pattern).toBe('customer-supplier')
+    })
 
     it('should clear optional fields when set to undefined', () => {
       // First set some optional fields
       updateRelationshipMutation(ydoc, 'rel-1', {
         communicationMode: 'sync',
         description: 'Some description',
-      });
+      })
 
       // Then clear them
       updateRelationshipMutation(ydoc, 'rel-1', {
         communicationMode: undefined,
         description: undefined,
-      });
+      })
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships[0].communicationMode).toBeUndefined();
-      expect(result.relationships[0].description).toBeUndefined();
-    });
-  });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].communicationMode).toBeUndefined()
+      expect(result.relationships[0].description).toBeUndefined()
+    })
+  })
 
   describe('deleteRelationshipMutation', () => {
     it('should delete an existing relationship', () => {
-      deleteRelationshipMutation(ydoc, 'rel-1');
+      deleteRelationshipMutation(ydoc, 'rel-1')
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(0);
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(0)
+    })
 
     it('should delete the correct relationship when multiple exist', () => {
       // Add a second relationship
@@ -254,71 +254,71 @@ describe('relationshipMutations', () => {
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
         pattern: 'conformist',
-      };
-      addRelationshipMutation(ydoc, secondRel);
+      }
+      addRelationshipMutation(ydoc, secondRel)
 
       // Delete the first one
-      deleteRelationshipMutation(ydoc, 'rel-1');
+      deleteRelationshipMutation(ydoc, 'rel-1')
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(1);
-      expect(result.relationships[0].id).toBe('rel-2');
-      expect(result.relationships[0].pattern).toBe('conformist');
-    });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(1)
+      expect(result.relationships[0].id).toBe('rel-2')
+      expect(result.relationships[0].pattern).toBe('conformist')
+    })
 
     it('should do nothing for non-existent relationship', () => {
-      deleteRelationshipMutation(ydoc, 'non-existent');
+      deleteRelationshipMutation(ydoc, 'non-existent')
 
-      const result = yDocToProject(ydoc);
-      expect(result.relationships).toHaveLength(1);
-    });
-  });
+      const result = yDocToProject(ydoc)
+      expect(result.relationships).toHaveLength(1)
+    })
+  })
 
   describe('undo integration', () => {
     it('should be undoable when combined with CollabUndoManager', async () => {
-      const { createUndoManager } = await import('../undoManager');
-      const undoManager = createUndoManager(ydoc);
+      const { createUndoManager } = await import('../undoManager')
+      const undoManager = createUndoManager(ydoc)
 
       addRelationshipMutation(ydoc, {
         id: 'rel-new',
         fromContextId: 'ctx-1',
         toContextId: 'ctx-2',
         pattern: 'shared-kernel',
-      });
+      })
 
-      expect(yDocToProject(ydoc).relationships).toHaveLength(2);
+      expect(yDocToProject(ydoc).relationships).toHaveLength(2)
 
-      undoManager.undo();
+      undoManager.undo()
 
-      expect(yDocToProject(ydoc).relationships).toHaveLength(1);
-      expect(yDocToProject(ydoc).relationships[0].id).toBe('rel-1');
-    });
+      expect(yDocToProject(ydoc).relationships).toHaveLength(1)
+      expect(yDocToProject(ydoc).relationships[0].id).toBe('rel-1')
+    })
 
     it('should undo relationship updates', async () => {
-      const { createUndoManager } = await import('../undoManager');
-      const undoManager = createUndoManager(ydoc);
+      const { createUndoManager } = await import('../undoManager')
+      const undoManager = createUndoManager(ydoc)
 
-      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' });
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' })
 
-      expect(yDocToProject(ydoc).relationships[0].pattern).toBe('partnership');
+      expect(yDocToProject(ydoc).relationships[0].pattern).toBe('partnership')
 
-      undoManager.undo();
+      undoManager.undo()
 
-      expect(yDocToProject(ydoc).relationships[0].pattern).toBe('customer-supplier');
-    });
+      expect(yDocToProject(ydoc).relationships[0].pattern).toBe('customer-supplier')
+    })
 
     it('should undo relationship deletion', async () => {
-      const { createUndoManager } = await import('../undoManager');
-      const undoManager = createUndoManager(ydoc);
+      const { createUndoManager } = await import('../undoManager')
+      const undoManager = createUndoManager(ydoc)
 
-      deleteRelationshipMutation(ydoc, 'rel-1');
+      deleteRelationshipMutation(ydoc, 'rel-1')
 
-      expect(yDocToProject(ydoc).relationships).toHaveLength(0);
+      expect(yDocToProject(ydoc).relationships).toHaveLength(0)
 
-      undoManager.undo();
+      undoManager.undo()
 
-      expect(yDocToProject(ydoc).relationships).toHaveLength(1);
-      expect(yDocToProject(ydoc).relationships[0].id).toBe('rel-1');
-    });
-  });
-});
+      expect(yDocToProject(ydoc).relationships).toHaveLength(1)
+      expect(yDocToProject(ydoc).relationships[0].id).toBe('rel-1')
+    })
+  })
+})

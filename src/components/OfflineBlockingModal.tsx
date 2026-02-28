@@ -47,9 +47,7 @@ export function OfflineBlockingModal() {
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[400px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-200 dark:border-neutral-700">
-          <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
-            {headerIcon}
-          </div>
+          <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">{headerIcon}</div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             {headerTitle}
           </h2>
@@ -63,9 +61,7 @@ export function OfflineBlockingModal() {
 
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-700 dark:text-red-300">
-                {error}
-              </p>
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
 
@@ -83,10 +79,7 @@ export function OfflineBlockingModal() {
             disabled={isRetrying || isReconnecting}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            <RefreshCw
-              size={16}
-              className={isRetrying || isReconnecting ? 'animate-spin' : ''}
-            />
+            <RefreshCw size={16} className={isRetrying || isReconnecting ? 'animate-spin' : ''} />
             {isRetrying || isReconnecting ? 'Reconnecting...' : 'Retry Connection'}
           </button>
         </div>

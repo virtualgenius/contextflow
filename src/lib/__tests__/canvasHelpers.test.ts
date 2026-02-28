@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { getHoverConnectedContextIds, getEdgeLabelInfo } from '../canvasHelpers'
 import type { Relationship } from '../../model/types'
 
-function makeRelationship(from: string, to: string, pattern: Relationship['pattern'] = 'customer-supplier'): Relationship {
+function makeRelationship(
+  from: string,
+  to: string,
+  pattern: Relationship['pattern'] = 'customer-supplier'
+): Relationship {
   return {
     id: `rel-${from}-${to}`,
     fromContextId: from,
@@ -50,10 +54,7 @@ describe('getHoverConnectedContextIds', () => {
   })
 
   it('ignores relationships that do not involve the hovered context', () => {
-    const rels = [
-      makeRelationship('a', 'b'),
-      makeRelationship('c', 'd'),
-    ]
+    const rels = [makeRelationship('a', 'b'), makeRelationship('c', 'd')]
     const result = getHoverConnectedContextIds('a', rels)
     expect(result).toEqual(new Set(['b']))
   })

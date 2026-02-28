@@ -11,22 +11,26 @@ const PLAYBACK_UPDATE_INTERVAL_MS = 200
 const PLAYBACK_INCREMENT_QUARTERS = 0.25
 
 export function TimeSlider() {
-  const projectId = useEditorStore(s => s.activeProjectId)
-  const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
-  const viewMode = useEditorStore(s => s.activeViewMode)
-  const currentDate = useEditorStore(s => s.temporal.currentDate)
-  const activeKeyframeId = useEditorStore(s => s.temporal.activeKeyframeId)
-  const setCurrentDate = useEditorStore(s => s.setCurrentDate)
-  const setActiveKeyframe = useEditorStore(s => s.setActiveKeyframe)
-  const updateKeyframe = useEditorStore(s => s.updateKeyframe)
-  const deleteKeyframe = useEditorStore(s => s.deleteKeyframe)
-  const addKeyframe = useEditorStore(s => s.addKeyframe)
+  const projectId = useEditorStore((s) => s.activeProjectId)
+  const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
+  const viewMode = useEditorStore((s) => s.activeViewMode)
+  const currentDate = useEditorStore((s) => s.temporal.currentDate)
+  const activeKeyframeId = useEditorStore((s) => s.temporal.activeKeyframeId)
+  const setCurrentDate = useEditorStore((s) => s.setCurrentDate)
+  const setActiveKeyframe = useEditorStore((s) => s.setActiveKeyframe)
+  const updateKeyframe = useEditorStore((s) => s.updateKeyframe)
+  const deleteKeyframe = useEditorStore((s) => s.deleteKeyframe)
+  const addKeyframe = useEditorStore((s) => s.addKeyframe)
 
   const sliderRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [editingKeyframeId, setEditingKeyframeId] = useState<string | null>(null)
   const [editingLabel, setEditingLabel] = useState('')
-  const [contextMenuKeyframe, setContextMenuKeyframe] = useState<{ keyframe: TemporalKeyframe; x: number; y: number } | null>(null)
+  const [contextMenuKeyframe, setContextMenuKeyframe] = useState<{
+    keyframe: TemporalKeyframe
+    x: number
+    y: number
+  } | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const playbackIntervalRef = useRef<number | null>(null)
 
@@ -34,30 +38,33 @@ export function TimeSlider() {
   const keyframes = useMemo(() => {
     const kfs = project?.temporal?.keyframes || []
     // Filter out any keyframes with invalid dates
-    return kfs.filter(kf => kf && typeof kf.date === 'string' && kf.date.length > 0)
+    return kfs.filter((kf) => kf && typeof kf.date === 'string' && kf.date.length > 0)
   }, [project?.temporal?.keyframes])
   const currentYear = new Date().getFullYear()
 
   // Calculate year range: current year to +10 years, or adjusted for keyframes
-  const allYears = keyframes.map(kf => parseInt(kf.date.split('-')[0]))
+  const allYears = keyframes.map((kf) => parseInt(kf.date.split('-')[0]))
   const minYear = Math.min(currentYear, ...allYears)
   const maxYear = Math.max(currentYear + 10, ...allYears)
   const yearRange = maxYear - minYear
 
   // Convert position (0-100%) to date
-  const positionToDate = useCallback((position: number): string => {
-    const fraction = position / 100
-    const yearValue = minYear + fraction * yearRange
-    const year = Math.floor(yearValue)
-    const yearFraction = yearValue - year
+  const positionToDate = useCallback(
+    (position: number): string => {
+      const fraction = position / 100
+      const yearValue = minYear + fraction * yearRange
+      const year = Math.floor(yearValue)
+      const yearFraction = yearValue - year
 
-    // Calculate quarter (1-4) based on position within the year
-    // 0.00-0.25 → Q1, 0.25-0.50 → Q2, 0.50-0.75 → Q3, 0.75-1.00 → Q4
-    const quarter = Math.min(4, Math.floor(yearFraction * 4) + 1)
+      // Calculate quarter (1-4) based on position within the year
+      // 0.00-0.25 → Q1, 0.25-0.50 → Q2, 0.50-0.75 → Q3, 0.75-1.00 → Q4
+      const quarter = Math.min(4, Math.floor(yearFraction * 4) + 1)
 
-    // Always use quarter granularity for smooth scrubbing
-    return `${year}-Q${quarter}`
-  }, [minYear, yearRange])
+      // Always use quarter granularity for smooth scrubbing
+      return `${year}-Q${quarter}`
+    },
+    [minYear, yearRange]
+  )
 
   // Convert date to position (0-100%)
   const dateToPosition = (date: string): number => {
@@ -112,19 +119,22 @@ export function TimeSlider() {
     handleSliderClick(e)
   }
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !sliderRef.current) return
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging || !sliderRef.current) return
 
-    const rect = sliderRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const position = (x / rect.width) * 100
-    const newDate = positionToDate(Math.max(0, Math.min(100, position)))
+      const rect = sliderRef.current.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const position = (x / rect.width) * 100
+      const newDate = positionToDate(Math.max(0, Math.min(100, position)))
 
-    // While dragging, just update the date without snapping
-    // Snapping only happens on mouse up
-    setCurrentDate(newDate)
-    setActiveKeyframe(null)
-  }, [isDragging, positionToDate, setCurrentDate, setActiveKeyframe])
+      // While dragging, just update the date without snapping
+      // Snapping only happens on mouse up
+      setCurrentDate(newDate)
+      setActiveKeyframe(null)
+    },
+    [isDragging, positionToDate, setCurrentDate, setActiveKeyframe]
+  )
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false)
@@ -156,7 +166,7 @@ export function TimeSlider() {
     const newDate = `${year + 1}`
 
     // Check if date already exists
-    if (keyframes.some(kf => kf.date === newDate)) {
+    if (keyframes.some((kf) => kf.date === newDate)) {
       alert('A keyframe already exists at that date')
       return
     }
@@ -264,7 +274,7 @@ export function TimeSlider() {
         playbackIntervalRef.current = null
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally captures values at play-start; adding deps would restart the interval each frame
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally captures values at play-start; adding deps would restart the interval each frame
   }, [isPlaying])
 
   // Close context menu when clicking outside
@@ -294,17 +304,22 @@ export function TimeSlider() {
   }
 
   // Calculate current handle position
-  const handlePosition = currentDate ? dateToPosition(currentDate) : dateToPosition(currentYear.toString())
+  const handlePosition = currentDate
+    ? dateToPosition(currentDate)
+    : dateToPosition(currentYear.toString())
 
   // Find active keyframe for display
   const activeKeyframe = activeKeyframeId
-    ? keyframes.find(kf => kf.id === activeKeyframeId)
+    ? keyframes.find((kf) => kf.id === activeKeyframeId)
     : null
 
   return (
     <div className="absolute bottom-0 left-0 right-0 h-24 bg-white dark:bg-neutral-800 border-t border-slate-200 dark:border-neutral-700 flex items-center gap-4 px-8 z-20">
       {/* Play/Pause button */}
-      <SimpleTooltip text={isPlaying ? "Pause animation" : "Animate through timeline"} position="top">
+      <SimpleTooltip
+        text={isPlaying ? 'Pause animation' : 'Animate through timeline'}
+        position="top"
+      >
         <button
           onClick={handlePlayPause}
           disabled={keyframes.length === 0}
@@ -338,11 +353,12 @@ export function TimeSlider() {
                 className="absolute"
                 style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
               >
-                <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                  {year}
-                </div>
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-400">{year}</div>
                 {isCurrentYear && (
-                  <div className="absolute top-6 w-px h-3 bg-blue-500" style={{ left: '50%', transform: 'translateX(-50%)' }} />
+                  <div
+                    className="absolute top-6 w-px h-3 bg-blue-500"
+                    style={{ left: '50%', transform: 'translateX(-50%)' }}
+                  />
                 )}
               </div>
             )
@@ -373,7 +389,11 @@ export function TimeSlider() {
                   }`}
                   onClick={(e) => handleKeyframeClick(e, keyframe)}
                   onContextMenu={(e) => handleKeyframeContextMenu(e, keyframe)}
-                  title={isEditing ? undefined : `${keyframe.date}${keyframe.label ? ` - ${keyframe.label}` : ''}\nClick to edit label, right-click for options`}
+                  title={
+                    isEditing
+                      ? undefined
+                      : `${keyframe.date}${keyframe.label ? ` - ${keyframe.label}` : ''}\nClick to edit label, right-click for options`
+                  }
                 />
                 {/* Inline label editor */}
                 {isEditing && (

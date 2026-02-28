@@ -8,7 +8,9 @@ vi.mock('../../../model/store', () => ({
 }))
 
 vi.mock('reactflow', () => ({
-  EdgeLabelRenderer: ({ children }: { children: React.ReactNode }) => <div data-testid="edge-label-renderer">{children}</div>,
+  EdgeLabelRenderer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="edge-label-renderer">{children}</div>
+  ),
   getBezierPath: () => ['M0,0 C50,0 50,100 100,100', 50, 50],
   useViewport: () => ({ x: 0, y: 0, zoom: 1 }),
   useReactFlow: () => ({ getNode: () => null }),
@@ -56,7 +58,11 @@ describe('RelationshipEdge label visibility', () => {
   })
 
   it('renders labels when showRelationshipLabels is true even without hover/emphasis', () => {
-    setupMock({ showRelationshipLabels: true, selectedRelationshipId: null, hoveredContextId: null })
+    setupMock({
+      showRelationshipLabels: true,
+      selectedRelationshipId: null,
+      hoveredContextId: null,
+    })
     const { container: _container } = render(
       <svg>
         <RelationshipEdge {...baseProps} />
@@ -68,7 +74,11 @@ describe('RelationshipEdge label visibility', () => {
   })
 
   it('does not render labels when showRelationshipLabels is false and edge is not emphasized', () => {
-    setupMock({ showRelationshipLabels: false, selectedRelationshipId: null, hoveredContextId: null })
+    setupMock({
+      showRelationshipLabels: false,
+      selectedRelationshipId: null,
+      hoveredContextId: null,
+    })
     const { container: _container } = render(
       <svg>
         <RelationshipEdge {...baseProps} />

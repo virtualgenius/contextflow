@@ -1,0 +1,4 @@
+dist/
+reports/
+package-lock.json
+stryker.config.json

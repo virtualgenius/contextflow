@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { initialProjects, initialActiveProjectId, determineProjectOrigin, isBuiltInNewer } from './builtInProjects'
+import {
+  initialProjects,
+  initialActiveProjectId,
+  determineProjectOrigin,
+  isBuiltInNewer,
+} from './builtInProjects'
 import type { Project } from './types'
 
 vi.mock('./persistence', async (importOriginal) => {
@@ -40,19 +45,21 @@ describe('builtInProjects', () => {
 
     it('should include sample project', () => {
       const projects = Object.values(initialProjects)
-      const sampleProject = projects.find(p => p.name.includes('ACME') || p.id === 'sample-project')
+      const sampleProject = projects.find(
+        (p) => p.name.includes('ACME') || p.id === 'sample-project'
+      )
       expect(sampleProject).toBeDefined()
     })
 
     it('should include cbioportal project', () => {
       const projects = Object.values(initialProjects)
-      const cbioportal = projects.find(p => p.name.toLowerCase().includes('cbioportal'))
+      const cbioportal = projects.find((p) => p.name.toLowerCase().includes('cbioportal'))
       expect(cbioportal).toBeDefined()
     })
 
     it('should include elan warranty project', () => {
       const projects = Object.values(initialProjects)
-      const elan = projects.find(p => p.name.toLowerCase().includes('elan'))
+      const elan = projects.find((p) => p.name.toLowerCase().includes('elan'))
       expect(elan).toBeDefined()
     })
 
@@ -63,14 +70,14 @@ describe('builtInProjects', () => {
     })
 
     it('should have isBuiltIn flag set to true for all projects', () => {
-      Object.values(initialProjects).forEach(project => {
+      Object.values(initialProjects).forEach((project) => {
         expect(project.isBuiltIn).toBe(true)
       })
     })
 
     it('should generate unique UUIDs for project IDs', () => {
       const ids = Object.keys(initialProjects)
-      ids.forEach(id => {
+      ids.forEach((id) => {
         expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
       })
     })
@@ -78,28 +85,28 @@ describe('builtInProjects', () => {
 
   describe('backwards compatibility - required arrays', () => {
     it('should ensure all projects have users array', () => {
-      Object.values(initialProjects).forEach(project => {
+      Object.values(initialProjects).forEach((project) => {
         expect(project.users).toBeDefined()
         expect(Array.isArray(project.users)).toBe(true)
       })
     })
 
     it('should ensure all projects have userNeeds array', () => {
-      Object.values(initialProjects).forEach(project => {
+      Object.values(initialProjects).forEach((project) => {
         expect(project.userNeeds).toBeDefined()
         expect(Array.isArray(project.userNeeds)).toBe(true)
       })
     })
 
     it('should ensure all projects have userNeedConnections array', () => {
-      Object.values(initialProjects).forEach(project => {
+      Object.values(initialProjects).forEach((project) => {
         expect(project.userNeedConnections).toBeDefined()
         expect(Array.isArray(project.userNeedConnections)).toBe(true)
       })
     })
 
     it('should ensure all projects have needContextConnections array', () => {
-      Object.values(initialProjects).forEach(project => {
+      Object.values(initialProjects).forEach((project) => {
         expect(project.needContextConnections).toBeDefined()
         expect(Array.isArray(project.needContextConnections)).toBe(true)
       })
@@ -108,8 +115,8 @@ describe('builtInProjects', () => {
 
   describe('migration - distillation and evolution', () => {
     it('should ensure all contexts have distillation positions', () => {
-      Object.values(initialProjects).forEach(project => {
-        project.contexts.forEach(context => {
+      Object.values(initialProjects).forEach((project) => {
+        project.contexts.forEach((context) => {
           expect(context.positions.distillation).toBeDefined()
           expect(context.positions.distillation.x).toBeTypeOf('number')
           expect(context.positions.distillation.y).toBeTypeOf('number')
@@ -118,17 +125,19 @@ describe('builtInProjects', () => {
     })
 
     it('should ensure all contexts have evolutionStage', () => {
-      Object.values(initialProjects).forEach(project => {
-        project.contexts.forEach(context => {
+      Object.values(initialProjects).forEach((project) => {
+        project.contexts.forEach((context) => {
           expect(context.evolutionStage).toBeDefined()
-          expect(['genesis', 'custom-built', 'product/rental', 'commodity/utility']).toContain(context.evolutionStage)
+          expect(['genesis', 'custom-built', 'product/rental', 'commodity/utility']).toContain(
+            context.evolutionStage
+          )
         })
       })
     })
 
     it('should ensure all contexts have strategicClassification', () => {
-      Object.values(initialProjects).forEach(project => {
-        project.contexts.forEach(context => {
+      Object.values(initialProjects).forEach((project) => {
+        project.contexts.forEach((context) => {
           expect(context.strategicClassification).toBeDefined()
           expect(['core', 'supporting', 'generic']).toContain(context.strategicClassification)
         })
@@ -136,16 +145,18 @@ describe('builtInProjects', () => {
     })
 
     it('should classify evolutionStage based on strategic position x when missing', () => {
-      Object.values(initialProjects).forEach(project => {
-        project.contexts.forEach(context => {
-          expect(['genesis', 'custom-built', 'product/rental', 'commodity/utility']).toContain(context.evolutionStage)
+      Object.values(initialProjects).forEach((project) => {
+        project.contexts.forEach((context) => {
+          expect(['genesis', 'custom-built', 'product/rental', 'commodity/utility']).toContain(
+            context.evolutionStage
+          )
         })
       })
     })
 
     it('should use default distillation position (50, 50) when missing', () => {
-      Object.values(initialProjects).forEach(project => {
-        project.contexts.forEach(context => {
+      Object.values(initialProjects).forEach((project) => {
+        project.contexts.forEach((context) => {
           expect(context.positions.distillation.x).toBeGreaterThanOrEqual(0)
           expect(context.positions.distillation.x).toBeLessThanOrEqual(100)
           expect(context.positions.distillation.y).toBeGreaterThanOrEqual(0)
@@ -173,7 +184,7 @@ describe('builtInProjects', () => {
 
   describe('data integrity', () => {
     it('should have valid project structure', () => {
-      Object.values(initialProjects).forEach(project => {
+      Object.values(initialProjects).forEach((project) => {
         expect(project.id).toBeDefined()
         expect(project.name).toBeDefined()
         expect(project.contexts).toBeDefined()
@@ -184,8 +195,8 @@ describe('builtInProjects', () => {
     })
 
     it('should have contexts with valid position structures', () => {
-      Object.values(initialProjects).forEach(project => {
-        project.contexts.forEach(context => {
+      Object.values(initialProjects).forEach((project) => {
+        project.contexts.forEach((context) => {
           expect(context.positions).toBeDefined()
           expect(context.positions.flow).toBeDefined()
           expect(context.positions.strategic).toBeDefined()
@@ -234,7 +245,11 @@ describe('builtInProjects', () => {
     async function getModules() {
       const { initializeBuiltInProjects, BUILT_IN_PROJECTS } = await import('./builtInProjects')
       const { loadAllProjects } = await import('./persistence')
-      return { initializeBuiltInProjects, BUILT_IN_PROJECTS, loadAllProjects: loadAllProjects as ReturnType<typeof vi.fn> }
+      return {
+        initializeBuiltInProjects,
+        BUILT_IN_PROJECTS,
+        loadAllProjects: loadAllProjects as ReturnType<typeof vi.fn>,
+      }
     }
 
     it('should load user projects from IndexedDB alongside built-in projects', async () => {
@@ -257,7 +272,7 @@ describe('builtInProjects', () => {
       expect(calledWith.projects['user-project-1']).toBeDefined()
       expect(calledWith.projects['user-project-1'].name).toBe('My Custom Map')
       // Built-in projects should also be present
-      BUILT_IN_PROJECTS.forEach(bp => {
+      BUILT_IN_PROJECTS.forEach((bp) => {
         expect(calledWith.projects[bp.id]).toBeDefined()
       })
     })

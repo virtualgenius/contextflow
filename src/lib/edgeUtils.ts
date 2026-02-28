@@ -103,22 +103,22 @@ export function getIndicatorBoxPosition(
     case Position.Top:
       return {
         x: nodeX + nodeW / 2,
-        y: nodeY - INDICATOR_BOX_GAP - boxHeight / 2
+        y: nodeY - INDICATOR_BOX_GAP - boxHeight / 2,
       }
     case Position.Bottom:
       return {
         x: nodeX + nodeW / 2,
-        y: nodeY + nodeH + INDICATOR_BOX_GAP + boxHeight / 2
+        y: nodeY + nodeH + INDICATOR_BOX_GAP + boxHeight / 2,
       }
     case Position.Left:
       return {
         x: nodeX - INDICATOR_BOX_GAP - boxWidth / 2,
-        y: nodeY + nodeH / 2
+        y: nodeY + nodeH / 2,
       }
     case Position.Right:
       return {
         x: nodeX + nodeW + INDICATOR_BOX_GAP + boxWidth / 2,
-        y: nodeY + nodeH / 2
+        y: nodeY + nodeH / 2,
       }
     default:
       return null

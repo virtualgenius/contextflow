@@ -38,10 +38,7 @@ export function generateEmptyProject(name: string): Project {
   }
 }
 
-export function createProjectAction(
-  state: EditorState,
-  name: string
-): Partial<EditorState> {
+export function createProjectAction(state: EditorState, name: string): Partial<EditorState> {
   const validation = validateProjectName(name)
   if (!validation.valid) {
     throw new Error(validation.error)
@@ -66,10 +63,7 @@ export interface DeleteValidationResult {
   reason?: string
 }
 
-export function canDeleteProject(
-  state: EditorState,
-  projectId: string
-): DeleteValidationResult {
+export function canDeleteProject(state: EditorState, projectId: string): DeleteValidationResult {
   if (!state.projects[projectId]) {
     return { canDelete: false, reason: 'Project not found' }
   }
@@ -86,9 +80,7 @@ export function selectNextProjectAfterDelete(
   state: EditorState,
   deletedProjectId: string
 ): string | null {
-  const remainingProjects = Object.values(state.projects).filter(
-    (p) => p.id !== deletedProjectId
-  )
+  const remainingProjects = Object.values(state.projects).filter((p) => p.id !== deletedProjectId)
 
   if (remainingProjects.length === 0) {
     return null
@@ -103,10 +95,7 @@ export function selectNextProjectAfterDelete(
   return sorted[0].id
 }
 
-export function deleteProjectAction(
-  state: EditorState,
-  projectId: string
-): Partial<EditorState> {
+export function deleteProjectAction(state: EditorState, projectId: string): Partial<EditorState> {
   const validation = canDeleteProject(state, projectId)
   if (!validation.canDelete) {
     throw new Error(validation.reason)
@@ -162,10 +151,7 @@ export function renameProjectAction(
   }
 }
 
-export function generateUniqueProjectName(
-  baseName: string,
-  existingNames: string[]
-): string {
+export function generateUniqueProjectName(baseName: string, existingNames: string[]): string {
   if (!existingNames.includes(baseName)) {
     return baseName
   }
@@ -191,7 +177,9 @@ interface IdMappings {
 }
 
 function buildIdMappings(project: Project): IdMappings {
-  const buildMapping = <T extends { id: string }>(items: T[] | undefined): Record<string, string> => {
+  const buildMapping = <T extends { id: string }>(
+    items: T[] | undefined
+  ): Record<string, string> => {
     const mapping: Record<string, string> = {}
     ;(items || []).forEach((item) => {
       mapping[item.id] = crypto.randomUUID()
@@ -282,7 +270,7 @@ function duplicateKeyframes(project: Project, mappings: IdMappings) {
         pos,
       ])
     ),
-    activeContextIds: keyframe.activeContextIds.map(id => mappings.contexts[id] || id),
+    activeContextIds: keyframe.activeContextIds.map((id) => mappings.contexts[id] || id),
   }))
 }
 
@@ -343,10 +331,12 @@ export function regenerateAllIds(project: Project, newName?: string): Project {
     userNeedConnections: duplicateUserNeedConnections(project, mappings),
     needContextConnections: duplicateNeedContextConnections(project, mappings),
     teams: duplicateTeams(project, mappings),
-    temporal: project.temporal ? {
-      enabled: project.temporal.enabled,
-      keyframes: duplicateKeyframes(project, mappings),
-    } : undefined,
+    temporal: project.temporal
+      ? {
+          enabled: project.temporal.enabled,
+          keyframes: duplicateKeyframes(project, mappings),
+        }
+      : undefined,
     repos: project.repos.map((repo) => ({ ...repo })),
     people: project.people.map((person) => ({ ...person })),
     viewConfig: duplicateViewConfig(project),
@@ -369,10 +359,7 @@ export function checkImportConflict(
   return { hasConflict: false }
 }
 
-export function importProjectAsNew(
-  project: Project,
-  existingNames: string[]
-): Project {
+export function importProjectAsNew(project: Project, existingNames: string[]): Project {
   const uniqueName = generateUniqueProjectName(project.name, existingNames)
   return regenerateAllIds(project, uniqueName)
 }

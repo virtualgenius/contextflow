@@ -30,15 +30,21 @@ export function RepoCard({
   const isExpanded = expandedRepoId === repo.id
 
   // Fetch API data if enabled
-  const { contributors: apiContributors, loading: loadingContributors, error: contributorsError } =
-    useCodeCohesionContributors(repo.name, useAPI)
-  const { stats, loading: loadingStats, error: statsError } =
-    useCodeCohesionRepoStats(repo.name, useAPI)
+  const {
+    contributors: apiContributors,
+    loading: loadingContributors,
+    error: contributorsError,
+  } = useCodeCohesionContributors(repo.name, useAPI)
+  const {
+    stats,
+    loading: loadingStats,
+    error: statsError,
+  } = useCodeCohesionRepoStats(repo.name, useAPI)
 
   // Determine which contributors to display
   const contributorsToDisplay = useAPI
-    ? (apiContributors || [])
-    : staticContributors.map(c => c.displayName)
+    ? apiContributors || []
+    : staticContributors.map((c) => c.displayName)
 
   const dataSource = useAPI ? 'Top 5, last 90 days' : 'Static'
 
@@ -103,17 +109,24 @@ export function RepoCard({
                 Repository Stats
               </div>
               {loadingStats && (
-                <div className="text-[10px] text-slate-500 dark:text-slate-400">Loading stats...</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Loading stats...
+                </div>
               )}
               {statsError && (
-                <div className="text-[10px] text-red-600 dark:text-red-400">Error loading stats</div>
+                <div className="text-[10px] text-red-600 dark:text-red-400">
+                  Error loading stats
+                </div>
               )}
               {stats && !loadingStats && !statsError && (
                 <div className="text-[10px] text-slate-600 dark:text-slate-400 space-y-0.5">
                   <div>• {formatNumber(stats.totalFiles)} files</div>
                   <div>• {formatNumber(stats.totalLoc)} lines of code</div>
                   {getPrimaryLanguage() && (
-                    <div>• Primary: {getPrimaryLanguage()!.ext} ({formatNumber(getPrimaryLanguage()!.count)} files)</div>
+                    <div>
+                      • Primary: {getPrimaryLanguage()!.ext} (
+                      {formatNumber(getPrimaryLanguage()!.count)} files)
+                    </div>
                   )}
                 </div>
               )}
@@ -126,10 +139,14 @@ export function RepoCard({
               Contributors ({dataSource})
             </div>
             {useAPI && loadingContributors && (
-              <div className="text-[10px] text-slate-500 dark:text-slate-400">Loading contributors...</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                Loading contributors...
+              </div>
             )}
             {useAPI && contributorsError && (
-              <div className="text-[10px] text-red-600 dark:text-red-400">Error loading contributors</div>
+              <div className="text-[10px] text-red-600 dark:text-red-400">
+                Error loading contributors
+              </div>
             )}
             {!loadingContributors && !contributorsError && contributorsToDisplay.length > 0 && (
               <div className="text-[10px] text-slate-600 dark:text-slate-400">
@@ -192,20 +209,23 @@ export function useCodeCohesionContributors(repoName: string, enabled: boolean) 
     setLoading(true)
     setError(null)
 
-    const { apiBaseUrl, contributors: { limit, days } } = config.integrations.codecohesion
+    const {
+      apiBaseUrl,
+      contributors: { limit, days },
+    } = config.integrations.codecohesion
     fetch(`${apiBaseUrl}/repos/${repoName}/contributors?limit=${limit}&days=${days}`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`API error: ${res.status}`)
         return res.json()
       })
-      .then(data => {
+      .then((data) => {
         const names = Array.isArray(data.contributors)
           ? data.contributors.map((c: any) => c.name || c.login || c.email || 'Unknown')
           : []
         setContributors(names)
         setLoading(false)
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to fetch contributors:', err)
         setError(err.message)
         setLoading(false)
@@ -232,15 +252,15 @@ export function useCodeCohesionRepoStats(repoName: string, enabled: boolean) {
     setError(null)
 
     fetch(`${config.integrations.codecohesion.apiBaseUrl}/repos/${repoName}/stats`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`API error: ${res.status}`)
         return res.json()
       })
-      .then(data => {
+      .then((data) => {
         setStats(data.stats)
         setLoading(false)
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to fetch repo stats:', err)
         setError(err.message)
         setLoading(false)

@@ -11,7 +11,7 @@ const TEMPLATE_PROJECTS = [
   elanWarrantyProject as Project,
 ]
 
-export const BUILT_IN_PROJECTS = TEMPLATE_PROJECTS.map(template => ({
+export const BUILT_IN_PROJECTS = TEMPLATE_PROJECTS.map((template) => ({
   ...template,
   id: crypto.randomUUID(),
   isBuiltIn: true,
@@ -19,7 +19,7 @@ export const BUILT_IN_PROJECTS = TEMPLATE_PROJECTS.map(template => ({
 
 export const [sampleProject, cbioportal, elanWarranty] = BUILT_IN_PROJECTS
 
-BUILT_IN_PROJECTS.forEach(project => {
+BUILT_IN_PROJECTS.forEach((project) => {
   if (!project.users) project.users = []
   if (!project.userNeeds) project.userNeeds = []
   if (!project.userNeedConnections) project.userNeedConnections = []
@@ -31,8 +31,8 @@ BUILT_IN_PROJECTS.forEach(project => {
   }
 })
 
-BUILT_IN_PROJECTS.forEach(project => {
-  project.contexts = project.contexts.map(context => {
+BUILT_IN_PROJECTS.forEach((project) => {
+  project.contexts = project.contexts.map((context) => {
     const needsDistillation = !context.positions.distillation
     const needsEvolution = !context.evolutionStage
 
@@ -44,7 +44,8 @@ BUILT_IN_PROJECTS.forEach(project => {
           distillation: context.positions.distillation || { x: 50, y: 50 },
         },
         strategicClassification: context.strategicClassification || 'supporting',
-        evolutionStage: context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
+        evolutionStage:
+          context.evolutionStage || classifyFromStrategicPosition(context.positions.strategic.x),
       }
     }
     return context
@@ -58,28 +59,30 @@ async function saveProjectIfNew(project: Project): Promise<void> {
   }
 }
 
-BUILT_IN_PROJECTS.forEach(project => {
-  saveProjectIfNew(project).catch(err => {
+BUILT_IN_PROJECTS.forEach((project) => {
+  saveProjectIfNew(project).catch((err) => {
     console.error(`Failed to check/save ${project.name}:`, err)
   })
 })
 
 // Build initial projects map from array
-export const initialProjects = BUILT_IN_PROJECTS.reduce((acc, project) => {
-  acc[project.id] = project
-  return acc
-}, {} as Record<string, Project>)
+export const initialProjects = BUILT_IN_PROJECTS.reduce(
+  (acc, project) => {
+    acc[project.id] = project
+    return acc
+  },
+  {} as Record<string, Project>
+)
 
 const storedProjectId = localStorage.getItem('contextflow.activeProjectId')
 const storedProjectExistsLocally = storedProjectId && initialProjects[storedProjectId]
-export const initialActiveProjectId: string | null = storedProjectExistsLocally ? storedProjectId : null
+export const initialActiveProjectId: string | null = storedProjectExistsLocally
+  ? storedProjectId
+  : null
 
 type ProjectOrigin = 'sample' | 'imported' | 'continued'
 
-export function determineProjectOrigin(
-  project: Project,
-  isFirstLoad: boolean
-): ProjectOrigin {
+export function determineProjectOrigin(project: Project, isFirstLoad: boolean): ProjectOrigin {
   if (project.isBuiltIn) {
     return 'sample'
   } else if (isFirstLoad) {
@@ -106,32 +109,35 @@ export function initializeBuiltInProjects(
   setState: (state: { projects: Record<string, Project>; activeProjectId?: string | null }) => void
 ): void {
   Promise.all([
-    Promise.all(BUILT_IN_PROJECTS.map(project => loadProject(project.id))),
+    Promise.all(BUILT_IN_PROJECTS.map((project) => loadProject(project.id))),
     loadAllProjects(),
-  ]).then(([savedBuiltIns, allSavedProjects]) => {
-    const projects: Record<string, Project> = {}
+  ])
+    .then(([savedBuiltIns, allSavedProjects]) => {
+      const projects: Record<string, Project> = {}
 
-    BUILT_IN_PROJECTS.forEach((builtInProject, index) => {
-      const savedProject = savedBuiltIns[index]
-      if (isBuiltInNewer(builtInProject, savedProject)) {
-        projects[builtInProject.id] = builtInProject
-      } else {
-        const migratedProject = migrateProject(savedProject!)
-        projects[migratedProject.id] = migratedProject
+      BUILT_IN_PROJECTS.forEach((builtInProject, index) => {
+        const savedProject = savedBuiltIns[index]
+        if (isBuiltInNewer(builtInProject, savedProject)) {
+          projects[builtInProject.id] = builtInProject
+        } else {
+          const migratedProject = migrateProject(savedProject!)
+          projects[migratedProject.id] = migratedProject
+        }
+      })
+
+      const userProjects = allSavedProjects.filter((p) => !p.isBuiltIn)
+      for (const userProject of userProjects) {
+        const migrated = migrateProject(userProject)
+        projects[migrated.id] = migrated
       }
+
+      const storedActiveId = localStorage.getItem('contextflow.activeProjectId')
+      const activeProjectId =
+        storedActiveId && projects[storedActiveId] ? storedActiveId : undefined
+
+      setState({ projects, ...(activeProjectId && { activeProjectId }) })
     })
-
-    const userProjects = allSavedProjects.filter(p => !p.isBuiltIn)
-    for (const userProject of userProjects) {
-      const migrated = migrateProject(userProject)
-      projects[migrated.id] = migrated
-    }
-
-    const storedActiveId = localStorage.getItem('contextflow.activeProjectId')
-    const activeProjectId = storedActiveId && projects[storedActiveId] ? storedActiveId : undefined
-
-    setState({ projects, ...(activeProjectId && { activeProjectId }) })
-  }).catch(err => {
-    console.error('Failed to load projects from IndexedDB:', err)
-  })
+    .catch((err) => {
+      console.error('Failed to load projects from IndexedDB:', err)
+    })
 }

@@ -1,13 +1,14 @@
 import React from 'react'
-import {
-  EdgeProps,
-  getStraightPath,
-  useReactFlow,
-} from 'reactflow'
+import { EdgeProps, getStraightPath, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { UserNeedConnection } from '../../model/types'
 import { getVerticalEdgeEndpoints, getEdgeState, getEdgeStrokeWidth } from '../../lib/edgeUtils'
-import { EDGE_HIT_AREA_WIDTH, EDGE_STROKE_WIDTH, EDGE_TRANSITION, EDGE_DASH_ARRAY } from '../../lib/canvasConstants'
+import {
+  EDGE_HIT_AREA_WIDTH,
+  EDGE_STROKE_WIDTH,
+  EDGE_TRANSITION,
+  EDGE_DASH_ARRAY,
+} from '../../lib/canvasConstants'
 
 function UserNeedConnectionEdge({
   id,
@@ -22,9 +23,9 @@ function UserNeedConnectionEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
-  const selectedUserId = useEditorStore(s => s.selectedUserId)
-  const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
-  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
+  const selectedUserId = useEditorStore((s) => s.selectedUserId)
+  const selectedUserNeedId = useEditorStore((s) => s.selectedUserNeedId)
+  const selectedUserNeedConnectionId = useEditorStore((s) => s.selectedUserNeedConnectionId)
   const connection = data?.connection as UserNeedConnection | undefined
 
   const isSelected = id === selectedUserNeedConnectionId
@@ -55,7 +56,13 @@ function UserNeedConnectionEdge({
         className="react-flow__edge-path"
         d={edgePath}
         style={{
-          stroke: isSelected ? '#3b82f6' : isHighlighted ? '#3b82f6' : isHovered ? '#60a5fa' : '#94a3b8',
+          stroke: isSelected
+            ? '#3b82f6'
+            : isHighlighted
+              ? '#3b82f6'
+              : isHovered
+                ? '#60a5fa'
+                : '#94a3b8',
           strokeWidth: getEdgeStrokeWidth(edgeState, EDGE_STROKE_WIDTH),
           strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',

@@ -7,7 +7,7 @@ import {
   trackEvent,
   initAnalytics,
   setAnalyticsEnabled,
-  getAnalyticsPreference
+  getAnalyticsPreference,
 } from './analytics'
 import type { Project } from '../model/types'
 
@@ -311,7 +311,14 @@ describe('analytics', () => {
         repos: [
           { id: '1', name: 'repo1', contextId: 'ctx1', teamIds: [], contributors: [] },
           { id: '2', name: 'repo2', contextId: undefined, teamIds: [], contributors: [] },
-          { id: '3', name: 'repo3', contextId: 'ctx2', remoteUrl: 'https://github.com/test/repo', teamIds: [], contributors: [] }
+          {
+            id: '3',
+            name: 'repo3',
+            contextId: 'ctx2',
+            remoteUrl: 'https://github.com/test/repo',
+            teamIds: [],
+            contributors: [],
+          },
         ],
         people: [{} as any, {} as any],
         teams: [{} as any],
@@ -319,7 +326,7 @@ describe('analytics', () => {
         userNeeds: [],
         userNeedConnections: [],
         needContextConnections: [],
-        viewConfig: { flowStages: [{} as any, {} as any] }
+        viewConfig: { flowStages: [{} as any, {} as any] },
       }
 
       const metadata = getProjectMetadata(project)
@@ -341,7 +348,7 @@ describe('analytics', () => {
         need_count: 0,
         user_need_connection_count: 0,
         need_context_connection_count: 0,
-        flow_stage_marker_count: 2
+        flow_stage_marker_count: 2,
       })
     })
 
@@ -353,8 +360,13 @@ describe('analytics', () => {
         relationships: [],
         groups: [],
         repos: [
-          { id: '1', name: 'r1', teamIds: [], contributors: [{ personId: 'p1' }, { personId: 'p2' }] },
-          { id: '2', name: 'r2', teamIds: [], contributors: [{ personId: 'p3' }] }
+          {
+            id: '1',
+            name: 'r1',
+            teamIds: [],
+            contributors: [{ personId: 'p1' }, { personId: 'p2' }],
+          },
+          { id: '2', name: 'r2', teamIds: [], contributors: [{ personId: 'p3' }] },
         ],
         people: [],
         teams: [],
@@ -362,7 +374,7 @@ describe('analytics', () => {
         userNeeds: [],
         userNeedConnections: [],
         needContextConnections: [],
-        viewConfig: { flowStages: [] }
+        viewConfig: { flowStages: [] },
       }
 
       const metadata = getProjectMetadata(project)
@@ -386,8 +398,8 @@ describe('analytics', () => {
         viewConfig: { flowStages: [] },
         temporal: {
           enabled: true,
-          keyframes: [{} as any, {} as any, {} as any]
-        }
+          keyframes: [{} as any, {} as any, {} as any],
+        },
       }
 
       const metadata = getProjectMetadata(project)
@@ -412,8 +424,8 @@ describe('analytics', () => {
         viewConfig: { flowStages: [] },
         temporal: {
           enabled: false,
-          keyframes: [{} as any]
-        }
+          keyframes: [{} as any],
+        },
       }
 
       const metadata = getProjectMetadata(project)
@@ -434,7 +446,7 @@ describe('analytics', () => {
         userNeeds: [{} as any, {} as any, {} as any],
         userNeedConnections: [{} as any],
         needContextConnections: [{} as any, {} as any],
-        viewConfig: { flowStages: [] }
+        viewConfig: { flowStages: [] },
       }
 
       const metadata = getProjectMetadata(project)
@@ -492,7 +504,7 @@ describe('analytics', () => {
         userNeeds: [],
         userNeedConnections: [],
         needContextConnections: [],
-        viewConfig: { flowStages: [] }
+        viewConfig: { flowStages: [] },
       }
 
       trackEvent('test_event', project, { custom: 'value' })
@@ -517,7 +529,7 @@ describe('analytics', () => {
         user_need_connection_count: 0,
         need_context_connection_count: 0,
         flow_stage_marker_count: 0,
-        custom: 'value'
+        custom: 'value',
       })
     })
 
@@ -527,7 +539,7 @@ describe('analytics', () => {
       expect(posthog.capture).toHaveBeenCalledWith('test_event', {
         deployment: 'hosted_demo',
         app_version: expect.any(String),
-        custom: 'value'
+        custom: 'value',
       })
     })
 

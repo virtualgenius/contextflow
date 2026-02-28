@@ -16,7 +16,7 @@ describe('Store - Built-in Project Persistence', () => {
     saveProjectSpy.mockResolvedValue(undefined)
 
     await import('../store')
-    await new Promise(resolve => setTimeout(resolve, ASYNC_INIT_TIMEOUT_MS))
+    await new Promise((resolve) => setTimeout(resolve, ASYNC_INIT_TIMEOUT_MS))
 
     expect(loadProjectSpy).toHaveBeenCalled()
     expect(saveProjectSpy).toHaveBeenCalled()
@@ -46,12 +46,12 @@ describe('Store - Built-in Project Persistence', () => {
       userNeeds: [],
       userNeedConnections: [],
       needContextConnections: [],
-      viewConfig: { flowStages: [] }
+      viewConfig: { flowStages: [] },
     }))
     saveProjectSpy.mockResolvedValue(undefined)
 
     await import('../store')
-    await new Promise(resolve => setTimeout(resolve, ASYNC_INIT_TIMEOUT_MS))
+    await new Promise((resolve) => setTimeout(resolve, ASYNC_INIT_TIMEOUT_MS))
 
     expect(loadProjectSpy).toHaveBeenCalled()
     expect(saveProjectSpy).not.toHaveBeenCalled()

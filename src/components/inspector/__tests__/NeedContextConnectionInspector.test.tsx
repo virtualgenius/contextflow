@@ -15,7 +15,13 @@ function makeProject(): Project {
   return {
     id: 'proj-1',
     name: 'Test',
-    contexts: [{ id: 'ctx-1', name: 'Orders', positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } } }],
+    contexts: [
+      {
+        id: 'ctx-1',
+        name: 'Orders',
+        positions: { flow: { x: 0 }, strategic: { x: 0 }, shared: { y: 0 } },
+      },
+    ],
     relationships: [],
     repos: [],
     teams: [],
@@ -59,6 +65,9 @@ describe('NeedContextConnectionInspector', () => {
   it('navigates to context on click', () => {
     render(<NeedContextConnectionInspector project={makeProject()} connectionId="nc-1" />)
     fireEvent.click(screen.getByText('Orders'))
-    expect(useEditorStore.setState).toHaveBeenCalledWith({ selectedContextId: 'ctx-1', selectedNeedContextConnectionId: null })
+    expect(useEditorStore.setState).toHaveBeenCalledWith({
+      selectedContextId: 'ctx-1',
+      selectedNeedContextConnectionId: null,
+    })
   })
 })

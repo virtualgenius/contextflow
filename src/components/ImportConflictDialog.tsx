@@ -38,10 +38,13 @@ export function ImportConflictDialog({
         {/* Content */}
         <div className="p-4">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            A project named <strong className="text-slate-800 dark:text-slate-200">"{existingProjectName}"</strong> already exists.
+            A project named{' '}
+            <strong className="text-slate-800 dark:text-slate-200">"{existingProjectName}"</strong>{' '}
+            already exists.
           </p>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">
-            How would you like to import <strong className="text-slate-700 dark:text-slate-300">"{importedProjectName}"</strong>?
+            How would you like to import{' '}
+            <strong className="text-slate-700 dark:text-slate-300">"{importedProjectName}"</strong>?
           </p>
         </div>
 

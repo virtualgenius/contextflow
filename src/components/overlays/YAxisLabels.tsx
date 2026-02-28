@@ -7,7 +7,7 @@ export function YAxisLabels() {
 
   const labels = [
     { text: 'Visible', key: 'visible', yPos: 80 },
-    { text: 'Invisible', key: 'invisible', yPos: 1000 }
+    { text: 'Invisible', key: 'invisible', yPos: 1000 },
   ]
 
   return (

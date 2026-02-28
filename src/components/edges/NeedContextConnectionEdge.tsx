@@ -1,13 +1,14 @@
 import React from 'react'
-import {
-  EdgeProps,
-  getStraightPath,
-  useReactFlow,
-} from 'reactflow'
+import { EdgeProps, getStraightPath, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { NeedContextConnection } from '../../model/types'
 import { getVerticalEdgeEndpoints, getEdgeState, getEdgeStrokeWidth } from '../../lib/edgeUtils'
-import { EDGE_HIT_AREA_WIDTH, EDGE_STROKE_WIDTH, EDGE_TRANSITION, EDGE_DASH_ARRAY } from '../../lib/canvasConstants'
+import {
+  EDGE_HIT_AREA_WIDTH,
+  EDGE_STROKE_WIDTH,
+  EDGE_TRANSITION,
+  EDGE_DASH_ARRAY,
+} from '../../lib/canvasConstants'
 
 function NeedContextConnectionEdge({
   id,
@@ -22,9 +23,9 @@ function NeedContextConnectionEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
-  const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
-  const selectedContextId = useEditorStore(s => s.selectedContextId)
-  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
+  const selectedUserNeedId = useEditorStore((s) => s.selectedUserNeedId)
+  const selectedContextId = useEditorStore((s) => s.selectedContextId)
+  const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const connection = data?.connection as NeedContextConnection | undefined
 
   const isSelected = id === selectedNeedContextConnectionId
@@ -55,7 +56,13 @@ function NeedContextConnectionEdge({
         className="react-flow__edge-path"
         d={edgePath}
         style={{
-          stroke: isSelected ? '#10b981' : isHighlighted ? '#10b981' : isHovered ? '#34d399' : '#94a3b8',
+          stroke: isSelected
+            ? '#10b981'
+            : isHighlighted
+              ? '#10b981'
+              : isHovered
+                ? '#34d399'
+                : '#94a3b8',
           strokeWidth: getEdgeStrokeWidth(edgeState, EDGE_STROKE_WIDTH),
           strokeDasharray: EDGE_DASH_ARRAY,
           fill: 'none',

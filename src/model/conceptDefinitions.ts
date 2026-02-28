@@ -91,7 +91,8 @@ export const STRATEGIC_CLASSIFICATIONS: Record<string, ConceptDefinition> = {
 export const BOUNDARY_INTEGRITY: Record<string, ConceptDefinition> = {
   strong: {
     title: 'Strong Boundary',
-    description: 'Well-defined interface with strict contracts. Changes are controlled and versioned.',
+    description:
+      'Well-defined interface with strict contracts. Changes are controlled and versioned.',
     characteristics: [
       'Clear API contracts',
       'Versioned interfaces',
@@ -124,8 +125,7 @@ export const BOUNDARY_INTEGRITY: Record<string, ConceptDefinition> = {
 // Stage Definition (Flow View)
 export const STAGE_DEFINITION: ConceptDefinition = {
   title: 'Stage (Value Stream Phase)',
-  description:
-    'A stage represents a distinct phase in your value stream.',
+  description: 'A stage represents a distinct phase in your value stream.',
   characteristics: [
     'Maps to subprocess boundaries in EventStorming',
     'Groups related user needs and contexts',
@@ -137,8 +137,7 @@ export const STAGE_DEFINITION: ConceptDefinition = {
 // User Definition (Value Stream / Strategic View)
 export const USER_DEFINITION: ConceptDefinition = {
   title: 'User',
-  description:
-    'A person or system that interacts with your product to satisfy their needs.',
+  description: 'A person or system that interacts with your product to satisfy their needs.',
   characteristics: [
     'Represents a user role or external system',
     'Has specific needs your system fulfills',
@@ -150,8 +149,7 @@ export const USER_DEFINITION: ConceptDefinition = {
 // User Need Definition
 export const USER_NEED_DEFINITION: ConceptDefinition = {
   title: 'User Need',
-  description:
-    'A capability or outcome that a user requires from your system.',
+  description: 'A capability or outcome that a user requires from your system.',
   characteristics: [
     'Describes what the user wants to accomplish',
     'Connected to users who have this need',
@@ -163,8 +161,7 @@ export const USER_NEED_DEFINITION: ConceptDefinition = {
 // Bounded Context Definition
 export const BOUNDED_CONTEXT_DEFINITION: ConceptDefinition = {
   title: 'Bounded Context',
-  description:
-    'A boundary within which a particular domain model applies consistently.',
+  description: 'A boundary within which a particular domain model applies consistently.',
   characteristics: [
     'Defines clear ownership and language boundaries',
     'Contains a cohesive set of domain concepts',
@@ -243,7 +240,8 @@ export const OWNERSHIP_DEFINITIONS: Record<string, ConceptDefinition> = {
 // Business Model Role (Bounded Context Canvas V5)
 export const BUSINESS_MODEL_ROLE: ConceptDefinition = {
   title: 'Business Model Role',
-  description: 'How this bounded context contributes to the organization\'s business model. From the Bounded Context Canvas V5 by DDD Crew.',
+  description:
+    "How this bounded context contributes to the organization's business model. From the Bounded Context Canvas V5 by DDD Crew.",
   characteristics: [
     'Revenue Generator: directly produces income (e.g., payments, subscriptions)',
     'Engagement Creator: increases user interaction and retention',
@@ -255,7 +253,8 @@ export const BUSINESS_MODEL_ROLE: ConceptDefinition = {
 // Big Ball of Mud
 export const BIG_BALL_OF_MUD: ConceptDefinition = {
   title: 'Big Ball of Mud',
-  description: 'A system with mixed models, inconsistent boundaries, and tangled dependencies. Identified by Eric Evans as a strategic design pattern that needs isolation.',
+  description:
+    'A system with mixed models, inconsistent boundaries, and tangled dependencies. Identified by Eric Evans as a strategic design pattern that needs isolation.',
   characteristics: [
     'No clear internal structure or model boundaries',
     'Should be isolated behind an anti-corruption layer',
@@ -320,7 +319,8 @@ export const POWER_DYNAMICS: ConceptDefinition = {
 export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
   flow: {
     title: 'Value Stream View',
-    description: 'Map bounded contexts within your value stream stages to visualize how capabilities support value delivery.',
+    description:
+      'Map bounded contexts within your value stream stages to visualize how capabilities support value delivery.',
     characteristics: [
       'Organize contexts by value stream stages',
       'See which contexts support each phase',
@@ -354,7 +354,8 @@ export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
 export const VALUE_CHAIN_VISIBILITY: Record<string, ConceptDefinition> = {
   visible: {
     title: 'Visible',
-    description: 'Components that users directly interact with or are aware of. Users and their needs at the top represent the problem space—the anchor from which the entire map flows.',
+    description:
+      'Components that users directly interact with or are aware of. Users and their needs at the top represent the problem space—the anchor from which the entire map flows.',
     characteristics: [
       'User-facing functionality',
       'Directly creates perceived value',
@@ -461,8 +462,7 @@ export const KEYFRAME_DEFINITION: ConceptDefinition = {
 // Communication Mode
 export const COMMUNICATION_MODE: ConceptDefinition = {
   title: 'Communication Mode',
-  description:
-    'How two bounded contexts technically communicate with each other.',
+  description: 'How two bounded contexts technically communicate with each other.',
   characteristics: [
     'REST API - synchronous HTTP calls',
     'gRPC - high-performance RPC framework',
@@ -483,7 +483,7 @@ export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
       'Empowered to build and deliver customer value',
     ],
   },
-  'platform': {
+  platform: {
     title: 'Platform Team',
     description: 'Provides internal services to reduce cognitive load for stream-aligned teams.',
     characteristics: [
@@ -493,7 +493,7 @@ export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
       'Focuses on developer experience',
     ],
   },
-  'enabling': {
+  enabling: {
     title: 'Enabling Team',
     description: 'Helps other teams adopt new technologies or practices.',
     characteristics: [
@@ -519,16 +519,18 @@ export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
 export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   'customer-supplier': {
     title: 'Customer-Supplier',
-    description: 'Upstream delivers what downstream needs. The upstream team should consider downstream needs when planning.',
+    description:
+      'Upstream delivers what downstream needs. The upstream team should consider downstream needs when planning.',
     characteristics: [
       '↑ Upstream has control over the relationship',
       'Downstream has negotiating power over priorities',
       'Clear dependency where one team provides to another',
     ],
   },
-  'conformist': {
+  conformist: {
     title: 'Conformist',
-    description: 'Downstream fully adopts the upstream model without translation. Appropriate when the upstream model is good enough.',
+    description:
+      'Downstream fully adopts the upstream model without translation. Appropriate when the upstream model is good enough.',
     characteristics: [
       '↑ Upstream has control over the relationship',
       'No translation layer - downstream accepts upstream model',
@@ -537,7 +539,8 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   },
   'anti-corruption-layer': {
     title: 'Anti-Corruption Layer',
-    description: 'Downstream protects itself with a translation layer, preventing upstream concepts from "corrupting" its domain model.',
+    description:
+      'Downstream protects itself with a translation layer, preventing upstream concepts from "corrupting" its domain model.',
     characteristics: [
       '↓ Downstream controls the relationship',
       'Isolates domain model from external concepts',
@@ -546,7 +549,8 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   },
   'open-host-service': {
     title: 'Open Host Service',
-    description: 'Upstream provides a well-documented, stable API for multiple downstream consumers.',
+    description:
+      'Upstream provides a well-documented, stable API for multiple downstream consumers.',
     characteristics: [
       '↑ Upstream has control over the relationship',
       'Decoupled from individual consumer needs',
@@ -555,7 +559,8 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   },
   'published-language': {
     title: 'Published Language',
-    description: 'A shared, well-documented interchange format used for integration between contexts.',
+    description:
+      'A shared, well-documented interchange format used for integration between contexts.',
     characteristics: [
       '↑ Upstream has control over the relationship',
       'Versioned and maintained independently',
@@ -564,16 +569,18 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   },
   'shared-kernel': {
     title: 'Shared Kernel',
-    description: 'Two or more teams share a common subset of the domain model. Changes require coordination between all teams.',
+    description:
+      'Two or more teams share a common subset of the domain model. Changes require coordination between all teams.',
     characteristics: [
       '↔ Mutual dependency',
       'Creates tight coupling but reduces duplication',
       'Teams must commit to coordinated changes',
     ],
   },
-  'partnership': {
+  partnership: {
     title: 'Partnership',
-    description: 'Two contexts have a mutual dependency where both teams must coordinate closely. Neither is upstream or downstream.',
+    description:
+      'Two contexts have a mutual dependency where both teams must coordinate closely. Neither is upstream or downstream.',
     characteristics: [
       '↔ Mutual dependency',
       'Teams succeed or fail together',
@@ -582,7 +589,8 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   },
   'separate-ways': {
     title: 'Separate Ways',
-    description: 'A deliberate decision not to integrate. Each context solves its own problems independently.',
+    description:
+      'A deliberate decision not to integrate. Each context solves its own problems independently.',
     characteristics: [
       '○ No integration',
       'Eliminates integration complexity',

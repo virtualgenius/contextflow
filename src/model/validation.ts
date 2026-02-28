@@ -38,17 +38,23 @@ export interface SelectionState {
   selectedContextIds: string[]
 }
 
-type SelectionType = 'context' | 'relationship' | 'group' | 'user' | 'userNeed' | 'userNeedConnection' | 'needContextConnection' | 'stage' | 'team'
+type SelectionType =
+  | 'context'
+  | 'relationship'
+  | 'group'
+  | 'user'
+  | 'userNeed'
+  | 'userNeedConnection'
+  | 'needContextConnection'
+  | 'stage'
+  | 'team'
 
 export function createSelectionState(
   selectedId: string | null,
   type: Exclude<SelectionType, 'stage'>
 ): SelectionState
 
-export function createSelectionState(
-  selectedIndex: number | null,
-  type: 'stage'
-): SelectionState
+export function createSelectionState(selectedIndex: number | null, type: 'stage'): SelectionState
 
 export function createSelectionState(
   selectedValue: string | number | null,

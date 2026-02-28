@@ -20,8 +20,8 @@ describe('calculateStageBoundaries', () => {
       stageIndex: 0,
       name: 'Middle',
       position: 50,
-      startBound: 0,   // first stage always starts at 0
-      endBound: 100,   // last stage always ends at 100
+      startBound: 0, // first stage always starts at 0
+      endBound: 100, // last stage always ends at 100
     })
   })
 
@@ -31,8 +31,8 @@ describe('calculateStageBoundaries', () => {
 
     expect(boundaries).toHaveLength(1)
     expect(boundaries[0]).toMatchObject({
-      startBound: 0,   // first stage starts at 0
-      endBound: 100,   // last stage ends at 100
+      startBound: 0, // first stage starts at 0
+      endBound: 100, // last stage ends at 100
     })
   })
 
@@ -42,8 +42,8 @@ describe('calculateStageBoundaries', () => {
 
     expect(boundaries).toHaveLength(1)
     expect(boundaries[0]).toMatchObject({
-      startBound: 0,   // first stage starts at 0
-      endBound: 100,   // last stage ends at 100
+      startBound: 0, // first stage starts at 0
+      endBound: 100, // last stage ends at 100
     })
   })
 
@@ -58,7 +58,7 @@ describe('calculateStageBoundaries', () => {
     const boundaries = calculateStageBoundaries(stages)
 
     expect(boundaries).toHaveLength(5)
-    expect(boundaries[0]).toMatchObject({ name: 'A', startBound: 0, endBound: 20 })   // starts at 0
+    expect(boundaries[0]).toMatchObject({ name: 'A', startBound: 0, endBound: 20 }) // starts at 0
     expect(boundaries[1]).toMatchObject({ name: 'B', startBound: 20, endBound: 40 })
     expect(boundaries[2]).toMatchObject({ name: 'C', startBound: 40, endBound: 60 })
     expect(boundaries[3]).toMatchObject({ name: 'D', startBound: 60, endBound: 80 })
@@ -79,9 +79,9 @@ describe('calculateStageBoundaries', () => {
     expect(boundaries[2].name).toBe('C')
 
     // Original indices preserved
-    expect(boundaries.find(b => b.name === 'A')?.stageIndex).toBe(1)
-    expect(boundaries.find(b => b.name === 'B')?.stageIndex).toBe(2)
-    expect(boundaries.find(b => b.name === 'C')?.stageIndex).toBe(0)
+    expect(boundaries.find((b) => b.name === 'A')?.stageIndex).toBe(1)
+    expect(boundaries.find((b) => b.name === 'B')?.stageIndex).toBe(2)
+    expect(boundaries.find((b) => b.name === 'C')?.stageIndex).toBe(0)
   })
 
   it('handles two stages at boundaries (0 and 100)', () => {
@@ -102,7 +102,7 @@ describe('calculateStageBoundaries', () => {
     ]
     const boundaries = calculateStageBoundaries(stages)
 
-    expect(boundaries[0]).toMatchObject({ startBound: 0, endBound: 50 })   // starts at 0
+    expect(boundaries[0]).toMatchObject({ startBound: 0, endBound: 50 }) // starts at 0
     expect(boundaries[1]).toMatchObject({ startBound: 50, endBound: 100 }) // ends at 100
   })
 })
@@ -230,8 +230,8 @@ describe('getItemsInStage', () => {
   it('returns items in second stage', () => {
     const result = getItemsInStage(items, 1, boundaries)
     expect(result).toHaveLength(2)
-    expect(result.map(u => u.name)).toContain('Item B')
-    expect(result.map(u => u.name)).toContain('Item C')
+    expect(result.map((u) => u.name)).toContain('Item B')
+    expect(result.map((u) => u.name)).toContain('Item C')
   })
 
   it('returns empty array for non-existent stage index', () => {

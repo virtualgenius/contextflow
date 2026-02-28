@@ -11,17 +11,17 @@ import { TeamInspector } from './inspector/TeamInspector'
 import { ContextInspector } from './inspector/ContextInspector'
 
 export function InspectorPanel() {
-  const projectId = useEditorStore(s => s.activeProjectId)
-  const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
-  const selectedContextId = useEditorStore(s => s.selectedContextId)
-  const selectedGroupId = useEditorStore(s => s.selectedGroupId)
-  const selectedUserId = useEditorStore(s => s.selectedUserId)
-  const selectedUserNeedId = useEditorStore(s => s.selectedUserNeedId)
-  const selectedRelationshipId = useEditorStore(s => s.selectedRelationshipId)
-  const selectedUserNeedConnectionId = useEditorStore(s => s.selectedUserNeedConnectionId)
-  const selectedNeedContextConnectionId = useEditorStore(s => s.selectedNeedContextConnectionId)
-  const selectedStageIndex = useEditorStore(s => s.selectedStageIndex)
-  const selectedTeamId = useEditorStore(s => s.selectedTeamId)
+  const projectId = useEditorStore((s) => s.activeProjectId)
+  const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
+  const selectedContextId = useEditorStore((s) => s.selectedContextId)
+  const selectedGroupId = useEditorStore((s) => s.selectedGroupId)
+  const selectedUserId = useEditorStore((s) => s.selectedUserId)
+  const selectedUserNeedId = useEditorStore((s) => s.selectedUserNeedId)
+  const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
+  const selectedUserNeedConnectionId = useEditorStore((s) => s.selectedUserNeedConnectionId)
+  const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
+  const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
+  const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
 
   if (!project) {
     return null
@@ -44,11 +44,18 @@ export function InspectorPanel() {
   }
 
   if (selectedUserNeedConnectionId) {
-    return <UserNeedConnectionInspector project={project} connectionId={selectedUserNeedConnectionId} />
+    return (
+      <UserNeedConnectionInspector project={project} connectionId={selectedUserNeedConnectionId} />
+    )
   }
 
   if (selectedNeedContextConnectionId) {
-    return <NeedContextConnectionInspector project={project} connectionId={selectedNeedContextConnectionId} />
+    return (
+      <NeedContextConnectionInspector
+        project={project}
+        connectionId={selectedNeedContextConnectionId}
+      />
+    )
   }
 
   if (selectedStageIndex !== null) {

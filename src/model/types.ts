@@ -50,10 +50,10 @@ export interface BoundedContext {
   boundaryNotes?: string
 
   positions: {
-    strategic: { x: number }        // Strategic View horizontal (0..100)
-    flow: { x: number }             // Flow View horizontal (0..100)
+    strategic: { x: number } // Strategic View horizontal (0..100)
+    flow: { x: number } // Flow View horizontal (0..100)
     distillation: { x: number; y: number } // Distillation View 2D position (0..100)
-    shared: { y: number }           // vertical (0..100), shared across Flow/Strategic views
+    shared: { y: number } // vertical (0..100), shared across Flow/Strategic views
   }
 
   evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'
@@ -66,11 +66,15 @@ export interface BoundedContext {
   isLegacy?: boolean
   isBigBallOfMud?: boolean
 
-  businessModelRole?: 'revenue-generator' | 'engagement-creator' | 'compliance-enforcer' | 'cost-reduction'
+  businessModelRole?:
+    | 'revenue-generator'
+    | 'engagement-creator'
+    | 'compliance-enforcer'
+    | 'cost-reduction'
 
   notes?: string
   issues?: Issue[]
-  teamId?: string  // direct team assignment (orthogonal to repo ownership)
+  teamId?: string // direct team assignment (orthogonal to repo ownership)
 }
 
 export interface Relationship {
@@ -78,7 +82,7 @@ export interface Relationship {
 
   // arrow points to upstream (the one with more power / defines language)
   fromContextId: string // downstream / dependent
-  toContextId: string   // upstream / defining authority
+  toContextId: string // upstream / defining authority
 
   pattern:
     | 'customer-supplier'
@@ -99,8 +103,8 @@ export interface Repo {
   name: string
   remoteUrl?: string
 
-  contextId?: string       // repo mapped onto which bounded context
-  teamIds: string[]        // one or more teams that own prod responsibility
+  contextId?: string // repo mapped onto which bounded context
+  teamIds: string[] // one or more teams that own prod responsibility
 
   contributors: ContributorRef[]
 
@@ -127,18 +131,18 @@ export interface Team {
 
 export interface Group {
   id: string
-  label: string          // e.g. "Data Platform / Ingestion"
-  color?: string         // translucent tint
-  contextIds: string[]   // members
+  label: string // e.g. "Data Platform / Ingestion"
+  color?: string // translucent tint
+  contextIds: string[] // members
   notes?: string
 }
 
 export interface FlowStageMarker {
-  name: string          // e.g. "Data Ingestion"
-  position: number      // 0..100 along Flow View X axis
-  description?: string  // shown in hover tooltip and inspector
-  owner?: string        // team/person responsible for this stage
-  notes?: string        // freeform notes
+  name: string // e.g. "Data Ingestion"
+  position: number // 0..100 along Flow View X axis
+  description?: string // shown in hover tooltip and inspector
+  owner?: string // team/person responsible for this stage
+  notes?: string // freeform notes
 }
 
 export interface User {

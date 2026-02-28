@@ -86,7 +86,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines.some(l => l.includes('Our Team'))).toBe(false)
+      expect(lines.some((l) => l.includes('Our Team'))).toBe(false)
     })
 
     it('includes boundary integrity when set', () => {
@@ -119,7 +119,9 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toContain('Weak boundary - significant coupling, changes ripple across contexts')
+      expect(lines).toContain(
+        'Weak boundary - significant coupling, changes ripple across contexts'
+      )
     })
 
     it('omits boundary when unset', () => {
@@ -130,7 +132,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines.some(l => l.includes('boundary'))).toBe(false)
+      expect(lines.some((l) => l.includes('boundary'))).toBe(false)
     })
 
     it('includes issue count when issues exist', () => {
@@ -158,7 +160,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines.some(l => l.includes('issue'))).toBe(false)
+      expect(lines.some((l) => l.includes('issue'))).toBe(false)
     })
 
     it('includes connected context names when relationships exist', () => {
@@ -166,9 +168,7 @@ describe('getContextTooltipLines', () => {
         context: makeContext({ id: 'ctx-1' }),
         viewMode: 'flow',
         colorByMode: 'strategic',
-        relationships: [
-          makeRelationship({ fromContextId: 'ctx-1', toContextId: 'ctx-2' }),
-        ],
+        relationships: [makeRelationship({ fromContextId: 'ctx-1', toContextId: 'ctx-2' })],
         contexts: otherContexts,
       })
       expect(lines).toContain('Connected to Billing')
@@ -196,7 +196,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines.some(l => l.includes('Connected'))).toBe(false)
+      expect(lines.some((l) => l.includes('Connected'))).toBe(false)
     })
 
     it('always includes drag guidance as last line', () => {
@@ -220,9 +220,7 @@ describe('getContextTooltipLines', () => {
         }),
         viewMode: 'flow',
         colorByMode: 'ownership',
-        relationships: [
-          makeRelationship({ fromContextId: 'ctx-1', toContextId: 'ctx-2' }),
-        ],
+        relationships: [makeRelationship({ fromContextId: 'ctx-1', toContextId: 'ctx-2' })],
         contexts: otherContexts,
       })
       expect(lines).toEqual([
@@ -264,9 +262,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual([
-        'Drag handles to connect to other contexts',
-      ])
+      expect(lines).toEqual(['Drag handles to connect to other contexts'])
     })
   })
 
@@ -279,9 +275,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual([
-        'Drag to classify as Core, Supporting, or Generic',
-      ])
+      expect(lines).toEqual(['Drag to classify as Core, Supporting, or Generic'])
     })
 
     it('shows core description when classified as core', () => {
@@ -292,9 +286,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual([
-        'Core Domain - your primary competitive advantage',
-      ])
+      expect(lines).toEqual(['Core Domain - your primary competitive advantage'])
     })
 
     it('shows supporting description when classified as supporting', () => {
@@ -305,9 +297,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual([
-        'Supporting - necessary but not a differentiator',
-      ])
+      expect(lines).toEqual(['Supporting - necessary but not a differentiator'])
     })
 
     it('shows generic description when classified as generic', () => {
@@ -318,9 +308,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual([
-        'Generic - buy or use open source',
-      ])
+      expect(lines).toEqual(['Generic - buy or use open source'])
     })
   })
 
@@ -337,7 +325,9 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual(['Core Domain | Our Team | Strong boundary - clear API contracts, independently deployable'])
+      expect(lines).toEqual([
+        'Core Domain | Our Team | Strong boundary - clear API contracts, independently deployable',
+      ])
     })
 
     it('omits unset properties from summary', () => {
@@ -411,7 +401,9 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual(['Weak boundary - significant coupling, changes ripple across contexts'])
+      expect(lines).toEqual([
+        'Weak boundary - significant coupling, changes ripple across contexts',
+      ])
     })
   })
 })

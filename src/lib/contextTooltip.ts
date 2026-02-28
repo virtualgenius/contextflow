@@ -35,7 +35,7 @@ const DISTILLATION_DESCRIPTIONS: Record<string, string> = {
 function getConnectedContextNames(
   contextId: string,
   relationships: Relationship[],
-  contexts: BoundedContext[],
+  contexts: BoundedContext[]
 ): string[] {
   const connectedIds = new Set<string>()
   for (const rel of relationships) {

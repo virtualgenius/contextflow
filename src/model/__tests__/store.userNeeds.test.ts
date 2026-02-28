@@ -41,7 +41,7 @@ describe('Store - UserNeed Management', () => {
 
       expect(updatedProject.userNeeds.length).toBe(initialCount + 1)
 
-      const addedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+      const addedNeed = updatedProject.userNeeds.find((n) => n.id === needId)
       expect(addedNeed).toBeDefined()
       expect(addedNeed?.name).toBe('Fast Checkout')
       expect(addedNeed?.position).toBeTypeOf('number')
@@ -78,7 +78,7 @@ describe('Store - UserNeed Management', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const addedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+      const addedNeed = updatedProject.userNeeds.find((n) => n.id === needId)
 
       expect(addedNeed?.position).toBe(50)
     })
@@ -87,14 +87,14 @@ describe('Store - UserNeed Management', () => {
       // Get current state which has existing userNeeds from sample project
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const existingPositions = project.userNeeds.map(n => n.position)
+      const existingPositions = project.userNeeds.map((n) => n.position)
 
       const { addUserNeed } = state
       const needId = addUserNeed('New Need')
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const addedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+      const addedNeed = updatedProject.userNeeds.find((n) => n.id === needId)
 
       // The new need should be at a position not occupied by existing needs
       expect(existingPositions).not.toContain(addedNeed?.position)
@@ -114,12 +114,12 @@ describe('Store - UserNeed Management', () => {
       updateUserNeed(needId!, {
         name: 'Updated Name',
         description: 'A new description',
-        position: 75
+        position: 75,
       })
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+      const updatedNeed = updatedProject.userNeeds.find((n) => n.id === needId)
 
       expect(updatedNeed?.name).toBe('Updated Name')
       expect(updatedNeed?.description).toBe('A new description')
@@ -136,7 +136,7 @@ describe('Store - UserNeed Management', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+      const updatedNeed = updatedProject.userNeeds.find((n) => n.id === needId)
 
       expect(updatedNeed?.visibility).toBe(false)
     })
@@ -151,19 +151,20 @@ describe('Store - UserNeed Management', () => {
 
       const beforeDelete = useEditorStore.getState()
       const projectBeforeDelete = beforeDelete.projects[beforeDelete.activeProjectId!]
-      expect(projectBeforeDelete.userNeeds.find(n => n.id === needId)).toBeDefined()
+      expect(projectBeforeDelete.userNeeds.find((n) => n.id === needId)).toBeDefined()
 
       deleteUserNeed(needId!)
 
       const afterDelete = useEditorStore.getState()
       const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-      expect(projectAfterDelete.userNeeds.find(n => n.id === needId)).toBeUndefined()
+      expect(projectAfterDelete.userNeeds.find((n) => n.id === needId)).toBeUndefined()
     })
 
     it('should delete associated connections when deleting user need', () => {
       const state = useEditorStore.getState()
       const project = state.projects[state.activeProjectId!]
-      const { addUserNeed, createUserNeedConnection, createNeedContextConnection, deleteUserNeed } = state
+      const { addUserNeed, createUserNeedConnection, createNeedContextConnection, deleteUserNeed } =
+        state
 
       const needId = addUserNeed('Test Need')
       const userId = project.users[0]?.id
@@ -182,9 +183,13 @@ describe('Store - UserNeed Management', () => {
 
         const afterDelete = useEditorStore.getState()
         const projectAfterDelete = afterDelete.projects[afterDelete.activeProjectId!]
-        expect(projectAfterDelete.userNeeds.find(n => n.id === needId)).toBeUndefined()
-        expect(projectAfterDelete.userNeedConnections.find(c => c.userNeedId === needId)).toBeUndefined()
-        expect(projectAfterDelete.needContextConnections.find(c => c.userNeedId === needId)).toBeUndefined()
+        expect(projectAfterDelete.userNeeds.find((n) => n.id === needId)).toBeUndefined()
+        expect(
+          projectAfterDelete.userNeedConnections.find((c) => c.userNeedId === needId)
+        ).toBeUndefined()
+        expect(
+          projectAfterDelete.needContextConnections.find((c) => c.userNeedId === needId)
+        ).toBeUndefined()
       }
     })
   })
@@ -200,7 +205,7 @@ describe('Store - UserNeed Management', () => {
 
       const updatedState = useEditorStore.getState()
       const updatedProject = updatedState.projects[updatedState.activeProjectId!]
-      const updatedNeed = updatedProject.userNeeds.find(n => n.id === needId)
+      const updatedNeed = updatedProject.userNeeds.find((n) => n.id === needId)
 
       expect(updatedNeed?.position).toBe(80)
     })

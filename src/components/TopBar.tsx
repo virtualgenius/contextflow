@@ -1,6 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useEditorStore } from '../model/store'
-import { Undo2, Redo2, Plus, Download, Upload, User, Settings, Box, Hash, Target, Share2, Home } from 'lucide-react'
+import {
+  Undo2,
+  Redo2,
+  Plus,
+  Download,
+  Upload,
+  User,
+  Settings,
+  Box,
+  Hash,
+  Target,
+  Share2,
+  Home,
+} from 'lucide-react'
 import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -14,31 +27,42 @@ import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal'
 import { ImportConflictDialog } from './ImportConflictDialog'
-import { VIEW_DESCRIPTIONS, STAGE_DEFINITION, USER_DEFINITION, USER_NEED_DEFINITION, BOUNDED_CONTEXT_DEFINITION, TEMPORAL_MODE } from '../model/conceptDefinitions'
-import { checkImportConflict, importProjectAsNew, validateImportedProject } from '../model/actions/projectActions'
+import {
+  VIEW_DESCRIPTIONS,
+  STAGE_DEFINITION,
+  USER_DEFINITION,
+  USER_NEED_DEFINITION,
+  BOUNDED_CONTEXT_DEFINITION,
+  TEMPORAL_MODE,
+} from '../model/conceptDefinitions'
+import {
+  checkImportConflict,
+  importProjectAsNew,
+  validateImportedProject,
+} from '../model/actions/projectActions'
 import type { Project } from '../model/types'
 import { trackEvent } from '../utils/analytics'
 import { version } from '../../package.json'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
-  const projectId = useEditorStore(s => s.activeProjectId)
-  const project = useEditorStore(s => (projectId ? s.projects[projectId] : undefined))
-  const projects = useEditorStore(s => s.projects)
-  const viewMode = useEditorStore(s => s.activeViewMode)
-  const setViewMode = useEditorStore(s => s.setViewMode)
-  const setActiveProject = useEditorStore(s => s.setActiveProject)
-  const canUndo = useEditorStore(s => s.undoStack.length > 0)
-  const canRedo = useEditorStore(s => s.redoStack.length > 0)
-  const undo = useEditorStore(s => s.undo)
-  const redo = useEditorStore(s => s.redo)
-  const addContext = useEditorStore(s => s.addContext)
-  const addUser = useEditorStore(s => s.addUser)
-  const addUserNeed = useEditorStore(s => s.addUserNeed)
-  const addFlowStage = useEditorStore(s => s.addFlowStage)
-  const importProject = useEditorStore(s => s.importProject)
-  const clearActiveProject = useEditorStore(s => s.clearActiveProject)
-  const toggleTemporalMode = useEditorStore(s => s.toggleTemporalMode)
+  const projectId = useEditorStore((s) => s.activeProjectId)
+  const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
+  const projects = useEditorStore((s) => s.projects)
+  const viewMode = useEditorStore((s) => s.activeViewMode)
+  const setViewMode = useEditorStore((s) => s.setViewMode)
+  const setActiveProject = useEditorStore((s) => s.setActiveProject)
+  const canUndo = useEditorStore((s) => s.undoStack.length > 0)
+  const canRedo = useEditorStore((s) => s.redoStack.length > 0)
+  const undo = useEditorStore((s) => s.undo)
+  const redo = useEditorStore((s) => s.redo)
+  const addContext = useEditorStore((s) => s.addContext)
+  const addUser = useEditorStore((s) => s.addUser)
+  const addUserNeed = useEditorStore((s) => s.addUserNeed)
+  const addFlowStage = useEditorStore((s) => s.addFlowStage)
+  const importProject = useEditorStore((s) => s.importProject)
+  const clearActiveProject = useEditorStore((s) => s.clearActiveProject)
+  const toggleTemporalMode = useEditorStore((s) => s.toggleTemporalMode)
   const temporalEnabled = project?.temporal?.enabled || false
   const { route, navigate } = useUrlRouter()
   const [showSettings, setShowSettings] = useState(false)
@@ -66,11 +90,12 @@ export function TopBar() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
+        return
 
       if (e.key === '?' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        setShowKeyboardShortcuts(prev => !prev)
+        setShowKeyboardShortcuts((prev) => !prev)
       }
     }
     document.addEventListener('keydown', handleKeyDown)
@@ -217,29 +242,17 @@ export function TopBar() {
       {/* Add buttons - primary creation CTAs */}
       <div className="ml-4 flex items-center gap-1 bg-slate-50 dark:bg-neutral-900 rounded-lg px-1.5 py-1">
         <InfoTooltip content={BOUNDED_CONTEXT_DEFINITION} position="bottom">
-          <AddButton
-            onClick={handleAddContext}
-            icon={<Box size={14} />}
-            label="Context"
-          />
+          <AddButton onClick={handleAddContext} icon={<Box size={14} />} label="Context" />
         </InfoTooltip>
 
         {/* User/Need buttons: Strategic and Value Stream views (not Distillation) */}
         {viewMode !== 'distillation' && (
           <>
             <InfoTooltip content={USER_DEFINITION} position="bottom">
-              <AddButton
-                onClick={handleAddUser}
-                icon={<User size={14} />}
-                label="User"
-              />
+              <AddButton onClick={handleAddUser} icon={<User size={14} />} label="User" />
             </InfoTooltip>
             <InfoTooltip content={USER_NEED_DEFINITION} position="bottom">
-              <AddButton
-                onClick={handleAddUserNeed}
-                icon={<Target size={14} />}
-                label="Need"
-              />
+              <AddButton onClick={handleAddUserNeed} icon={<Target size={14} />} label="Need" />
             </InfoTooltip>
           </>
         )}
@@ -247,11 +260,7 @@ export function TopBar() {
         {/* Add Stage button - only in Value Stream View */}
         {viewMode === 'flow' && (
           <InfoTooltip content={STAGE_DEFINITION} position="bottom">
-            <AddButton
-              onClick={handleAddStage}
-              icon={<Hash size={14} />}
-              label="Stage"
-            />
+            <AddButton onClick={handleAddStage} icon={<Hash size={14} />} label="Stage" />
           </InfoTooltip>
         )}
       </div>
@@ -303,7 +312,11 @@ export function TopBar() {
           <>
             <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
             <InfoTooltip content={TEMPORAL_MODE} position="bottom">
-              <Switch checked={temporalEnabled} onCheckedChange={() => toggleTemporalMode()} label="Temporal" />
+              <Switch
+                checked={temporalEnabled}
+                onCheckedChange={() => toggleTemporalMode()}
+                label="Temporal"
+              />
             </InfoTooltip>
           </>
         )}

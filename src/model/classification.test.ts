@@ -7,7 +7,7 @@ import {
   DISTILLATION_CORE_MIN_Y,
   STRATEGIC_GENESIS_MAX_X,
   STRATEGIC_CUSTOM_BUILT_MAX_X,
-  STRATEGIC_PRODUCT_RENTAL_MAX_X
+  STRATEGIC_PRODUCT_RENTAL_MAX_X,
 } from './classification'
 
 describe('classifyFromDistillationPosition', () => {
@@ -33,7 +33,9 @@ describe('classifyFromDistillationPosition', () => {
 
   describe(`core classification (x >= ${DISTILLATION_CORE_MIN_X} && y >= ${DISTILLATION_CORE_MIN_Y})`, () => {
     it(`should classify as core at x=${DISTILLATION_CORE_MIN_X}, y=${DISTILLATION_CORE_MIN_Y}`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y)).toBe('core')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y)
+      ).toBe('core')
     })
 
     it('should classify as core at x=100, y=100', () => {
@@ -45,19 +47,25 @@ describe('classifyFromDistillationPosition', () => {
     })
 
     it(`should NOT classify as core if y < ${DISTILLATION_CORE_MIN_Y}`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y - 1)).toBe('supporting')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y - 1)
+      ).toBe('supporting')
       expect(classifyFromDistillationPosition(100, 0)).toBe('supporting')
     })
 
     it(`should NOT classify as core if x < ${DISTILLATION_CORE_MIN_X}`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X - 1, DISTILLATION_CORE_MIN_Y)).toBe('supporting')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X - 1, DISTILLATION_CORE_MIN_Y)
+      ).toBe('supporting')
       expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X - 1, 100)).toBe('supporting')
     })
   })
 
   describe('supporting classification (middle + bottom-right)', () => {
     it(`should classify as supporting at x=${DISTILLATION_GENERIC_MAX_X}, y=${DISTILLATION_CORE_MIN_Y}`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X, DISTILLATION_CORE_MIN_Y)).toBe('supporting')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X, DISTILLATION_CORE_MIN_Y)
+      ).toBe('supporting')
     })
 
     it(`should classify as supporting at x=50, y=${DISTILLATION_CORE_MIN_Y / 2}`, () => {
@@ -69,7 +77,9 @@ describe('classifyFromDistillationPosition', () => {
     })
 
     it(`should classify as supporting at x=${DISTILLATION_CORE_MIN_X}, y=${DISTILLATION_CORE_MIN_Y - 1}`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y - 1)).toBe('supporting')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y - 1)
+      ).toBe('supporting')
     })
 
     it('should classify as supporting in middle range', () => {
@@ -80,21 +90,37 @@ describe('classifyFromDistillationPosition', () => {
 
   describe('boundary conditions', () => {
     it(`should handle x=${DISTILLATION_GENERIC_MAX_X} boundary correctly`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X - 0.01, 50)).toBe('generic')
+      expect(classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X - 0.01, 50)).toBe(
+        'generic'
+      )
       expect(classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X, 50)).toBe('supporting')
-      expect(classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X + 0.01, 50)).toBe('supporting')
+      expect(classifyFromDistillationPosition(DISTILLATION_GENERIC_MAX_X + 0.01, 50)).toBe(
+        'supporting'
+      )
     })
 
     it(`should handle x=${DISTILLATION_CORE_MIN_X} boundary correctly`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X - 0.01, DISTILLATION_CORE_MIN_Y)).toBe('supporting')
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y)).toBe('core')
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X + 0.01, DISTILLATION_CORE_MIN_Y)).toBe('core')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X - 0.01, DISTILLATION_CORE_MIN_Y)
+      ).toBe('supporting')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y)
+      ).toBe('core')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X + 0.01, DISTILLATION_CORE_MIN_Y)
+      ).toBe('core')
     })
 
     it(`should handle y=${DISTILLATION_CORE_MIN_Y} boundary correctly for high x`, () => {
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y - 0.01)).toBe('supporting')
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y)).toBe('core')
-      expect(classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y + 0.01)).toBe('core')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y - 0.01)
+      ).toBe('supporting')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y)
+      ).toBe('core')
+      expect(
+        classifyFromDistillationPosition(DISTILLATION_CORE_MIN_X, DISTILLATION_CORE_MIN_Y + 0.01)
+      ).toBe('core')
     })
 
     it('should handle extreme values', () => {
@@ -145,13 +171,17 @@ describe('classifyFromStrategicPosition', () => {
     })
 
     it(`should classify as product/rental at boundary x=${STRATEGIC_PRODUCT_RENTAL_MAX_X - 0.1}`, () => {
-      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X - 0.1)).toBe('product/rental')
+      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X - 0.1)).toBe(
+        'product/rental'
+      )
     })
   })
 
   describe(`commodity/utility classification (x >= ${STRATEGIC_PRODUCT_RENTAL_MAX_X})`, () => {
     it(`should classify as commodity/utility at x=${STRATEGIC_PRODUCT_RENTAL_MAX_X}`, () => {
-      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X)).toBe('commodity/utility')
+      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X)).toBe(
+        'commodity/utility'
+      )
     })
 
     it('should classify as commodity/utility at x=87', () => {
@@ -171,15 +201,25 @@ describe('classifyFromStrategicPosition', () => {
     })
 
     it(`should handle x=${STRATEGIC_CUSTOM_BUILT_MAX_X} boundary correctly`, () => {
-      expect(classifyFromStrategicPosition(STRATEGIC_CUSTOM_BUILT_MAX_X - 0.01)).toBe('custom-built')
+      expect(classifyFromStrategicPosition(STRATEGIC_CUSTOM_BUILT_MAX_X - 0.01)).toBe(
+        'custom-built'
+      )
       expect(classifyFromStrategicPosition(STRATEGIC_CUSTOM_BUILT_MAX_X)).toBe('product/rental')
-      expect(classifyFromStrategicPosition(STRATEGIC_CUSTOM_BUILT_MAX_X + 0.01)).toBe('product/rental')
+      expect(classifyFromStrategicPosition(STRATEGIC_CUSTOM_BUILT_MAX_X + 0.01)).toBe(
+        'product/rental'
+      )
     })
 
     it(`should handle x=${STRATEGIC_PRODUCT_RENTAL_MAX_X} boundary correctly`, () => {
-      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X - 0.01)).toBe('product/rental')
-      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X)).toBe('commodity/utility')
-      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X + 0.01)).toBe('commodity/utility')
+      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X - 0.01)).toBe(
+        'product/rental'
+      )
+      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X)).toBe(
+        'commodity/utility'
+      )
+      expect(classifyFromStrategicPosition(STRATEGIC_PRODUCT_RENTAL_MAX_X + 0.01)).toBe(
+        'commodity/utility'
+      )
     })
 
     it('should handle extreme values', () => {

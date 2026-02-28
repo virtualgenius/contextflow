@@ -71,7 +71,7 @@ export function RelationshipCreateDialog({
               required
             >
               <option value="">Select target context...</option>
-              {availableContexts.map(ctx => (
+              {availableContexts.map((ctx) => (
                 <option key={ctx.id} value={ctx.id}>
                   {ctx.name}
                 </option>
@@ -89,7 +89,7 @@ export function RelationshipCreateDialog({
               onChange={(e) => setPattern(e.target.value as Relationship['pattern'])}
               className="w-full text-sm px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
             >
-              {PATTERN_DEFINITIONS.map(p => (
+              {PATTERN_DEFINITIONS.map((p) => (
                 <option key={p.value} value={p.value}>
                   {POWER_DYNAMICS_ICONS[p.powerDynamics]} {p.label}
                 </option>

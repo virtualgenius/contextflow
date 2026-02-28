@@ -15,11 +15,11 @@ export function RepoSidebar({ repos, teams, onRepoAssign: _onRepoAssign }: RepoS
   const filteredRepos = React.useMemo(() => {
     if (!searchQuery.trim()) return repos
     const query = searchQuery.toLowerCase()
-    return repos.filter(r => r.name.toLowerCase().includes(query))
+    return repos.filter((r) => r.name.toLowerCase().includes(query))
   }, [repos, searchQuery])
 
   const getTeamsForRepo = (repo: Repo): Team[] => {
-    return teams.filter(t => repo.teamIds.includes(t.id))
+    return teams.filter((t) => repo.teamIds.includes(t.id))
   }
 
   const handleDragStart = (e: React.DragEvent, repoId: string) => {
@@ -64,7 +64,7 @@ export function RepoSidebar({ repos, teams, onRepoAssign: _onRepoAssign }: RepoS
         </div>
       )}
 
-      {filteredRepos.map(repo => {
+      {filteredRepos.map((repo) => {
         const repoTeams = getTeamsForRepo(repo)
 
         return (
@@ -75,9 +75,7 @@ export function RepoSidebar({ repos, teams, onRepoAssign: _onRepoAssign }: RepoS
             className="bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded p-2.5 cursor-move hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800 transition-colors"
           >
             {/* Repo name */}
-            <div className="font-medium text-slate-900 dark:text-slate-100 mb-1">
-              {repo.name}
-            </div>
+            <div className="font-medium text-slate-900 dark:text-slate-100 mb-1">{repo.name}</div>
 
             {/* Remote URL */}
             {repo.remoteUrl && (
@@ -96,7 +94,7 @@ export function RepoSidebar({ repos, teams, onRepoAssign: _onRepoAssign }: RepoS
             {/* Team chips */}
             {repoTeams.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
-                {repoTeams.map(team => {
+                {repoTeams.map((team) => {
                   const colors = getTopologyColors(team.topologyType)
                   const label = team.topologyType ? TOPOLOGY_LABELS[team.topologyType] : undefined
                   return (

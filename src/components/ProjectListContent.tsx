@@ -1,7 +1,11 @@
 import React from 'react'
 import { Layers, Plus, Trash2, Copy, Pencil, Search, BookOpen } from 'lucide-react'
 import type { Project } from '../model/types'
-import { formatRelativeTime, getProjectMetadata, sortProjectsByLastModified } from '../model/projectUtils'
+import {
+  formatRelativeTime,
+  getProjectMetadata,
+  sortProjectsByLastModified,
+} from '../model/projectUtils'
 import { isBuiltInProject } from '../model/projectUtils'
 import { ProjectCreateDialog } from './ProjectCreateDialog'
 import { ProjectDeleteDialog } from './ProjectDeleteDialog'
@@ -44,11 +48,11 @@ export function ProjectListContent({
     const allProjects = sortProjectsByLastModified(Object.values(projects))
     const query = searchQuery.trim().toLowerCase()
     const filtered = query
-      ? allProjects.filter(p => p.name.toLowerCase().includes(query))
+      ? allProjects.filter((p) => p.name.toLowerCase().includes(query))
       : allProjects
     return {
-      userProjects: filtered.filter(p => !isBuiltInProject(p)),
-      exampleProjects: filtered.filter(p => isBuiltInProject(p)),
+      userProjects: filtered.filter((p) => !isBuiltInProject(p)),
+      exampleProjects: filtered.filter((p) => isBuiltInProject(p)),
     }
   }, [projects, searchQuery])
 
@@ -181,10 +185,7 @@ export function ProjectListContent({
             const isEditing = editingProjectId === project.id
 
             return (
-              <div
-                key={project.id}
-                className="group relative"
-              >
+              <div key={project.id} className="group relative">
                 <button
                   onClick={() => handleSelectProject(project.id)}
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
@@ -224,9 +225,7 @@ export function ProjectListContent({
                           {metadata.contextCount} context{metadata.contextCount !== 1 ? 's' : ''}
                         </span>
                         {metadata.lastModified && (
-                          <span>
-                            {formatRelativeTime(metadata.lastModified)}
-                          </span>
+                          <span>{formatRelativeTime(metadata.lastModified)}</span>
                         )}
                       </div>
                     </div>
@@ -279,10 +278,7 @@ export function ProjectListContent({
               const description = EXAMPLE_DESCRIPTIONS[project.name]
 
               return (
-                <div
-                  key={project.id}
-                  className="group relative"
-                >
+                <div key={project.id} className="group relative">
                   <button
                     onClick={() => handleSelectProject(project.id)}
                     className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${

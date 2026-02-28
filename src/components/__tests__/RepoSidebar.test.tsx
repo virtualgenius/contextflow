@@ -43,24 +43,12 @@ describe('RepoSidebar', () => {
     })
 
     it('does not show search input when only 1 repo', () => {
-      render(
-        <RepoSidebar
-          repos={[makeRepo()]}
-          teams={[]}
-          onRepoAssign={noop}
-        />
-      )
+      render(<RepoSidebar repos={[makeRepo()]} teams={[]} onRepoAssign={noop} />)
       expect(screen.queryByPlaceholderText('Filter repos...')).not.toBeInTheDocument()
     })
 
     it('does not show search input when no repos', () => {
-      render(
-        <RepoSidebar
-          repos={[]}
-          teams={[]}
-          onRepoAssign={noop}
-        />
-      )
+      render(<RepoSidebar repos={[]} teams={[]} onRepoAssign={noop} />)
       expect(screen.queryByPlaceholderText('Filter repos...')).not.toBeInTheDocument()
     })
 

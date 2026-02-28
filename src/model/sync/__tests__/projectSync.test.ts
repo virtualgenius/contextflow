@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import * as Y from 'yjs';
-import { projectToYDoc, yDocToProject } from '../projectSync';
-import type { Project } from '../../types';
+import { describe, it, expect } from 'vitest'
+import * as Y from 'yjs'
+import { projectToYDoc, yDocToProject } from '../projectSync'
+import type { Project } from '../../types'
 
 const createMinimalProject = (): Project => ({
   id: 'proj-1',
@@ -19,7 +19,7 @@ const createMinimalProject = (): Project => ({
   viewConfig: {
     flowStages: [],
   },
-});
+})
 
 const createFullProject = (): Project => ({
   id: 'proj-full',
@@ -129,71 +129,71 @@ const createFullProject = (): Project => ({
       },
     ],
   },
-});
+})
 
 describe('projectSync', () => {
   describe('projectToYDoc', () => {
     it('converts a minimal project to Y.Doc', () => {
-      const project = createMinimalProject();
-      const doc = projectToYDoc(project);
+      const project = createMinimalProject()
+      const doc = projectToYDoc(project)
 
-      const yProject = doc.getMap('project');
-      expect(yProject.get('id')).toBe('proj-1');
-      expect(yProject.get('name')).toBe('Minimal Project');
-      expect(yProject.get('version')).toBeNull();
-      expect(yProject.get('createdAt')).toBeNull();
-      expect(yProject.get('updatedAt')).toBeNull();
+      const yProject = doc.getMap('project')
+      expect(yProject.get('id')).toBe('proj-1')
+      expect(yProject.get('name')).toBe('Minimal Project')
+      expect(yProject.get('version')).toBeNull()
+      expect(yProject.get('createdAt')).toBeNull()
+      expect(yProject.get('updatedAt')).toBeNull()
 
-      const contexts = yProject.get('contexts') as Y.Array<unknown>;
-      expect(contexts.length).toBe(0);
+      const contexts = yProject.get('contexts') as Y.Array<unknown>
+      expect(contexts.length).toBe(0)
 
-      const viewConfig = yProject.get('viewConfig') as Y.Map<unknown>;
-      const flowStages = viewConfig.get('flowStages') as Y.Array<unknown>;
-      expect(flowStages.length).toBe(0);
+      const viewConfig = yProject.get('viewConfig') as Y.Map<unknown>
+      const flowStages = viewConfig.get('flowStages') as Y.Array<unknown>
+      expect(flowStages.length).toBe(0)
 
-      expect(yProject.get('temporal')).toBeNull();
-    });
+      expect(yProject.get('temporal')).toBeNull()
+    })
 
     it('converts a full project to Y.Doc', () => {
-      const project = createFullProject();
-      const doc = projectToYDoc(project);
+      const project = createFullProject()
+      const doc = projectToYDoc(project)
 
-      const yProject = doc.getMap('project');
-      expect(yProject.get('id')).toBe('proj-full');
-      expect(yProject.get('version')).toBe(2);
-      expect(yProject.get('createdAt')).toBe('2025-01-01T00:00:00Z');
+      const yProject = doc.getMap('project')
+      expect(yProject.get('id')).toBe('proj-full')
+      expect(yProject.get('version')).toBe(2)
+      expect(yProject.get('createdAt')).toBe('2025-01-01T00:00:00Z')
 
-      const contexts = yProject.get('contexts') as Y.Array<Y.Map<unknown>>;
-      expect(contexts.length).toBe(1);
-      expect(contexts.get(0).get('name')).toBe('Orders');
+      const contexts = yProject.get('contexts') as Y.Array<Y.Map<unknown>>
+      expect(contexts.length).toBe(1)
+      expect(contexts.get(0).get('name')).toBe('Orders')
 
-      const relationships = yProject.get('relationships') as Y.Array<Y.Map<unknown>>;
-      expect(relationships.length).toBe(1);
+      const relationships = yProject.get('relationships') as Y.Array<Y.Map<unknown>>
+      expect(relationships.length).toBe(1)
 
-      const temporal = yProject.get('temporal') as Y.Map<unknown>;
-      expect(temporal.get('enabled')).toBe(true);
-      const keyframes = temporal.get('keyframes') as Y.Array<Y.Map<unknown>>;
-      expect(keyframes.length).toBe(1);
-    });
-  });
+      const temporal = yProject.get('temporal') as Y.Map<unknown>
+      expect(temporal.get('enabled')).toBe(true)
+      const keyframes = temporal.get('keyframes') as Y.Array<Y.Map<unknown>>
+      expect(keyframes.length).toBe(1)
+    })
+  })
 
   describe('yDocToProject', () => {
     it('converts a Y.Doc back to a minimal project', () => {
-      const original = createMinimalProject();
-      const doc = projectToYDoc(original);
-      const result = yDocToProject(doc);
+      const original = createMinimalProject()
+      const doc = projectToYDoc(original)
+      const result = yDocToProject(doc)
 
-      expect(result).toEqual(original);
-    });
+      expect(result).toEqual(original)
+    })
 
     it('converts a Y.Doc back to a full project', () => {
-      const original = createFullProject();
-      const doc = projectToYDoc(original);
-      const result = yDocToProject(doc);
+      const original = createFullProject()
+      const doc = projectToYDoc(original)
+      const result = yDocToProject(doc)
 
-      expect(result).toEqual(original);
-    });
-  });
+      expect(result).toEqual(original)
+    })
+  })
 
   describe('round-trip edge cases', () => {
     it('handles project with only contexts', () => {
@@ -212,11 +212,11 @@ describe('projectSync', () => {
             },
           },
         ],
-      };
+      }
 
-      const result = yDocToProject(projectToYDoc(project));
-      expect(result).toEqual(project);
-    });
+      const result = yDocToProject(projectToYDoc(project))
+      expect(result).toEqual(project)
+    })
 
     it('handles project with temporal disabled', () => {
       const project: Project = {
@@ -225,11 +225,11 @@ describe('projectSync', () => {
           enabled: false,
           keyframes: [],
         },
-      };
+      }
 
-      const result = yDocToProject(projectToYDoc(project));
-      expect(result).toEqual(project);
-    });
+      const result = yDocToProject(projectToYDoc(project))
+      expect(result).toEqual(project)
+    })
 
     it('handles project with multiple keyframes', () => {
       const project: Project = {
@@ -238,14 +238,20 @@ describe('projectSync', () => {
           enabled: true,
           keyframes: [
             { id: 'kf-1', date: '2024', positions: {}, activeContextIds: [] },
-            { id: 'kf-2', date: '2025', label: 'Now', positions: { 'ctx-1': { x: 50, y: 50 } }, activeContextIds: ['ctx-1'] },
+            {
+              id: 'kf-2',
+              date: '2025',
+              label: 'Now',
+              positions: { 'ctx-1': { x: 50, y: 50 } },
+              activeContextIds: ['ctx-1'],
+            },
             { id: 'kf-3', date: '2026-Q2', label: 'Future', positions: {}, activeContextIds: [] },
           ],
         },
-      };
+      }
 
-      const result = yDocToProject(projectToYDoc(project));
-      expect(result).toEqual(project);
-    });
-  });
-});
+      const result = yDocToProject(projectToYDoc(project))
+      expect(result).toEqual(project)
+    })
+  })
+})

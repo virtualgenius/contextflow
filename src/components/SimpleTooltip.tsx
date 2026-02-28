@@ -9,11 +9,7 @@ interface SimpleTooltipProps {
 
 const TOOLTIP_OFFSET = 6
 
-export function SimpleTooltip({
-  text,
-  children,
-  position = 'bottom',
-}: SimpleTooltipProps) {
+export function SimpleTooltip({ text, children, position = 'bottom' }: SimpleTooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [coords, setCoords] = useState({ x: 0, y: 0 })
   const triggerRef = useRef<HTMLSpanElement>(null)
@@ -68,18 +64,20 @@ export function SimpleTooltip({
     }
   }, [isVisible, position])
 
-  const tooltip = isVisible && createPortal(
-    <div
-      ref={tooltipRef}
-      className="fixed z-[9999] pointer-events-none"
-      style={{ left: coords.x, top: coords.y }}
-    >
-      <div className="px-2 py-1 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded shadow-lg whitespace-nowrap">
-        {text}
-      </div>
-    </div>,
-    document.body
-  )
+  const tooltip =
+    isVisible &&
+    createPortal(
+      <div
+        ref={tooltipRef}
+        className="fixed z-[9999] pointer-events-none"
+        style={{ left: coords.x, top: coords.y }}
+      >
+        <div className="px-2 py-1 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded shadow-lg whitespace-nowrap">
+          {text}
+        </div>
+      </div>,
+      document.body
+    )
 
   return (
     <span

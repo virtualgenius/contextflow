@@ -25,8 +25,16 @@ const CLIPPER_SCALE = 100
 
 export function generateBlobPath(points: Point[], padding: number): string
 export function generateBlobPath(points: Point[], padding: number, returnMetadata?: false): string
-export function generateBlobPath(points: Point[], padding: number, returnMetadata: true): BlobMetadata
-export function generateBlobPath(points: Point[], padding: number, returnMetadata: boolean = false): string | BlobMetadata {
+export function generateBlobPath(
+  points: Point[],
+  padding: number,
+  returnMetadata: true
+): BlobMetadata
+export function generateBlobPath(
+  points: Point[],
+  padding: number,
+  returnMetadata: boolean = false
+): string | BlobMetadata {
   if (points.length === 0) {
     return returnMetadata
       ? { path: '', translateX: 0, translateY: 0, bounds: { minX: 0, maxX: 0, minY: 0, maxY: 0 } }
@@ -42,14 +50,10 @@ export function generateBlobPath(points: Point[], padding: number, returnMetadat
     const circlePoints: [number, number][] = []
     for (let i = 0; i <= segments; i++) {
       const angle = (i / segments) * 2 * Math.PI
-      circlePoints.push([
-        x + halfWidth * Math.cos(angle),
-        y + halfHeight * Math.sin(angle)
-      ])
+      circlePoints.push([x + halfWidth * Math.cos(angle), y + halfHeight * Math.sin(angle)])
     }
 
-    const lineGenerator = line()
-      .curve(curveCatmullRom.alpha(0.5))
+    const lineGenerator = line().curve(curveCatmullRom.alpha(0.5))
 
     const path = lineGenerator(circlePoints) || ''
 
@@ -65,8 +69,8 @@ export function generateBlobPath(points: Point[], padding: number, returnMetadat
           minX: Math.min(...xCoords),
           maxX: Math.max(...xCoords),
           minY: Math.min(...yCoords),
-          maxY: Math.max(...yCoords)
-        }
+          maxY: Math.max(...yCoords),
+        },
       }
     }
 
@@ -100,7 +104,7 @@ export function generateBlobPath(points: Point[], padding: number, returnMetadat
   // Convert hull to ClipperLib format (scaled integers)
   const clipperPath: ClipperLib.IntPoint[] = hull.map(([x, y]) => ({
     X: Math.round(x * CLIPPER_SCALE),
-    Y: Math.round(y * CLIPPER_SCALE)
+    Y: Math.round(y * CLIPPER_SCALE),
   }))
 
   // Create ClipperOffset and add path
@@ -123,15 +127,14 @@ export function generateBlobPath(points: Point[], padding: number, returnMetadat
   // Convert back to float coordinates
   const offsetPolygon: [number, number][] = offsetSolution[0].map((pt: ClipperLib.IntPoint) => [
     pt.X / CLIPPER_SCALE,
-    pt.Y / CLIPPER_SCALE
+    pt.Y / CLIPPER_SCALE,
   ])
 
   // Close the polygon
   const closedPolygon = [...offsetPolygon, offsetPolygon[0]]
 
   // Apply gentle Catmull-Rom smoothing for organic appearance
-  const lineGenerator = line()
-    .curve(curveCatmullRom.alpha(0.5))
+  const lineGenerator = line().curve(curveCatmullRom.alpha(0.5))
 
   const rawPath = lineGenerator(closedPolygon) || ''
 
@@ -162,8 +165,8 @@ export function generateBlobPath(points: Point[], padding: number, returnMetadat
         minX: pathMinX,
         maxX: pathMaxX,
         minY: pathMinY,
-        maxY: pathMaxY
-      }
+        maxY: pathMaxY,
+      },
     }
   }
 
@@ -181,4 +184,3 @@ function translateSVGPath(pathString: string, dx: number, dy: number): string {
     return translated.toString()
   })
 }
-

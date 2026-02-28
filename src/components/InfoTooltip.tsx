@@ -18,7 +18,7 @@ export function InfoTooltip({
   position = 'bottom',
   className = '',
 }: InfoTooltipProps) {
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const [isVisible, setIsVisible] = useState(false)
   const [coords, setCoords] = useState({ x: 0, y: 0 })
   const triggerRef = useRef<HTMLSpanElement>(null)
@@ -77,29 +77,31 @@ export function InfoTooltip({
     return <>{children}</>
   }
 
-  const tooltip = isVisible && createPortal(
-    <div
-      ref={tooltipRef}
-      className="fixed z-[9999] pointer-events-none"
-      style={{ left: coords.x, top: coords.y }}
-    >
-      <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-        <div className="font-semibold text-sm mb-1">{content.title}</div>
-        <div className="text-xs text-slate-300 mb-2">{content.description}</div>
-        {content.characteristics && content.characteristics.length > 0 && (
-          <ul className="text-xs text-slate-300 space-y-0.5">
-            {content.characteristics.map((item, index) => (
-              <li key={index} className="flex items-start gap-1.5">
-                <span className="text-slate-500 mt-0.5">•</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>,
-    document.body
-  )
+  const tooltip =
+    isVisible &&
+    createPortal(
+      <div
+        ref={tooltipRef}
+        className="fixed z-[9999] pointer-events-none"
+        style={{ left: coords.x, top: coords.y }}
+      >
+        <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+          <div className="font-semibold text-sm mb-1">{content.title}</div>
+          <div className="text-xs text-slate-300 mb-2">{content.description}</div>
+          {content.characteristics && content.characteristics.length > 0 && (
+            <ul className="text-xs text-slate-300 space-y-0.5">
+              {content.characteristics.map((item, index) => (
+                <li key={index} className="flex items-start gap-1.5">
+                  <span className="text-slate-500 mt-0.5">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>,
+      document.body
+    )
 
   return (
     <span

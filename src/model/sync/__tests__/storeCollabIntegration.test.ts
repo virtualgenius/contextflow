@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useEditorStore } from '../../store';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { useEditorStore } from '../../store'
 import {
   initializeCollabMode,
   destroyCollabMode,
   isCollabModeActive,
   getCollabUndoRedo,
-} from '../useCollabMode';
-import type { Project } from '../../types';
+} from '../useCollabMode'
+import type { Project } from '../../types'
 
 function createTestProject(): Project {
   return {
@@ -41,15 +41,15 @@ function createTestProject(): Project {
       enabled: false,
       keyframes: [],
     },
-  };
+  }
 }
 
 describe('Store Collab Integration', () => {
-  let testProject: Project;
+  let testProject: Project
 
   beforeEach(() => {
-    testProject = createTestProject();
-    destroyCollabMode();
+    testProject = createTestProject()
+    destroyCollabMode()
 
     // Reset store with test project
     useEditorStore.setState({
@@ -57,12 +57,12 @@ describe('Store Collab Integration', () => {
       projects: { [testProject.id]: testProject },
       undoStack: [],
       redoStack: [],
-    });
-  });
+    })
+  })
 
   afterEach(() => {
-    destroyCollabMode();
-  });
+    destroyCollabMode()
+  })
 
   describe('context mutations route through Yjs when collab mode active', () => {
     beforeEach(() => {
@@ -72,40 +72,40 @@ describe('Store Collab Integration', () => {
             ...state.projects,
             [project.id]: project,
           },
-        }));
-      };
-      initializeCollabMode(testProject, { onProjectChange });
-    });
+        }))
+      }
+      initializeCollabMode(testProject, { onProjectChange })
+    })
 
     it('addContext routes through Yjs and updates Zustand state', () => {
-      expect(isCollabModeActive()).toBe(true);
+      expect(isCollabModeActive()).toBe(true)
 
-      useEditorStore.getState().addContext('New Context');
+      useEditorStore.getState().addContext('New Context')
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.contexts).toHaveLength(2);
-      expect(project.contexts[1].name).toBe('New Context');
-    });
+      expect(project.contexts).toHaveLength(2)
+      expect(project.contexts[1].name).toBe('New Context')
+    })
 
     it('updateContext routes through Yjs and updates Zustand state', () => {
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' })
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.contexts[0].name).toBe('Updated Name');
-    });
+      expect(project.contexts[0].name).toBe('Updated Name')
+    })
 
     it('deleteContext routes through Yjs and updates Zustand state', () => {
-      useEditorStore.getState().deleteContext('ctx-1');
+      useEditorStore.getState().deleteContext('ctx-1')
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.contexts).toHaveLength(0);
-    });
+      expect(project.contexts).toHaveLength(0)
+    })
 
     it('updateContextPosition routes through Yjs and updates Zustand state', () => {
       const newPositions = {
@@ -113,59 +113,79 @@ describe('Store Collab Integration', () => {
         strategic: { x: 600 },
         distillation: { x: 700, y: 800 },
         shared: { y: 900 },
-      };
+      }
 
-      useEditorStore.getState().updateContextPosition('ctx-1', newPositions);
+      useEditorStore.getState().updateContextPosition('ctx-1', newPositions)
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.contexts[0].positions.flow.x).toBe(500);
-    });
+      expect(project.contexts[0].positions.flow.x).toBe(500)
+    })
 
     it('renameProject routes through Yjs and updates Zustand state', () => {
-      useEditorStore.getState().renameProject(testProject.id, 'Renamed Project');
+      useEditorStore.getState().renameProject(testProject.id, 'Renamed Project')
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.name).toBe('Renamed Project');
-    });
+      expect(project.name).toBe('Renamed Project')
+    })
 
     it('setViewMode distillation redistribution routes through Yjs', () => {
       // Set up project with 2 contexts at default positions (all at 50,50 triggers redistribution)
       const projectWith2Contexts: Project = {
         ...createTestProject(),
         contexts: [
-          { id: 'ctx-1', name: 'A', evolutionStage: 'genesis', positions: { flow: { x: 50 }, strategic: { x: 50 }, distillation: { x: 50, y: 50 }, shared: { y: 50 } } },
-          { id: 'ctx-2', name: 'B', evolutionStage: 'genesis', positions: { flow: { x: 50 }, strategic: { x: 50 }, distillation: { x: 50, y: 50 }, shared: { y: 50 } } },
+          {
+            id: 'ctx-1',
+            name: 'A',
+            evolutionStage: 'genesis',
+            positions: {
+              flow: { x: 50 },
+              strategic: { x: 50 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 50 },
+            },
+          },
+          {
+            id: 'ctx-2',
+            name: 'B',
+            evolutionStage: 'genesis',
+            positions: {
+              flow: { x: 50 },
+              strategic: { x: 50 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 50 },
+            },
+          },
         ],
-      };
+      }
 
-      destroyCollabMode();
+      destroyCollabMode()
       useEditorStore.setState({
         activeProjectId: projectWith2Contexts.id,
         projects: { [projectWith2Contexts.id]: projectWith2Contexts },
-      });
+      })
 
       const onProjectChange = (project: Project): void => {
         useEditorStore.setState((state) => ({
           projects: { ...state.projects, [project.id]: project },
-        }));
-      };
-      initializeCollabMode(projectWith2Contexts, { onProjectChange });
+        }))
+      }
+      initializeCollabMode(projectWith2Contexts, { onProjectChange })
 
-      useEditorStore.getState().setViewMode('distillation');
+      useEditorStore.getState().setViewMode('distillation')
 
-      const state = useEditorStore.getState();
-      const project = state.projects[projectWith2Contexts.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[projectWith2Contexts.id]
 
       // After redistribution, ctx-2 should NOT be at (50,50) anymore
       // getGridPosition(1) = { x: 40, y: 30 } based on the grid constants
-      expect(project.contexts[1].positions.distillation).toEqual({ x: 40, y: 30 });
-      expect(project.contexts[1].strategicClassification).toBe('supporting');
-    });
-  });
+      expect(project.contexts[1].positions.distillation).toEqual({ x: 40, y: 30 })
+      expect(project.contexts[1].strategicClassification).toBe('supporting')
+    })
+  })
 
   describe('undo/redo uses CollabUndoManager when collab mode active', () => {
     beforeEach(() => {
@@ -175,53 +195,53 @@ describe('Store Collab Integration', () => {
             ...state.projects,
             [project.id]: project,
           },
-        }));
-      };
-      initializeCollabMode(testProject, { onProjectChange });
-    });
+        }))
+      }
+      initializeCollabMode(testProject, { onProjectChange })
+    })
 
     it('undo reverts mutation via CollabUndoManager', () => {
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' })
 
-      const state1 = useEditorStore.getState();
-      expect(state1.projects[testProject.id].contexts[0].name).toBe('Updated Name');
+      const state1 = useEditorStore.getState()
+      expect(state1.projects[testProject.id].contexts[0].name).toBe('Updated Name')
 
-      useEditorStore.getState().undo();
+      useEditorStore.getState().undo()
 
-      const state2 = useEditorStore.getState();
-      expect(state2.projects[testProject.id].contexts[0].name).toBe('Context One');
-    });
+      const state2 = useEditorStore.getState()
+      expect(state2.projects[testProject.id].contexts[0].name).toBe('Context One')
+    })
 
     it('redo restores mutation via CollabUndoManager', () => {
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
-      useEditorStore.getState().undo();
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' })
+      useEditorStore.getState().undo()
 
-      const state1 = useEditorStore.getState();
-      expect(state1.projects[testProject.id].contexts[0].name).toBe('Context One');
+      const state1 = useEditorStore.getState()
+      expect(state1.projects[testProject.id].contexts[0].name).toBe('Context One')
 
-      useEditorStore.getState().redo();
+      useEditorStore.getState().redo()
 
-      const state2 = useEditorStore.getState();
-      expect(state2.projects[testProject.id].contexts[0].name).toBe('Updated Name');
-    });
+      const state2 = useEditorStore.getState()
+      expect(state2.projects[testProject.id].contexts[0].name).toBe('Updated Name')
+    })
 
     it('canUndo reflects CollabUndoManager state', () => {
-      expect(getCollabUndoRedo().canUndo).toBe(false);
+      expect(getCollabUndoRedo().canUndo).toBe(false)
 
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' })
 
-      expect(getCollabUndoRedo().canUndo).toBe(true);
-    });
+      expect(getCollabUndoRedo().canUndo).toBe(true)
+    })
 
     it('canRedo reflects CollabUndoManager state after undo', () => {
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
-      expect(getCollabUndoRedo().canRedo).toBe(false);
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' })
+      expect(getCollabUndoRedo().canRedo).toBe(false)
 
-      useEditorStore.getState().undo();
+      useEditorStore.getState().undo()
 
-      expect(getCollabUndoRedo().canRedo).toBe(true);
-    });
-  });
+      expect(getCollabUndoRedo().canRedo).toBe(true)
+    })
+  })
 
   describe('project switching with collab mode', () => {
     it('destroyCollabMode clears undo history', () => {
@@ -231,21 +251,21 @@ describe('Store Collab Integration', () => {
             ...state.projects,
             [project.id]: project,
           },
-        }));
-      };
-      initializeCollabMode(testProject, { onProjectChange });
+        }))
+      }
+      initializeCollabMode(testProject, { onProjectChange })
 
       // Make a change to create undo history
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated' });
-      expect(getCollabUndoRedo().canUndo).toBe(true);
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated' })
+      expect(getCollabUndoRedo().canUndo).toBe(true)
 
       // Destroy collab mode (as setActiveProject does before connecting to new project)
-      destroyCollabMode();
+      destroyCollabMode()
 
       // After destroying collab mode, undo state should be null (no collab mode)
-      expect(getCollabUndoRedo().canUndo).toBe(null);
-    });
-  });
+      expect(getCollabUndoRedo().canUndo).toBe(null)
+    })
+  })
 
   describe('collab mode is required for mutations', () => {
     beforeEach(() => {
@@ -255,21 +275,21 @@ describe('Store Collab Integration', () => {
             ...state.projects,
             [project.id]: project,
           },
-        }));
-      };
-      initializeCollabMode(testProject, { onProjectChange });
-    });
+        }))
+      }
+      initializeCollabMode(testProject, { onProjectChange })
+    })
 
     it('mutations route through Yjs when collab mode is active', () => {
-      expect(isCollabModeActive()).toBe(true);
+      expect(isCollabModeActive()).toBe(true)
 
-      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' });
+      useEditorStore.getState().updateContext('ctx-1', { name: 'Updated Name' })
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.contexts[0].name).toBe('Updated Name');
-    });
+      expect(project.contexts[0].name).toBe('Updated Name')
+    })
 
     it('undo/redo uses CollabUndoManager', () => {
       const newPositions = {
@@ -277,19 +297,19 @@ describe('Store Collab Integration', () => {
         strategic: { x: 600 },
         distillation: { x: 700, y: 800 },
         shared: { y: 900 },
-      };
+      }
 
-      useEditorStore.getState().updateContextPosition('ctx-1', newPositions);
+      useEditorStore.getState().updateContextPosition('ctx-1', newPositions)
 
-      const state1 = useEditorStore.getState();
-      expect(state1.projects[testProject.id].contexts[0].positions.flow.x).toBe(500);
+      const state1 = useEditorStore.getState()
+      expect(state1.projects[testProject.id].contexts[0].positions.flow.x).toBe(500)
 
-      useEditorStore.getState().undo();
+      useEditorStore.getState().undo()
 
-      const state2 = useEditorStore.getState();
-      expect(state2.projects[testProject.id].contexts[0].positions.flow.x).toBe(100);
-    });
-  });
+      const state2 = useEditorStore.getState()
+      expect(state2.projects[testProject.id].contexts[0].positions.flow.x).toBe(100)
+    })
+  })
 
   describe('relationship mutations route through Yjs when collab mode active', () => {
     beforeEach(() => {
@@ -304,14 +324,14 @@ describe('Store Collab Integration', () => {
           distillation: { x: 70, y: 80 },
           shared: { y: 90 },
         },
-      });
+      })
 
       useEditorStore.setState({
         activeProjectId: testProject.id,
         projects: { [testProject.id]: testProject },
         undoStack: [],
         redoStack: [],
-      });
+      })
 
       const onProjectChange = (project: Project): void => {
         useEditorStore.setState((state) => ({
@@ -319,118 +339,118 @@ describe('Store Collab Integration', () => {
             ...state.projects,
             [project.id]: project,
           },
-        }));
-      };
-      initializeCollabMode(testProject, { onProjectChange });
-    });
+        }))
+      }
+      initializeCollabMode(testProject, { onProjectChange })
+    })
 
     it('addRelationship routes through Yjs and updates Zustand state', () => {
-      expect(isCollabModeActive()).toBe(true);
+      expect(isCollabModeActive()).toBe(true)
 
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state = useEditorStore.getState();
-      const project = state.projects[testProject.id];
+      const state = useEditorStore.getState()
+      const project = state.projects[testProject.id]
 
-      expect(project.relationships).toHaveLength(1);
-      expect(project.relationships[0].fromContextId).toBe('ctx-1');
-      expect(project.relationships[0].toContextId).toBe('ctx-2');
-      expect(project.relationships[0].pattern).toBe('customer-supplier');
-    });
+      expect(project.relationships).toHaveLength(1)
+      expect(project.relationships[0].fromContextId).toBe('ctx-1')
+      expect(project.relationships[0].toContextId).toBe('ctx-2')
+      expect(project.relationships[0].pattern).toBe('customer-supplier')
+    })
 
     it('updateRelationship routes through Yjs and updates Zustand state', () => {
       // First add a relationship
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state1 = useEditorStore.getState();
-      const relId = state1.projects[testProject.id].relationships[0].id;
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
 
       // Then update it
-      useEditorStore.getState().updateRelationship(relId, { pattern: 'partnership' });
+      useEditorStore.getState().updateRelationship(relId, { pattern: 'partnership' })
 
-      const state2 = useEditorStore.getState();
-      const project = state2.projects[testProject.id];
+      const state2 = useEditorStore.getState()
+      const project = state2.projects[testProject.id]
 
-      expect(project.relationships[0].pattern).toBe('partnership');
-    });
+      expect(project.relationships[0].pattern).toBe('partnership')
+    })
 
     it('deleteRelationship routes through Yjs and updates Zustand state', () => {
       // First add a relationship
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state1 = useEditorStore.getState();
-      const relId = state1.projects[testProject.id].relationships[0].id;
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
 
       // Then delete it
-      useEditorStore.getState().deleteRelationship(relId);
+      useEditorStore.getState().deleteRelationship(relId)
 
-      const state2 = useEditorStore.getState();
-      const project = state2.projects[testProject.id];
+      const state2 = useEditorStore.getState()
+      const project = state2.projects[testProject.id]
 
-      expect(project.relationships).toHaveLength(0);
-    });
+      expect(project.relationships).toHaveLength(0)
+    })
 
     it('swapRelationshipDirection routes through Yjs and updates Zustand state', () => {
       // First add a relationship
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state1 = useEditorStore.getState();
-      const relId = state1.projects[testProject.id].relationships[0].id;
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
 
       // Then swap direction
-      useEditorStore.getState().swapRelationshipDirection(relId);
+      useEditorStore.getState().swapRelationshipDirection(relId)
 
-      const state2 = useEditorStore.getState();
-      const project = state2.projects[testProject.id];
+      const state2 = useEditorStore.getState()
+      const project = state2.projects[testProject.id]
 
-      expect(project.relationships[0].fromContextId).toBe('ctx-2');
-      expect(project.relationships[0].toContextId).toBe('ctx-1');
-    });
+      expect(project.relationships[0].fromContextId).toBe('ctx-2')
+      expect(project.relationships[0].toContextId).toBe('ctx-1')
+    })
 
     it('undo reverts relationship addition via CollabUndoManager', () => {
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state1 = useEditorStore.getState();
-      expect(state1.projects[testProject.id].relationships).toHaveLength(1);
+      const state1 = useEditorStore.getState()
+      expect(state1.projects[testProject.id].relationships).toHaveLength(1)
 
-      useEditorStore.getState().undo();
+      useEditorStore.getState().undo()
 
-      const state2 = useEditorStore.getState();
-      expect(state2.projects[testProject.id].relationships).toHaveLength(0);
-    });
+      const state2 = useEditorStore.getState()
+      expect(state2.projects[testProject.id].relationships).toHaveLength(0)
+    })
 
     it('undo reverts relationship update via CollabUndoManager', () => {
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state1 = useEditorStore.getState();
-      const relId = state1.projects[testProject.id].relationships[0].id;
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
 
-      useEditorStore.getState().updateRelationship(relId, { pattern: 'partnership' });
+      useEditorStore.getState().updateRelationship(relId, { pattern: 'partnership' })
 
-      const state2 = useEditorStore.getState();
-      expect(state2.projects[testProject.id].relationships[0].pattern).toBe('partnership');
+      const state2 = useEditorStore.getState()
+      expect(state2.projects[testProject.id].relationships[0].pattern).toBe('partnership')
 
-      useEditorStore.getState().undo();
+      useEditorStore.getState().undo()
 
-      const state3 = useEditorStore.getState();
-      expect(state3.projects[testProject.id].relationships[0].pattern).toBe('customer-supplier');
-    });
+      const state3 = useEditorStore.getState()
+      expect(state3.projects[testProject.id].relationships[0].pattern).toBe('customer-supplier')
+    })
 
     it('undo reverts relationship deletion via CollabUndoManager', () => {
-      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier');
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 
-      const state1 = useEditorStore.getState();
-      const relId = state1.projects[testProject.id].relationships[0].id;
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
 
-      useEditorStore.getState().deleteRelationship(relId);
+      useEditorStore.getState().deleteRelationship(relId)
 
-      const state2 = useEditorStore.getState();
-      expect(state2.projects[testProject.id].relationships).toHaveLength(0);
+      const state2 = useEditorStore.getState()
+      expect(state2.projects[testProject.id].relationships).toHaveLength(0)
 
-      useEditorStore.getState().undo();
+      useEditorStore.getState().undo()
 
-      const state3 = useEditorStore.getState();
-      expect(state3.projects[testProject.id].relationships).toHaveLength(1);
-    });
-  });
-});
+      const state3 = useEditorStore.getState()
+      expect(state3.projects[testProject.id].relationships).toHaveLength(1)
+    })
+  })
+})

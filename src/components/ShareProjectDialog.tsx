@@ -15,11 +15,7 @@ function getShareUrl(projectId: string): string {
   return `${baseUrl}/p/${projectId}`
 }
 
-export function ShareProjectDialog({
-  projectId,
-  projectName,
-  onClose,
-}: ShareProjectDialogProps) {
+export function ShareProjectDialog({ projectId, projectName, onClose }: ShareProjectDialogProps) {
   const [showConfirmation, setShowConfirmation] = useState(true)
   const [copied, setCopied] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
@@ -124,9 +120,7 @@ export function ShareProjectDialog({
           {/* Connection error */}
           {connectionError && (
             <div className="px-4 pb-2">
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {connectionError}
-              </p>
+              <p className="text-sm text-red-600 dark:text-red-400">{connectionError}</p>
             </div>
           )}
 
@@ -221,10 +215,7 @@ export function ShareProjectDialog({
           {/* Privacy warning */}
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
             <div className="flex items-start gap-2">
-              <AlertTriangle
-                size={16}
-                className="text-amber-500 mt-0.5 shrink-0"
-              />
+              <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
               <p className="text-sm text-amber-800 dark:text-amber-200">
                 Anyone with this link can view and edit all project contents.
               </p>

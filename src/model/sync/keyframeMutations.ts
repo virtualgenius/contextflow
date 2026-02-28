@@ -1,15 +1,15 @@
-import * as Y from 'yjs';
-import type { TemporalKeyframe } from '../types';
-import { populateTemporalKeyframeYMap } from './strategicSync';
+import * as Y from 'yjs'
+import type { TemporalKeyframe } from '../types'
+import { populateTemporalKeyframeYMap } from './strategicSync'
 
 export function addKeyframeMutation(ydoc: Y.Doc, keyframe: TemporalKeyframe): void {
-  const yTemporal = getTemporalMap(ydoc);
-  if (!yTemporal) return;
+  const yTemporal = getTemporalMap(ydoc)
+  if (!yTemporal) return
 
-  const yKeyframes = yTemporal.get('keyframes') as Y.Array<Y.Map<unknown>>;
-  const yKeyframe = new Y.Map<unknown>();
-  populateTemporalKeyframeYMap(yKeyframe, keyframe);
-  yKeyframes.push([yKeyframe]);
+  const yKeyframes = yTemporal.get('keyframes') as Y.Array<Y.Map<unknown>>
+  const yKeyframe = new Y.Map<unknown>()
+  populateTemporalKeyframeYMap(yKeyframe, keyframe)
+  yKeyframes.push([yKeyframe])
 }
 
 export function updateKeyframeMutation(
@@ -17,23 +17,23 @@ export function updateKeyframeMutation(
   keyframeId: string,
   updates: Partial<TemporalKeyframe>
 ): void {
-  const yKeyframe = findKeyframeById(ydoc, keyframeId);
-  if (!yKeyframe) return;
+  const yKeyframe = findKeyframeById(ydoc, keyframeId)
+  if (!yKeyframe) return
 
   ydoc.transact(() => {
-    applyKeyframeUpdates(yKeyframe, updates);
-  });
+    applyKeyframeUpdates(yKeyframe, updates)
+  })
 }
 
 export function deleteKeyframeMutation(ydoc: Y.Doc, keyframeId: string): void {
-  const yTemporal = getTemporalMap(ydoc);
-  if (!yTemporal) return;
+  const yTemporal = getTemporalMap(ydoc)
+  if (!yTemporal) return
 
-  const yKeyframes = yTemporal.get('keyframes') as Y.Array<Y.Map<unknown>>;
-  const index = findKeyframeIndexById(yKeyframes, keyframeId);
-  if (index === -1) return;
+  const yKeyframes = yTemporal.get('keyframes') as Y.Array<Y.Map<unknown>>
+  const index = findKeyframeIndexById(yKeyframes, keyframeId)
+  if (index === -1) return
 
-  yKeyframes.delete(index);
+  yKeyframes.delete(index)
 }
 
 export function updateKeyframeContextPositionMutation(
@@ -42,85 +42,79 @@ export function updateKeyframeContextPositionMutation(
   contextId: string,
   position: { x: number; y: number }
 ): void {
-  const yKeyframe = findKeyframeById(ydoc, keyframeId);
-  if (!yKeyframe) return;
+  const yKeyframe = findKeyframeById(ydoc, keyframeId)
+  if (!yKeyframe) return
 
   ydoc.transact(() => {
-    const yPositions = yKeyframe.get('positions') as Y.Map<Y.Map<unknown>>;
-    let yPos = yPositions.get(contextId);
+    const yPositions = yKeyframe.get('positions') as Y.Map<Y.Map<unknown>>
+    let yPos = yPositions.get(contextId)
     if (!yPos) {
-      yPos = new Y.Map<unknown>();
-      yPositions.set(contextId, yPos);
+      yPos = new Y.Map<unknown>()
+      yPositions.set(contextId, yPos)
     }
-    yPos.set('x', position.x);
-    yPos.set('y', position.y);
-  });
+    yPos.set('x', position.x)
+    yPos.set('y', position.y)
+  })
 }
 
 export function toggleTemporalMutation(ydoc: Y.Doc, enabled: boolean): void {
-  const yTemporal = getOrCreateTemporalMap(ydoc);
-  yTemporal.set('enabled', enabled);
+  const yTemporal = getOrCreateTemporalMap(ydoc)
+  yTemporal.set('enabled', enabled)
 }
 
 function getTemporalMap(ydoc: Y.Doc): Y.Map<unknown> | null {
-  const yProject = ydoc.getMap('project');
-  const yTemporal = yProject.get('temporal');
-  if (!yTemporal) return null;
-  return yTemporal as Y.Map<unknown>;
+  const yProject = ydoc.getMap('project')
+  const yTemporal = yProject.get('temporal')
+  if (!yTemporal) return null
+  return yTemporal as Y.Map<unknown>
 }
 
 function getOrCreateTemporalMap(ydoc: Y.Doc): Y.Map<unknown> {
-  const existing = getTemporalMap(ydoc);
-  if (existing) return existing;
+  const existing = getTemporalMap(ydoc)
+  if (existing) return existing
 
-  const yProject = ydoc.getMap('project');
-  const yTemporal = new Y.Map<unknown>();
-  yTemporal.set('enabled', false);
-  yTemporal.set('keyframes', new Y.Array<Y.Map<unknown>>());
-  yProject.set('temporal', yTemporal);
-  return yTemporal;
+  const yProject = ydoc.getMap('project')
+  const yTemporal = new Y.Map<unknown>()
+  yTemporal.set('enabled', false)
+  yTemporal.set('keyframes', new Y.Array<Y.Map<unknown>>())
+  yProject.set('temporal', yTemporal)
+  return yTemporal
 }
 
 function findKeyframeById(ydoc: Y.Doc, keyframeId: string): Y.Map<unknown> | null {
-  const yTemporal = getTemporalMap(ydoc);
-  if (!yTemporal) return null;
+  const yTemporal = getTemporalMap(ydoc)
+  if (!yTemporal) return null
 
-  const yKeyframes = yTemporal.get('keyframes') as Y.Array<Y.Map<unknown>>;
+  const yKeyframes = yTemporal.get('keyframes') as Y.Array<Y.Map<unknown>>
   for (let i = 0; i < yKeyframes.length; i++) {
-    const yKeyframe = yKeyframes.get(i);
+    const yKeyframe = yKeyframes.get(i)
     if (yKeyframe.get('id') === keyframeId) {
-      return yKeyframe;
+      return yKeyframe
     }
   }
-  return null;
+  return null
 }
 
-function findKeyframeIndexById(
-  yKeyframes: Y.Array<Y.Map<unknown>>,
-  keyframeId: string
-): number {
+function findKeyframeIndexById(yKeyframes: Y.Array<Y.Map<unknown>>, keyframeId: string): number {
   for (let i = 0; i < yKeyframes.length; i++) {
-    const yKeyframe = yKeyframes.get(i);
+    const yKeyframe = yKeyframes.get(i)
     if (yKeyframe.get('id') === keyframeId) {
-      return i;
+      return i
     }
   }
-  return -1;
+  return -1
 }
 
-function applyKeyframeUpdates(
-  yKeyframe: Y.Map<unknown>,
-  updates: Partial<TemporalKeyframe>
-): void {
+function applyKeyframeUpdates(yKeyframe: Y.Map<unknown>, updates: Partial<TemporalKeyframe>): void {
   if ('label' in updates) {
-    yKeyframe.set('label', updates.label ?? null);
+    yKeyframe.set('label', updates.label ?? null)
   }
   if ('date' in updates) {
-    yKeyframe.set('date', updates.date);
+    yKeyframe.set('date', updates.date)
   }
   if ('activeContextIds' in updates && updates.activeContextIds) {
-    const yActiveIds = yKeyframe.get('activeContextIds') as Y.Array<string>;
-    yActiveIds.delete(0, yActiveIds.length);
-    yActiveIds.push(updates.activeContextIds);
+    const yActiveIds = yKeyframe.get('activeContextIds') as Y.Array<string>
+    yActiveIds.delete(0, yActiveIds.length)
+    yActiveIds.push(updates.activeContextIds)
   }
 }

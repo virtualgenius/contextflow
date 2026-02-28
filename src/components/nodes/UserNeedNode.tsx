@@ -1,10 +1,6 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
-import {
-  NodeProps,
-  Position,
-  Handle,
-} from 'reactflow'
+import { NodeProps, Position, Handle } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { UserNeed } from '../../model/types'
 
@@ -14,7 +10,7 @@ export function UserNeedNode({ data }: NodeProps) {
   const isSelected = data.isSelected as boolean
   const isHighlightedByConnection = data.isHighlightedByConnection as boolean
   const [isHovered, setIsHovered] = React.useState(false)
-  const showHelpTooltips = useEditorStore(s => s.showHelpTooltips)
+  const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const nodeRef = React.useRef<HTMLDivElement>(null)
 
   const isHighlighted = isSelected || isHighlightedByConnection
@@ -50,8 +46,8 @@ export function UserNeedNode({ data }: NodeProps) {
           boxShadow: isHighlighted
             ? '0 0 0 3px rgba(59, 130, 246, 0.3), 0 4px 12px -2px rgba(59, 130, 246, 0.25)'
             : isHovered
-            ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
-            : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
+              ? '0 4px 12px -2px rgba(0, 0, 0, 0.15)'
+              : '0 2px 6px 0 rgba(0, 0, 0, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -80,22 +76,25 @@ export function UserNeedNode({ data }: NodeProps) {
       </div>
 
       {/* Tooltip on hover */}
-      {showHelpTooltips && isHovered && hasTooltipContent && createPortal(
-        <div
-          className="fixed z-[9999] pointer-events-none"
-          style={{
-            left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
-            top: tooltipPos.y,
-            transform: 'translateY(-100%)',
-          }}
-        >
-          <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-            <div className="font-semibold text-sm mb-1">{userNeed.name}</div>
-            <div className="text-xs text-slate-300">{userNeed.description}</div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {showHelpTooltips &&
+        isHovered &&
+        hasTooltipContent &&
+        createPortal(
+          <div
+            className="fixed z-[9999] pointer-events-none"
+            style={{
+              left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
+              top: tooltipPos.y,
+              transform: 'translateY(-100%)',
+            }}
+          >
+            <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="font-semibold text-sm mb-1">{userNeed.name}</div>
+              <div className="text-xs text-slate-300">{userNeed.description}</div>
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   )
 }

@@ -6,7 +6,10 @@ export const STRATEGIC_GENESIS_MAX_X = 25
 export const STRATEGIC_CUSTOM_BUILT_MAX_X = 50
 export const STRATEGIC_PRODUCT_RENTAL_MAX_X = 75
 
-export function classifyFromDistillationPosition(x: number, y: number): 'core' | 'supporting' | 'generic' {
+export function classifyFromDistillationPosition(
+  x: number,
+  y: number
+): 'core' | 'supporting' | 'generic' {
   // x = Business Differentiation (0-100, horizontal)
   // y = Model Complexity (0-100, vertical)
 
@@ -19,7 +22,9 @@ export function classifyFromDistillationPosition(x: number, y: number): 'core' |
   }
 }
 
-export function classifyFromStrategicPosition(x: number): 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility' {
+export function classifyFromStrategicPosition(
+  x: number
+): 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility' {
   // x = Evolution (0-100, horizontal on Strategic View)
 
   if (x < STRATEGIC_GENESIS_MAX_X) {

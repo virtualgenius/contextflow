@@ -9,31 +9,33 @@ import { Switch } from '../Switch'
 import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
 
 export function UserInspector({ project, userId }: { project: Project; userId: string }) {
-  const updateUser = useEditorStore(s => s.updateUser)
-  const deleteUser = useEditorStore(s => s.deleteUser)
-  const deleteUserNeedConnection = useEditorStore(s => s.deleteUserNeedConnection)
+  const updateUser = useEditorStore((s) => s.updateUser)
+  const deleteUser = useEditorStore((s) => s.deleteUser)
+  const deleteUserNeedConnection = useEditorStore((s) => s.deleteUserNeedConnection)
 
-  const user = project.users?.find(u => u.id === userId)
+  const user = project.users?.find((u) => u.id === userId)
   if (!user) {
-    return (
-      <div className="text-neutral-500 dark:text-neutral-400">
-        User not found.
-      </div>
-    )
+    return <div className="text-neutral-500 dark:text-neutral-400">User not found.</div>
   }
 
-  const connections = (project.userNeedConnections || []).filter(uc => uc.userId === user.id)
-  const connectedUserNeeds = connections.map(conn => {
-    const userNeed = project.userNeeds?.find(un => un.id === conn.userNeedId)
-    return { connection: conn, userNeed }
-  }).filter(item => item.userNeed)
+  const connections = (project.userNeedConnections || []).filter((uc) => uc.userId === user.id)
+  const connectedUserNeeds = connections
+    .map((conn) => {
+      const userNeed = project.userNeeds?.find((un) => un.id === conn.userNeedId)
+      return { connection: conn, userNeed }
+    })
+    .filter((item) => item.userNeed)
 
   const handleUpdate = (updates: Partial<User>) => {
     updateUser(user.id, updates)
   }
 
   const handleDelete = () => {
-    if (window.confirm(`Delete user "${user.name}"? This will also delete all connections to user needs. This can be undone with Cmd/Ctrl+Z.`)) {
+    if (
+      window.confirm(
+        `Delete user "${user.name}"? This will also delete all connections to user needs. This can be undone with Cmd/Ctrl+Z.`
+      )
+    ) {
       deleteUser(user.id)
     }
   }
@@ -84,12 +86,14 @@ export function UserInspector({ project, userId }: { project: Project; userId: s
             </div>
           ) : (
             connectedUserNeeds.map(({ connection, userNeed }) => (
-              <div
-                key={connection.id}
-                className="flex items-center gap-2 group"
-              >
+              <div key={connection.id} className="flex items-center gap-2 group">
                 <button
-                  onClick={() => useEditorStore.setState({ selectedUserNeedId: userNeed!.id, selectedUserId: null })}
+                  onClick={() =>
+                    useEditorStore.setState({
+                      selectedUserNeedId: userNeed!.id,
+                      selectedUserId: null,
+                    })
+                  }
                   className="flex-1 text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-700 dark:text-slate-300 text-xs"
                 >
                   {userNeed!.name}
