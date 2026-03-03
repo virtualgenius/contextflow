@@ -46,6 +46,15 @@ body:
         - Edge (Windows)
         - Other (describe below)
 
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: Before filing
+      options:
+        - label: I checked the browser console for errors
+        - label: I tried in a private/incognito window (rules out browser extensions)
+        - label: I searched existing issues for duplicates
+
   - type: textarea
     id: screenshots
     attributes:

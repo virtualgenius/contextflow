@@ -2,6 +2,10 @@
 
 Thank you for your interest in contributing to ContextFlow!
 
+## AI-Assisted Development
+
+This is an AI-forward project (you'll find a `CLAUDE.md` in the repo root). All contributions are expected to be human-in-the-loop, and agent-in-the-loop is also recommended. Use AI tools to help investigate bugs, explore the codebase, draft code, and review your own changes before submitting. Free-tier options like [Claude.ai](https://claude.ai), [ChatGPT](https://chatgpt.com), and [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/copilot/overview) all work well for this.
+
 ## Getting Started
 
 1. Fork the repository
