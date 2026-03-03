@@ -1,0 +1,61 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Have a question or need help?** Join our [Community Discord](https://discord.gg/ABRnay8PM5) instead of filing an issue.
+
+  - type: textarea
+    id: what-i-tried
+    attributes:
+      label: What I tried
+      description: What were you doing when the bug occurred?
+      placeholder: I was editing a bounded context name and...
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What actually happened?
+      placeholder: The context disappeared from the canvas...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What I expected
+      description: What did you expect to happen instead?
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser / OS
+      options:
+        - Chrome (macOS)
+        - Chrome (Windows)
+        - Chrome (Linux)
+        - Firefox (macOS)
+        - Firefox (Windows)
+        - Firefox (Linux)
+        - Safari (macOS)
+        - Edge (Windows)
+        - Other (describe below)
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or console logs
+      description: If applicable, add screenshots or paste any console errors.
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **Community notes:**
+        - Give a thumbs-up on issues that affect you to help us prioritize
+        - Leave a comment if you'd like to work on a fix

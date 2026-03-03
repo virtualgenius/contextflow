@@ -1,0 +1,31 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Have a question or need help?** Join our [Community Discord](https://discord.gg/ABRnay8PM5) instead of filing an issue.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What problem are you trying to solve? Describe the situation where you need this feature.
+      placeholder: When I'm mapping a large system with many bounded contexts, I need...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: How do you think this could work? This is optional, but helpful.
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **Community notes:**
+        - Give a thumbs-up on feature requests you'd find useful to help us prioritize
+        - Leave a comment if you'd like to help implement this

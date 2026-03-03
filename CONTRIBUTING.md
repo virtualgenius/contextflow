@@ -35,17 +35,16 @@ Thank you for your interest in contributing to ContextFlow!
 
 ## Reporting Issues
 
-If you find a bug or have a feature request:
+If you find a bug or have a feature request, please file a new issue using the appropriate template:
 
-1. Check if an issue already exists
-2. If not, create a new issue with:
-   - Clear description of the problem or feature
-   - Steps to reproduce (for bugs)
-   - Expected vs actual behavior
+- **Bug reports**: Use the "Bug Report" template
+- **Feature requests**: Use the "Feature Request" template
 
-## Questions?
+Please file bug reports and feature requests as separate issues rather than commenting on existing issues or pull requests.
 
-Feel free to open an issue for questions or discussions about the project.
+## Questions and Support
+
+For questions, troubleshooting, and general help, join our [Community Discord](https://discord.gg/ABRnay8PM5). Discord is the best place to get quick answers and discuss ideas before filing an issue.
 
 ## License
 
