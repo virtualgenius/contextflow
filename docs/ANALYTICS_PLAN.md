@@ -21,7 +21,7 @@
 **Status:** Implemented and deployed (2025-01-21)
 
 **What was delivered:**
-- Simple Analytics script added to [index.html](../index.html)
+- PostHog SDK initialized in `main.tsx` (originally Simple Analytics, migrated Feb 2026)
 - Analytics utility module ([src/utils/analytics.ts](../src/utils/analytics.ts)) with:
   - Deployment context detection (hosted_demo/self_hosted/localhost)
   - Project-level identifier (hashed for privacy)
@@ -38,7 +38,7 @@
   - `project_id`: Hashed project ID
   - `project_origin`: 'sample' | 'empty' | 'imported' | 'continued'
 
-**Questions answered in Simple Analytics dashboard:**
+**Questions answered in PostHog dashboard:**
 1. "How many people are visiting?" (page views)
 2. "Which deployment type: hosted demo, self-hosted, or localhost?"
 3. "Which view is most popular: Flow, Strategic, or Distillation?"
@@ -51,7 +51,7 @@
 - TDD: Unit tests for analytics utility (deployment context, project ID hashing)
 - Integration test: View switching triggers correct events
 - Integration test: Project lifecycle events fire on open/close
-- Manual verification: See events in Simple Analytics dashboard
+- Manual verification: See events in PostHog dashboard
 
 **Why this first:** Need baseline validation that people are using the product before diving into feature-specific metrics.
 
@@ -173,7 +173,7 @@
   - `repo_assignment_count`: number
   - `has_temporal`: boolean
 
-**Questions answered in Simple Analytics dashboard:**
+**Questions answered in PostHog dashboard:**
 1. "Are users creating relationships or just contexts?"
 2. "Which DDD patterns are most used?" (customer-supplier vs. conformist vs. ACL, etc.)
 3. "Is the grouping feature being used?"
@@ -241,7 +241,7 @@
 - `exploration_pattern_detected`
   - `pattern`: 'sample_explorer' | 'sample_modifier' | 'blank_starter' | 'multi_sample_comparer'
 
-**Questions answered in Simple Analytics dashboard:**
+**Questions answered in PostHog dashboard:**
 1. "What % of visitors add their first context?" (FTUE success rate)
 2. "How long does it take to get started?" (time-to-first-context)
 3. "Do users start with sample projects or blank canvas?"
@@ -411,7 +411,7 @@
   - `context_count`: number
   - `time_before_export_minutes`: number
 
-**Questions answered in Simple Analytics dashboard:**
+**Questions answered in PostHog dashboard:**
 1. "Are users exporting projects?" (serious usage signal)
 2. "What triggers exports?" (project size, features used, time spent)
 3. "Are users importing projects?" (collaboration patterns)
@@ -551,7 +551,7 @@
   - `new_y`: number (0-100)
   - `also_changed_classification`: boolean
 
-**Questions answered in Simple Analytics dashboard:**
+**Questions answered in PostHog dashboard:**
 1. "Are users classifying contexts in Distillation view?"
 2. "Do users understand Core/Supporting/Generic distinctions?"
 3. "Are Wardley evolution stages being used correctly?" (Genesis → Commodity)
@@ -653,7 +653,7 @@ interface AnalyticsEvent {
 - Feature adoption signals (e.g., `feature_first_used`)
 - Pattern detection (e.g., `exploration_pattern_detected`)
 
-**Why both?** Simple Analytics dashboard excels at filtering/grouping individual events but cannot perform complex joins or cohort analysis. Summary events make common product questions answerable via simple filters, while detailed events enable deeper analysis through data exports.
+**Why both?** PostHog dashboard excels at filtering/grouping individual events but cannot perform complex joins or cohort analysis. Summary events make common product questions answerable via simple filters, while detailed events enable deeper analysis through data exports.
 
 ### **Project-Level Identification Strategy**
 
@@ -1097,7 +1097,7 @@ This tells us which platforms users integrate with WITHOUT capturing proprietary
 ### **Changed from Original Plan:**
 1. **Expanded to 5 slices** - Added view-specific features as separate slice for clarity
 2. **Reordered by urgency** - Validation → Prioritization → Onboarding → Retention → Feature Validation
-3. **Added detailed + summary event pattern** - Optimized for Simple Analytics dashboard limitations
+3. **Added detailed + summary event pattern** - Optimized for PostHog dashboard limitations
 4. **Analytics enabled for localhost** - Captures all usage, project IDs distinguish users
 5. **Project-level identifiers** - Mirrors EventCatalog's catalog ID pattern (privacy-compliant)
 6. **Comprehensive property change tracking** - Track old/new values for all edits

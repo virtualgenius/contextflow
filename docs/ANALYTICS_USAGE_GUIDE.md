@@ -150,51 +150,7 @@ The "Add a column" dropdown is overwhelming because your analytics plan tracks d
 
 ---
 
-## Simple Analytics Limitations
-
-**Problem:** Simple Analytics **cannot reconstruct individual user journeys** in the dashboard. You can see:
-- ✅ Event counts and aggregates
-- ✅ Filters by metadata
-- ✅ Trends over time
-
-But you **cannot** easily see:
-- ❌ "Show me all events for project X in chronological order"
-- ❌ "What happened after sample_project_loaded?"
-- ❌ Multi-step funnels with drop-off rates
-
-### Solution: Export for journey analysis
-When you need to answer "How did user X flow through the app?":
-
-1. **Download CSV** from Events Explorer
-2. **Filter by project_id** in spreadsheet/Python
-3. **Sort by timestamp** to see chronological sequence
-4. **Calculate funnels** manually (% who go from step A → B → C)
-
-This is exactly what your analytics plan calls out:
-> "**Detailed events** (for future deep analysis via exports) and **summary events** (for immediate dashboard insights)."
-
----
-
-## Recommended Starting Point
-
-### Today (to answer your question):
-1. Create **Report 1: New User Funnel** (focus on FTUE milestones)
-2. Filter to `deployment = 'hosted_demo'` (public visitors only)
-3. Look at counts for:
-   - `sample_project_loaded` (baseline)
-   - `first_context_added` (FTUE success)
-   - `first_relationship_added` (understanding DDD)
-
-### This week:
-- Export CSV for one project (`proj_009ldawd` or similar)
-- Sort by timestamp in Excel/Google Sheets
-- See the actual journey: what did they do first? second? third?
-
-**Why this matters:** Once you see 2-3 real user journeys, you'll know which dashboard reports are most valuable for daily monitoring.
-
----
-
 ## See Also
 
 - [ANALYTICS_PLAN.md](ANALYTICS_PLAN.md) - Implementation strategy and event catalog
-- Simple Analytics Events Explorer - Main dashboard interface
+- PostHog Dashboard - Main analytics interface
