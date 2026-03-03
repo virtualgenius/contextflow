@@ -4,14 +4,14 @@ This document captures baseline performance metrics for ContextFlow to help iden
 
 ## Bundle Size
 
-**Measured:** 2025-12-03 (post-Yjs integration)
+**Measured:** 2026-03-03 (v0.9.1)
 
 ### Production Build
 
 ```text
-dist/assets/index-d21vVEBq.js
-  Raw: 846.52 KB
-  Gzipped: 230.43 KB
+dist/assets/index-CJihn-st.js
+  Raw: 1029.43 KB
+  Gzipped: 290.17 KB
 ```
 
 ### Historical Comparison
@@ -20,8 +20,9 @@ dist/assets/index-d21vVEBq.js
 |------|---------|-----|---------|-------|
 | 2025-12-02 | pre-Yjs | 733.40 KB | 196.11 KB | Baseline before collaboration |
 | 2025-12-03 | post-Yjs | 846.52 KB | 230.43 KB | Added Yjs, y-indexeddb, y-webrtc |
+| 2026-03-03 | v0.9.1 | 1029.43 KB | 290.17 KB | PostHog, temporal evolution, teams, DnD, analytics |
 
-**Delta:** +113 KB raw (+15.4%), +34 KB gzipped (+17.5%) - expected growth from CRDT collaboration dependencies.
+**Latest delta (v0.9.1 vs post-Yjs):** +183 KB raw (+21.6%), +60 KB gzipped (+25.9%) from PostHog SDK, temporal evolution, team management, drag-and-drop, and analytics instrumentation.
 
 ### Measurement Steps
 
@@ -87,8 +88,8 @@ Memory usage with ACME E-Commerce project loaded (19 contexts, multiple relation
 
 These are targets, not hard limits:
 
-- **Bundle size (gzipped):** < 250 KB
-  - Current dependencies (React Flow, Framer Motion, etc.) already account for ~200 KB
+- **Bundle size (gzipped):** < 350 KB
+  - Core dependencies (React Flow, Framer Motion, Yjs, PostHog) account for ~290 KB
   - Watch for growth > 50 KB between measurements
 - **Empty project load:** < 1000 ms
   - On modern hardware (MacBook Pro 2020+)
