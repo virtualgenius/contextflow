@@ -1,5 +1,7 @@
 # Specification: Temporal Evolution Feature
 
+> **Status:** Core spec shipped in v0.4.0 (keyframes, interpolation, playback animation, Inspector Panel display). This document remains as a reference for the feature's behavioral contract.
+
 ## Goal
 
 Define the behavioral requirements for ContextFlow's temporal evolution feature. This spec describes **what users can do** and **how the system must behave**, independent of implementation details.

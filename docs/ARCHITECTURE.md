@@ -2,7 +2,7 @@
 
 ## Overview
 ContextFlow is a browser-based React application for mapping bounded contexts, their strategic relationships, and their code ownership.
-It presents three synchronized projections of the same model: Flow View, Distillation View, and Strategic View.
+It presents three synchronized projections of the same model: Value Stream View, Distillation View, and Strategic View.
 
 The core of the app is:
 - A canvas (React Flow) that renders nodes/edges/groups and allows drag interactions
@@ -87,7 +87,7 @@ export interface BoundedContext {
 
   positions: {
     strategic: { x: number };               // Strategic View horizontal (0..100)
-    flow: { x: number };                    // Flow View horizontal (0..100)
+    flow: { x: number };                    // Value Stream View horizontal (0..100)
     distillation: { x: number; y: number }; // Distillation View 2D position (0..100)
     shared: { y: number };                  // vertical (0..100), shared across Flow/Strategic views
   };
@@ -171,7 +171,7 @@ export interface Group {
 
 export interface FlowStageMarker {
   name: string;         // e.g. "Data Ingestion"
-  position: number;     // 0..100 along Flow View X axis
+  position: number;     // 0..100 along Value Stream View X axis
   description?: string; // shown in hover tooltip and inspector
   owner?: string;       // team/person responsible for this stage
   notes?: string;       // freeform notes
@@ -238,7 +238,7 @@ export interface TemporalKeyframe {
 - `isLegacy` → show a ⚠ Legacy badge in the corner of the node
 - `ownership` → when set to `'external'`, show an “External” badge and dotted outer ring, and disallow repo assignment
 - `positions` drives layout:
-  - Flow View uses `positions.flow.x` (horizontal) and `positions.shared.y` (vertical)
+  - Value Stream View uses `positions.flow.x` (horizontal) and `positions.shared.y` (vertical)
   - Distillation View uses `positions.distillation.x` and `positions.distillation.y` (independent 2D positioning)
   - Strategic View uses `positions.strategic.x` (horizontal) and `positions.shared.y` (vertical)
 - `relationships` arrow direction:
@@ -266,7 +266,7 @@ export interface TemporalKeyframe {
 ```
 
 ### `<TopBar />`
-- Toggle `Flow View` / `Distillation View` / `Strategic View`
+- Toggle `Value Stream View` / `Distillation View` / `Strategic View`
 - Add Context
 - Fit to Map
 - Undo / Redo
@@ -294,7 +294,7 @@ export interface TemporalKeyframe {
   - allow overlapping blobs (multiple groups can cover the same canvas area)
   - blob shape recomputes dynamically when contexts move or view switches
 - Renders axes
-  - Flow View:
+  - Value Stream View:
     - X axis = `project.viewConfig.flowStages`
     - Y axis label (top “user-facing / clinician-facing”, bottom “enabling / platform”)
   - Distillation View:
@@ -305,7 +305,7 @@ export interface TemporalKeyframe {
     - X axis = Wardley bands (“Genesis / Custom-built / Product-Rental / Commodity / Utility”)
     - Y axis is unchanged
 - Drag behavior
-  - In Flow View:
+  - In Value Stream View:
     - horizontal drag updates `positions.flow.x`
     - vertical drag updates `positions.shared.y`
   - In Distillation View:

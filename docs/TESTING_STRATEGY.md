@@ -2,7 +2,7 @@
 
 ## Summary
 
-Build a fast, reliable CI/CD pipeline with strategic E2E tests using Playwright. The existing 1,277 unit tests provide excellent coverage - E2E tests should only cover what *cannot* be tested at lower levels.
+Build a fast, reliable CI/CD pipeline with strategic E2E tests using Playwright. The existing unit tests provide excellent coverage - E2E tests should only cover what *cannot* be tested at lower levels.
 
 **Target pipeline time: < 5 minutes**
 
@@ -12,10 +12,10 @@ Build a fast, reliable CI/CD pipeline with strategic E2E tests using Playwright.
 
 | Aspect | Status |
 |--------|--------|
-| Unit tests | 1,277 tests (Vitest), ~14s locally |
+| Unit tests | 1,468 tests (Vitest), ~14s locally |
 | E2E tests | None (no Playwright) |
-| CI testing | **Not configured** - only builds, no tests |
-| Failing tests | 1 (`storeCollabIntegration.test.ts`) |
+| CI quality gates | typecheck, lint, format check, build (no unit tests in CI yet) |
+| Failing tests | 0 (1 skipped) |
 
 ---
 
