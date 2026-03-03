@@ -96,7 +96,8 @@ export function TopBar() {
       if (e.key === '?' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setShowKeyboardShortcuts((prev) => {
-          if (!prev) trackEvent('keyboard_shortcuts_opened', project || null, { source: 'shortcut' })
+          if (!prev)
+            trackEvent('keyboard_shortcuts_opened', project || null, { source: 'shortcut' })
           return !prev
         })
       }
