@@ -4,6 +4,10 @@
 
 The ContextInspector panel (right sidebar, shown when a bounded context is selected) has evolved organically over time. It currently has ~20 distinct sections rendered as a flat list with uniform spacing, inconsistent labeling patterns (some use the `Section` component, others use inline labels, others have no label at all), misaligned controls, and no visual grouping. The result feels unprofessional and hard to scan.
 
+## Mockup
+
+Open [inspector-panel-mockup.html](inspector-panel-mockup.html) in a browser to see the current vs proposed layout side by side.
+
 ## Goal
 
 Reorganize the panel into clear, visually grouped sections with consistent styling, better information hierarchy, and a polished Linear-inspired aesthetic, while preserving all existing functionality.
@@ -36,18 +40,18 @@ The flat list of ~20 items is reorganized into 7 logical groups:
 
 ### 2. Strategic Profile (divider + section header)
 - **Classification** badge (Core/Supporting/Generic) + **Evolution** badge (Genesis/Custom/Product/Commodity), on a single row
-- **Ownership** buttons (Our Team / Internal / External), full width row
 - **Business Model Role** dropdown, full width with label
 
 ### 3. Team & Organization (divider + section header)
-- **Team** assignment dropdown
-- **Groups** membership chips (with remove)
-- **Repos** cards (with add/unassign)
+- **Ownership** buttons (Our Team / Internal / External), full width row
+- **Team** assignment dropdown (hidden when ownership is External)
+- **Groups** membership chips (label on top, chips below; with remove)
 
-### 4. Technical Properties (divider + section header)
-- **Code Size** + **Boundary Integrity**, two property rows, each label + dropdown, full width
+### 4. Codebase (divider + section header)
+- **Repos** cards (with add/unassign)
+- **Code Size** property row (label + dropdown, full width)
+- **Boundary Integrity** property row (label + dropdown, full width) + **Boundary Notes** textarea directly below (only if boundary is set)
 - **Legacy** + **Big Ball of Mud**, two toggles in a compact 2-column grid
-- **Boundary Notes** textarea (only if boundary is set)
 
 ### 5. Notes & Issues (divider + section header)
 - **Notes** textarea
@@ -57,7 +61,7 @@ The flat list of ~20 items is reorganized into 7 logical groups:
 - Upstream / Downstream / Mutual groups
 - Add Relationship button
 
-### 7. Danger Zone (divider, no header)
+### Danger Zone (divider, no header)
 - Delete Context button
 
 ### Temporal Position

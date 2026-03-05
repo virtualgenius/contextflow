@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspector Panel Redesign - Old vs New</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .panel { width: 320px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+  .panel-scroll { padding: 16px; }
+  /* Mimic the app's switch component */
+  .switch { width: 28px; height: 16px; border-radius: 999px; background: #cbd5e1; position: relative; cursor: pointer; flex-shrink: 0; }
+  .switch.on { background: #3b82f6; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: white; transition: transform 0.15s; }
+  .switch.on::after { transform: translateX(12px); }
+</style>
+</head>
+<body class="p-8">
+
+<h1 class="text-2xl font-bold text-slate-800 mb-2">Context Inspector Panel Redesign</h1>
+<p class="text-sm text-slate-500 mb-6">Light mode, showing a context with many properties populated (Payment Processing)</p>
+
+<div class="flex gap-8 items-start">
+
+<!-- ==================== OLD LAYOUT ==================== -->
+<div>
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Current</h2>
+  <div class="panel">
+    <div class="panel-scroll space-y-5">
+
+      <!-- Name -->
+      <div>
+        <input type="text" value="Payment Processing" readonly
+          class="w-full font-semibold text-sm text-slate-900 leading-tight bg-transparent border border-transparent rounded px-2 py-0.5 -ml-2 outline-none" />
+      </div>
+
+      <!-- Connected Users -->
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <button class="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 text-xs flex items-center gap-2 text-slate-600">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Customer
+          </button>
+        </div>
+      </div>
+
+      <!-- Purpose -->
+      <textarea readonly rows="2" placeholder="What does this context do for the business?"
+        class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Handles all payment transactions, refunds, and payment method management</textarea>
+
+      <!-- Teams (no heading) -->
+      <div class="space-y-1">
+        <div class="text-xs text-slate-600">
+          Payments Team
+          <span class="text-slate-500 ml-1">(stream-aligned)</span>
+        </div>
+      </div>
+
+      <!-- Ownership -->
+      <div class="space-y-1">
+        <div class="flex items-center gap-1">
+          <span class="text-xs font-medium text-slate-700">Ownership</span>
+        </div>
+        <div class="flex gap-1.5">
+          <button class="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 ring-1 ring-green-400">Our Team</button>
+          <button class="px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-600">Internal</button>
+          <button class="px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-600">External</button>
+        </div>
+      </div>
+
+      <!-- Legacy toggle -->
+      <div class="flex items-center gap-2">
+        <div class="switch on"></div>
+        <span class="text-xs text-slate-700">Legacy</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+
+      <!-- Big Ball of Mud toggle -->
+      <div class="flex items-center gap-2">
+        <div class="switch"></div>
+        <span class="text-xs text-slate-700">Big Ball of Mud</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+
+      <!-- Business Model Role -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold text-slate-700 w-16">Role</span>
+        <select class="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+          <option>Revenue Generator</option>
+        </select>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+
+      <!-- Team Assignment -->
+      <div class="space-y-1">
+        <div class="flex items-center gap-1">
+          <span class="text-xs font-medium text-slate-700">Team</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <select class="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+            <option>Payments Team (stream-aligned)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Groups -->
+      <div class="flex flex-wrap gap-2">
+        <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded border text-xs font-medium"
+          style="background-color: #3b82f615; border-color: #3b82f6; color: #3b82f6;">
+          Revenue Cluster
+          <button class="opacity-50 p-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Classification badge (no label) -->
+      <div>
+        <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">
+          &#9889; Core
+        </span>
+      </div>
+
+      <!-- Evolution badge (no label) -->
+      <div>
+        <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 text-violet-800">
+          &#128296; Custom-Built
+        </span>
+      </div>
+
+      <!-- Repos -->
+      <div class="space-y-2">
+        <div class="border border-slate-200 rounded-lg p-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-800">payment-service</span>
+            <button class="text-slate-400 hover:text-red-500 p-0.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+        </div>
+        <button class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-600">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Repo
+        </button>
+      </div>
+
+      <!-- Code -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold text-slate-700 w-16">Code</span>
+        <select class="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+          <option>Large</option>
+        </select>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+
+      <!-- Boundary -->
+      <div class="space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-700 w-16">Boundary</span>
+          <select class="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+            <option>Moderate</option>
+          </select>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <textarea readonly rows="2" placeholder="Why is the boundary strong or weak?"
+          class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Some shared models with Order context still need extraction</textarea>
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <div class="text-[11px] font-semibold text-slate-500 mb-2 uppercase tracking-wider">Notes</div>
+        <div class="text-[13px]">
+          <textarea readonly rows="3" placeholder="Assumptions, politics, bottlenecks, risks..."
+            class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">PCI compliance adds significant overhead. Team is considering moving to Stripe for tokenization.</textarea>
+        </div>
+      </div>
+
+      <!-- Issues -->
+      <div>
+        <div class="text-[11px] font-semibold text-slate-500 mb-2 uppercase tracking-wider">Issues (2)</div>
+        <div class="text-[13px]">
+          <div class="space-y-1">
+            <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-0.5">
+                <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                <button class="w-3 h-3 rounded-full bg-amber-400 ring-1 ring-amber-500"></button>
+                <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+              </div>
+              <input type="text" value="Shared payment models leak into Order context" readonly
+                class="flex-1 min-w-0 text-xs text-slate-700 bg-white border border-slate-200 rounded px-2 py-0.5 outline-none" />
+              <button class="p-0.5 text-slate-400"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-0.5">
+                <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                <button class="w-3 h-3 rounded-full bg-red-400 ring-1 ring-red-500"></button>
+              </div>
+              <input type="text" value="PCI audit findings need remediation" readonly
+                class="flex-1 min-w-0 text-xs text-slate-700 bg-white border border-slate-200 rounded px-2 py-0.5 outline-none" />
+              <button class="p-0.5 text-slate-400"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+          </div>
+          <button class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Issue
+          </button>
+        </div>
+      </div>
+
+      <!-- Relationships -->
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Relationships</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="text-[13px] space-y-2">
+          <div>
+            <div class="text-[10px] font-medium text-slate-400 uppercase mb-1">Upstream</div>
+            <div class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-slate-50 text-xs">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span class="text-slate-700">Order Management</span>
+              <span class="text-slate-400 text-[10px] ml-auto">customer-supplier</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-[10px] font-medium text-slate-400 uppercase mb-1">Downstream</div>
+            <div class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-slate-50 text-xs">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="transform:rotate(180deg)"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span class="text-slate-700">Notifications</span>
+              <span class="text-slate-400 text-[10px] ml-auto">open-host-service</span>
+            </div>
+          </div>
+          <button class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Relationship
+          </button>
+        </div>
+      </div>
+
+      <!-- Delete -->
+      <div class="pt-2 border-t border-slate-200">
+        <button class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete Context
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NEW LAYOUT ==================== -->
+<div>
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Proposed</h2>
+  <div class="panel">
+    <div class="panel-scroll">
+
+      <!-- ===== 1. IDENTITY (no header) ===== -->
+      <div class="space-y-3">
+        <!-- Name -->
+        <div>
+          <input type="text" value="Payment Processing" readonly
+            class="w-full font-semibold text-sm text-slate-900 leading-tight bg-transparent border border-transparent rounded px-2 py-0.5 -ml-2 outline-none" />
+        </div>
+
+        <!-- Purpose -->
+        <textarea readonly rows="2"
+          class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Handles all payment transactions, refunds, and payment method management</textarea>
+
+        <!-- Connected Users -->
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <button class="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 text-xs flex items-center gap-2 text-slate-600">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Customer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 2. STRATEGIC PROFILE ===== -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Strategic Profile</div>
+        <div class="space-y-3">
+
+          <!-- Classification + Evolution on one row -->
+          <div class="flex flex-wrap gap-3">
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Domain</div>
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">
+                &#9889; Core
+              </span>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Evolution</div>
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 text-violet-800">
+                &#128296; Custom-Built
+              </span>
+            </div>
+          </div>
+
+          <!-- Business Model Role - full width property row -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Role</span>
+            <div class="flex-1 flex items-center gap-2">
+              <select class="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+                <option>Revenue Generator</option>
+              </select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 3. TEAM & ORGANIZATION ===== -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Team & Organization</div>
+        <div class="space-y-3">
+
+          <!-- Ownership -->
+          <div class="flex gap-1.5">
+            <button class="flex-1 px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 ring-1 ring-green-400 text-center">Our Team</button>
+            <button class="flex-1 px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-600 text-center">Internal</button>
+            <button class="flex-1 px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-600 text-center">External</button>
+          </div>
+
+          <!-- Team -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Team</span>
+            <select class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+              <option>Payments Team (stream-aligned)</option>
+            </select>
+          </div>
+
+          <!-- Groups -->
+          <div class="space-y-1">
+            <span class="text-xs text-slate-500">Groups</span>
+            <div class="flex flex-wrap gap-1.5">
+              <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-medium"
+                style="background-color: #3b82f615; border-color: #3b82f6; color: #3b82f6;">
+                Revenue Cluster
+                <button class="opacity-50 p-0.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== 4. CODEBASE ===== -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Codebase</div>
+        <div class="space-y-3">
+
+          <!-- Repos -->
+          <div class="space-y-2">
+            <div class="border border-slate-200 rounded-lg p-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-800">payment-service</span>
+                <button class="text-slate-400 p-0.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+              </div>
+            </div>
+            <button class="flex items-center gap-1.5 text-xs text-slate-500">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Repo
+            </button>
+          </div>
+
+          <!-- Code Size -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Code Size</span>
+            <div class="flex-1 flex items-center gap-2">
+              <select class="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+                <option>Large</option>
+              </select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          </div>
+
+          <!-- Boundary Integrity + Notes -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 w-16 flex-shrink-0">Boundary</span>
+              <div class="flex-1 flex items-center gap-2">
+                <select class="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+                  <option>Moderate</option>
+                </select>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+            </div>
+            <!-- Boundary Notes (shown when boundary is set) -->
+            <textarea readonly rows="2" placeholder="Why is the boundary strong or weak?"
+              class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Some shared models with Order context still need extraction</textarea>
+          </div>
+
+          <!-- Legacy + Big Ball of Mud in 2-col grid -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex items-center gap-2">
+              <div class="switch on"></div>
+              <span class="text-xs text-slate-700">Legacy</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="switch"></div>
+              <span class="text-xs text-slate-700">Ball of Mud</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 5. NOTES & ISSUES ===== -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Notes & Issues</div>
+        <div class="space-y-3">
+
+          <!-- Notes -->
+          <textarea readonly rows="3"
+            class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">PCI compliance adds significant overhead. Team is considering moving to Stripe for tokenization.</textarea>
+
+          <!-- Issues -->
+          <div>
+            <div class="text-xs text-slate-500 mb-1.5">Issues (2)</div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-0.5">
+                  <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                  <button class="w-3 h-3 rounded-full bg-amber-400 ring-1 ring-amber-500"></button>
+                  <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                </div>
+                <input type="text" value="Shared payment models leak into Order context" readonly
+                  class="flex-1 min-w-0 text-xs text-slate-700 bg-white border border-slate-200 rounded px-2 py-0.5 outline-none" />
+                <button class="p-0.5 text-slate-400"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-0.5">
+                  <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                  <button class="w-3 h-3 rounded-full bg-slate-200"></button>
+                  <button class="w-3 h-3 rounded-full bg-red-400 ring-1 ring-red-500"></button>
+                </div>
+                <input type="text" value="PCI audit findings need remediation" readonly
+                  class="flex-1 min-w-0 text-xs text-slate-700 bg-white border border-slate-200 rounded px-2 py-0.5 outline-none" />
+                <button class="p-0.5 text-slate-400"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+              </div>
+            </div>
+            <button class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Issue
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 6. RELATIONSHIPS ===== -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Relationships</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="text-[13px] space-y-2">
+          <div>
+            <div class="text-[10px] font-medium text-slate-400 uppercase mb-1">Upstream</div>
+            <div class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-slate-50 text-xs">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span class="text-slate-700">Order Management</span>
+              <span class="text-slate-400 text-[10px] ml-auto">customer-supplier</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-[10px] font-medium text-slate-400 uppercase mb-1">Downstream</div>
+            <div class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-slate-50 text-xs">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="transform:rotate(180deg)"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span class="text-slate-700">Notifications</span>
+              <span class="text-slate-400 text-[10px] ml-auto">open-host-service</span>
+            </div>
+          </div>
+          <button class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 text-slate-700 rounded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Relationship
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== 7. DANGER ZONE ===== -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <button class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete Context
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ANNOTATIONS ==================== -->
+<div class="w-72 space-y-4 text-xs text-slate-600">
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Key Changes</h2>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Visual Grouping</div>
+    <p>Subtle divider lines create 7 logical groups instead of ~20 flat items. Each group has a section header.</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Consistent Property Rows</div>
+    <p>Code Size, Boundary, Role, and Team all use the same label-left/control-right layout with full-width selects (no more <code class="bg-slate-100 px-1 rounded">w-32</code>).</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Badges Get Labels</div>
+    <p>Classification and Evolution badges now have tiny "Domain" and "Evolution" labels above them, and sit on a single row.</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Compact Toggle Grid</div>
+    <p>Legacy and Big Ball of Mud toggles share a 2-column row, saving vertical space.</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Groups Get a Row</div>
+    <p>Group chips now have a "Groups" label in the property-row layout instead of floating without context.</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Reordered for Workflow</div>
+    <p>Identity first, then strategic/org context, then technical detail, then notes/issues, then relationships. Most-edited fields at the top.</p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
