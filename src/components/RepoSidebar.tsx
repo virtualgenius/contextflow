@@ -2,6 +2,7 @@ import React from 'react'
 import { ExternalLink, Search, X } from 'lucide-react'
 import type { Repo, Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
+import { SimpleTooltip } from './SimpleTooltip'
 
 interface RepoSidebarProps {
   repos: Repo[]
@@ -59,9 +60,8 @@ export function RepoSidebar({
     const repoTeams = getTeamsForRepo(repo)
     const ctxName = isAssigned ? contextNameForRepo(repo, contexts) : null
 
-    return (
+    const card = (
       <div
-        key={repo.id}
         data-testid={`repo-card-${repo.id}`}
         draggable={!isAssigned}
         onDragStart={isAssigned ? undefined : (e) => handleDragStart(e, repo.id)}
@@ -115,6 +115,14 @@ export function RepoSidebar({
           </div>
         )}
       </div>
+    )
+
+    if (isAssigned) return <React.Fragment key={repo.id}>{card}</React.Fragment>
+
+    return (
+      <SimpleTooltip key={repo.id} text="Drag onto a context to assign" position="right">
+        {card}
+      </SimpleTooltip>
     )
   }
 
