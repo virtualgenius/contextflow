@@ -1,5 +1,25 @@
 # Inspector Panel Redesign - Context Inspector
 
+## Evaluation Notes
+
+1. **Connected Users placement**: The doc puts Connected Users after Purpose, but current order (Name, Connected Users, Purpose) is better. Users connected to a context are part of its identity; seeing them before the purpose gives immediate context about who cares. Keep the current order.
+
+2. **Teams appear in two sections**: Repo-derived teams (read-only display under Purpose) and the `teamId` assignment dropdown (in Team & Organization) are two different things. The doc doesn't distinguish these. The repo-derived team display should stay near repos in Codebase, or be removed since it's redundant with repo cards showing team info.
+
+3. **PropertyRow `w-24` label width is too narrow**: "Boundary Integrity" won't fit in 96px. Use `w-28` or `min-w-fit whitespace-nowrap` so labels size to content while controls take remaining space.
+
+4. **Classification + Evolution empty state**: The doc describes badges with tiny labels but doesn't address the "Not classified" fallback. The redesign should show a muted placeholder row when neither is set, or hide the section.
+
+5. **Boundary Notes conditional display is a behavioral change**: The doc says "only if boundary is set," but current code always shows the textarea. Minor behavioral change, not purely layout.
+
+6. **Groups label missing from doc details**: The doc says "label on top, chips below" but doesn't specify whether to use `FIELD_LABEL_CLASS` or `Section` for the label.
+
+7. **SectionDivider may be too subtle**: `border-slate-100` in light mode is nearly invisible. Current delete-button divider uses `border-slate-200` with better contrast. Use `border-slate-200 dark:border-neutral-700` for section dividers too, with lighter `pt-4` spacing to differentiate from the danger zone divider.
+
+8. **Toggle grid loses help icons**: Putting Legacy and Big Ball of Mud in a 2-column grid saves space but the doc doesn't address where the `InfoTooltip` help icons go. Each toggle needs its own help icon within the grid cell.
+
+9. **Future consideration: collapsible sections**: Section headers could be clickable to collapse/expand groups. The panel is long when fully populated. Out of scope for this pass but worth considering.
+
 ## Problem
 
 The ContextInspector panel (right sidebar, shown when a bounded context is selected) has evolved organically over time. It currently has ~20 distinct sections rendered as a flat list with uniform spacing, inconsistent labeling patterns (some use the `Section` component, others use inline labels, others have no label at all), misaligned controls, and no visual grouping. The result feels unprofessional and hard to scan.
