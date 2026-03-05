@@ -2,6 +2,7 @@ import React from 'react'
 import { Search, Trash2, X } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
+import { SimpleTooltip } from './SimpleTooltip'
 
 interface TeamSidebarProps {
   teams: Team[]
@@ -102,58 +103,59 @@ export function TeamSidebar({
         const badgeColors = team.topologyType ? getTopologyColors(team.topologyType).light : null
 
         return (
-          <div
-            key={team.id}
-            data-testid={`team-card-${team.id}`}
-            draggable
-            onDragStart={(e) => handleDragStart(e, team.id)}
-            onClick={() => onSelectTeam(team.id)}
-            className={`bg-slate-50 dark:bg-neutral-900 border rounded p-2.5 cursor-move hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800 transition-colors ${
-              isSelected
-                ? 'border-blue-400 dark:border-blue-500 ring-1 ring-blue-400 dark:ring-blue-500'
-                : 'border-slate-200 dark:border-neutral-700'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="font-medium text-slate-900 dark:text-slate-100">{team.name}</div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (count > 0) {
-                    if (
-                      !window.confirm(
-                        `Delete team "${team.name}"? ${count} context${count > 1 ? 's' : ''} will be unassigned.`
-                      )
-                    ) {
-                      return
+          <SimpleTooltip key={team.id} text="Drag onto a context to assign" position="right">
+            <div
+              data-testid={`team-card-${team.id}`}
+              draggable
+              onDragStart={(e) => handleDragStart(e, team.id)}
+              onClick={() => onSelectTeam(team.id)}
+              className={`bg-slate-50 dark:bg-neutral-900 border rounded p-2.5 cursor-move hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800 transition-colors ${
+                isSelected
+                  ? 'border-blue-400 dark:border-blue-500 ring-1 ring-blue-400 dark:ring-blue-500'
+                  : 'border-slate-200 dark:border-neutral-700'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-medium text-slate-900 dark:text-slate-100">{team.name}</div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (count > 0) {
+                      if (
+                        !window.confirm(
+                          `Delete team "${team.name}"? ${count} context${count > 1 ? 's' : ''} will be unassigned.`
+                        )
+                      ) {
+                        return
+                      }
                     }
-                  }
-                  onDeleteTeam(team.id)
-                }}
-                className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 mt-1">
-              {team.topologyType && team.topologyType !== 'unknown' && badgeColors && (
-                <span
-                  className="px-1.5 py-0.5 text-[10px] font-medium rounded"
-                  style={{
-                    backgroundColor: badgeColors.bg,
-                    color: badgeColors.text,
-                    border: `1px solid ${badgeColors.border}`,
+                    onDeleteTeam(team.id)
                   }}
+                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                 >
-                  {TOPOLOGY_LABELS[team.topologyType]}
+                  <Trash2 size={12} />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 mt-1">
+                {team.topologyType && team.topologyType !== 'unknown' && badgeColors && (
+                  <span
+                    className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                    style={{
+                      backgroundColor: badgeColors.bg,
+                      color: badgeColors.text,
+                      border: `1px solid ${badgeColors.border}`,
+                    }}
+                  >
+                    {TOPOLOGY_LABELS[team.topologyType]}
+                  </span>
+                )}
+                <span className="text-[11px] text-slate-500 dark:text-neutral-400">
+                  {contextCountLabel(count)}
                 </span>
-              )}
-              <span className="text-[11px] text-slate-500 dark:text-neutral-400">
-                {contextCountLabel(count)}
-              </span>
+              </div>
             </div>
-          </div>
+          </SimpleTooltip>
         )
       })}
 

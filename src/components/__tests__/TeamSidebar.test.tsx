@@ -369,6 +369,24 @@ describe('TeamSidebar', () => {
     })
   })
 
+  describe('drag hint tooltip', () => {
+    it('shows drag hint tooltip on team cards', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const card = screen.getByTestId('team-card-team-1')
+      fireEvent.mouseEnter(card)
+      expect(screen.getByText('Drag onto a context to assign')).toBeInTheDocument()
+    })
+  })
+
   describe('search filtering', () => {
     it('shows search input when more than 1 team', () => {
       render(
