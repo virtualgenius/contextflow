@@ -91,10 +91,6 @@ function Workspace() {
     }
   }, [project])
 
-  const unassignedRepos = React.useMemo(() => {
-    return project?.repos?.filter((r) => !r.contextId) || []
-  }, [project?.repos])
-
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(() => {
     const stored = localStorage.getItem('contextflow.sidebar.collapsed')
     return stored === 'true'
@@ -106,16 +102,16 @@ function Workspace() {
     return 'repos'
   })
 
-  const hasUnassignedRepos = unassignedRepos.length > 0
+  const hasRepos = (project?.repos?.length ?? 0) > 0
   const hasTeams = (project?.teams?.length ?? 0) > 0
-  const hasLeftSidebarContent = hasUnassignedRepos || hasTeams
+  const hasLeftSidebarContent = hasRepos || hasTeams
   const showLeftSidebar = hasLeftSidebarContent && !isSidebarCollapsed
 
   // Auto-select appropriate tab when content changes
   const activeTab =
-    sidebarTab === 'repos' && !hasUnassignedRepos && hasTeams
+    sidebarTab === 'repos' && !hasRepos && hasTeams
       ? 'teams'
-      : sidebarTab === 'teams' && !hasTeams && hasUnassignedRepos
+      : sidebarTab === 'teams' && !hasTeams && hasRepos
         ? 'repos'
         : sidebarTab
   const hasRightSidebar =
@@ -213,7 +209,7 @@ function Workspace() {
         {showLeftSidebar && (
           <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col">
             {/* Tab bar - only show when both tabs have content */}
-            {hasUnassignedRepos && hasTeams ? (
+            {hasRepos && hasTeams ? (
               <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
                 <button
                   onClick={() => handleTabChange('repos')}
@@ -223,7 +219,7 @@ function Workspace() {
                       : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
                 >
-                  Repos ({unassignedRepos.length})
+                  Repos ({project?.repos?.length ?? 0})
                 </button>
                 <button
                   onClick={() => handleTabChange('teams')}
@@ -256,7 +252,7 @@ function Workspace() {
               <div className="flex items-center justify-between p-4 pb-2">
                 <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
                   {activeTab === 'repos'
-                    ? `Unassigned Repos (${unassignedRepos.length})`
+                    ? `Repos (${project?.repos?.length ?? 0})`
                     : `Teams (${project?.teams?.length ?? 0})`}
                 </div>
                 <button
@@ -281,8 +277,9 @@ function Workspace() {
             <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
               {activeTab === 'repos' ? (
                 <RepoSidebar
-                  repos={unassignedRepos}
+                  repos={project?.repos || []}
                   teams={project?.teams || []}
+                  contexts={project?.contexts || []}
                   onRepoAssign={(_repoId, _contextId) => {
                     // Will be implemented with drag-and-drop
                   }}
@@ -322,7 +319,7 @@ function Workspace() {
                   <path d="M4 9l3-3-3-3" />
                 </svg>
                 <span className="font-medium">
-                  {hasUnassignedRepos ? `Repos (${unassignedRepos.length})` : 'Teams'}
+                  {hasRepos ? `Repos (${project?.repos?.length ?? 0})` : 'Teams'}
                 </span>
               </div>
             </button>

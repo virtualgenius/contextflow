@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { RepoSidebar } from '../RepoSidebar'
-import type { Repo } from '../../model/types'
+import type { Repo, BoundedContext } from '../../model/types'
 
 function makeRepo(overrides: Partial<Repo> = {}): Repo {
   return {
@@ -13,6 +13,19 @@ function makeRepo(overrides: Partial<Repo> = {}): Repo {
   }
 }
 
+function makeContext(overrides: Partial<BoundedContext> = {}): BoundedContext {
+  return {
+    id: 'ctx-1',
+    name: 'Orders',
+    positions: {
+      flow: { x: 0 },
+      strategic: { x: 0 },
+      shared: { y: 0 },
+    },
+    ...overrides,
+  } as BoundedContext
+}
+
 const noop = vi.fn()
 
 describe('RepoSidebar', () => {
@@ -22,6 +35,7 @@ describe('RepoSidebar', () => {
         <RepoSidebar
           repos={[makeRepo(), makeRepo({ id: 'repo-2', name: 'payments-api' })]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -36,6 +50,7 @@ describe('RepoSidebar', () => {
         <RepoSidebar
           repos={[makeRepo(), makeRepo({ id: 'repo-2', name: 'payments-api' })]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -43,12 +58,12 @@ describe('RepoSidebar', () => {
     })
 
     it('does not show search input when only 1 repo', () => {
-      render(<RepoSidebar repos={[makeRepo()]} teams={[]} onRepoAssign={noop} />)
+      render(<RepoSidebar repos={[makeRepo()]} teams={[]} contexts={[]} onRepoAssign={noop} />)
       expect(screen.queryByPlaceholderText('Filter repos...')).not.toBeInTheDocument()
     })
 
     it('does not show search input when no repos', () => {
-      render(<RepoSidebar repos={[]} teams={[]} onRepoAssign={noop} />)
+      render(<RepoSidebar repos={[]} teams={[]} contexts={[]} onRepoAssign={noop} />)
       expect(screen.queryByPlaceholderText('Filter repos...')).not.toBeInTheDocument()
     })
 
@@ -61,6 +76,7 @@ describe('RepoSidebar', () => {
             makeRepo({ id: 'repo-3', name: 'order-events' }),
           ]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -80,6 +96,7 @@ describe('RepoSidebar', () => {
             makeRepo({ id: 'repo-2', name: 'payments-api' }),
           ]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -99,6 +116,7 @@ describe('RepoSidebar', () => {
             makeRepo({ id: 'repo-3', name: 'order-events' }),
           ]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -116,6 +134,7 @@ describe('RepoSidebar', () => {
             makeRepo({ id: 'repo-2', name: 'payments-api' }),
           ]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -133,6 +152,7 @@ describe('RepoSidebar', () => {
             makeRepo({ id: 'repo-2', name: 'payments-api' }),
           ]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -157,6 +177,7 @@ describe('RepoSidebar', () => {
             makeRepo({ id: 'repo-2', name: 'payments-api' }),
           ]}
           teams={[]}
+          contexts={[]}
           onRepoAssign={noop}
         />
       )
@@ -166,6 +187,136 @@ describe('RepoSidebar', () => {
 
       expect(screen.getByText('orders-service')).toBeInTheDocument()
       expect(screen.getByText('payments-api')).toBeInTheDocument()
+    })
+  })
+
+  describe('assigned repos', () => {
+    it('shows assigned repos with their context name', () => {
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1' })]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+      expect(screen.getByText('orders-service')).toBeInTheDocument()
+      expect(screen.getByText('Orders')).toBeInTheDocument()
+    })
+
+    it('assigned repos are not draggable', () => {
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1' })]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+      const card = screen.getByTestId('repo-card-repo-1')
+      expect(card).not.toHaveAttribute('draggable', 'true')
+    })
+
+    it('unassigned repos remain draggable', () => {
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+        />
+      )
+      const card = screen.getByTestId('repo-card-repo-1')
+      expect(card).toHaveAttribute('draggable', 'true')
+    })
+
+    it('shows unassigned repos before assigned repos', () => {
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[
+            makeRepo({ id: 'repo-1', name: 'assigned-repo', contextId: 'ctx-1' }),
+            makeRepo({ id: 'repo-2', name: 'unassigned-repo' }),
+          ]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+      const cards = screen.getAllByTestId(/^repo-card-/)
+      expect(cards[0]).toHaveAttribute('data-testid', 'repo-card-repo-2')
+      expect(cards[1]).toHaveAttribute('data-testid', 'repo-card-repo-1')
+    })
+
+    it('shows section headers when both assigned and unassigned repos exist', () => {
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[
+            makeRepo({ id: 'repo-1', name: 'assigned-repo', contextId: 'ctx-1' }),
+            makeRepo({ id: 'repo-2', name: 'unassigned-repo' }),
+          ]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+      expect(screen.getByText('Ready to assign')).toBeInTheDocument()
+      expect(screen.getByText('Assigned')).toBeInTheDocument()
+    })
+
+    it('does not show section headers when all repos are unassigned', () => {
+      render(
+        <RepoSidebar
+          repos={[
+            makeRepo({ id: 'repo-1', name: 'repo-a' }),
+            makeRepo({ id: 'repo-2', name: 'repo-b' }),
+          ]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+        />
+      )
+      expect(screen.queryByText('Ready to assign')).not.toBeInTheDocument()
+      expect(screen.queryByText('Assigned')).not.toBeInTheDocument()
+    })
+
+    it('treats repo with contextId pointing to deleted context as unassigned', () => {
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orphan-repo', contextId: 'deleted-ctx' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+        />
+      )
+      const card = screen.getByTestId('repo-card-repo-1')
+      expect(card).toHaveAttribute('draggable', 'true')
+      expect(screen.queryByText('deleted-ctx')).not.toBeInTheDocument()
+    })
+
+    it('search filters across both assigned and unassigned repos', () => {
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[
+            makeRepo({ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1' }),
+            makeRepo({ id: 'repo-2', name: 'payments-api' }),
+            makeRepo({ id: 'repo-3', name: 'order-events' }),
+          ]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+      const input = screen.getByPlaceholderText('Filter repos...')
+      fireEvent.change(input, { target: { value: 'order' } })
+
+      expect(screen.getByText('orders-service')).toBeInTheDocument()
+      expect(screen.getByText('order-events')).toBeInTheDocument()
+      expect(screen.queryByText('payments-api')).not.toBeInTheDocument()
     })
   })
 })
