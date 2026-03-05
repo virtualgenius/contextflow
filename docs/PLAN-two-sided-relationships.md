@@ -2,6 +2,66 @@
 
 Design document: [DDD Relationship Patterns: Validity Matrix](DDD_RELATIONSHIP_PATTERNS.md)
 
+## Evaluation (2026-03-04)
+
+Critical review of the plan against the current codebase. To be resolved before implementation begins.
+
+### Gaps and Issues
+
+**1. `pattern` field does double duty during Phase 1; UI transition logic underspecified.**
+The plan says the existing `pattern` field "keeps its full 8-value type" while new fields are added. But it doesn't specify what happens to `pattern` when a user sets per-side roles on a *new* relationship. Does `pattern` get set to `undefined`? Or does it stay as the default `'customer-supplier'` (which is what `RelationshipCreateDialog` currently defaults to)? The `addRelationship` store action currently *requires* a pattern argument. The plan needs to specify the Phase 1 signature change.
+
+**2. Slice 3 (Store) may not warrant being standalone.**
+`addRelationship` is a thin wrapper around `getCollabMutations().addRelationship()`. The real enforcement is in Slice 2's `relationshipMutations.ts`. The analytics tracking is a one-liner. Consider folding into Slices 2 and 4 where changes naturally belong.
+
+**3. RelationshipCreateDialog flow change is unspecified.**
+Today the create dialog has a single dropdown defaulting to `customer-supplier`. Slice 4 says "Same two-sided UI for creation" but doesn't describe the interaction flow. Key questions: Does the user first choose "standalone vs. per-side"? Or are all three selectors shown simultaneously? What's the default for a new relationship? This is a significant UX design question that could block implementation.
+
+**4. Slice 5 (Edge Rendering) is the hardest slice but has the least detail.**
+`RelationshipEdge.tsx` has ~300 lines of rendering logic with carefully tuned indicator box positioning, bezier path adjustments, tooltip portals, and hit area calculations. Drawing two indicator boxes on one edge means: two anchor points modifying the bezier path (currently only one end can have a box), two tooltip portals that shouldn't overlap, label positioning between two boxes, and `getEdgeParams`/`getBoxEdgePoint` geometry functions handling both ends simultaneously. Should be broken into sub-slices (geometry, rendering, tooltips) or at minimum have the geometry approach specified.
+
+**5. `PatternsGuideModal.tsx` restructuring is a UX decision.**
+The modal currently groups patterns by `powerDynamics` category. Restructuring to standalone/upstream/downstream grouping changes how users learn the patterns. Worth a design note.
+
+**6. `isSymmetric` check in RelationshipEdge.tsx needs updating.**
+Currently checks `pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'`. When `pattern` is empty and no roles are set (blank relationship), this evaluates to `false`, showing an arrowhead. The plan doesn't address how "uncharacterized" relationships render.
+
+**7. Separate Ways decision (Outstanding Question #1) should be answered before Phase 1.**
+The plan defers to Phase 2, but Phase 1 UI work needs to know: does the dropdown still show Separate Ways? If Tom creates a workshop with existing Separate Ways relationships, does Phase 1 UI display them? The fallback rendering needs this decision.
+
+**8. Import/export path is missing.**
+The project has `importExport.test.ts` tests. Exported JSON projects with old-format patterns need to import correctly into Phase 1 or Phase 2 systems. This data path needs migration treatment alongside Yjs and IndexedDB.
+
+**9. `conceptDefinitions.ts` changes are under-specified.**
+Slice 1 says "Add concept definitions for upstream/downstream roles" but the file currently has `RELATIONSHIP_PATTERNS` and `EDGE_INDICATORS` objects used in RelationshipEdge tooltips. Should specify whether these get restructured or just extended.
+
+**10. Phase 2 type narrowing (8 values to 3) is a larger breaking change than scoped.**
+Every file that pattern-matches on `Relationship['pattern']` will break: `RelationshipEdge.tsx`, `canvasHelpers.ts`, `canvasConstants.ts`, `patternDefinitions.ts`, `conceptDefinitions.ts`, tests, and more. Slice 8 only lists 7 files. A grep for pattern type uses would likely surface more.
+
+### Risks
+
+**A. Dual indicator box geometry is harder than it looks.** The current code uses `getBoxEdgePoint` to anchor one end of the bezier curve to the indicator box edge. Making both ends anchor to boxes means the bezier control points need recalculation. If two contexts are close together, two boxes plus a label could overlap or look cramped.
+
+**B. Phase 1's "temporary type widening" means runtime bugs won't be caught at compile time.** A developer could accidentally set `pattern: 'open-host-service'` AND `upstreamRole: 'open-host-service'` and TypeScript wouldn't complain.
+
+**C. `updateRelationshipMutation` mutual-exclusivity enforcement (Slice 2) is a structural change.** The plan says "setting a role clears `pattern` if it was OHS/PL/Conformist/ACL." But this requires the mutation to *read* the current pattern value from the Y.Map before deciding what to clear. Currently `applyRelationshipUpdates` is a simple field-by-field setter that doesn't read existing values.
+
+### Suggestions
+
+1. **Answer Outstanding Question #1 now.** Option (a) (convert to blank relationship with a description note) is the safest. Avoids data loss, doesn't require UI for migration notices, and is consistent with the "relationship exists, neither side characterized" valid state.
+
+2. **Add a Slice 0: Data Model spike.** Before any implementation, add `upstreamRole` and `downstreamRole` to types.ts and schema.ts with no other changes, run typecheck, and see what breaks. This 30-minute exercise will validate the plan's file lists.
+
+3. **Split Slice 5 into geometry and rendering.** Do the indicator box geometry changes (with unit tests) before touching the React component. The geometry is pure math that can be tested independently.
+
+4. **Design the Phase 1 create dialog UX explicitly.** Sketch the interaction flow before coding. The single-dropdown-to-three-selectors change is a significant UX shift that affects learnability.
+
+5. **Add import/export to both phases.** Phase 1 should make export include the new fields; Phase 2 should make import trigger migration.
+
+6. **Consider dropping Slice 3 as standalone** and folding its work into Slices 2 and 4.
+
+---
+
 ## Outstanding Questions
 
 **1. What happens to Separate Ways relationships?**
