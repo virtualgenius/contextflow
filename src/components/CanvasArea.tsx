@@ -13,7 +13,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
-import { X, ArrowRight } from 'lucide-react'
+import { X, ArrowRight, Info } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { getHoverConnectedContextIds } from '../lib/canvasHelpers'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
@@ -111,6 +111,10 @@ function CanvasContent() {
   const deleteUser = useEditorStore((s) => s.deleteUser)
   const deleteUserNeed = useEditorStore((s) => s.deleteUserNeed)
   const deleteGroup = useEditorStore((s) => s.deleteGroup)
+  const madeGroup = useMemo(
+    () => (project && project.groups && project.groups.length > 0 ? true : false),
+    [project]
+  )
 
   // Temporal state
   const currentDate = useEditorStore((s) => s.temporal.currentDate)
@@ -989,6 +993,14 @@ function CanvasContent() {
   return (
     <div className="relative w-full h-full">
       <TimeSlider />
+      {/* tool tip for context grouping instructions */}
+      {selectedContextId != null && !madeGroup && (
+        <div className="absolute p-2 bottom-4 bg-gray-800 align-middle rounded-xl right-12 w-auto flex gap-x-1.5 justify-between">
+          <Info className="text-sky-400 size-4 self-center" />
+          <p className="text-sm text-gray-300">To create group : Hold Shift(or Cmd/Ctrl) & click multiple contexts then click on “Create Group” button.</p>
+        </div>
+      )}
+
       <div className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}>
         <ReactFlow
           nodes={nodes}
