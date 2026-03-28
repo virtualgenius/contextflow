@@ -8,7 +8,7 @@ export function IssueLabelsOverlay({
   viewMode,
 }: {
   contexts: BoundedContext[]
-  viewMode: 'flow' | 'strategic' | 'distillation'
+  viewMode: 'flow' | 'strategic' | 'distillation' | 'eventstorming'
 }) {
   const { x, y, zoom } = useViewport()
 

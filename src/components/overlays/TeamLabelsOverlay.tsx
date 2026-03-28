@@ -21,7 +21,7 @@ export function TeamLabelsOverlay({
 }: {
   contexts: BoundedContext[]
   teams: Team[]
-  viewMode: 'flow' | 'strategic' | 'distillation'
+  viewMode: 'flow' | 'strategic' | 'distillation' | 'eventstorming'
   onTeamClick?: (teamId: string) => void
 }) {
   const { x, y, zoom } = useViewport()
