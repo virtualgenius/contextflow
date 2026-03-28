@@ -2,7 +2,7 @@ import type { BoundedContext, Relationship } from '../model/types'
 
 interface TooltipParams {
   context: BoundedContext
-  viewMode: 'flow' | 'strategic' | 'distillation'
+  viewMode: 'flow' | 'strategic' | 'distillation' | 'eventstorming'
   colorByMode: 'strategic' | 'ownership'
   relationships: Relationship[]
   contexts: BoundedContext[]
@@ -144,5 +144,7 @@ export function getContextTooltipLines(params: TooltipParams): string[] {
       return getDistillationLines(params)
     case 'strategic':
       return getStrategicLines(params)
+    case 'eventstorming':
+      return getFlowLines(params)
   }
 }

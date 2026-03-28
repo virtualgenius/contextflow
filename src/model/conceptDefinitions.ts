@@ -348,6 +348,18 @@ export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
       'Based on Wardley Mapping methodology',
     ],
   },
+  eventstorming: {
+    title: 'Event Storming View',
+    description:
+      'Collaborative workshop canvas for discovering domain events, commands, aggregates, and policies using the Big Picture Event Storming format.',
+    characteristics: [
+      'Discover domain events (what happened)',
+      'Identify commands and actors (who triggers what)',
+      'Cluster events around aggregates',
+      'Mark pivotal events as phase boundaries',
+      "Based on Alberto Brandolini's Event Storming",
+    ],
+  },
 }
 
 // Value Chain Visibility (Y-axis labels in Value Stream and Strategic views)

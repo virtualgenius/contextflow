@@ -1,10 +1,11 @@
-type ViewMode = 'flow' | 'strategic' | 'distillation'
+type ViewMode = 'flow' | 'strategic' | 'distillation' | 'eventstorming'
 
 interface ContextPositions {
   flow: { x: number }
   strategic: { x: number }
   shared: { y: number }
   distillation: { x: number; y: number }
+  eventstorming?: { x: number; y: number }
 }
 
 interface Keyframe {
@@ -31,6 +32,14 @@ export function getContextCanvasPosition(
     // Distillation view uses independent 2D space
     const x = (positions.distillation.x / 100) * 2000
     const y = (1 - positions.distillation.y / 100) * 1000 // Invert Y for distillation (0 = bottom, 100 = top)
+    return { x, y }
+  }
+
+  if (viewMode === 'eventstorming') {
+    // Event Storming view uses independent 2D space (like distillation but no Y inversion)
+    const esPos = positions.eventstorming ?? { x: 50, y: 50 }
+    const x = (esPos.x / 100) * 2000
+    const y = (esPos.y / 100) * 1000
     return { x, y }
   }
 

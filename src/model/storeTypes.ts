@@ -9,9 +9,16 @@ import type {
   Issue,
   IssueSeverity,
   Relationship,
+  DomainEvent,
+  Command,
+  ESAggregate,
+  Policy,
+  ESHotSpot,
+  PivotalEvent,
+  ESConnection,
 } from './types'
 
-export type ViewMode = 'flow' | 'strategic' | 'distillation'
+export type ViewMode = 'flow' | 'strategic' | 'distillation' | 'eventstorming'
 
 export interface EditorCommand {
   type:
@@ -119,6 +126,13 @@ export interface EditorState {
   selectedNeedContextConnectionId: string | null
   selectedStageIndex: number | null
   selectedTeamId: string | null
+  selectedDomainEventId: string | null
+  selectedCommandId: string | null
+  selectedESAggregateId: string | null
+  selectedPolicyId: string | null
+  selectedESHotSpotId: string | null
+  selectedPivotalEventId: string | null
+  selectedESConnectionId: string | null
   selectedContextIds: string[]
   hoveredContextId: string | null
   isDragging: boolean
@@ -127,6 +141,7 @@ export interface EditorState {
     flow: { zoom: number; panX: number; panY: number }
     strategic: { zoom: number; panX: number; panY: number }
     distillation: { zoom: number; panX: number; panY: number }
+    eventstorming: { zoom: number; panX: number; panY: number }
   }
 
   // View filters
@@ -280,4 +295,35 @@ export interface EditorState {
   importProject: (project: Project) => Promise<void>
   reset: () => void
   loadSharedProject: (projectId: string) => Promise<void>
+
+  // Event Storming actions
+  toggleEventStorming: () => void
+  addDomainEvent: (name: string, position?: { x: number; y: number }) => void
+  updateDomainEvent: (eventId: string, updates: Partial<DomainEvent>) => void
+  deleteDomainEvent: (eventId: string) => void
+  addCommand: (name: string, position?: { x: number; y: number }) => void
+  updateCommand: (commandId: string, updates: Partial<Command>) => void
+  deleteCommand: (commandId: string) => void
+  addESAggregate: (name: string, position?: { x: number; y: number }) => void
+  updateESAggregate: (aggregateId: string, updates: Partial<ESAggregate>) => void
+  deleteESAggregate: (aggregateId: string) => void
+  addPolicy: (name: string, position?: { x: number; y: number }) => void
+  updatePolicy: (policyId: string, updates: Partial<Policy>) => void
+  deletePolicy: (policyId: string) => void
+  addESHotSpot: (title: string, position?: { x: number; y: number }) => void
+  updateESHotSpot: (hotSpotId: string, updates: Partial<ESHotSpot>) => void
+  deleteESHotSpot: (hotSpotId: string) => void
+  addPivotalEvent: (name: string) => void
+  updatePivotalEvent: (eventId: string, updates: Partial<PivotalEvent>) => void
+  deletePivotalEvent: (eventId: string) => void
+  setSelectedDomainEvent: (eventId: string | null) => void
+  setSelectedCommand: (commandId: string | null) => void
+  setSelectedESAggregate: (aggregateId: string | null) => void
+  setSelectedPolicy: (policyId: string | null) => void
+  setSelectedESHotSpot: (hotSpotId: string | null) => void
+  setSelectedPivotalEvent: (eventId: string | null) => void
+  createESConnection: (sourceId: string, targetId: string) => string | null
+  updateESConnection: (connectionId: string, updates: Partial<ESConnection>) => void
+  deleteESConnection: (connectionId: string) => void
+  setSelectedESConnection: (connectionId: string | null) => void
 }

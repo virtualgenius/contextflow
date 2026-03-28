@@ -6,6 +6,13 @@ import type {
   UserNeed,
   FlowStageMarker,
   TemporalKeyframe,
+  DomainEvent,
+  Command,
+  ESAggregate,
+  Policy,
+  ESHotSpot,
+  PivotalEvent,
+  ESConnection,
 } from './types'
 import { saveProject } from './persistence'
 import { config } from '../config'
@@ -138,6 +145,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedNeedContextConnectionId: null,
   selectedStageIndex: null,
   selectedTeamId: null,
+  selectedDomainEventId: null,
+  selectedCommandId: null,
+  selectedESAggregateId: null,
+  selectedPolicyId: null,
+  selectedESHotSpotId: null,
+  selectedPivotalEventId: null,
+  selectedESConnectionId: null,
   selectedContextIds: [],
   hoveredContextId: null,
 
@@ -147,6 +161,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     flow: { zoom: 1, panX: 0, panY: 0 },
     strategic: { zoom: 1, panX: 0, panY: 0 },
     distillation: { zoom: 1, panX: 0, panY: 0 },
+    eventstorming: { zoom: 1, panX: 0, panY: 0 },
   },
 
   // View filters (default to ON, load from localStorage if available)
@@ -291,6 +306,11 @@ export const useEditorStore = create<EditorState>((set) => ({
           activeViewMode: mode,
           projects: { ...state.projects, [projectId!]: updatedProject },
         }
+      }
+
+      // Auto-enable Event Storming when switching to ES view for the first time
+      if (mode === 'eventstorming' && project && !project.eventStorming?.enabled) {
+        getCollabMutations().toggleEventStorming()
       }
 
       return { activeViewMode: mode }
@@ -1633,6 +1653,252 @@ export const useEditorStore = create<EditorState>((set) => ({
 
       return {}
     }),
+
+  // Event Storming actions
+
+  toggleEventStorming: () =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      getCollabMutations().toggleEventStorming()
+      trackEvent('event_storming_toggled', project, {
+        enabled: !(project.eventStorming?.enabled || false),
+      })
+      return {}
+    }),
+
+  addDomainEvent: (name, position) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const newEvent: DomainEvent = {
+        id: `domain-event-${Date.now()}`,
+        name,
+        position: position ?? { x: 50, y: 50 },
+      }
+      getCollabMutations().addDomainEvent(newEvent)
+      return { ...createSelectionState(newEvent.id, 'domainEvent') }
+    }),
+
+  updateDomainEvent: (eventId, updates) =>
+    set(() => {
+      getCollabMutations().updateDomainEvent(eventId, updates)
+      return {}
+    }),
+
+  deleteDomainEvent: (eventId) =>
+    set((state) => {
+      getCollabMutations().deleteDomainEvent(eventId)
+      return state.selectedDomainEventId === eventId ? { selectedDomainEventId: null } : {}
+    }),
+
+  addCommand: (name, position) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const newCommand: Command = {
+        id: `command-${Date.now()}`,
+        name,
+        position: position ?? { x: 50, y: 30 },
+      }
+      getCollabMutations().addCommand(newCommand)
+      return { ...createSelectionState(newCommand.id, 'command') }
+    }),
+
+  updateCommand: (commandId, updates) =>
+    set(() => {
+      getCollabMutations().updateCommand(commandId, updates)
+      return {}
+    }),
+
+  deleteCommand: (commandId) =>
+    set((state) => {
+      getCollabMutations().deleteCommand(commandId)
+      return state.selectedCommandId === commandId ? { selectedCommandId: null } : {}
+    }),
+
+  addESAggregate: (name, position) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const newAggregate: ESAggregate = {
+        id: `aggregate-${Date.now()}`,
+        name,
+        position: position ?? { x: 50, y: 50 },
+      }
+      getCollabMutations().addESAggregate(newAggregate)
+      return { ...createSelectionState(newAggregate.id, 'esAggregate') }
+    }),
+
+  updateESAggregate: (aggregateId, updates) =>
+    set(() => {
+      getCollabMutations().updateESAggregate(aggregateId, updates)
+      return {}
+    }),
+
+  deleteESAggregate: (aggregateId) =>
+    set((state) => {
+      getCollabMutations().deleteESAggregate(aggregateId)
+      return state.selectedESAggregateId === aggregateId ? { selectedESAggregateId: null } : {}
+    }),
+
+  addPolicy: (name, position) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const newPolicy: Policy = {
+        id: `policy-${Date.now()}`,
+        name,
+        position: position ?? { x: 50, y: 70 },
+      }
+      getCollabMutations().addPolicy(newPolicy)
+      return { ...createSelectionState(newPolicy.id, 'policy') }
+    }),
+
+  updatePolicy: (policyId, updates) =>
+    set(() => {
+      getCollabMutations().updatePolicy(policyId, updates)
+      return {}
+    }),
+
+  deletePolicy: (policyId) =>
+    set((state) => {
+      getCollabMutations().deletePolicy(policyId)
+      return state.selectedPolicyId === policyId ? { selectedPolicyId: null } : {}
+    }),
+
+  addESHotSpot: (title, position) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const newHotSpot: ESHotSpot = {
+        id: `es-hotspot-${Date.now()}`,
+        title,
+        severity: 'warning',
+        position: position ?? { x: 50, y: 50 },
+      }
+      getCollabMutations().addESHotSpot(newHotSpot)
+      return { ...createSelectionState(newHotSpot.id, 'esHotSpot') }
+    }),
+
+  updateESHotSpot: (hotSpotId, updates) =>
+    set(() => {
+      getCollabMutations().updateESHotSpot(hotSpotId, updates)
+      return {}
+    }),
+
+  deleteESHotSpot: (hotSpotId) =>
+    set((state) => {
+      getCollabMutations().deleteESHotSpot(hotSpotId)
+      return state.selectedESHotSpotId === hotSpotId ? { selectedESHotSpotId: null } : {}
+    }),
+
+  addPivotalEvent: (name) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+      const newEvent: PivotalEvent = {
+        id: `pivotal-event-${Date.now()}`,
+        name,
+        position: 50,
+      }
+      getCollabMutations().addPivotalEvent(newEvent)
+      return { ...createSelectionState(newEvent.id, 'pivotalEvent') }
+    }),
+
+  updatePivotalEvent: (eventId, updates) =>
+    set(() => {
+      getCollabMutations().updatePivotalEvent(eventId, updates)
+      return {}
+    }),
+
+  deletePivotalEvent: (eventId) =>
+    set((state) => {
+      getCollabMutations().deletePivotalEvent(eventId)
+      return state.selectedPivotalEventId === eventId ? { selectedPivotalEventId: null } : {}
+    }),
+
+  setSelectedDomainEvent: (eventId) =>
+    set(() =>
+      eventId ? createSelectionState(eventId, 'domainEvent') : createSelectionState(null, 'context')
+    ),
+
+  setSelectedCommand: (commandId) =>
+    set(() =>
+      commandId ? createSelectionState(commandId, 'command') : createSelectionState(null, 'context')
+    ),
+
+  setSelectedESAggregate: (aggregateId) =>
+    set(() =>
+      aggregateId
+        ? createSelectionState(aggregateId, 'esAggregate')
+        : createSelectionState(null, 'context')
+    ),
+
+  setSelectedPolicy: (policyId) =>
+    set(() =>
+      policyId ? createSelectionState(policyId, 'policy') : createSelectionState(null, 'context')
+    ),
+
+  setSelectedESHotSpot: (hotSpotId) =>
+    set(() =>
+      hotSpotId
+        ? createSelectionState(hotSpotId, 'esHotSpot')
+        : createSelectionState(null, 'context')
+    ),
+
+  setSelectedPivotalEvent: (eventId) =>
+    set(() =>
+      eventId
+        ? createSelectionState(eventId, 'pivotalEvent')
+        : createSelectionState(null, 'context')
+    ),
+
+  createESConnection: (sourceId, targetId) => {
+    const state = useEditorStore.getState()
+    const projectId = state.activeProjectId
+    if (!projectId) return null
+    const connection: ESConnection = {
+      id: `es-conn-${Date.now()}`,
+      sourceId,
+      targetId,
+    }
+    getCollabMutations().addESConnection(connection)
+    return connection.id
+  },
+
+  updateESConnection: (connectionId, updates) =>
+    set(() => {
+      getCollabMutations().updateESConnection(connectionId, updates)
+      return {}
+    }),
+
+  deleteESConnection: (connectionId) =>
+    set((state) => {
+      getCollabMutations().deleteESConnection(connectionId)
+      return state.selectedESConnectionId === connectionId ? { selectedESConnectionId: null } : {}
+    }),
+
+  setSelectedESConnection: (connectionId) =>
+    set(() =>
+      connectionId
+        ? createSelectionState(connectionId, 'esConnection')
+        : createSelectionState(null, 'context')
+    ),
 }))
 
 initializeBuiltInProjects(useEditorStore.setState)
