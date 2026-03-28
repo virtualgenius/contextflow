@@ -68,6 +68,7 @@ export interface YjsProject {
   // Nested config objects
   viewConfig: Y.Map<unknown> // YjsViewConfig
   temporal?: Y.Map<unknown> | null // YjsTemporal
+  eventStorming?: Y.Map<unknown> | null // YjsEventStorming
 }
 
 /**
@@ -115,6 +116,7 @@ export interface YjsPositions {
   flow: Y.Map<unknown> // { x: number }
   distillation: Y.Map<unknown> // { x: number, y: number }
   shared: Y.Map<unknown> // { y: number }
+  eventstorming?: Y.Map<unknown> | null // { x: number, y: number } (optional)
 }
 
 /**
@@ -278,6 +280,97 @@ export interface YjsNeedContextConnection {
 export interface YjsTemporal {
   enabled: boolean
   keyframes: Y.Array<Y.Map<unknown>> // Array of YjsTemporalKeyframe
+}
+
+/**
+ * Yjs representation of Event Storming configuration.
+ * Follows the same optional nested map pattern as temporal.
+ */
+export interface YjsEventStorming {
+  enabled: boolean
+  domainEvents: Y.Array<Y.Map<unknown>> // Array of YjsDomainEvent
+  commands: Y.Array<Y.Map<unknown>> // Array of YjsCommand
+  aggregates: Y.Array<Y.Map<unknown>> // Array of YjsESAggregate
+  policies: Y.Array<Y.Map<unknown>> // Array of YjsPolicy
+  hotSpots: Y.Array<Y.Map<unknown>> // Array of YjsESHotSpot
+  pivotalEvents: Y.Array<Y.Map<unknown>> // Array of YjsPivotalEvent
+  connections: Y.Array<Y.Map<unknown>> // Array of YjsESConnection
+}
+
+/**
+ * Yjs representation of a DomainEvent (Event Storming).
+ */
+export interface YjsDomainEvent {
+  id: string
+  name: string
+  description?: string | null
+  position: Y.Map<unknown> // { x: number, y: number }
+  aggregateId?: string | null
+}
+
+/**
+ * Yjs representation of a Command (Event Storming).
+ */
+export interface YjsCommand {
+  id: string
+  name: string
+  description?: string | null
+  position: Y.Map<unknown> // { x: number, y: number }
+  aggregateId?: string | null
+  actorId?: string | null
+}
+
+/**
+ * Yjs representation of an ESAggregate (Event Storming).
+ */
+export interface YjsESAggregate {
+  id: string
+  name: string
+  description?: string | null
+  position: Y.Map<unknown> // { x: number, y: number }
+  contextId?: string | null
+}
+
+/**
+ * Yjs representation of a Policy (Event Storming).
+ */
+export interface YjsPolicy {
+  id: string
+  name: string
+  description?: string | null
+  position: Y.Map<unknown> // { x: number, y: number }
+  triggerEventId?: string | null
+}
+
+/**
+ * Yjs representation of an ESHotSpot (Event Storming).
+ */
+export interface YjsESHotSpot {
+  id: string
+  title: string
+  description?: string | null
+  severity: 'info' | 'warning' | 'critical'
+  position: Y.Map<unknown> // { x: number, y: number }
+}
+
+/**
+ * Yjs representation of a PivotalEvent (Event Storming).
+ */
+export interface YjsPivotalEvent {
+  id: string
+  name: string
+  position: number // 0..100 along timeline X axis
+  description?: string | null
+}
+
+/**
+ * Yjs representation of an ESConnection (Event Storming).
+ */
+export interface YjsESConnection {
+  id: string
+  sourceId: string
+  targetId: string
+  label?: string | null
 }
 
 /**

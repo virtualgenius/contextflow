@@ -24,6 +24,22 @@ import {
   yMapToNeedContextConnection,
   yMapToTemporalKeyframe,
 } from './strategicSync'
+import {
+  populateDomainEventYMap,
+  populateCommandYMap,
+  populateESAggregateYMap,
+  populatePolicyYMap,
+  populateESHotSpotYMap,
+  populatePivotalEventYMap,
+  yMapToDomainEvent,
+  yMapToCommand,
+  yMapToESAggregate,
+  yMapToPolicy,
+  yMapToESHotSpot,
+  yMapToPivotalEvent,
+  populateESConnectionYMap,
+  yMapToESConnection,
+} from './eventStormingSync'
 
 export function projectToYDoc(project: Project): Y.Doc {
   const doc = new Y.Doc()
@@ -48,6 +64,7 @@ export function populateYDocWithProject(doc: Y.Doc, project: Project): void {
   setEntityArrays(yProject, project)
   setViewConfig(yProject, project)
   setTemporal(yProject, project)
+  setEventStorming(yProject, project)
 }
 
 export function yDocToProject(doc: Y.Doc): Project {
@@ -91,6 +108,11 @@ export function yDocToProject(doc: Y.Doc): Project {
   const temporal = extractTemporal(yProject)
   if (temporal !== null) {
     project.temporal = temporal
+  }
+
+  const eventStorming = extractEventStorming(yProject)
+  if (eventStorming !== null) {
+    project.eventStorming = eventStorming
   }
 
   return project
@@ -202,5 +224,57 @@ function extractTemporal(yProject: Y.Map<unknown>): Project['temporal'] | null {
   return {
     enabled: yTemporalMap.get('enabled') as boolean,
     keyframes,
+  }
+}
+
+function setEventStorming(yProject: Y.Map<unknown>, project: Project): void {
+  if (!project.eventStorming) {
+    yProject.set('eventStorming', null)
+    return
+  }
+
+  const yES = new Y.Map<unknown>()
+  yES.set('enabled', project.eventStorming.enabled)
+  yES.set(
+    'domainEvents',
+    createEntityArray(project.eventStorming.domainEvents, populateDomainEventYMap)
+  )
+  yES.set('commands', createEntityArray(project.eventStorming.commands, populateCommandYMap))
+  yES.set(
+    'aggregates',
+    createEntityArray(project.eventStorming.aggregates, populateESAggregateYMap)
+  )
+  yES.set('policies', createEntityArray(project.eventStorming.policies, populatePolicyYMap))
+  yES.set('hotSpots', createEntityArray(project.eventStorming.hotSpots, populateESHotSpotYMap))
+  yES.set(
+    'pivotalEvents',
+    createEntityArray(project.eventStorming.pivotalEvents, populatePivotalEventYMap)
+  )
+  yES.set(
+    'connections',
+    createEntityArray(project.eventStorming.connections, populateESConnectionYMap)
+  )
+  yProject.set('eventStorming', yES)
+}
+
+function extractEventStorming(yProject: Y.Map<unknown>): Project['eventStorming'] | null {
+  const yES = yProject.get('eventStorming')
+  if (yES === null || yES === undefined) {
+    return null
+  }
+
+  const yESMap = yES as Y.Map<unknown>
+
+  return {
+    enabled: yESMap.get('enabled') as boolean,
+    domainEvents: extractArray(yESMap, 'domainEvents', yMapToDomainEvent),
+    commands: extractArray(yESMap, 'commands', yMapToCommand),
+    aggregates: extractArray(yESMap, 'aggregates', yMapToESAggregate),
+    policies: extractArray(yESMap, 'policies', yMapToPolicy),
+    hotSpots: extractArray(yESMap, 'hotSpots', yMapToESHotSpot),
+    pivotalEvents: extractArray(yESMap, 'pivotalEvents', yMapToPivotalEvent),
+    connections: yESMap.has('connections')
+      ? extractArray(yESMap, 'connections', yMapToESConnection)
+      : [],
   }
 }

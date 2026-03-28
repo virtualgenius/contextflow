@@ -34,6 +34,17 @@ export interface Project {
     enabled: boolean
     keyframes: TemporalKeyframe[]
   }
+
+  eventStorming?: {
+    enabled: boolean
+    domainEvents: DomainEvent[]
+    commands: Command[]
+    aggregates: ESAggregate[]
+    policies: Policy[]
+    hotSpots: ESHotSpot[]
+    pivotalEvents: PivotalEvent[]
+    connections: ESConnection[]
+  }
 }
 
 export type ContextOwnership = 'ours' | 'internal' | 'external'
@@ -54,6 +65,7 @@ export interface BoundedContext {
     flow: { x: number } // Flow View horizontal (0..100)
     distillation: { x: number; y: number } // Distillation View 2D position (0..100)
     shared: { y: number } // vertical (0..100), shared across Flow/Strategic views
+    eventstorming?: { x: number; y: number } // Event Storming View 2D position (0..100)
   }
 
   evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'
@@ -190,4 +202,61 @@ export interface TemporalKeyframe {
 
   // Which contexts exist at this point in time
   activeContextIds: string[]
+}
+
+// Event Storming entity types
+
+export interface DomainEvent {
+  id: string
+  name: string // past tense, e.g. "Order Placed"
+  description?: string
+  position: { x: number; y: number } // 0..100 on ES canvas
+  aggregateId?: string // which aggregate this event belongs to
+}
+
+export interface Command {
+  id: string
+  name: string // imperative, e.g. "Place Order"
+  description?: string
+  position: { x: number; y: number }
+  aggregateId?: string
+  actorId?: string // which User/Actor triggers this command
+}
+
+export interface ESAggregate {
+  id: string
+  name: string // e.g. "Order"
+  description?: string
+  position: { x: number; y: number }
+  contextId?: string // link to a BoundedContext (many aggregates per context)
+}
+
+export interface Policy {
+  id: string
+  name: string // e.g. "When order placed, send confirmation"
+  description?: string
+  position: { x: number; y: number }
+  triggerEventId?: string // which domain event triggers this policy
+}
+
+export interface ESHotSpot {
+  id: string
+  title: string
+  description?: string
+  severity: IssueSeverity
+  position: { x: number; y: number }
+}
+
+export interface PivotalEvent {
+  id: string
+  name: string
+  position: number // 0..100 along timeline X axis
+  description?: string
+}
+
+export interface ESConnection {
+  id: string
+  sourceId: string // any ES entity ID
+  targetId: string // any ES entity ID
+  label?: string
 }

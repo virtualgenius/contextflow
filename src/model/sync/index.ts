@@ -20,6 +20,27 @@ export {
   updateUserNeedPositionMutation,
 } from './userNeedMutations'
 export {
+  toggleEventStormingMutation,
+  addDomainEventMutation,
+  updateDomainEventMutation,
+  deleteDomainEventMutation,
+  addCommandMutation,
+  updateCommandMutation,
+  deleteCommandMutation,
+  addESAggregateMutation,
+  updateESAggregateMutation,
+  deleteESAggregateMutation,
+  addPolicyMutation,
+  updatePolicyMutation,
+  deletePolicyMutation,
+  addESHotSpotMutation,
+  updateESHotSpotMutation,
+  deleteESHotSpotMutation,
+  addPivotalEventMutation,
+  updatePivotalEventMutation,
+  deletePivotalEventMutation,
+} from './eventStormingMutations'
+export {
   useCollabStore,
   createCollabStoreFromYDoc,
   type CollabStore,

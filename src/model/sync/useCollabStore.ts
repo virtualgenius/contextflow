@@ -15,6 +15,13 @@ import type {
   Person,
   Issue,
   IssueSeverity,
+  DomainEvent,
+  Command,
+  ESAggregate,
+  Policy,
+  ESHotSpot,
+  PivotalEvent,
+  ESConnection,
 } from '../types'
 import { projectToYDoc, yDocToProject } from './projectSync'
 import { SyncManager } from './syncManager'
@@ -85,6 +92,30 @@ import {
   deletePersonMutation,
 } from './metadataMutations'
 import { renameProjectMutation } from './projectMutations'
+import {
+  toggleEventStormingMutation,
+  addDomainEventMutation,
+  updateDomainEventMutation,
+  deleteDomainEventMutation,
+  addCommandMutation,
+  updateCommandMutation,
+  deleteCommandMutation,
+  addESAggregateMutation,
+  updateESAggregateMutation,
+  deleteESAggregateMutation,
+  addPolicyMutation,
+  updatePolicyMutation,
+  deletePolicyMutation,
+  addESHotSpotMutation,
+  updateESHotSpotMutation,
+  deleteESHotSpotMutation,
+  addPivotalEventMutation,
+  updatePivotalEventMutation,
+  deletePivotalEventMutation,
+  addESConnectionMutation,
+  updateESConnectionMutation,
+  deleteESConnectionMutation,
+} from './eventStormingMutations'
 
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void
@@ -145,6 +176,29 @@ export interface CollabStore {
   updatePerson(personId: string, updates: Partial<Person>): void
   deletePerson(personId: string): void
   renameProject(name: string): void
+  // Event Storming
+  toggleEventStorming(): void
+  addDomainEvent(event: DomainEvent): void
+  updateDomainEvent(eventId: string, updates: Partial<DomainEvent>): void
+  deleteDomainEvent(eventId: string): void
+  addCommand(command: Command): void
+  updateCommand(commandId: string, updates: Partial<Command>): void
+  deleteCommand(commandId: string): void
+  addESAggregate(aggregate: ESAggregate): void
+  updateESAggregate(aggregateId: string, updates: Partial<ESAggregate>): void
+  deleteESAggregate(aggregateId: string): void
+  addPolicy(policy: Policy): void
+  updatePolicy(policyId: string, updates: Partial<Policy>): void
+  deletePolicy(policyId: string): void
+  addESHotSpot(hotSpot: ESHotSpot): void
+  updateESHotSpot(hotSpotId: string, updates: Partial<ESHotSpot>): void
+  deleteESHotSpot(hotSpotId: string): void
+  addPivotalEvent(event: PivotalEvent): void
+  updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void
+  deletePivotalEvent(eventId: string): void
+  addESConnection(connection: ESConnection): void
+  updateESConnection(connectionId: string, updates: Partial<ESConnection>): void
+  deleteESConnection(connectionId: string): void
   canUndo(): boolean
   canRedo(): boolean
   undo(): void
@@ -374,6 +428,74 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     renameProject(name: string): void {
       renameProjectMutation(ydoc, name)
+    },
+
+    // Event Storming
+    toggleEventStorming(): void {
+      toggleEventStormingMutation(ydoc)
+    },
+    addDomainEvent(event: DomainEvent): void {
+      addDomainEventMutation(ydoc, event)
+    },
+    updateDomainEvent(eventId: string, updates: Partial<DomainEvent>): void {
+      updateDomainEventMutation(ydoc, eventId, updates)
+    },
+    deleteDomainEvent(eventId: string): void {
+      deleteDomainEventMutation(ydoc, eventId)
+    },
+    addCommand(command: Command): void {
+      addCommandMutation(ydoc, command)
+    },
+    updateCommand(commandId: string, updates: Partial<Command>): void {
+      updateCommandMutation(ydoc, commandId, updates)
+    },
+    deleteCommand(commandId: string): void {
+      deleteCommandMutation(ydoc, commandId)
+    },
+    addESAggregate(aggregate: ESAggregate): void {
+      addESAggregateMutation(ydoc, aggregate)
+    },
+    updateESAggregate(aggregateId: string, updates: Partial<ESAggregate>): void {
+      updateESAggregateMutation(ydoc, aggregateId, updates)
+    },
+    deleteESAggregate(aggregateId: string): void {
+      deleteESAggregateMutation(ydoc, aggregateId)
+    },
+    addPolicy(policy: Policy): void {
+      addPolicyMutation(ydoc, policy)
+    },
+    updatePolicy(policyId: string, updates: Partial<Policy>): void {
+      updatePolicyMutation(ydoc, policyId, updates)
+    },
+    deletePolicy(policyId: string): void {
+      deletePolicyMutation(ydoc, policyId)
+    },
+    addESHotSpot(hotSpot: ESHotSpot): void {
+      addESHotSpotMutation(ydoc, hotSpot)
+    },
+    updateESHotSpot(hotSpotId: string, updates: Partial<ESHotSpot>): void {
+      updateESHotSpotMutation(ydoc, hotSpotId, updates)
+    },
+    deleteESHotSpot(hotSpotId: string): void {
+      deleteESHotSpotMutation(ydoc, hotSpotId)
+    },
+    addPivotalEvent(event: PivotalEvent): void {
+      addPivotalEventMutation(ydoc, event)
+    },
+    updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void {
+      updatePivotalEventMutation(ydoc, eventId, updates)
+    },
+    deletePivotalEvent(eventId: string): void {
+      deletePivotalEventMutation(ydoc, eventId)
+    },
+    addESConnection(connection: ESConnection): void {
+      addESConnectionMutation(ydoc, connection)
+    },
+    updateESConnection(connectionId: string, updates: Partial<ESConnection>): void {
+      updateESConnectionMutation(ydoc, connectionId, updates)
+    },
+    deleteESConnection(connectionId: string): void {
+      deleteESConnectionMutation(ydoc, connectionId)
     },
 
     canUndo(): boolean {
@@ -643,6 +765,74 @@ export function createCollabStoreFromYDoc(
 
     renameProject(name: string): void {
       renameProjectMutation(ydoc, name)
+    },
+
+    // Event Storming
+    toggleEventStorming(): void {
+      toggleEventStormingMutation(ydoc)
+    },
+    addDomainEvent(event: DomainEvent): void {
+      addDomainEventMutation(ydoc, event)
+    },
+    updateDomainEvent(eventId: string, updates: Partial<DomainEvent>): void {
+      updateDomainEventMutation(ydoc, eventId, updates)
+    },
+    deleteDomainEvent(eventId: string): void {
+      deleteDomainEventMutation(ydoc, eventId)
+    },
+    addCommand(command: Command): void {
+      addCommandMutation(ydoc, command)
+    },
+    updateCommand(commandId: string, updates: Partial<Command>): void {
+      updateCommandMutation(ydoc, commandId, updates)
+    },
+    deleteCommand(commandId: string): void {
+      deleteCommandMutation(ydoc, commandId)
+    },
+    addESAggregate(aggregate: ESAggregate): void {
+      addESAggregateMutation(ydoc, aggregate)
+    },
+    updateESAggregate(aggregateId: string, updates: Partial<ESAggregate>): void {
+      updateESAggregateMutation(ydoc, aggregateId, updates)
+    },
+    deleteESAggregate(aggregateId: string): void {
+      deleteESAggregateMutation(ydoc, aggregateId)
+    },
+    addPolicy(policy: Policy): void {
+      addPolicyMutation(ydoc, policy)
+    },
+    updatePolicy(policyId: string, updates: Partial<Policy>): void {
+      updatePolicyMutation(ydoc, policyId, updates)
+    },
+    deletePolicy(policyId: string): void {
+      deletePolicyMutation(ydoc, policyId)
+    },
+    addESHotSpot(hotSpot: ESHotSpot): void {
+      addESHotSpotMutation(ydoc, hotSpot)
+    },
+    updateESHotSpot(hotSpotId: string, updates: Partial<ESHotSpot>): void {
+      updateESHotSpotMutation(ydoc, hotSpotId, updates)
+    },
+    deleteESHotSpot(hotSpotId: string): void {
+      deleteESHotSpotMutation(ydoc, hotSpotId)
+    },
+    addPivotalEvent(event: PivotalEvent): void {
+      addPivotalEventMutation(ydoc, event)
+    },
+    updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void {
+      updatePivotalEventMutation(ydoc, eventId, updates)
+    },
+    deletePivotalEvent(eventId: string): void {
+      deletePivotalEventMutation(ydoc, eventId)
+    },
+    addESConnection(connection: ESConnection): void {
+      addESConnectionMutation(ydoc, connection)
+    },
+    updateESConnection(connectionId: string, updates: Partial<ESConnection>): void {
+      updateESConnectionMutation(ydoc, connectionId, updates)
+    },
+    deleteESConnection(connectionId: string): void {
+      deleteESConnectionMutation(ydoc, connectionId)
     },
 
     canUndo(): boolean {

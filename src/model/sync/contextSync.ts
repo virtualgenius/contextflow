@@ -88,6 +88,15 @@ function setPositions(yMap: Y.Map<unknown>, positions: BoundedContext['positions
   yPositions.set('distillation', yDistillation)
   yPositions.set('shared', yShared)
 
+  if (positions.eventstorming) {
+    const yEventstorming = new Y.Map<unknown>()
+    yEventstorming.set('x', positions.eventstorming.x)
+    yEventstorming.set('y', positions.eventstorming.y)
+    yPositions.set('eventstorming', yEventstorming)
+  } else {
+    yPositions.set('eventstorming', null)
+  }
+
   yMap.set('positions', yPositions)
 }
 
@@ -127,7 +136,7 @@ function extractPositions(yPositions: Y.Map<unknown>): BoundedContext['positions
   const distillation = yPositions.get('distillation') as Y.Map<unknown>
   const shared = yPositions.get('shared') as Y.Map<unknown>
 
-  return {
+  const positions: BoundedContext['positions'] = {
     strategic: { x: strategic.get('x') as number },
     flow: { x: flow.get('x') as number },
     distillation: {
@@ -136,6 +145,17 @@ function extractPositions(yPositions: Y.Map<unknown>): BoundedContext['positions
     },
     shared: { y: shared.get('y') as number },
   }
+
+  const eventstorming = yPositions.get('eventstorming')
+  if (eventstorming !== null && eventstorming !== undefined) {
+    const yES = eventstorming as Y.Map<unknown>
+    positions.eventstorming = {
+      x: yES.get('x') as number,
+      y: yES.get('y') as number,
+    }
+  }
+
+  return positions
 }
 
 function extractCodeSize(yCodeSize: Y.Map<unknown>): NonNullable<BoundedContext['codeSize']> {
