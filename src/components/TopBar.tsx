@@ -60,6 +60,12 @@ export function TopBar() {
   const addUser = useEditorStore((s) => s.addUser)
   const addUserNeed = useEditorStore((s) => s.addUserNeed)
   const addFlowStage = useEditorStore((s) => s.addFlowStage)
+  const addDomainEvent = useEditorStore((s) => s.addDomainEvent)
+  const addESCommand = useEditorStore((s) => s.addCommand)
+  const addESAggregate = useEditorStore((s) => s.addESAggregate)
+  const addESHotSpot = useEditorStore((s) => s.addESHotSpot)
+  const addPolicy = useEditorStore((s) => s.addPolicy)
+  const addPivotalEvent = useEditorStore((s) => s.addPivotalEvent)
   const importProject = useEditorStore((s) => s.importProject)
   const clearActiveProject = useEditorStore((s) => s.clearActiveProject)
   const toggleTemporalMode = useEditorStore((s) => s.toggleTemporalMode)
@@ -210,6 +216,42 @@ export function TopBar() {
     }
   }
 
+  const handleAddDomainEvent = () => {
+    const name = prompt('Domain event name (past tense, e.g. "Order Placed"):')
+    if (!name) return
+    addDomainEvent(name.trim())
+  }
+
+  const handleAddESCommand = () => {
+    const name = prompt('Command name (imperative, e.g. "Place Order"):')
+    if (!name) return
+    addESCommand(name.trim())
+  }
+
+  const handleAddESAggregate = () => {
+    const name = prompt('Aggregate name (e.g. "Order"):')
+    if (!name) return
+    addESAggregate(name.trim())
+  }
+
+  const handleAddESHotSpot = () => {
+    const title = prompt('Hot spot (question, risk, or concern):')
+    if (!title) return
+    addESHotSpot(title.trim())
+  }
+
+  const handleAddPolicy = () => {
+    const name = prompt('Policy name (e.g. "When order placed, send confirmation"):')
+    if (!name) return
+    addPolicy(name.trim())
+  }
+
+  const handleAddPivotalEvent = () => {
+    const name = prompt('Pivotal event name (phase boundary):')
+    if (!name) return
+    addPivotalEvent(name.trim())
+  }
+
   return (
     <header className="flex items-center gap-4 px-5 py-3 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
       {/* Logo */}
@@ -247,12 +289,14 @@ export function TopBar() {
 
       {/* Add buttons - primary creation CTAs */}
       <div className="ml-4 flex items-center gap-1 bg-slate-50 dark:bg-neutral-900 rounded-lg px-1.5 py-1">
-        <InfoTooltip content={BOUNDED_CONTEXT_DEFINITION} position="bottom">
-          <AddButton onClick={handleAddContext} icon={<Box size={14} />} label="Context" />
-        </InfoTooltip>
+        {viewMode !== 'eventstorming' && (
+          <InfoTooltip content={BOUNDED_CONTEXT_DEFINITION} position="bottom">
+            <AddButton onClick={handleAddContext} icon={<Box size={14} />} label="Context" />
+          </InfoTooltip>
+        )}
 
-        {/* User/Need buttons: Strategic and Value Stream views (not Distillation) */}
-        {viewMode !== 'distillation' && (
+        {/* User/Need buttons: Strategic and Value Stream views */}
+        {(viewMode === 'flow' || viewMode === 'strategic') && (
           <>
             <InfoTooltip content={USER_DEFINITION} position="bottom">
               <AddButton onClick={handleAddUser} icon={<User size={14} />} label="User" />
@@ -268,6 +312,18 @@ export function TopBar() {
           <InfoTooltip content={STAGE_DEFINITION} position="bottom">
             <AddButton onClick={handleAddStage} icon={<Hash size={14} />} label="Stage" />
           </InfoTooltip>
+        )}
+
+        {/* Event Storming add buttons */}
+        {viewMode === 'eventstorming' && (
+          <>
+            <AddButton onClick={handleAddDomainEvent} icon={<Box size={14} />} label="Event" />
+            <AddButton onClick={handleAddESCommand} icon={<Box size={14} />} label="Command" />
+            <AddButton onClick={handleAddESAggregate} icon={<Box size={14} />} label="Aggregate" />
+            <AddButton onClick={handleAddPolicy} icon={<Box size={14} />} label="Policy" />
+            <AddButton onClick={handleAddESHotSpot} icon={<Box size={14} />} label="Hot Spot" />
+            <AddButton onClick={handleAddPivotalEvent} icon={<Hash size={14} />} label="Pivot" />
+          </>
         )}
       </div>
 
@@ -309,6 +365,18 @@ export function TopBar() {
               }`}
             >
               Strategic
+            </button>
+          </InfoTooltip>
+          <InfoTooltip content={VIEW_DESCRIPTIONS.eventstorming}>
+            <button
+              onClick={() => setViewMode('eventstorming')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'eventstorming'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Event Storming
             </button>
           </InfoTooltip>
         </div>

@@ -4,6 +4,7 @@ import { CanvasArea } from './components/CanvasArea'
 import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
+import { ESStickyPalette } from './components/ESStickyPalette'
 import { TeamSidebar } from './components/TeamSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
@@ -39,6 +40,14 @@ function Workspace() {
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
   const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
+  const selectedDomainEventId = useEditorStore((s) => s.selectedDomainEventId)
+  const selectedCommandId = useEditorStore((s) => s.selectedCommandId)
+  const selectedESAggregateId = useEditorStore((s) => s.selectedESAggregateId)
+  const selectedPolicyId = useEditorStore((s) => s.selectedPolicyId)
+  const selectedESHotSpotId = useEditorStore((s) => s.selectedESHotSpotId)
+  const selectedPivotalEventId = useEditorStore((s) => s.selectedPivotalEventId)
+  const selectedESConnectionId = useEditorStore((s) => s.selectedESConnectionId)
+  const viewMode = useEditorStore((s) => s.activeViewMode)
   const selectedContextIds = useEditorStore((s) => s.selectedContextIds)
   const clearContextSelection = useEditorStore((s) => s.clearContextSelection)
   const createGroup = useEditorStore((s) => s.createGroup)
@@ -104,7 +113,8 @@ function Workspace() {
 
   const hasRepos = (project?.repos?.length ?? 0) > 0
   const hasTeams = (project?.teams?.length ?? 0) > 0
-  const hasLeftSidebarContent = hasRepos || hasTeams
+  const isESView = viewMode === 'eventstorming'
+  const hasLeftSidebarContent = isESView || hasRepos || hasTeams
   const showLeftSidebar = hasLeftSidebarContent && !isSidebarCollapsed
 
   // Auto-select appropriate tab when content changes
@@ -123,7 +133,14 @@ function Workspace() {
     !!selectedUserNeedConnectionId ||
     !!selectedNeedContextConnectionId ||
     selectedStageIndex !== null ||
-    !!selectedTeamId
+    !!selectedTeamId ||
+    !!selectedDomainEventId ||
+    !!selectedCommandId ||
+    !!selectedESAggregateId ||
+    !!selectedPolicyId ||
+    !!selectedESHotSpotId ||
+    !!selectedPivotalEventId ||
+    !!selectedESConnectionId
 
   const gridCols =
     showLeftSidebar && hasRightSidebar
@@ -275,7 +292,9 @@ function Workspace() {
             )}
 
             <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
-              {activeTab === 'repos' ? (
+              {isESView ? (
+                <ESStickyPalette />
+              ) : activeTab === 'repos' ? (
                 <RepoSidebar
                   repos={project?.repos || []}
                   teams={project?.teams || []}
@@ -336,7 +355,14 @@ function Workspace() {
           selectedUserNeedConnectionId ||
           selectedNeedContextConnectionId ||
           selectedStageIndex !== null ||
-          selectedTeamId) && (
+          selectedTeamId ||
+          selectedDomainEventId ||
+          selectedCommandId ||
+          selectedESAggregateId ||
+          selectedPolicyId ||
+          selectedESHotSpotId ||
+          selectedPivotalEventId ||
+          selectedESConnectionId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>
