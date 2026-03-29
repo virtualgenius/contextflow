@@ -1321,11 +1321,11 @@ function CanvasContent() {
               </marker>
             </defs>
           </svg>
-          {viewMode === 'eventstorming' && project && (
-            <ESContextRegions project={project} />
-          )}
         </ReactFlow>
       </div>
+      {viewMode === 'eventstorming' && project && (
+        <ESContextRegions project={project} />
+      )}
 
       <ESAreaSelectMenu
         selectedStickyIds={selectedStickyIds}

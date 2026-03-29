@@ -1,5 +1,5 @@
 import React from 'react'
-import { useViewport } from 'reactflow'
+import { useViewport, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 
@@ -47,10 +47,11 @@ function detachContext(contextId: string) {
 }
 
 export function ESContextRegions({ project }: { project: Project }) {
-  const { x: vpX, y: vpY, zoom } = useViewport()
-  const [hoveredContextId, setHoveredContextId] = React.useState<string | null>(null)
+  useViewport() // subscribe to pan/zoom so we re-render on viewport changes
+  const { flowToScreenPosition } = useReactFlow()
 
   const es = project.eventStorming
+
   if (!es?.enabled) return null
 
   const contextPositions = new Map<string, { x: number; y: number }[]>()
@@ -99,16 +100,17 @@ export function ESContextRegions({ project }: { project: Project }) {
         const minY = Math.min(...ys) - PADDING
         const maxY = Math.max(...ys) + STICKY_H + PADDING
 
-        // Convert canvas coords to screen (viewport) coords
-        const left = minX * zoom + vpX
-        const top = minY * zoom + vpY
-        const width = (maxX - minX) * zoom
-        const height = (maxY - minY) * zoom
+        // Convert canvas coords to screen coords using ReactFlow's own transform
+        const topLeft = flowToScreenPosition({ x: minX, y: minY })
+        const bottomRight = flowToScreenPosition({ x: maxX, y: maxY })
+        const left = topLeft.x
+        const top = topLeft.y
+        const width = bottomRight.x - topLeft.x
+        const height = bottomRight.y - topLeft.y
 
         const classification = ctx.strategicClassification || 'generic'
         const bgColor = STRATEGIC_COLORS[classification] ?? STRATEGIC_COLORS.generic
         const borderColor = BORDER_COLORS[classification] ?? BORDER_COLORS.generic
-        const isHovered = hoveredContextId === contextId
 
         return (
           <div
@@ -125,10 +127,8 @@ export function ESContextRegions({ project }: { project: Project }) {
               pointerEvents: 'none',
             }}
           >
-            {/* Label pill — only interactive element */}
+            {/* Label pill + detach button — always visible, interactive */}
             <div
-              onMouseEnter={() => setHoveredContextId(contextId)}
-              onMouseLeave={() => setHoveredContextId(null)}
               style={{
                 position: 'absolute',
                 top: -13,
@@ -154,31 +154,29 @@ export function ESContextRegions({ project }: { project: Project }) {
               >
                 {ctx.name}
               </div>
-              {isHovered && (
-                <button
-                  title="Remove from context (stickies stay)"
-                  onClick={(e) => { e.stopPropagation(); detachContext(contextId) }}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    border: `1.5px solid ${borderColor}`,
-                    backgroundColor: 'white',
-                    color: borderColor,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 0,
-                    flexShrink: 0,
-                  }}
-                >
-                  ×
-                </button>
-              )}
+              <button
+                title="Remove from context (stickies stay)"
+                onClick={(e) => { e.stopPropagation(); detachContext(contextId) }}
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  border: `1.5px solid ${borderColor}`,
+                  backgroundColor: 'white',
+                  color: borderColor,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  flexShrink: 0,
+                }}
+              >
+                ×
+              </button>
             </div>
           </div>
         )
