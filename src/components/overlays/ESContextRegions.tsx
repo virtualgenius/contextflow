@@ -3,16 +3,28 @@ import { useViewport, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 
-const STRATEGIC_COLORS: Record<string, string> = {
+const STRATEGIC_BG: Record<string, string> = {
   core: 'rgba(248, 231, 161, 0.22)',
   supporting: 'rgba(219, 234, 254, 0.22)',
   generic: 'rgba(243, 244, 246, 0.22)',
 }
 
-const BORDER_COLORS: Record<string, string> = {
+const STRATEGIC_BORDER: Record<string, string> = {
   core: '#f59e0b',
   supporting: '#3b82f6',
   generic: '#94a3b8',
+}
+
+const OWNERSHIP_BG: Record<string, string> = {
+  ours: 'rgba(209, 250, 229, 0.35)',     // green-100 tint
+  internal: 'rgba(219, 234, 254, 0.35)', // blue-100 tint
+  external: 'rgba(254, 215, 170, 0.35)', // orange-200 tint
+}
+
+const OWNERSHIP_BORDER: Record<string, string> = {
+  ours: '#10b981',     // emerald-500
+  internal: '#3b82f6', // blue-500
+  external: '#f97316', // orange-500
 }
 
 const STICKY_W = 140
@@ -49,6 +61,7 @@ function detachContext(contextId: string) {
 export function ESContextRegions({ project }: { project: Project }) {
   useViewport() // subscribe to pan/zoom so we re-render on viewport changes
   const { flowToScreenPosition } = useReactFlow()
+  const colorByMode = useEditorStore((s) => s.colorByMode)
 
   const es = project.eventStorming
 
@@ -108,9 +121,10 @@ export function ESContextRegions({ project }: { project: Project }) {
         const width = bottomRight.x - topLeft.x
         const height = bottomRight.y - topLeft.y
 
-        const classification = ctx.strategicClassification || 'generic'
-        const bgColor = STRATEGIC_COLORS[classification] ?? STRATEGIC_COLORS.generic
-        const borderColor = BORDER_COLORS[classification] ?? BORDER_COLORS.generic
+        const isOwnership = colorByMode === 'ownership'
+        const key = isOwnership ? (ctx.ownership || 'ours') : (ctx.strategicClassification || 'generic')
+        const bgColor = isOwnership ? OWNERSHIP_BG[key] : STRATEGIC_BG[key]
+        const borderColor = isOwnership ? OWNERSHIP_BORDER[key] : STRATEGIC_BORDER[key]
 
         return (
           <div
