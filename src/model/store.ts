@@ -1931,7 +1931,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       // Link the aggregate to the new context
       getCollabMutations().updateESAggregate(aggregateId, { contextId })
 
-      return { ...createSelectionState(contextId, 'context') }
+      // Stay on the aggregate (don't switch to context selection in ES view)
+      return {}
     }),
 
   syncPivotalEventsToFlowStages: () =>

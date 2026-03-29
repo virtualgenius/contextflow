@@ -28,7 +28,6 @@ import { createSelectionState } from '../model/validation'
 import { NODE_SIZES } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import { TimeSlider } from './TimeSlider'
-import { NavigationBreadcrumb } from './NavigationBreadcrumb'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
@@ -1291,7 +1290,6 @@ function CanvasContent() {
   return (
     <div className="relative w-full h-full">
       <TimeSlider />
-      <NavigationBreadcrumb />
       <div
         className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}
         onDrop={onDrop}

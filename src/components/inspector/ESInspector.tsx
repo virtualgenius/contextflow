@@ -56,7 +56,7 @@ export function ESInspector({ project, entityType, entityId }: ESInspectorProps)
       return null
   }
 
-  if (!entity) return <div className="text-slate-400 italic">{colors.label} not found.</div>
+  if (!entity) return null
 
   const displayName = nameField === 'title' ? entity.title : entity.name
 
