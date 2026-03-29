@@ -45,6 +45,11 @@ export function yMapToContext(yMap: Y.Map<unknown>): BoundedContext {
     context.issues = extractIssues(issues as Y.Array<Y.Map<unknown>>)
   }
 
+  const esBoundsRaw = yMap.get('esBounds')
+  if (esBoundsRaw !== null && esBoundsRaw !== undefined) {
+    context.esBounds = JSON.parse(esBoundsRaw as string)
+  }
+
   return context
 }
 
@@ -65,6 +70,7 @@ function setOptionalFields(yMap: Y.Map<unknown>, context: BoundedContext): void 
   yMap.set('businessModelRole', context.businessModelRole ?? null)
   yMap.set('notes', context.notes ?? null)
   yMap.set('teamId', context.teamId ?? null)
+  yMap.set('esBounds', context.esBounds ? JSON.stringify(context.esBounds) : null)
 }
 
 function setPositions(yMap: Y.Map<unknown>, positions: BoundedContext['positions']): void {

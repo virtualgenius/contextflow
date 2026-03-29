@@ -23,6 +23,7 @@ export function updateContextMutation(
 
     applyScalarUpdates(yContext, updates)
     applyCodeSizeUpdate(yContext, updates)
+    applyEsBoundsUpdate(yContext, updates)
   })
 }
 
@@ -127,6 +128,11 @@ function applyScalarUpdates(yContext: Y.Map<unknown>, updates: Partial<BoundedCo
       yContext.set(field, value ?? null)
     }
   }
+}
+
+function applyEsBoundsUpdate(yContext: Y.Map<unknown>, updates: Partial<BoundedContext>): void {
+  if (!('esBounds' in updates)) return
+  yContext.set('esBounds', updates.esBounds ? JSON.stringify(updates.esBounds) : null)
 }
 
 function applyCodeSizeUpdate(yContext: Y.Map<unknown>, updates: Partial<BoundedContext>): void {

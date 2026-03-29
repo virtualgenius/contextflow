@@ -68,6 +68,8 @@ export interface BoundedContext {
     eventstorming?: { x: number; y: number } // Event Storming View 2D position (0..100)
   }
 
+  esBounds?: { minX: number; minY: number; maxX: number; maxY: number } // canvas % coords override for ES view area
+
   evolutionStage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility'
 
   codeSize?: {
