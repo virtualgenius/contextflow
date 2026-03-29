@@ -6,6 +6,7 @@ import type { Project } from '../model/types'
 import { isValidESConnection, getConnectionLabel } from '../lib/esConnectionRules'
 import type { Node } from 'reactflow'
 import { ES_W, ES_H } from '../lib/esCanvasConfig'
+import type { ESAreaSelectState } from './useESAreaSelect'
 
 // Module-level clipboard for ES sticky copy/paste
 let esClipboard: { stickyType: string; name: string; description?: string } | null = null
@@ -47,15 +48,32 @@ export function useESHandlers() {
     []
   )
 
-  // Handle ES sticky node click: update selection in store
-  const handleESNodeClick = useCallback((nodeId: string, stickyType: string) => {
-    const state = useEditorStore.getState()
-    if (stickyType === 'domainEvent') state.setSelectedDomainEvent(nodeId)
-    else if (stickyType === 'command') state.setSelectedCommand(nodeId)
-    else if (stickyType === 'aggregate') state.setSelectedESAggregate(nodeId)
-    else if (stickyType === 'policy') state.setSelectedPolicy(nodeId)
-    else if (stickyType === 'hotSpot') state.setSelectedESHotSpot(nodeId)
-  }, [])
+  // Handle ES sticky node click: update selection in store.
+  // If shiftKey is held (or multi-select is already active), toggle the sticky into the
+  // area-select multi-selection instead of doing a single-item inspector select.
+  const handleESNodeClick = useCallback(
+    (
+      nodeId: string,
+      stickyType: string,
+      shiftKey: boolean,
+      areaSelect: Pick<ESAreaSelectState, 'selectedStickyIds' | 'toggleStickySelection' | 'clearSelection'>
+    ) => {
+      if (shiftKey || areaSelect.selectedStickyIds.length > 0) {
+        // Multi-select mode: toggle this sticky in the area-select list
+        areaSelect.toggleStickySelection(nodeId)
+        return
+      }
+      // Single select: clear any area selection and select via inspector
+      areaSelect.clearSelection()
+      const state = useEditorStore.getState()
+      if (stickyType === 'domainEvent') state.setSelectedDomainEvent(nodeId)
+      else if (stickyType === 'command') state.setSelectedCommand(nodeId)
+      else if (stickyType === 'aggregate') state.setSelectedESAggregate(nodeId)
+      else if (stickyType === 'policy') state.setSelectedPolicy(nodeId)
+      else if (stickyType === 'hotSpot') state.setSelectedESHotSpot(nodeId)
+    },
+    []
+  )
 
   // Track which sticky type is being dragged from (to highlight valid targets)
   const handleESConnectStart = useCallback((nodeId: string | null, nodes: Node[]) => {

@@ -165,6 +165,7 @@ function CanvasContent() {
     newContextName,
     setNewContextName,
     clearSelection,
+    toggleStickySelection,
     onWrapperMouseDown,
     onWrapperMouseMove,
     onWrapperMouseUp,
@@ -655,7 +656,11 @@ function CanvasContent() {
 
     // Handle ES sticky node clicks (selection)
     if (node.type === 'esSticky') {
-      handleESNodeClick(node.id, node.data?.stickyType)
+      handleESNodeClick(node.id, node.data?.stickyType, event.shiftKey, {
+        selectedStickyIds,
+        toggleStickySelection,
+        clearSelection,
+      })
       return
     }
 
@@ -669,7 +674,7 @@ function CanvasContent() {
         ...createSelectionState(node.id, 'context'),
       })
     }
-  }, [handleESNodeClick])
+  }, [handleESNodeClick, selectedStickyIds, toggleStickySelection, clearSelection])
 
   // Handle pane click (deselect or place sticky)
   const onPaneClick = useCallback(
@@ -678,6 +683,8 @@ function CanvasContent() {
       if (viewMode === 'eventstorming') {
         const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY })
         if (handleESPaneClick(flowPos)) return
+        // Clear multi-selection when clicking empty canvas in select/pan mode
+        if (selectedStickyIds.length > 0) clearSelection()
       }
 
       // Default: deselect
@@ -685,7 +692,7 @@ function CanvasContent() {
         ...createSelectionState(null, 'context'),
       })
     },
-    [viewMode, screenToFlowPosition, handleESPaneClick]
+    [viewMode, screenToFlowPosition, handleESPaneClick, selectedStickyIds, clearSelection]
   )
 
   // Handle edge connection (User → User Need → Context, or Context → Context)
@@ -1221,7 +1228,7 @@ function CanvasContent() {
           onNodeDrag={constrainNodePosition}
           onNodeDragStop={onNodeDragStop}
           onInit={onInit}
-          panOnDrag={esToolMode === 'select' || esToolMode === 'connect' || esToolMode === 'pan' || viewMode !== 'eventstorming'}
+          panOnDrag={esToolMode === 'connect' || esToolMode === 'pan' || viewMode !== 'eventstorming'}
           elementsSelectable
           deleteKeyCode={['Backspace', 'Delete']}
           minZoom={0.1}

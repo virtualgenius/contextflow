@@ -1684,7 +1684,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       const project = state.projects[projectId]
       if (!project) return {}
       const newEvent: DomainEvent = {
-        id: `domain-event-${Date.now()}`,
+        id: `domain-event-${crypto.randomUUID()}`,
         name,
         position: position ?? { x: 50, y: 50 },
       }
@@ -1711,7 +1711,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       const project = state.projects[projectId]
       if (!project) return {}
       const newCommand: Command = {
-        id: `command-${Date.now()}`,
+        id: `command-${crypto.randomUUID()}`,
         name,
         position: position ?? { x: 50, y: 30 },
       }
@@ -1738,7 +1738,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       const project = state.projects[projectId]
       if (!project) return {}
       const newAggregate: ESAggregate = {
-        id: `aggregate-${Date.now()}`,
+        id: `aggregate-${crypto.randomUUID()}`,
         name,
         position: position ?? { x: 50, y: 50 },
       }
@@ -1765,7 +1765,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       const project = state.projects[projectId]
       if (!project) return {}
       const newPolicy: Policy = {
-        id: `policy-${Date.now()}`,
+        id: `policy-${crypto.randomUUID()}`,
         name,
         position: position ?? { x: 50, y: 70 },
       }
@@ -1792,7 +1792,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       const project = state.projects[projectId]
       if (!project) return {}
       const newHotSpot: ESHotSpot = {
-        id: `es-hotspot-${Date.now()}`,
+        id: `es-hotspot-${crypto.randomUUID()}`,
         title,
         severity: 'warning',
         position: position ?? { x: 50, y: 50 },
@@ -1820,7 +1820,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       const project = state.projects[projectId]
       if (!project) return {}
       const newEvent: PivotalEvent = {
-        id: `pivotal-event-${Date.now()}`,
+        id: `pivotal-event-${crypto.randomUUID()}`,
         name,
         x: x ?? 50,
         y: y ?? 10,
@@ -1845,7 +1845,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   addSwimLane: (x, y, width) =>
     set(() => {
       const newLane: ESSwimLane = {
-        id: `swim-lane-${Date.now()}`,
+        id: `swim-lane-${crypto.randomUUID()}`,
         x: x ?? 20,
         y: y ?? 50,
         width: width ?? 30,
@@ -1912,7 +1912,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const projectId = state.activeProjectId
     if (!projectId) return null
     const connection: ESConnection = {
-      id: `es-conn-${Date.now()}`,
+      id: `es-conn-${crypto.randomUUID()}`,
       sourceId,
       targetId,
     }

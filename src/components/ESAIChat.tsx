@@ -35,6 +35,10 @@ OPERATIONS:
   "delete_connections": [ "<real canvas connection id>", ... ]
 }
 
+ID RULES (critical — violations break the canvas):
+- Every sticky in add_stickies MUST have a UNIQUE id within the response. Use simple sequential ids: "c1","c2","a1","a2","e1","e2","p1","p2" etc. NEVER reuse an id even if two stickies have the same name.
+- add_connections references ONLY ids defined in add_stickies (for new stickies) or real canvas ids (for existing ones).
+
 LAYOUT RULES:
 - Sticky size: 140 wide × 100 tall. Leave 30px gap between stickies horizontally, 30px vertically.
 - Standard flow left-to-right: command (x) → aggregate (x+170) → domainEvent (x+340). Next row: y+130.
@@ -45,7 +49,7 @@ LAYOUT RULES:
 - Contexts BETWEEN existing ones that need to grow: the system will automatically push neighbors right — so don't worry about collisions.
 - Valid connections: command→aggregate, aggregate→domainEvent, domainEvent→policy, domainEvent→command, policy→command.
 
-EXAMPLE (fresh canvas, placing 2 contexts):
+EXAMPLE (fresh canvas, 2 contexts, notice all ids are unique c1..c3, a1..a3, e1..e3):
 \`\`\`actions
 {
   "add_stickies": [
@@ -72,20 +76,20 @@ EXAMPLE (fresh canvas, placing 2 contexts):
 \`\`\`
 Two contexts placed compactly left-to-right.
 
-EXAMPLE (iterating — ordering has max_x=830, max_y=680; adding a new row inside ordering AND a new context):
+EXAMPLE (iterating — ordering has max_x=830, max_y=680; new row + new context, continuing from c3/a3/e3 so next are c4..c6):
 \`\`\`actions
 {
   "add_stickies": [
-    {"id":"c5","type":"command","name":"RefundOrder","x_px":350,"y_px":810,"context":"ordering"},
-    {"id":"a5","type":"aggregate","name":"Order","x_px":520,"y_px":810,"context":"ordering"},
-    {"id":"e5","type":"domainEvent","name":"OrderRefunded","x_px":690,"y_px":810,"context":"ordering"},
-    {"id":"c4","type":"command","name":"AssignRider","x_px":1800,"y_px":550,"context":"delivery"},
-    {"id":"a4","type":"aggregate","name":"Delivery","x_px":1970,"y_px":550,"context":"delivery"},
-    {"id":"e4","type":"domainEvent","name":"RiderAssigned","x_px":2140,"y_px":550,"context":"delivery"}
+    {"id":"c4","type":"command","name":"RefundOrder","x_px":350,"y_px":810,"context":"ordering"},
+    {"id":"a4","type":"aggregate","name":"Order","x_px":520,"y_px":810,"context":"ordering"},
+    {"id":"e4","type":"domainEvent","name":"OrderRefunded","x_px":690,"y_px":810,"context":"ordering"},
+    {"id":"c5","type":"command","name":"AssignRider","x_px":1800,"y_px":550,"context":"delivery"},
+    {"id":"a5","type":"aggregate","name":"Delivery","x_px":1970,"y_px":550,"context":"delivery"},
+    {"id":"e5","type":"domainEvent","name":"RiderAssigned","x_px":2140,"y_px":550,"context":"delivery"}
   ],
   "add_connections": [
-    {"from":"c5","to":"a5"},{"from":"a5","to":"e5"},
-    {"from":"c4","to":"a4"},{"from":"a4","to":"e4"}
+    {"from":"c4","to":"a4"},{"from":"a4","to":"e4"},
+    {"from":"c5","to":"a5"},{"from":"a5","to":"e5"}
   ],
   "add_contexts": [{"name":"Delivery","label":"delivery"}]
 }
@@ -349,7 +353,14 @@ function applyPayload(payload: ActionsPayload): number {
   for (const id of payload.delete_connections ?? []) st().deleteESConnection(id)
 
   // add_stickies + add_contexts
-  const newStickies = payload.add_stickies ?? []
+  // Deduplicate: if the AI emits multiple stickies with the same temp id, give each a unique id
+  const rawStickies = payload.add_stickies ?? []
+  const seenIds = new Map<string, number>()
+  const newStickies: AddStickyOp[] = rawStickies.map((s) => {
+    const count = (seenIds.get(s.id) ?? 0) + 1
+    seenIds.set(s.id, count)
+    return count > 1 ? { ...s, id: `${s.id}_dup${count}` } : s
+  })
   if (newStickies.length === 0) return 0
 
   const newContextDefs = payload.add_contexts ?? []
@@ -388,33 +399,47 @@ function applyPayload(payload: ActionsPayload): number {
     groupMap.get(label)!.stickies.push(s)
   }
 
-  // Resolve pixel position for each new sticky (AI provides x_px/y_px directly)
+  // Place stickies.
+  // The AI often reuses the same temp id for multiple stickies (Date.now() collision).
+  // We map by array index to guarantee uniqueness, then build two lookup structures:
+  //   stickyRealIds[i]      = real store id for newStickies[i]
+  //   stickyPx[realId]      = pixel coords for that real id (used by updateContextBounds)
+  const stickyRealIds: string[] = []
   const stickyPx: Record<string, { px: number; py: number }> = {}
-  for (const s of newStickies) {
-    stickyPx[s.id] = { px: s.x_px ?? CANVAS_START_X, py: s.y_px ?? CANVAS_START_Y }
-  }
 
-  // Place stickies, build idMap temp→real
-  const idMap: Record<string, string> = {}
-  for (const action of newStickies) {
-    const { px, py } = stickyPx[action.id]
+  for (let i = 0; i < newStickies.length; i++) {
+    const action = newStickies[i]
+    const px = action.x_px ?? CANVAS_START_X
+    const py = action.y_px ?? CANVAS_START_Y
     const pos = pxToPercent(px, py)
+    let realId = ''
     if (action.type === 'domainEvent') {
       st().addDomainEvent(action.name, pos)
-      idMap[action.id] = st().selectedDomainEventId ?? ''
+      realId = st().selectedDomainEventId ?? ''
     } else if (action.type === 'command') {
       st().addCommand(action.name, pos)
-      idMap[action.id] = st().selectedCommandId ?? ''
+      realId = st().selectedCommandId ?? ''
     } else if (action.type === 'aggregate') {
       st().addESAggregate(action.name, pos)
-      idMap[action.id] = st().selectedESAggregateId ?? ''
+      realId = st().selectedESAggregateId ?? ''
     } else if (action.type === 'policy') {
       st().addPolicy(action.name, pos)
-      idMap[action.id] = st().selectedPolicyId ?? ''
+      realId = st().selectedPolicyId ?? ''
     } else if (action.type === 'hotSpot') {
       st().addESHotSpot(action.name, pos)
-      idMap[action.id] = st().selectedESHotSpotId ?? ''
+      realId = st().selectedESHotSpotId ?? ''
     }
+    stickyRealIds.push(realId)
+    if (realId) stickyPx[realId] = { px, py }
+  }
+
+  // Build idMap: AI temp id → real id.
+  // For duplicate temp ids, map to the FIRST occurrence (connections written before the
+  // duplicate refer to the first sticky with that id).
+  const idMap: Record<string, string> = {}
+  for (let i = 0; i < newStickies.length; i++) {
+    const tempId = newStickies[i].id
+    if (!idMap[tempId]) idMap[tempId] = stickyRealIds[i]
   }
 
   // add_connections — resolve temp ids OR pass real ids through
@@ -475,6 +500,10 @@ function applyPayload(payload: ActionsPayload): number {
     }
   }
 
+  // Helper: resolve temp AI id → real id, then get px coords
+  const realIdsFor = (stickies: AddStickyOp[]) =>
+    stickies.map((s) => idMap[s.id]).filter(Boolean)
+
   // add_contexts (new ones)
   for (const ctxDef of newContextDefs) {
     const g = groupMap.get(ctxDef.label)
@@ -482,14 +511,113 @@ function applyPayload(payload: ActionsPayload): number {
     if (members.length === 0) continue
     st().addContext(ctxDef.name)
     const newCtxId = st().selectedContextId
-    if (newCtxId) updateContextBounds(newCtxId, members.map((s) => s.id))
+    if (newCtxId) updateContextBounds(newCtxId, realIdsFor(members))
   }
 
   // Expand existing contexts that got new stickies
   for (const [, g] of groupMap) {
     if (g.ctxDef !== null || !g.existingCtxId) continue
     if (g.stickies.length === 0) continue
-    updateContextBounds(g.existingCtxId, g.stickies.map((s) => s.id))
+    updateContextBounds(g.existingCtxId, realIdsFor(g.stickies))
+  }
+
+  // Resolve context collisions: sort contexts left-to-right, push any overlap right
+  {
+    const GAP_PX = 40
+    const ctxsNow = [...(st().projects[st().activeProjectId ?? '']?.contexts ?? [])]
+      .filter((c) => c.esBounds)
+      .sort((a, b) => a.esBounds!.minX - b.esBounds!.minX)
+    for (let i = 1; i < ctxsNow.length; i++) {
+      const prev = ctxsNow[i - 1]
+      const cur = ctxsNow[i]
+      const prevMaxX = (prev.esBounds!.maxX / 100) * ES_W
+      const curMinX = (cur.esBounds!.minX / 100) * ES_W
+      if (curMinX < prevMaxX + GAP_PX) {
+        const shift = prevMaxX + GAP_PX - curMinX
+        const eb = cur.esBounds!
+        const newEb = {
+          minX: Math.min(100, eb.minX + (shift / ES_W) * 100),
+          minY: eb.minY,
+          maxX: Math.min(100, eb.maxX + (shift / ES_W) * 100),
+          maxY: eb.maxY,
+        }
+        st().updateContext(cur.id, { esBounds: newEb })
+        const es2 = st().projects[st().activeProjectId ?? '']?.eventStorming
+        if (es2) {
+          const shiftPct = (shift / ES_W) * 100
+          const shiftPos = (pos: { x: number; y: number }) => ({ x: Math.min(100, pos.x + shiftPct), y: pos.y })
+          for (const s of es2.domainEvents.filter((s) => s.contextId === cur.id))
+            st().updateDomainEvent(s.id, { position: shiftPos(s.position) })
+          for (const s of es2.commands.filter((s) => s.contextId === cur.id))
+            st().updateCommand(s.id, { position: shiftPos(s.position) })
+          for (const s of es2.aggregates.filter((s) => s.contextId === cur.id))
+            st().updateESAggregate(s.id, { position: shiftPos(s.position) })
+          for (const s of es2.policies.filter((s) => s.contextId === cur.id))
+            st().updatePolicy(s.id, { position: shiftPos(s.position) })
+          for (const s of es2.hotSpots.filter((s) => s.contextId === cur.id))
+            st().updateESHotSpot(s.id, { position: shiftPos(s.position) })
+        }
+        // Update the sorted array so the next iteration sees the moved bounds
+        ctxsNow[i] = { ...cur, esBounds: newEb }
+      }
+    }
+  }
+
+  // Assign any orphaned stickies (no contextId) to the nearest context by proximity
+  const allContextsAfter = st().projects[st().activeProjectId ?? '']?.contexts ?? []
+  const orphanIds = newStickies
+    .filter((s) => !s.context || (!newCtxLabels.has(s.context) && !existingLabelMap.has(s.context)))
+    .map((s) => idMap[s.id])
+    .filter(Boolean)
+  if (orphanIds.length > 0) {
+    for (const realId of orphanIds) {
+      // Find which context has bounds containing this sticky's position
+      const esNow = st().projects[st().activeProjectId ?? '']?.eventStorming
+      if (!esNow) continue
+      const allStickyArrays = [
+        ...esNow.domainEvents, ...esNow.commands, ...esNow.aggregates,
+        ...esNow.policies, ...esNow.hotSpots,
+      ]
+      const sticky = allStickyArrays.find((s) => s.id === realId)
+      if (!sticky || sticky.contextId) continue
+      const px = (sticky.position.x / 100) * ES_W
+      const py = (sticky.position.y / 100) * ES_H
+      // Find context whose bounds contain this sticky
+      let bestCtxId: string | null = null
+      let bestArea = Infinity
+      for (const ctx of allContextsAfter) {
+        const eb = ctx.esBounds
+        if (!eb) continue
+        const minX = (eb.minX / 100) * ES_W
+        const minY = (eb.minY / 100) * ES_H
+        const maxX = (eb.maxX / 100) * ES_W
+        const maxY = (eb.maxY / 100) * ES_H
+        if (px >= minX && px <= maxX && py >= minY && py <= maxY) {
+          const area = (maxX - minX) * (maxY - minY)
+          if (area < bestArea) { bestArea = area; bestCtxId = ctx.id }
+        }
+      }
+      // Fall back: closest context center
+      if (!bestCtxId) {
+        let minDist = Infinity
+        for (const ctx of allContextsAfter) {
+          const eb = ctx.esBounds
+          if (!eb) continue
+          const cx = ((eb.minX + eb.maxX) / 2 / 100) * ES_W
+          const cy = ((eb.minY + eb.maxY) / 2 / 100) * ES_H
+          const d = Math.hypot(px - cx, py - cy)
+          if (d < minDist) { minDist = d; bestCtxId = ctx.id }
+        }
+      }
+      if (bestCtxId) {
+        if (esNow.domainEvents.find((s) => s.id === realId)) st().updateDomainEvent(realId, { contextId: bestCtxId })
+        else if (esNow.commands.find((s) => s.id === realId)) st().updateCommand(realId, { contextId: bestCtxId })
+        else if (esNow.aggregates.find((s) => s.id === realId)) st().updateESAggregate(realId, { contextId: bestCtxId })
+        else if (esNow.policies.find((s) => s.id === realId)) st().updatePolicy(realId, { contextId: bestCtxId })
+        // Expand context bounds to include this sticky (pass real id)
+        updateContextBounds(bestCtxId, [realId])
+      }
+    }
   }
 
   return newStickies.length
@@ -619,7 +747,7 @@ function useCanvasItems() {
   })
 }
 
-function CanvasTab() {
+export function ESCanvasTab() {
   const { stickies, contexts } = useCanvasItems()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -812,7 +940,6 @@ interface AnthropicMessage {
 
 export function ESAIChat() {
   const activeProjectId = useEditorStore((s) => s.activeProjectId)
-  const [tab, setTab] = useState<'chat' | 'canvas'>('chat')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -826,7 +953,6 @@ export function ESAIChat() {
     setMessages([])
     setInput('')
     setError(null)
-    setTab('chat')
   }, [activeProjectId])
 
   useEffect(() => {
@@ -859,7 +985,6 @@ export function ESAIChat() {
     setMessages(updatedMessages)
     setInput('')
     setIsLoading(true)
-    setTab('chat')
 
     trackEvent('es_ai_chat_sent', null, { message_length: trimmed.length })
 
@@ -919,35 +1044,7 @@ export function ESAIChat() {
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-neutral-800">
-      {/* Header + tabs */}
-      <div className="flex-shrink-0 border-b border-slate-200 dark:border-neutral-700">
-        <div className="flex items-center gap-2 px-3 pt-2.5 pb-0">
-          <Bot size={14} className="text-blue-500 flex-shrink-0" />
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">ES Assistant</span>
-        </div>
-        <div className="flex mt-2">
-          {(['chat', 'canvas'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 py-1.5 text-[11px] font-medium border-b-2 transition-colors capitalize ${
-                tab === t
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Canvas tab */}
-      {tab === 'canvas' && <CanvasTab />}
-
-      {/* Chat tab */}
-      {tab === 'chat' && (
-        <>
+      <>
           {!hasApiKey && (
             <div className="mx-3 mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 flex-shrink-0">
               <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
@@ -1014,8 +1111,7 @@ export function ESAIChat() {
               </button>
             )}
           </div>
-        </>
-      )}
+      </>
     </div>
   )
 }

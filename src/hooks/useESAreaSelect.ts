@@ -4,11 +4,13 @@ import { useEditorStore } from '../model/store'
 export interface ESAreaSelectState {
   areaSelectRect: { startX: number; startY: number; endX: number; endY: number } | null
   selectedStickyIds: string[]
+  setSelectedStickyIds: React.Dispatch<React.SetStateAction<string[]>>
   stickyMenuMode: 'menu' | 'newContext' | 'pickContext'
   setStickyMenuMode: React.Dispatch<React.SetStateAction<'menu' | 'newContext' | 'pickContext'>>
   newContextName: string
   setNewContextName: React.Dispatch<React.SetStateAction<string>>
   clearSelection: () => void
+  toggleStickySelection: (id: string) => void
   onWrapperMouseDown: (e: React.MouseEvent) => void
   onWrapperMouseMove: (e: React.MouseEvent) => void
   onWrapperMouseUp: () => void
@@ -35,14 +37,25 @@ export function useESAreaSelect(): ESAreaSelectState {
     setNewContextName('')
   }, [])
 
+  // Toggle a single sticky in/out of the multi-selection (used by shift+click in select mode)
+  const toggleStickySelection = React.useCallback((id: string) => {
+    setSelectedStickyIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }, [])
+
   const onWrapperMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
-      if (viewMode === 'eventstorming' && esToolMode === 'areaSelect') {
-        const tag = (e.target as HTMLElement).tagName
-        if (tag === 'BUTTON' || tag === 'INPUT') return
-        setAreaSelectRect({ startX: e.clientX, startY: e.clientY, endX: e.clientX, endY: e.clientY })
-        setSelectedStickyIds([])
-      }
+      const isSelectMode = viewMode === 'eventstorming' && (esToolMode === 'areaSelect' || esToolMode === 'select')
+      if (!isSelectMode) return
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'BUTTON' || tag === 'INPUT') return
+      // Only start drag-rect if clicking on canvas background (not on a sticky node)
+      const target = e.target as HTMLElement
+      const isOnNode = !!target.closest('.react-flow__node')
+      if (isOnNode) return
+      setAreaSelectRect({ startX: e.clientX, startY: e.clientY, endX: e.clientX, endY: e.clientY })
+      setSelectedStickyIds([])
     },
     [viewMode, esToolMode]
   )
@@ -83,11 +96,13 @@ export function useESAreaSelect(): ESAreaSelectState {
   return {
     areaSelectRect,
     selectedStickyIds,
+    setSelectedStickyIds,
     stickyMenuMode,
     setStickyMenuMode,
     newContextName,
     setNewContextName,
     clearSelection,
+    toggleStickySelection,
     onWrapperMouseDown,
     onWrapperMouseMove,
     onWrapperMouseUp,
