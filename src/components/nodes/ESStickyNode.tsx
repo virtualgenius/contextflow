@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Handle, Position, type NodeProps } from 'reactflow'
+import { useEditorStore } from '../../model/store'
 
 // Event Storming sticky note colors (standard Brandolini palette)
 export const ES_COLORS = {
@@ -18,12 +19,14 @@ interface ESStickyData {
   isSelected: boolean
   isValidTarget?: boolean // true when another node is dragging and this is a valid drop target
   isConnecting?: boolean // true when any connection drag is in progress
+  votes?: number
 }
 
-export function ESStickyNode({ data }: NodeProps) {
-  const { stickyType, name, isSelected, isValidTarget, isConnecting } = data as ESStickyData
+export function ESStickyNode({ id: nodeId, data }: NodeProps) {
+  const { stickyType, name, isSelected, isValidTarget, isConnecting, votes } = data as ESStickyData
   const colors = ES_COLORS[stickyType]
   const [isHovered, setIsHovered] = useState(false)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
 
   const showHandles = isHovered || isSelected
   // During connection drag: valid targets glow, invalid ones dim
@@ -40,7 +43,18 @@ export function ESStickyNode({ data }: NodeProps) {
   }
 
   return (
-    <div onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false)
+        setContextMenu(null)
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setContextMenu({ x: e.clientX, y: e.clientY })
+      }}
+    >
       <Handle type="target" position={Position.Left} id="left" style={handleStyle} />
       <Handle type="source" position={Position.Right} id="right" style={handleStyle} />
       <Handle type="target" position={Position.Top} id="top" style={handleStyle} />
@@ -99,7 +113,81 @@ export function ESStickyNode({ data }: NodeProps) {
         >
           {colors.label}
         </div>
+
+        {/* Vote badge */}
+        {(votes ?? 0) > 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              top: -6,
+              right: -6,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              backgroundColor: '#ef4444',
+              color: '#fff',
+              fontSize: 10,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid #fff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            }}
+          >
+            {votes}
+          </div>
+        )}
       </div>
+
+      {/* Right-click context menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-600 rounded-lg shadow-lg py-1 z-50"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              const st = useEditorStore.getState()
+              const updateFns: Record<string, (id: string, u: Record<string, unknown>) => void> = {
+                domainEvent: st.updateDomainEvent,
+                command: st.updateCommand,
+                aggregate: st.updateESAggregate,
+                policy: st.updatePolicy,
+                hotSpot: st.updateESHotSpot,
+              }
+              updateFns[stickyType]?.(nodeId, { votes: (votes ?? 0) + 1 })
+              setContextMenu(null)
+            }}
+            className="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 dark:hover:bg-neutral-700"
+          >
+            +1 Vote ({votes ?? 0})
+          </button>
+          {stickyType === 'aggregate' && (
+            <button
+              onClick={() => {
+                useEditorStore.getState().deriveContextFromAggregate(nodeId)
+                setContextMenu(null)
+              }}
+              className="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 dark:hover:bg-neutral-700"
+            >
+              Create Bounded Context
+            </button>
+          )}
+          {stickyType === 'hotSpot' && (
+            <button
+              onClick={() => {
+                useEditorStore.getState().promoteHotSpotToIssue(nodeId)
+                setContextMenu(null)
+              }}
+              className="w-full px-4 py-2 text-left text-xs hover:bg-slate-100 dark:hover:bg-neutral-700"
+            >
+              Promote to Issue
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

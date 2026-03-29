@@ -1899,6 +1899,159 @@ export const useEditorStore = create<EditorState>((set) => ({
         ? createSelectionState(connectionId, 'esConnection')
         : createSelectionState(null, 'context')
     ),
+
+  deriveContextFromAggregate: (aggregateId) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project?.eventStorming) return {}
+
+      const aggregate = project.eventStorming.aggregates.find((a) => a.id === aggregateId)
+      if (!aggregate) return {}
+
+      // Create a new bounded context named after the aggregate
+      const contextId = `context-${Date.now()}`
+      const flowPos = findFirstUnoccupiedFlowPosition(project.contexts)
+      const distilPos = findFirstUnoccupiedGridPosition(project.contexts)
+
+      const newContext: BoundedContext = {
+        id: contextId,
+        name: aggregate.name,
+        positions: {
+          flow: flowPos,
+          strategic: { x: 50 },
+          distillation: distilPos,
+          shared: { y: 50 },
+        },
+        evolutionStage: 'custom-built',
+      }
+
+      getCollabMutations().addContext(newContext)
+      // Link the aggregate to the new context
+      getCollabMutations().updateESAggregate(aggregateId, { contextId })
+
+      return { ...createSelectionState(contextId, 'context') }
+    }),
+
+  syncPivotalEventsToFlowStages: () =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project?.eventStorming) return {}
+
+      const pivotalEvents = project.eventStorming.pivotalEvents
+      const existingStageNames = new Set(
+        project.viewConfig.flowStages.map((s) => s.name.toLowerCase())
+      )
+
+      for (const pe of pivotalEvents) {
+        if (!existingStageNames.has(pe.name.toLowerCase())) {
+          getCollabMutations().addFlowStage({
+            name: pe.name,
+            position: pe.position,
+            description: pe.description,
+          })
+        }
+      }
+
+      return {}
+    }),
+
+  promoteHotSpotToIssue: (hotSpotId) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project?.eventStorming) return {}
+
+      const hotSpot = project.eventStorming.hotSpots.find((h) => h.id === hotSpotId)
+      if (!hotSpot) return {}
+
+      // Find nearest aggregate by connection or position
+      const connections = project.eventStorming.connections || []
+      const connectedAgg = connections.find(
+        (c) => c.sourceId === hotSpotId || c.targetId === hotSpotId
+      )
+      let targetContextId: string | undefined
+
+      if (connectedAgg) {
+        const aggId =
+          connectedAgg.sourceId === hotSpotId ? connectedAgg.targetId : connectedAgg.sourceId
+        const agg = project.eventStorming.aggregates.find((a) => a.id === aggId)
+        targetContextId = agg?.contextId
+      }
+
+      // Fallback: find closest aggregate by position
+      if (!targetContextId) {
+        let closestDist = Infinity
+        for (const agg of project.eventStorming.aggregates) {
+          if (!agg.contextId) continue
+          const dx = agg.position.x - hotSpot.position.x
+          const dy = agg.position.y - hotSpot.position.y
+          const dist = dx * dx + dy * dy
+          if (dist < closestDist) {
+            closestDist = dist
+            targetContextId = agg.contextId
+          }
+        }
+      }
+
+      if (!targetContextId) return {} // No context to attach to
+
+      getCollabMutations().addContextIssue(targetContextId, hotSpot.title, hotSpot.severity)
+
+      return {}
+    }),
+
+  autoLayoutESTimeline: () =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project?.eventStorming) return {}
+
+      const es = project.eventStorming
+      // Row positions (y percentage)
+      const rows: Record<string, number> = {
+        command: 20,
+        aggregate: 45,
+        domainEvent: 65,
+        policy: 85,
+        hotSpot: 10,
+      }
+
+      // Lay out each type in its row, distributed evenly by x
+      const layoutEntities = (
+        entities: { id: string; position: { x: number; y: number } }[],
+        yRow: number,
+        updateFn: (id: string, updates: { position: { x: number; y: number } }) => void
+      ) => {
+        if (entities.length === 0) return
+        const sorted = [...entities].sort((a, b) => a.position.x - b.position.x)
+        const spacing = 90 / Math.max(sorted.length, 1)
+        sorted.forEach((e, i) => {
+          updateFn(e.id, { position: { x: 5 + spacing * i, y: yRow } })
+        })
+      }
+
+      layoutEntities(es.commands, rows.command, (id, u) =>
+        getCollabMutations().updateCommand(id, u)
+      )
+      layoutEntities(es.aggregates, rows.aggregate, (id, u) =>
+        getCollabMutations().updateESAggregate(id, u)
+      )
+      layoutEntities(es.domainEvents, rows.domainEvent, (id, u) =>
+        getCollabMutations().updateDomainEvent(id, u)
+      )
+      layoutEntities(es.policies, rows.policy, (id, u) => getCollabMutations().updatePolicy(id, u))
+      layoutEntities(es.hotSpots, rows.hotSpot, (id, u) =>
+        getCollabMutations().updateESHotSpot(id, u)
+      )
+
+      return {}
+    }),
 }))
 
 initializeBuiltInProjects(useEditorStore.setState)

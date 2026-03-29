@@ -212,6 +212,7 @@ export interface DomainEvent {
   description?: string
   position: { x: number; y: number } // 0..100 on ES canvas
   aggregateId?: string // which aggregate this event belongs to
+  votes?: number
 }
 
 export interface Command {
@@ -221,6 +222,7 @@ export interface Command {
   position: { x: number; y: number }
   aggregateId?: string
   actorId?: string // which User/Actor triggers this command
+  votes?: number
 }
 
 export interface ESAggregate {
@@ -229,6 +231,7 @@ export interface ESAggregate {
   description?: string
   position: { x: number; y: number }
   contextId?: string // link to a BoundedContext (many aggregates per context)
+  votes?: number
 }
 
 export interface Policy {
@@ -237,6 +240,7 @@ export interface Policy {
   description?: string
   position: { x: number; y: number }
   triggerEventId?: string // which domain event triggers this policy
+  votes?: number
 }
 
 export interface ESHotSpot {
@@ -245,6 +249,7 @@ export interface ESHotSpot {
   description?: string
   severity: IssueSeverity
   position: { x: number; y: number }
+  votes?: number
 }
 
 export interface PivotalEvent {

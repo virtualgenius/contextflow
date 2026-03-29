@@ -322,6 +322,10 @@ export interface EditorState {
   setSelectedPolicy: (policyId: string | null) => void
   setSelectedESHotSpot: (hotSpotId: string | null) => void
   setSelectedPivotalEvent: (eventId: string | null) => void
+  deriveContextFromAggregate: (aggregateId: string) => void
+  syncPivotalEventsToFlowStages: () => void
+  promoteHotSpotToIssue: (hotSpotId: string) => void
+  autoLayoutESTimeline: () => void
   createESConnection: (sourceId: string, targetId: string) => string | null
   updateESConnection: (connectionId: string, updates: Partial<ESConnection>) => void
   deleteESConnection: (connectionId: string) => void

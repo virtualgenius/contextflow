@@ -25,6 +25,7 @@ import { SettingsIntegrations } from './settings/SettingsIntegrations'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
+import { ESWorkshopTimer } from './ESWorkshopTimer'
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal'
 import { ImportConflictDialog } from './ImportConflictDialog'
 import {
@@ -66,6 +67,8 @@ export function TopBar() {
   const addESHotSpot = useEditorStore((s) => s.addESHotSpot)
   const addPolicy = useEditorStore((s) => s.addPolicy)
   const addPivotalEvent = useEditorStore((s) => s.addPivotalEvent)
+  const syncPivotalEventsToFlowStages = useEditorStore((s) => s.syncPivotalEventsToFlowStages)
+  const autoLayoutESTimeline = useEditorStore((s) => s.autoLayoutESTimeline)
   const importProject = useEditorStore((s) => s.importProject)
   const clearActiveProject = useEditorStore((s) => s.clearActiveProject)
   const toggleTemporalMode = useEditorStore((s) => s.toggleTemporalMode)
@@ -323,6 +326,17 @@ export function TopBar() {
             <AddButton onClick={handleAddPolicy} icon={<Box size={14} />} label="Policy" />
             <AddButton onClick={handleAddESHotSpot} icon={<Box size={14} />} label="Hot Spot" />
             <AddButton onClick={handleAddPivotalEvent} icon={<Hash size={14} />} label="Pivot" />
+            <div className="w-px h-4 bg-slate-300 dark:bg-neutral-600 mx-0.5" />
+            <AddButton
+              onClick={syncPivotalEventsToFlowStages}
+              icon={<Share2 size={14} />}
+              label="Sync Stages"
+            />
+            <AddButton
+              onClick={autoLayoutESTimeline}
+              icon={<Hash size={14} />}
+              label="Auto-Layout"
+            />
           </>
         )}
       </div>
@@ -380,6 +394,14 @@ export function TopBar() {
             </button>
           </InfoTooltip>
         </div>
+
+        {/* Workshop Timer - only visible in Event Storming View */}
+        {viewMode === 'eventstorming' && (
+          <>
+            <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
+            <ESWorkshopTimer />
+          </>
+        )}
 
         {/* Temporal Mode toggle - only visible in Strategic View */}
         {viewMode === 'strategic' && (
