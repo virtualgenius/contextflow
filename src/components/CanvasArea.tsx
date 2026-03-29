@@ -28,6 +28,7 @@ import { createSelectionState } from '../model/validation'
 import { NODE_SIZES } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import { TimeSlider } from './TimeSlider'
+import { NavigationBreadcrumb } from './NavigationBreadcrumb'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
@@ -50,6 +51,7 @@ import {
   YAxisLabels,
   DistillationRegions,
   PivotalEventLines,
+  ESContextRegions,
 } from './overlays'
 import { isValidESConnection, getValidTargets, getConnectionLabel } from '../lib/esConnectionRules'
 import type { ESStickyType } from './nodes/ESStickyNode'
@@ -478,6 +480,7 @@ function CanvasContent() {
                 isSelected: evt.id === selectedDomainEventId,
                 isValidTarget: esValidTargets.includes('domainEvent'),
                 isConnecting: esConnectingFromType !== null,
+                votes: evt.votes,
               },
               style: { width: 140, height: 100, zIndex: 10 },
               draggable: true,
@@ -494,6 +497,7 @@ function CanvasContent() {
                 isSelected: cmd.id === selectedCommandId,
                 isValidTarget: esValidTargets.includes('command'),
                 isConnecting: esConnectingFromType !== null,
+                votes: cmd.votes,
               },
               style: { width: 140, height: 100, zIndex: 10 },
               draggable: true,
@@ -510,6 +514,7 @@ function CanvasContent() {
                 isSelected: agg.id === selectedESAggregateId,
                 isValidTarget: esValidTargets.includes('aggregate'),
                 isConnecting: esConnectingFromType !== null,
+                votes: agg.votes,
               },
               style: { width: 140, height: 100, zIndex: 10 },
               draggable: true,
@@ -526,6 +531,7 @@ function CanvasContent() {
                 isSelected: pol.id === selectedPolicyId,
                 isValidTarget: esValidTargets.includes('policy'),
                 isConnecting: esConnectingFromType !== null,
+                votes: pol.votes,
               },
               style: { width: 140, height: 100, zIndex: 10 },
               draggable: true,
@@ -542,6 +548,7 @@ function CanvasContent() {
                 isSelected: hs.id === selectedESHotSpotId,
                 isValidTarget: esValidTargets.includes('hotSpot'),
                 isConnecting: esConnectingFromType !== null,
+                votes: hs.votes,
               },
               style: { width: 140, height: 100, zIndex: 10 },
               draggable: true,
@@ -1279,6 +1286,7 @@ function CanvasContent() {
   return (
     <div className="relative w-full h-full">
       <TimeSlider />
+      <NavigationBreadcrumb />
       <div
         className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}
         onDrop={onDrop}
@@ -1330,6 +1338,7 @@ function CanvasContent() {
               {project?.eventStorming?.pivotalEvents && (
                 <PivotalEventLines pivotalEvents={project.eventStorming.pivotalEvents} />
               )}
+              {project && <ESContextRegions project={project} />}
             </>
           ) : (
             <>
