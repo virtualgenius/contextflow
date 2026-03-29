@@ -88,6 +88,9 @@ Every BoundedContext has three position coordinates:
 **DDD relationship patterns:**
 Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-corruption-layer`, `open-host-service`, `published-language`, `shared-kernel`, `partnership`, `separate-ways`
 
+**DDD terminology precision:**
+Use precise DDD terminology. Do not conflate upstream/downstream, do not narrow or broaden scope without being asked, and ask for clarification rather than assuming domain semantics. When modeling relationships, the directionality matters: upstream provides, downstream consumes.
+
 **Groups (capability clusters):**
 - Visual overlays only; deleting a group does not delete member contexts
 - Can overlap (multiple groups covering same canvas area)
