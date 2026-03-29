@@ -589,9 +589,18 @@ function CanvasContent() {
         : []
 
     // ES connection edges (only in Event Storming view)
+    // Build a set of all existing sticky IDs to filter orphaned edges
+    const es = project.eventStorming
+    const esNodeIds = new Set<string>([
+      ...(es?.domainEvents ?? []).map((s) => s.id),
+      ...(es?.commands ?? []).map((s) => s.id),
+      ...(es?.aggregates ?? []).map((s) => s.id),
+      ...(es?.policies ?? []).map((s) => s.id),
+      ...(es?.hotSpots ?? []).map((s) => s.id),
+    ])
     const esConnectionEdges: Edge[] =
-      viewMode === 'eventstorming' && project.eventStorming?.connections
-        ? buildESEdges(project.eventStorming.connections)
+      viewMode === 'eventstorming' && es?.connections
+        ? buildESEdges(es.connections, esNodeIds)
         : []
 
     return [

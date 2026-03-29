@@ -54,11 +54,11 @@ export function projectToYDoc(project: Project): Y.Doc {
  * Use this to initialize a network-connected Y.Doc that may be empty.
  * Only populates if the Y.Doc doesn't already have an 'id' field.
  */
-export function populateYDocWithProject(doc: Y.Doc, project: Project): void {
+export function populateYDocWithProject(doc: Y.Doc, project: Project, force = false): void {
   const yProject = doc.getMap('project')
 
-  // Only populate if the doc is empty (no id set)
-  if (yProject.has('id')) {
+  // Only populate if the doc is empty (no id set), unless forced (e.g. new project creation)
+  if (!force && yProject.has('id')) {
     return
   }
 

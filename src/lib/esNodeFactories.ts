@@ -118,15 +118,19 @@ export function buildESNodes(
 
 /**
  * Build React Flow edges for ES connections.
+ * Filters out any connection where the source or target node no longer exists,
+ * which prevents orphaned arrows/labels from appearing after sticky deletions.
  */
-export function buildESEdges(connections: ESConnection[]): Edge[] {
-  return connections.map((conn) => ({
-    id: conn.id,
-    source: conn.sourceId,
-    target: conn.targetId,
-    type: 'esConnection',
-    data: { connection: conn },
-    animated: false,
-    zIndex: 12,
-  }))
+export function buildESEdges(connections: ESConnection[], nodeIds: Set<string>): Edge[] {
+  return connections
+    .filter((conn) => nodeIds.has(conn.sourceId) && nodeIds.has(conn.targetId))
+    .map((conn) => ({
+      id: conn.id,
+      source: conn.sourceId,
+      target: conn.targetId,
+      type: 'esConnection',
+      data: { connection: conn },
+      animated: false,
+      zIndex: 12,
+    }))
 }

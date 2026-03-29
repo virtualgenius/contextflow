@@ -101,7 +101,7 @@ function loadExistingProjectFromYDoc(
 async function reconnectCollabForProject(
   projectId: string,
   project: Project,
-  options?: { loadExisting?: boolean }
+  options?: { loadExisting?: boolean; forcePopulate?: boolean }
 ): Promise<void> {
   destroyCollabMode()
 
@@ -110,7 +110,7 @@ async function reconnectCollabForProject(
 
   const ydoc = useNetworkCollabStore.getState().ydoc
   if (ydoc) {
-    populateYDocWithProject(ydoc, project)
+    populateYDocWithProject(ydoc, project, options?.forcePopulate)
 
     const updateStoreAndAutosave = (updatedProject: Project): void => {
       useEditorStore.setState((s) => ({
@@ -368,7 +368,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Update state immediately with the new project
     useEditorStore.setState(() => result)
 
-    await reconnectCollabForProject(newProjectId, newProject)
+    await reconnectCollabForProject(newProjectId, newProject, { forcePopulate: true })
   },
 
   createFromTemplate: async (templateId) => {
@@ -394,7 +394,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       redoStack: [],
     }))
 
-    await reconnectCollabForProject(newProject.id, newProject)
+    await reconnectCollabForProject(newProject.id, newProject, { forcePopulate: true })
   },
 
   deleteProject: (projectId) =>

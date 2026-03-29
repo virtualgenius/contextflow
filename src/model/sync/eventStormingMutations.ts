@@ -215,7 +215,7 @@ export function deleteESAggregateMutation(ydoc: Y.Doc, aggregateId: string): voi
   const found = findById(yArray, aggregateId)
   if (!found) return
 
-  // Cascade: clear aggregateId references from domain events and commands
+  // Cascade: clear aggregateId references from domain events and commands, delete connections
   ydoc.transact(() => {
     const yEvents = getESArray(ydoc, 'domainEvents')
     if (yEvents) {
@@ -239,6 +239,8 @@ export function deleteESAggregateMutation(ydoc: Y.Doc, aggregateId: string): voi
 
     yArray.delete(found.index)
   })
+
+  cascadeDeleteConnections(ydoc, aggregateId)
 }
 
 // Policy mutations
