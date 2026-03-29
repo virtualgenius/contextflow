@@ -240,6 +240,7 @@ export interface Policy {
   description?: string
   position: { x: number; y: number }
   triggerEventId?: string // which domain event triggers this policy
+  contextId?: string // optional direct link to a BoundedContext
   votes?: number
 }
 
@@ -249,6 +250,7 @@ export interface ESHotSpot {
   description?: string
   severity: IssueSeverity
   position: { x: number; y: number }
+  contextId?: string // optional direct link to a BoundedContext
   votes?: number
 }
 

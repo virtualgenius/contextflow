@@ -260,6 +260,7 @@ export function updatePolicyMutation(
     if ('name' in updates) yMap.set('name', updates.name)
     if ('description' in updates) yMap.set('description', updates.description ?? null)
     if ('triggerEventId' in updates) yMap.set('triggerEventId', updates.triggerEventId ?? null)
+    if ('contextId' in updates) yMap.set('contextId', updates.contextId ?? null)
     if ('position' in updates && updates.position) {
       const yPos = yMap.get('position') as Y.Map<unknown>
       yPos.set('x', updates.position.x)
@@ -304,6 +305,7 @@ export function updateESHotSpotMutation(
     if ('title' in updates) yMap.set('title', updates.title)
     if ('description' in updates) yMap.set('description', updates.description ?? null)
     if ('severity' in updates) yMap.set('severity', updates.severity)
+    if ('contextId' in updates) yMap.set('contextId', updates.contextId ?? null)
     if ('position' in updates && updates.position) {
       const yPos = yMap.get('position') as Y.Map<unknown>
       yPos.set('x', updates.position.x)

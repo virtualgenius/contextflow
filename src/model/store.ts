@@ -135,6 +135,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   projects: initialProjects,
 
   activeViewMode: 'flow',
+  esToolMode: 'select',
 
   selectedContextId: null,
   selectedRelationshipId: null,
@@ -265,6 +266,8 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   setHoveredContext: (contextId) => set({ hoveredContextId: contextId }),
 
+  setESToolMode: (mode) => set({ esToolMode: mode }),
+
   setViewMode: (mode) =>
     set((state) => {
       const projectId = state.activeProjectId
@@ -313,7 +316,10 @@ export const useEditorStore = create<EditorState>((set) => ({
         getCollabMutations().toggleEventStorming()
       }
 
-      return { activeViewMode: mode }
+      return {
+        activeViewMode: mode,
+        esToolMode: mode === 'eventstorming' ? state.esToolMode : 'select',
+      }
     }),
 
   setActiveProject: async (projectId) => {

@@ -20,6 +20,17 @@ import type {
 
 export type ViewMode = 'flow' | 'strategic' | 'distillation' | 'eventstorming'
 
+export type ESToolMode =
+  | 'select' // Default: click to select, drag to move
+  | 'pan' // Drag to pan the canvas (hand tool)
+  | 'domainEvent' // Click canvas to place domain event
+  | 'command' // Click canvas to place command
+  | 'aggregate' // Click canvas to place aggregate
+  | 'policy' // Click canvas to place policy
+  | 'hotSpot' // Click canvas to place hot spot
+  | 'connect' // Drag from sticky to sticky to connect
+  | 'areaSelect' // Drag rectangle to select multiple stickies
+
 export interface EditorCommand {
   type:
     | 'moveContext'
@@ -116,6 +127,7 @@ export interface EditorState {
   projects: Record<string, Project>
 
   activeViewMode: ViewMode
+  esToolMode: ESToolMode
 
   selectedContextId: string | null
   selectedRelationshipId: string | null
@@ -194,6 +206,7 @@ export interface EditorState {
   clearContextSelection: () => void
   setHoveredContext: (contextId: string | null) => void
   setViewMode: (mode: ViewMode) => void
+  setESToolMode: (mode: ESToolMode) => void
   setActiveProject: (projectId: string) => Promise<void>
   createProject: (name: string) => Promise<void>
   createFromTemplate: (templateId: string) => Promise<void>

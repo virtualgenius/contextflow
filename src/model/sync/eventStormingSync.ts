@@ -135,6 +135,7 @@ export function populatePolicyYMap(yMap: Y.Map<unknown>, policy: Policy): void {
   yMap.set('name', policy.name)
   yMap.set('description', policy.description ?? null)
   yMap.set('triggerEventId', policy.triggerEventId ?? null)
+  yMap.set('contextId', policy.contextId ?? null)
   setPositionYMap(yMap, policy.position)
 }
 
@@ -158,6 +159,9 @@ export function yMapToPolicy(yMap: Y.Map<unknown>): Policy {
   const triggerEventId = yMap.get('triggerEventId')
   if (triggerEventId !== null) policy.triggerEventId = triggerEventId as string
 
+  const policyContextId = yMap.get('contextId')
+  if (policyContextId !== null) policy.contextId = policyContextId as string
+
   return policy
 }
 
@@ -168,6 +172,7 @@ export function populateESHotSpotYMap(yMap: Y.Map<unknown>, hotSpot: ESHotSpot):
   yMap.set('title', hotSpot.title)
   yMap.set('description', hotSpot.description ?? null)
   yMap.set('severity', hotSpot.severity)
+  yMap.set('contextId', hotSpot.contextId ?? null)
   setPositionYMap(yMap, hotSpot.position)
 }
 
@@ -188,6 +193,9 @@ export function yMapToESHotSpot(yMap: Y.Map<unknown>): ESHotSpot {
 
   const description = yMap.get('description')
   if (description !== null) hotSpot.description = description as string
+
+  const hotSpotContextId = yMap.get('contextId')
+  if (hotSpotContextId !== null) hotSpot.contextId = hotSpotContextId as string
 
   return hotSpot
 }

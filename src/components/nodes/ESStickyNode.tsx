@@ -17,13 +17,14 @@ interface ESStickyData {
   stickyType: ESStickyType
   name: string
   isSelected: boolean
+  isAreaSelected?: boolean // true when included in an area selection
   isValidTarget?: boolean // true when another node is dragging and this is a valid drop target
   isConnecting?: boolean // true when any connection drag is in progress
   votes?: number
 }
 
 export function ESStickyNode({ id: nodeId, data }: NodeProps) {
-  const { stickyType, name, isSelected, isValidTarget, isConnecting, votes } = data as ESStickyData
+  const { stickyType, name, isSelected, isAreaSelected, isValidTarget, isConnecting, votes } = data as ESStickyData
   const colors = ES_COLORS[stickyType]
   const [isHovered, setIsHovered] = useState(false)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
@@ -74,14 +75,14 @@ export function ESStickyNode({ id: nodeId, data }: NodeProps) {
           cursor: 'pointer',
           boxShadow: isValidTarget
             ? '0 0 0 3px #22c55e, 2px 4px 8px rgba(0,0,0,0.15)'
-            : isSelected
+            : isSelected || isAreaSelected
               ? '0 0 0 3px #3b82f6, 2px 4px 8px rgba(0,0,0,0.15)'
               : isHovered
                 ? '2px 4px 12px rgba(0,0,0,0.25)'
                 : '2px 4px 8px rgba(0,0,0,0.15)',
           border: isValidTarget
             ? '2px solid #22c55e'
-            : isSelected
+            : isSelected || isAreaSelected
               ? '2px solid #3b82f6'
               : '1px solid rgba(0,0,0,0.1)',
           opacity: isDimmed ? 0.35 : 1,

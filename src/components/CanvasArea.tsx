@@ -52,11 +52,10 @@ import {
   PivotalEventLines,
   ESContextRegions,
 } from './overlays'
-import { isValidESConnection, getValidTargets, getConnectionLabel } from '../lib/esConnectionRules'
-import type { ESStickyType } from './nodes/ESStickyNode'
-
-// Module-level clipboard for ES sticky copy/paste
-let esClipboard: { stickyType: string; name: string; description?: string } | null = null
+import { buildESNodes, buildESEdges } from '../lib/esNodeFactories'
+import { useESAreaSelect } from '../hooks/useESAreaSelect'
+import { ESAreaSelectMenu } from './ESAreaSelectMenu'
+import { useESHandlers } from '../hooks/useESHandlers'
 
 const nodeTypes = {
   context: ContextNode,
@@ -111,6 +110,7 @@ function CanvasContent() {
   const selectedPolicyId = useEditorStore((s) => s.selectedPolicyId)
   const selectedESHotSpotId = useEditorStore((s) => s.selectedESHotSpotId)
   const viewMode = useEditorStore((s) => s.activeViewMode)
+  const esToolMode = useEditorStore((s) => s.esToolMode)
   const showGroups = useEditorStore((s) => s.showGroups)
   const showRelationships = useEditorStore((s) => s.showRelationships)
   const showIssueLabels = useEditorStore((s) => s.showIssueLabels)
@@ -141,9 +141,6 @@ function CanvasContent() {
     targetId: string
   } | null>(null)
 
-  // ES connection dragging state: tracks which sticky type is being dragged from
-  const [esConnectingFromType, setEsConnectingFromType] = React.useState<ESStickyType | null>(null)
-
   // Invalid connection state (for showing guidance tooltip)
   const [invalidConnectionAttempt, setInvalidConnectionAttempt] = React.useState<{
     sourceType: 'user' | 'userNeed' | 'context'
@@ -152,6 +149,34 @@ function CanvasContent() {
     targetId: string
     position: { x: number; y: number }
   } | null>(null)
+
+  // Area select state (for ES area select tool) — managed by useESAreaSelect hook
+  const {
+    areaSelectRect,
+    selectedStickyIds,
+    stickyMenuMode,
+    setStickyMenuMode,
+    newContextName,
+    setNewContextName,
+    clearSelection,
+    onWrapperMouseDown,
+    onWrapperMouseMove,
+    onWrapperMouseUp,
+  } = useESAreaSelect()
+
+  // ES handler hooks (drag-drop, connections, keyboard, node clicks for ES stickies)
+  const {
+    esConnectingFromType,
+    handleESDragOver,
+    handleESDrop,
+    handleESNodeClick,
+    handleESConnectStart,
+    handleESConnectEnd,
+    handleESConnect,
+    handleESPaneClick,
+    handleESNodeDelete,
+    handleESKeyDown,
+  } = useESHandlers()
 
   // Value chain guide modal
   const [showValueChainGuide, setShowValueChainGuide] = React.useState(false)
@@ -165,33 +190,19 @@ function CanvasContent() {
   const { fitBounds, screenToFlowPosition } = useReactFlow()
 
   // Drop handler for ES sticky palette
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    if (event.dataTransfer.types.includes('application/contextflow-es-sticky')) {
-      event.preventDefault()
-      event.dataTransfer.dropEffect = 'copy'
-    }
-  }, [])
+  const onDragOver = useCallback(
+    (event: React.DragEvent) => {
+      handleESDragOver(event)
+    },
+    [handleESDragOver]
+  )
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
-      const data = event.dataTransfer.getData('application/contextflow-es-sticky')
-      if (!data) return
-      event.preventDefault()
-
-      const { stickyType, defaultName } = JSON.parse(data)
-      const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY })
-      const xPercent = Math.max(0, Math.min(100, (flowPos.x / 2000) * 100))
-      const yPercent = Math.max(0, Math.min(100, (flowPos.y / 1000) * 100))
-      const pos = { x: xPercent, y: yPercent }
-
-      const state = useEditorStore.getState()
-      if (stickyType === 'domainEvent') state.addDomainEvent(defaultName, pos)
-      else if (stickyType === 'command') state.addCommand(defaultName, pos)
-      else if (stickyType === 'aggregate') state.addESAggregate(defaultName, pos)
-      else if (stickyType === 'policy') state.addPolicy(defaultName, pos)
-      else if (stickyType === 'hotSpot') state.addESHotSpot(defaultName, pos)
+      if (viewMode !== 'eventstorming') return
+      handleESDrop(event, screenToFlowPosition)
     },
-    [screenToFlowPosition]
+    [viewMode, handleESDrop, screenToFlowPosition]
   )
 
   const getBounds = useCallback(() => {
@@ -469,97 +480,20 @@ function CanvasContent() {
         : []
 
     // Event Storming sticky nodes (only in ES view)
-    const esValidTargets = esConnectingFromType ? getValidTargets(esConnectingFromType) : []
-
     const esNodes: Node[] =
       viewMode === 'eventstorming' && project.eventStorming?.enabled
-        ? [
-            ...(project.eventStorming.domainEvents || []).map((evt) => ({
-              id: evt.id,
-              type: 'esSticky' as const,
-              position: { x: (evt.position.x / 100) * 2000, y: (evt.position.y / 100) * 1000 },
-              data: {
-                stickyType: 'domainEvent',
-                name: evt.name,
-                isSelected: evt.id === selectedDomainEventId,
-                isValidTarget: esValidTargets.includes('domainEvent'),
-                isConnecting: esConnectingFromType !== null,
-                votes: evt.votes,
-              },
-              style: { width: 140, height: 100, zIndex: 10 },
-              draggable: true,
-              selectable: true,
-              connectable: true,
-            })),
-            ...(project.eventStorming.commands || []).map((cmd) => ({
-              id: cmd.id,
-              type: 'esSticky' as const,
-              position: { x: (cmd.position.x / 100) * 2000, y: (cmd.position.y / 100) * 1000 },
-              data: {
-                stickyType: 'command',
-                name: cmd.name,
-                isSelected: cmd.id === selectedCommandId,
-                isValidTarget: esValidTargets.includes('command'),
-                isConnecting: esConnectingFromType !== null,
-                votes: cmd.votes,
-              },
-              style: { width: 140, height: 100, zIndex: 10 },
-              draggable: true,
-              selectable: true,
-              connectable: true,
-            })),
-            ...(project.eventStorming.aggregates || []).map((agg) => ({
-              id: agg.id,
-              type: 'esSticky' as const,
-              position: { x: (agg.position.x / 100) * 2000, y: (agg.position.y / 100) * 1000 },
-              data: {
-                stickyType: 'aggregate',
-                name: agg.name,
-                isSelected: agg.id === selectedESAggregateId,
-                isValidTarget: esValidTargets.includes('aggregate'),
-                isConnecting: esConnectingFromType !== null,
-                votes: agg.votes,
-              },
-              style: { width: 140, height: 100, zIndex: 10 },
-              draggable: true,
-              selectable: true,
-              connectable: true,
-            })),
-            ...(project.eventStorming.policies || []).map((pol) => ({
-              id: pol.id,
-              type: 'esSticky' as const,
-              position: { x: (pol.position.x / 100) * 2000, y: (pol.position.y / 100) * 1000 },
-              data: {
-                stickyType: 'policy',
-                name: pol.name,
-                isSelected: pol.id === selectedPolicyId,
-                isValidTarget: esValidTargets.includes('policy'),
-                isConnecting: esConnectingFromType !== null,
-                votes: pol.votes,
-              },
-              style: { width: 140, height: 100, zIndex: 10 },
-              draggable: true,
-              selectable: true,
-              connectable: true,
-            })),
-            ...(project.eventStorming.hotSpots || []).map((hs) => ({
-              id: hs.id,
-              type: 'esSticky' as const,
-              position: { x: (hs.position.x / 100) * 2000, y: (hs.position.y / 100) * 1000 },
-              data: {
-                stickyType: 'hotSpot',
-                name: hs.title,
-                isSelected: hs.id === selectedESHotSpotId,
-                isValidTarget: esValidTargets.includes('hotSpot'),
-                isConnecting: esConnectingFromType !== null,
-                votes: hs.votes,
-              },
-              style: { width: 140, height: 100, zIndex: 10 },
-              draggable: true,
-              selectable: true,
-              connectable: true,
-            })),
-          ]
+        ? buildESNodes(
+            project.eventStorming,
+            {
+              selectedDomainEventId,
+              selectedCommandId,
+              selectedESAggregateId,
+              selectedPolicyId,
+              selectedESHotSpotId,
+            },
+            selectedStickyIds,
+            esConnectingFromType
+          )
         : []
 
     // Return groups first (with selected on top), then contexts, then user needs, then users, then ES stickies
@@ -583,6 +517,7 @@ function CanvasContent() {
     selectedPolicyId,
     selectedESHotSpotId,
     esConnectingFromType,
+    selectedStickyIds,
   ])
 
   // Use React Flow's internal nodes state for smooth updates
@@ -648,15 +583,7 @@ function CanvasContent() {
     // ES connection edges (only in Event Storming view)
     const esConnectionEdges: Edge[] =
       viewMode === 'eventstorming' && project.eventStorming?.connections
-        ? project.eventStorming.connections.map((conn) => ({
-            id: conn.id,
-            source: conn.sourceId,
-            target: conn.targetId,
-            type: 'esConnection',
-            data: { connection: conn },
-            animated: false,
-            zIndex: 12,
-          }))
+        ? buildESEdges(project.eventStorming.connections)
         : []
 
     return [
@@ -711,13 +638,7 @@ function CanvasContent() {
 
     // Handle ES sticky node clicks (selection)
     if (node.type === 'esSticky') {
-      const stickyType = node.data?.stickyType as string
-      const state = useEditorStore.getState()
-      if (stickyType === 'domainEvent') state.setSelectedDomainEvent(node.id)
-      else if (stickyType === 'command') state.setSelectedCommand(node.id)
-      else if (stickyType === 'aggregate') state.setSelectedESAggregate(node.id)
-      else if (stickyType === 'policy') state.setSelectedPolicy(node.id)
-      else if (stickyType === 'hotSpot') state.setSelectedESHotSpot(node.id)
+      handleESNodeClick(node.id, node.data?.stickyType)
       return
     }
 
@@ -731,31 +652,37 @@ function CanvasContent() {
         ...createSelectionState(node.id, 'context'),
       })
     }
-  }, [])
+  }, [handleESNodeClick])
 
-  // Handle pane click (deselect)
-  const onPaneClick = useCallback(() => {
-    useEditorStore.setState({
-      ...createSelectionState(null, 'context'),
-    })
-  }, [])
+  // Handle pane click (deselect or place sticky)
+  const onPaneClick = useCallback(
+    (event: React.MouseEvent) => {
+      // If a sticky tool is active in ES view, create a sticky at click position
+      if (viewMode === 'eventstorming') {
+        const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY })
+        if (handleESPaneClick(flowPos)) return
+      }
+
+      // Default: deselect
+      useEditorStore.setState({
+        ...createSelectionState(null, 'context'),
+      })
+    },
+    [viewMode, screenToFlowPosition, handleESPaneClick]
+  )
 
   // Handle edge connection (User → User Need → Context, or Context → Context)
   // Track ES connection dragging to highlight valid targets
   const onConnectStart = useCallback(
     (_event: unknown, params: { nodeId: string | null }) => {
-      if (!params.nodeId) return
-      const sourceNode = nodes.find((n) => n.id === params.nodeId)
-      if (sourceNode?.type === 'esSticky') {
-        setEsConnectingFromType(sourceNode.data?.stickyType as ESStickyType)
-      }
+      handleESConnectStart(params.nodeId, nodes)
     },
-    [nodes]
+    [nodes, handleESConnectStart]
   )
 
   const onConnectEnd = useCallback(() => {
-    setEsConnectingFromType(null)
-  }, [])
+    handleESConnectEnd()
+  }, [handleESConnectEnd])
 
   const onConnect = useCallback(
     (connection: any) => {
@@ -786,14 +713,7 @@ function CanvasContent() {
 
       // ES Sticky → ES Sticky (validated connection with auto-label)
       if (sourceNode.type === 'esSticky' && targetNode.type === 'esSticky') {
-        const srcType = sourceNode.data?.stickyType as ESStickyType
-        const tgtType = targetNode.data?.stickyType as ESStickyType
-        if (!isValidESConnection(srcType, tgtType)) return
-        const connId = useEditorStore.getState().createESConnection(source, target)
-        const label = getConnectionLabel(srcType, tgtType)
-        if (connId && label) {
-          useEditorStore.getState().updateESConnection(connId, { label })
-        }
+        handleESConnect(source, target, sourceNode, targetNode)
         return
       }
 
@@ -811,7 +731,7 @@ function CanvasContent() {
           : { x: window.innerWidth / 2, y: window.innerHeight / 3 },
       })
     },
-    [nodes]
+    [nodes, handleESConnect]
   )
 
   // Wrap onNodesChange to handle multi-select drag
@@ -1172,19 +1092,13 @@ function CanvasContent() {
             deleteGroup(node.id)
             break
           case 'esSticky': {
-            const st = useEditorStore.getState()
-            const stickyType = node.data?.stickyType as string
-            if (stickyType === 'domainEvent') st.deleteDomainEvent(node.id)
-            else if (stickyType === 'command') st.deleteCommand(node.id)
-            else if (stickyType === 'aggregate') st.deleteESAggregate(node.id)
-            else if (stickyType === 'policy') st.deletePolicy(node.id)
-            else if (stickyType === 'hotSpot') st.deleteESHotSpot(node.id)
+            handleESNodeDelete(node.id, node.data?.stickyType)
             break
           }
         }
       }
     },
-    [deleteContext, deleteUser, deleteUserNeed, deleteGroup]
+    [deleteContext, deleteUser, deleteUserNeed, deleteGroup, handleESNodeDelete]
   )
 
   // Handle keyboard shortcuts
@@ -1216,59 +1130,13 @@ function CanvasContent() {
           return
         }
       }
-      // Copy: Ctrl/Cmd+C (ES stickies)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'c' && viewMode === 'eventstorming') {
-        const tag = (e.target as HTMLElement)?.tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return
-        const es = project?.eventStorming
-        if (!es) return
-        const s = useEditorStore.getState()
-        if (s.selectedDomainEventId) {
-          const evt = es.domainEvents.find((ev) => ev.id === s.selectedDomainEventId)
-          if (evt)
-            esClipboard = {
-              stickyType: 'domainEvent',
-              name: evt.name,
-              description: evt.description,
-            }
-        } else if (s.selectedCommandId) {
-          const cmd = es.commands.find((c) => c.id === s.selectedCommandId)
-          if (cmd)
-            esClipboard = { stickyType: 'command', name: cmd.name, description: cmd.description }
-        } else if (s.selectedESAggregateId) {
-          const agg = es.aggregates.find((a) => a.id === s.selectedESAggregateId)
-          if (agg)
-            esClipboard = { stickyType: 'aggregate', name: agg.name, description: agg.description }
-        } else if (s.selectedPolicyId) {
-          const pol = es.policies.find((p) => p.id === s.selectedPolicyId)
-          if (pol)
-            esClipboard = { stickyType: 'policy', name: pol.name, description: pol.description }
-        } else if (s.selectedESHotSpotId) {
-          const hs = es.hotSpots.find((h) => h.id === s.selectedESHotSpotId)
-          if (hs)
-            esClipboard = { stickyType: 'hotSpot', name: hs.title, description: hs.description }
-        }
-      }
-
-      // Paste: Ctrl/Cmd+V (ES stickies)
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        e.key === 'v' &&
-        viewMode === 'eventstorming' &&
-        esClipboard
-      ) {
-        const tag = (e.target as HTMLElement)?.tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return
-        e.preventDefault()
-        const pasteState = useEditorStore.getState()
-        const name = `${esClipboard.name} (copy)`
-        const offset = { x: 50 + Math.random() * 10, y: 50 + Math.random() * 10 }
-        if (esClipboard.stickyType === 'domainEvent') pasteState.addDomainEvent(name, offset)
-        else if (esClipboard.stickyType === 'command') pasteState.addCommand(name, offset)
-        else if (esClipboard.stickyType === 'aggregate') pasteState.addESAggregate(name, offset)
-        else if (esClipboard.stickyType === 'policy') pasteState.addPolicy(name, offset)
-        else if (esClipboard.stickyType === 'hotSpot') pasteState.addESHotSpot(name, offset)
-      }
+      // ES keyboard shortcuts (tool modes, copy, paste, escape) — delegated to hook
+      const currentState = useEditorStore.getState()
+      const currentViewMode = currentState.activeViewMode
+      const currentProject = currentState.activeProjectId
+        ? currentState.projects[currentState.activeProjectId]
+        : undefined
+      handleESKeyDown(e, currentViewMode, currentProject)
 
       // Undo: Cmd/Ctrl + Z
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
@@ -1283,7 +1151,7 @@ function CanvasContent() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [handleESKeyDown])
 
   const flowStages = project?.viewConfig.flowStages || []
 
@@ -1291,9 +1159,20 @@ function CanvasContent() {
     <div className="relative w-full h-full">
       <TimeSlider />
       <div
-        className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}
+        className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''} ${
+          viewMode === 'eventstorming' && esToolMode === 'pan'
+            ? 'es-tool-pan'
+            : viewMode === 'eventstorming' && esToolMode === 'areaSelect'
+              ? 'es-tool-area'
+              : viewMode === 'eventstorming' && !['select', 'connect', 'pan', 'areaSelect'].includes(esToolMode)
+                ? 'es-tool-place'
+                : ''
+        }`}
         onDrop={onDrop}
         onDragOver={onDragOver}
+        onMouseDown={onWrapperMouseDown}
+        onMouseMove={onWrapperMouseMove}
+        onMouseUp={onWrapperMouseUp}
       >
         <ReactFlow
           nodes={nodes}
@@ -1313,6 +1192,7 @@ function CanvasContent() {
           onNodeDrag={constrainNodePosition}
           onNodeDragStop={onNodeDragStop}
           onInit={onInit}
+          panOnDrag={esToolMode === 'select' || esToolMode === 'connect' || esToolMode === 'pan' || viewMode !== 'eventstorming'}
           elementsSelectable
           deleteKeyCode={['Backspace', 'Delete']}
           minZoom={0.1}
@@ -1341,7 +1221,6 @@ function CanvasContent() {
               {project?.eventStorming?.pivotalEvents && (
                 <PivotalEventLines pivotalEvents={project.eventStorming.pivotalEvents} />
               )}
-              {project && <ESContextRegions project={project} />}
             </>
           ) : (
             <>
@@ -1442,8 +1321,22 @@ function CanvasContent() {
               </marker>
             </defs>
           </svg>
+          {viewMode === 'eventstorming' && project && (
+            <ESContextRegions project={project} />
+          )}
         </ReactFlow>
       </div>
+
+      <ESAreaSelectMenu
+        selectedStickyIds={selectedStickyIds}
+        areaSelectRect={areaSelectRect}
+        project={project}
+        stickyMenuMode={stickyMenuMode}
+        setStickyMenuMode={setStickyMenuMode}
+        newContextName={newContextName}
+        setNewContextName={setNewContextName}
+        onClearSelection={clearSelection}
+      />
 
       {/* Pattern Picker Dialog for context→context relationships */}
       {pendingConnection &&
