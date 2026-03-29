@@ -214,6 +214,7 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
           alignItems: 'center',
           gap: 4,
           cursor: 'default',
+          pointerEvents: 'auto',
         }}
       >
         <div
