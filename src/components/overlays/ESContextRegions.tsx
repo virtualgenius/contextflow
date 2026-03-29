@@ -9,16 +9,16 @@ const STRATEGIC_BG: Record<string, string> = {
   generic: 'rgba(243, 244, 246, 0.22)',
 }
 
+const OWNERSHIP_BG: Record<string, string> = {
+  ours: 'rgba(209, 250, 229, 0.25)',
+  internal: 'rgba(219, 234, 254, 0.25)',
+  external: 'rgba(254, 215, 170, 0.25)',
+}
+
 const STRATEGIC_BORDER: Record<string, string> = {
   core: '#f59e0b',
   supporting: '#3b82f6',
   generic: '#94a3b8',
-}
-
-const OWNERSHIP_BG: Record<string, string> = {
-  ours: 'rgba(209, 250, 229, 0.35)',
-  internal: 'rgba(219, 234, 254, 0.35)',
-  external: 'rgba(254, 215, 170, 0.35)',
 }
 
 const OWNERSHIP_BORDER: Record<string, string> = {
@@ -171,7 +171,6 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
         zIndex: 0,
       }}
     >
-      {/* Background fill — behind stickies, no pointer events */}
       <div
         style={{
           position: 'absolute',
@@ -179,6 +178,7 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
           backgroundColor: bgColor,
           border: `2px solid ${borderColor}`,
           borderRadius: 12,
+          mixBlendMode: 'multiply',
         }}
       />
       {/* Drag handles: 4 edge strips (16px wide) so stickies inside remain interactive */}
