@@ -1,6 +1,6 @@
 import React from 'react'
 import { useEditorStore } from '../../model/store'
-import { Trash2 } from 'lucide-react'
+import { Trash2, ArrowRight } from 'lucide-react'
 import type { Project } from '../../model/types'
 import { Section, INPUT_TITLE_CLASS, TEXTAREA_CLASS } from './inspectorShared'
 import { ES_COLORS, type ESStickyType } from '../nodes/ESStickyNode'
@@ -105,6 +105,22 @@ export function ESInspector({ project, entityType, entityId }: ESInspectorProps)
               </option>
             ))}
           </select>
+          {((entity as Record<string, unknown>).contextId as string) && (
+            <button
+              onClick={() => {
+                const ctxId = (entity as Record<string, unknown>).contextId as string
+                useEditorStore.getState().setViewMode('flow')
+                useEditorStore.setState({
+                  selectedContextId: ctxId,
+                  selectedESAggregateId: null,
+                })
+              }}
+              className="mt-2 flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              <ArrowRight size={12} />
+              View in Context Map
+            </button>
+          )}
         </Section>
       )}
 
@@ -124,6 +140,19 @@ export function ESInspector({ project, entityType, entityId }: ESInspectorProps)
             ))}
           </select>
         </Section>
+      )}
+
+      {/* Hot Spot: Promote to Issue */}
+      {entityType === 'hotSpot' && (
+        <button
+          onClick={() => {
+            useEditorStore.getState().promoteHotSpotToIssue(entityId)
+          }}
+          className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 hover:underline"
+        >
+          <ArrowRight size={12} />
+          Promote to Issue on nearest Context
+        </button>
       )}
 
       {/* Delete */}
