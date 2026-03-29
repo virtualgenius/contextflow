@@ -97,70 +97,6 @@ function moveContextStickies(contextId: string, canvasDx: number, canvasDy: numb
   }
 }
 
-type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'nw' | 'ne' | 'sw' | 'se'
-
-const RESIZE_CURSORS: Record<ResizeDirection, string> = {
-  n: 'n-resize',
-  s: 's-resize',
-  e: 'e-resize',
-  w: 'w-resize',
-  nw: 'nw-resize',
-  ne: 'ne-resize',
-  sw: 'sw-resize',
-  se: 'se-resize',
-}
-
-function reconcileStickiesInBounds(
-  contextId: string,
-  boundsCanvas: { minX: number; minY: number; maxX: number; maxY: number }
-) {
-  const st = useEditorStore.getState()
-  const pid = st.activeProjectId
-  const es = pid ? st.projects[pid]?.eventStorming : null
-  if (!es) return
-
-  const isInside = (pos: { x: number; y: number }, w: number, h: number) => {
-    const cx = toCanvas(pos).x + w / 2
-    const cy = toCanvas(pos).y + h / 2
-    return (
-      cx >= boundsCanvas.minX &&
-      cx <= boundsCanvas.maxX &&
-      cy >= boundsCanvas.minY &&
-      cy <= boundsCanvas.maxY
-    )
-  }
-
-  // Aggregates
-  for (const agg of es.aggregates) {
-    const inside = isInside(agg.position, STICKY_W, STICKY_H)
-    if (inside && agg.contextId !== contextId) {
-      st.updateESAggregate(agg.id, { contextId })
-    } else if (!inside && agg.contextId === contextId) {
-      st.updateESAggregate(agg.id, { contextId: undefined })
-    }
-  }
-
-  // Policies
-  for (const pol of es.policies) {
-    const inside = isInside(pol.position, STICKY_W, STICKY_H)
-    if (inside && pol.contextId !== contextId) {
-      st.updatePolicy(pol.id, { contextId })
-    } else if (!inside && pol.contextId === contextId) {
-      st.updatePolicy(pol.id, { contextId: undefined })
-    }
-  }
-
-  // HotSpots
-  for (const hs of es.hotSpots) {
-    const inside = isInside(hs.position, STICKY_W, STICKY_H)
-    if (inside && hs.contextId !== contextId) {
-      st.updateESHotSpot(hs.id, { contextId })
-    } else if (!inside && hs.contextId === contextId) {
-      st.updateESHotSpot(hs.id, { contextId: undefined })
-    }
-  }
-}
-
 interface ContextRegionProps {
   contextId: string
   ctx: BoundedContext
@@ -173,35 +109,20 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
   const esToolMode = useEditorStore((s) => s.esToolMode)
   const dragStart = React.useRef<{ screenX: number; screenY: number } | null>(null)
   const [edgeHovered, setEdgeHovered] = React.useState(false)
-  const [dragBounds, setDragBounds] = React.useState<{
-    minX: number; minY: number; maxX: number; maxY: number
-  } | null>(null)
+  const stickyPlaceTools = ['domainEvent', 'command', 'aggregate', 'policy', 'hotSpot']
   const isDraggable = esToolMode === 'select'
+  // When placing stickies, edge strips must be transparent so clicks reach the RF pane
+  const edgesActive = isDraggable && !stickyPlaceTools.includes(esToolMode)
 
-  // Compute base bounding box from esBounds override or sticky positions
-  const baseBounds = React.useMemo(() => {
-    if (ctx.esBounds) {
-      return {
-        minX: (ctx.esBounds.minX / 100) * 2000,
-        minY: (ctx.esBounds.minY / 100) * 1000,
-        maxX: (ctx.esBounds.maxX / 100) * 2000,
-        maxY: (ctx.esBounds.maxY / 100) * 1000,
-      }
-    }
-    const xs = positions.map((p) => p.x)
-    const ys = positions.map((p) => p.y)
-    return {
-      minX: Math.min(...xs) - PADDING,
-      maxX: Math.max(...xs) + STICKY_W + PADDING,
-      minY: Math.min(...ys) - PADDING,
-      maxY: Math.max(...ys) + STICKY_H + PADDING,
-    }
-  }, [ctx.esBounds, positions])
+  const xs = positions.map((p) => p.x)
+  const ys = positions.map((p) => p.y)
+  const minX = Math.min(...xs) - PADDING
+  const maxX = Math.max(...xs) + STICKY_W + PADDING
+  const minY = Math.min(...ys) - PADDING
+  const maxY = Math.max(...ys) + STICKY_H + PADDING
 
-  const activeBounds = dragBounds ?? baseBounds
-
-  const topLeft = flowToScreenPosition({ x: activeBounds.minX, y: activeBounds.minY })
-  const bottomRight = flowToScreenPosition({ x: activeBounds.maxX, y: activeBounds.maxY })
+  const topLeft = flowToScreenPosition({ x: minX, y: minY })
+  const bottomRight = flowToScreenPosition({ x: maxX, y: maxY })
   const left = topLeft.x
   const top = topLeft.y
   const width = bottomRight.x - topLeft.x
@@ -242,74 +163,6 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
     window.addEventListener('mouseup', onMouseUp)
   }
 
-  const onResizeMouseDown = (e: React.MouseEvent, direction: ResizeDirection) => {
-    if (!isDraggable) return
-    e.stopPropagation()
-    e.preventDefault()
-
-    // Start from the current active bounds in canvas coords
-    let current = { ...activeBounds }
-
-    const onMouseMove = (me: MouseEvent) => {
-      // Use direct flow position (canvas coords) for the cursor
-      const flowPos = screenToFlowPosition({ x: me.clientX, y: me.clientY })
-
-      const next = { ...current }
-
-      if (direction.includes('n')) {
-        next.minY = Math.min(flowPos.y, current.maxY - 40)
-      }
-      if (direction.includes('s')) {
-        next.maxY = Math.max(flowPos.y, current.minY + 40)
-      }
-      if (direction.includes('w')) {
-        next.minX = Math.min(flowPos.x, current.maxX - 40)
-      }
-      if (direction.includes('e')) {
-        next.maxX = Math.max(flowPos.x, current.minX + 40)
-      }
-
-      current = next
-      setDragBounds({ ...next })
-    }
-
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
-
-      // Save final bounds as % coords
-      const pct = {
-        minX: (current.minX / 2000) * 100,
-        minY: (current.minY / 1000) * 100,
-        maxX: (current.maxX / 2000) * 100,
-        maxY: (current.maxY / 1000) * 100,
-      }
-      useEditorStore.getState().updateContext(contextId, { esBounds: pct })
-
-      // Reconcile sticky assignments
-      reconcileStickiesInBounds(contextId, current)
-
-      setDragBounds(null)
-    }
-
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
-  }
-
-  // Resize handle definitions: [direction, style overrides]
-  const resizeHandles: { dir: ResizeDirection; style: React.CSSProperties }[] = [
-    // Corners (8x8)
-    { dir: 'nw', style: { top: -4, left: -4, width: 10, height: 10 } },
-    { dir: 'ne', style: { top: -4, right: -4, width: 10, height: 10 } },
-    { dir: 'sw', style: { bottom: -4, left: -4, width: 10, height: 10 } },
-    { dir: 'se', style: { bottom: -4, right: -4, width: 10, height: 10 } },
-    // Edges (thin rectangles)
-    { dir: 'n', style: { top: -4, left: 10, right: 10, height: 8 } },
-    { dir: 's', style: { bottom: -4, left: 10, right: 10, height: 8 } },
-    { dir: 'w', style: { left: -4, top: 10, bottom: 10, width: 8 } },
-    { dir: 'e', style: { right: -4, top: 10, bottom: 10, width: 8 } },
-  ]
-
   return (
     <div
       style={{
@@ -328,7 +181,7 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
           position: 'absolute',
           inset: 0,
           backgroundColor: bgColor,
-          border: `2px solid ${borderColor}`,
+          border: `2px solid ${edgeHovered && isDraggable ? borderColor : borderColor}`,
           borderRadius: 12,
           mixBlendMode: 'multiply',
           boxShadow: edgeHovered && isDraggable ? `0 0 0 3px ${borderColor}55` : undefined,
@@ -336,12 +189,12 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
         }}
       />
       {/* Drag handles: 4 edge strips (16px wide) so stickies inside remain interactive */}
-      {(['top', 'bottom', 'left', 'right'] as const).map((side) => (
+      {(['top','bottom','left','right'] as const).map((side) => (
         <div
           key={side}
           style={{
             position: 'absolute',
-            pointerEvents: isDraggable ? 'auto' : 'none',
+            pointerEvents: edgesActive ? 'auto' : 'none',
             cursor: isDraggable ? 'grab' : 'default',
             ...(side === 'top'    && { top: 0, left: 0, right: 0, height: 16 }),
             ...(side === 'bottom' && { bottom: 0, left: 0, right: 0, height: 16 }),
@@ -351,23 +204,6 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
           onMouseEnter={() => setEdgeHovered(true)}
           onMouseLeave={() => setEdgeHovered(false)}
           onMouseDown={onMouseDown}
-        />
-      ))}
-      {/* Resize handles — only visible/active in select mode */}
-      {isDraggable && resizeHandles.map(({ dir, style }) => (
-        <div
-          key={`resize-${dir}`}
-          style={{
-            position: 'absolute',
-            pointerEvents: 'auto',
-            cursor: RESIZE_CURSORS[dir],
-            backgroundColor: 'white',
-            border: `1.5px solid ${borderColor}`,
-            borderRadius: 2,
-            zIndex: 1,
-            ...style,
-          }}
-          onMouseDown={(e) => onResizeMouseDown(e, dir)}
         />
       ))}
       {/* Label pill + detach button */}
@@ -462,13 +298,6 @@ export function ESContextRegions({ project }: { project: Project }) {
     if (hs.contextId) addPos(hs.contextId, hs.position)
   }
 
-  // Also include contexts that have an esBounds override but no stickies yet
-  for (const ctx of project.contexts) {
-    if (ctx.esBounds && !contextPositions.has(ctx.id)) {
-      contextPositions.set(ctx.id, [])
-    }
-  }
-
   if (contextPositions.size === 0) return null
 
   return (
@@ -476,8 +305,6 @@ export function ESContextRegions({ project }: { project: Project }) {
       {Array.from(contextPositions.entries()).map(([contextId, positions]) => {
         const ctx = project.contexts.find((c) => c.id === contextId)
         if (!ctx) return null
-        // Skip if no esBounds and no stickies (nothing to render)
-        if (!ctx.esBounds && positions.length === 0) return null
         return (
           <ContextRegion
             key={contextId}

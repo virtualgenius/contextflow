@@ -16,7 +16,6 @@ interface ToolItem {
 const TOOLS: ToolItem[] = [
   { mode: 'select', label: 'Select', icon: <MousePointer2 size={16} />, shortcut: 'V', hint: 'Click to select, drag to move.' },
   { mode: 'pan', label: 'Pan', icon: <Hand size={16} />, shortcut: 'H', hint: 'Drag to pan the canvas.' },
-  { mode: 'connect', label: 'Connect', icon: <Pen size={16} />, shortcut: 'C', hint: 'Drag from handle to handle to connect stickies.' },
   { mode: 'areaSelect', label: 'Area Select', icon: <Square size={16} />, shortcut: 'A', hint: 'Drag a rectangle to select multiple stickies.' },
 ]
 

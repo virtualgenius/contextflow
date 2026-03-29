@@ -61,11 +61,6 @@ export function TopBar() {
   const addUser = useEditorStore((s) => s.addUser)
   const addUserNeed = useEditorStore((s) => s.addUserNeed)
   const addFlowStage = useEditorStore((s) => s.addFlowStage)
-  const addDomainEvent = useEditorStore((s) => s.addDomainEvent)
-  const addESCommand = useEditorStore((s) => s.addCommand)
-  const addESAggregate = useEditorStore((s) => s.addESAggregate)
-  const addESHotSpot = useEditorStore((s) => s.addESHotSpot)
-  const addPolicy = useEditorStore((s) => s.addPolicy)
   const addPivotalEvent = useEditorStore((s) => s.addPivotalEvent)
   const syncPivotalEventsToFlowStages = useEditorStore((s) => s.syncPivotalEventsToFlowStages)
   const autoLayoutESTimeline = useEditorStore((s) => s.autoLayoutESTimeline)
@@ -219,36 +214,6 @@ export function TopBar() {
     }
   }
 
-  const handleAddDomainEvent = () => {
-    const name = prompt('Domain event name (past tense, e.g. "Order Placed"):')
-    if (!name) return
-    addDomainEvent(name.trim())
-  }
-
-  const handleAddESCommand = () => {
-    const name = prompt('Command name (imperative, e.g. "Place Order"):')
-    if (!name) return
-    addESCommand(name.trim())
-  }
-
-  const handleAddESAggregate = () => {
-    const name = prompt('Aggregate name (e.g. "Order"):')
-    if (!name) return
-    addESAggregate(name.trim())
-  }
-
-  const handleAddESHotSpot = () => {
-    const title = prompt('Hot spot (question, risk, or concern):')
-    if (!title) return
-    addESHotSpot(title.trim())
-  }
-
-  const handleAddPolicy = () => {
-    const name = prompt('Policy name (e.g. "When order placed, send confirmation"):')
-    if (!name) return
-    addPolicy(name.trim())
-  }
-
   const handleAddPivotalEvent = () => {
     const name = prompt('Pivotal event name (phase boundary):')
     if (!name) return
@@ -320,11 +285,6 @@ export function TopBar() {
         {/* Event Storming add buttons */}
         {viewMode === 'eventstorming' && (
           <>
-            <AddButton onClick={handleAddDomainEvent} icon={<Box size={14} />} label="Event" />
-            <AddButton onClick={handleAddESCommand} icon={<Box size={14} />} label="Command" />
-            <AddButton onClick={handleAddESAggregate} icon={<Box size={14} />} label="Aggregate" />
-            <AddButton onClick={handleAddPolicy} icon={<Box size={14} />} label="Policy" />
-            <AddButton onClick={handleAddESHotSpot} icon={<Box size={14} />} label="Hot Spot" />
             <AddButton onClick={handleAddPivotalEvent} icon={<Hash size={14} />} label="Pivot" />
             <div className="w-px h-4 bg-slate-300 dark:bg-neutral-600 mx-0.5" />
             <AddButton
