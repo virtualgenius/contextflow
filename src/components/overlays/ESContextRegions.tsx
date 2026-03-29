@@ -1,7 +1,7 @@
 import React from 'react'
 import { useViewport, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
-import type { Project } from '../../model/types'
+import type { Project, BoundedContext } from '../../model/types'
 
 const STRATEGIC_BG: Record<string, string> = {
   core: 'rgba(248, 231, 161, 0.22)',
@@ -16,15 +16,15 @@ const STRATEGIC_BORDER: Record<string, string> = {
 }
 
 const OWNERSHIP_BG: Record<string, string> = {
-  ours: 'rgba(209, 250, 229, 0.35)',     // green-100 tint
-  internal: 'rgba(219, 234, 254, 0.35)', // blue-100 tint
-  external: 'rgba(254, 215, 170, 0.35)', // orange-200 tint
+  ours: 'rgba(209, 250, 229, 0.35)',
+  internal: 'rgba(219, 234, 254, 0.35)',
+  external: 'rgba(254, 215, 170, 0.35)',
 }
 
 const OWNERSHIP_BORDER: Record<string, string> = {
-  ours: '#10b981',     // emerald-500
-  internal: '#3b82f6', // blue-500
-  external: '#f97316', // orange-500
+  ours: '#10b981',
+  internal: '#3b82f6',
+  external: '#f97316',
 }
 
 const STICKY_W = 140
@@ -33,6 +33,10 @@ const PADDING = 48
 
 function toCanvas(pos: { x: number; y: number }) {
   return { x: (pos.x / 100) * 2000, y: (pos.y / 100) * 1000 }
+}
+
+function toPercent(canvas: { x: number; y: number }) {
+  return { x: (canvas.x / 2000) * 100, y: (canvas.y / 1000) * 100 }
 }
 
 function detachContext(contextId: string) {
@@ -58,13 +62,179 @@ function detachContext(contextId: string) {
   }
 }
 
+function moveContextStickies(contextId: string, canvasDx: number, canvasDy: number) {
+  const st = useEditorStore.getState()
+  const pid = st.activeProjectId
+  const es = pid ? st.projects[pid]?.eventStorming : null
+  if (!es) return
+
+  const aggIds = new Set(es.aggregates.filter((a) => a.contextId === contextId).map((a) => a.id))
+
+  for (const agg of es.aggregates) {
+    if (!aggIds.has(agg.id)) continue
+    const c = toCanvas(agg.position)
+    st.updateESAggregate(agg.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
+  }
+  for (const evt of es.domainEvents) {
+    if (!evt.aggregateId || !aggIds.has(evt.aggregateId)) continue
+    const c = toCanvas(evt.position)
+    st.updateDomainEvent(evt.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
+  }
+  for (const cmd of es.commands) {
+    if (!cmd.aggregateId || !aggIds.has(cmd.aggregateId)) continue
+    const c = toCanvas(cmd.position)
+    st.updateCommand(cmd.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
+  }
+  for (const pol of es.policies) {
+    if (pol.contextId !== contextId) continue
+    const c = toCanvas(pol.position)
+    st.updatePolicy(pol.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
+  }
+  for (const hs of es.hotSpots) {
+    if (hs.contextId !== contextId) continue
+    const c = toCanvas(hs.position)
+    st.updateESHotSpot(hs.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
+  }
+}
+
+interface ContextRegionProps {
+  contextId: string
+  ctx: BoundedContext
+  positions: { x: number; y: number }[]
+  colorByMode: 'strategic' | 'ownership'
+}
+
+function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegionProps) {
+  const { flowToScreenPosition, screenToFlowPosition } = useReactFlow()
+  const dragStart = React.useRef<{ screenX: number; screenY: number } | null>(null)
+
+  const xs = positions.map((p) => p.x)
+  const ys = positions.map((p) => p.y)
+  const minX = Math.min(...xs) - PADDING
+  const maxX = Math.max(...xs) + STICKY_W + PADDING
+  const minY = Math.min(...ys) - PADDING
+  const maxY = Math.max(...ys) + STICKY_H + PADDING
+
+  const topLeft = flowToScreenPosition({ x: minX, y: minY })
+  const bottomRight = flowToScreenPosition({ x: maxX, y: maxY })
+  const left = topLeft.x
+  const top = topLeft.y
+  const width = bottomRight.x - topLeft.x
+  const height = bottomRight.y - topLeft.y
+
+  const isOwnership = colorByMode === 'ownership'
+  const key = isOwnership ? (ctx.ownership || 'ours') : (ctx.strategicClassification || 'generic')
+  const bgColor = isOwnership ? OWNERSHIP_BG[key] : STRATEGIC_BG[key]
+  const borderColor = isOwnership ? OWNERSHIP_BORDER[key] : STRATEGIC_BORDER[key]
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    // Only drag from the body, not the label pill
+    if ((e.target as HTMLElement).closest('[data-label-pill]')) return
+    e.stopPropagation()
+    dragStart.current = { screenX: e.clientX, screenY: e.clientY }
+
+    const onMouseMove = (me: MouseEvent) => {
+      if (!dragStart.current) return
+      const dx = me.clientX - dragStart.current.screenX
+      const dy = me.clientY - dragStart.current.screenY
+      dragStart.current = { screenX: me.clientX, screenY: me.clientY }
+
+      // Convert a screen delta to a canvas delta using screenToFlowPosition
+      const origin = screenToFlowPosition({ x: 0, y: 0 })
+      const delta = screenToFlowPosition({ x: dx, y: dy })
+      const canvasDx = delta.x - origin.x
+      const canvasDy = delta.y - origin.y
+
+      moveContextStickies(contextId, canvasDx, canvasDy)
+    }
+
+    const onMouseUp = () => {
+      dragStart.current = null
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        left,
+        top,
+        width,
+        height,
+        backgroundColor: bgColor,
+        border: `2px solid ${borderColor}`,
+        borderRadius: 12,
+        pointerEvents: 'auto',
+        cursor: 'grab',
+      }}
+      onMouseDown={onMouseDown}
+    >
+      {/* Label pill + detach button */}
+      <div
+        data-label-pill
+        style={{
+          position: 'absolute',
+          top: -13,
+          left: 12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          cursor: 'default',
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: borderColor,
+            backgroundColor: 'white',
+            border: `1.5px solid ${borderColor}`,
+            padding: '1px 8px',
+            borderRadius: 20,
+            letterSpacing: '0.02em',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {ctx.name}
+        </div>
+        <button
+          title="Remove from context (stickies stay)"
+          onClick={(e) => { e.stopPropagation(); detachContext(contextId) }}
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            border: `1.5px solid ${borderColor}`,
+            backgroundColor: 'white',
+            color: borderColor,
+            fontSize: 10,
+            fontWeight: 700,
+            lineHeight: 1,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            flexShrink: 0,
+          }}
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function ESContextRegions({ project }: { project: Project }) {
-  useViewport() // subscribe to pan/zoom so we re-render on viewport changes
-  const { flowToScreenPosition } = useReactFlow()
+  useViewport() // re-render on pan/zoom
   const colorByMode = useEditorStore((s) => s.colorByMode)
 
   const es = project.eventStorming
-
   if (!es?.enabled) return null
 
   const contextPositions = new Map<string, { x: number; y: number }[]>()
@@ -97,104 +267,21 @@ export function ESContextRegions({ project }: { project: Project }) {
 
   if (contextPositions.size === 0) return null
 
-  // Rendered inside ReactFlow's .react-flow__renderer (pointer-events: none by default).
-  // We use position:absolute in the viewport coordinate space (vpX/vpY/zoom already applied
-  // by ReactFlow's transform layer), so we work in canvas coords and scale by zoom.
   return (
-    <div style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'visible', pointerEvents: 'none' }}>
+    <>
       {Array.from(contextPositions.entries()).map(([contextId, positions]) => {
         const ctx = project.contexts.find((c) => c.id === contextId)
         if (!ctx) return null
-
-        const xs = positions.map((p) => p.x)
-        const ys = positions.map((p) => p.y)
-        const minX = Math.min(...xs) - PADDING
-        const maxX = Math.max(...xs) + STICKY_W + PADDING
-        const minY = Math.min(...ys) - PADDING
-        const maxY = Math.max(...ys) + STICKY_H + PADDING
-
-        // Convert canvas coords to screen coords using ReactFlow's own transform
-        const topLeft = flowToScreenPosition({ x: minX, y: minY })
-        const bottomRight = flowToScreenPosition({ x: maxX, y: maxY })
-        const left = topLeft.x
-        const top = topLeft.y
-        const width = bottomRight.x - topLeft.x
-        const height = bottomRight.y - topLeft.y
-
-        const isOwnership = colorByMode === 'ownership'
-        const key = isOwnership ? (ctx.ownership || 'ours') : (ctx.strategicClassification || 'generic')
-        const bgColor = isOwnership ? OWNERSHIP_BG[key] : STRATEGIC_BG[key]
-        const borderColor = isOwnership ? OWNERSHIP_BORDER[key] : STRATEGIC_BORDER[key]
-
         return (
-          <div
+          <ContextRegion
             key={contextId}
-            style={{
-              position: 'fixed',
-              left,
-              top,
-              width,
-              height,
-              backgroundColor: bgColor,
-              border: `2px solid ${borderColor}`,
-              borderRadius: 12,
-              pointerEvents: 'none',
-            }}
-          >
-            {/* Label pill + detach button — always visible, interactive */}
-            <div
-              style={{
-                position: 'absolute',
-                top: -13,
-                left: 12,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                pointerEvents: 'auto',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: borderColor,
-                  backgroundColor: 'white',
-                  border: `1.5px solid ${borderColor}`,
-                  padding: '1px 8px',
-                  borderRadius: 20,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {ctx.name}
-              </div>
-              <button
-                title="Remove from context (stickies stay)"
-                onClick={(e) => { e.stopPropagation(); detachContext(contextId) }}
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
-                  border: `1.5px solid ${borderColor}`,
-                  backgroundColor: 'white',
-                  color: borderColor,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  lineHeight: 1,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  flexShrink: 0,
-                }}
-              >
-                ×
-              </button>
-            </div>
-          </div>
+            contextId={contextId}
+            ctx={ctx}
+            positions={positions}
+            colorByMode={colorByMode}
+          />
         )
       })}
-    </div>
+    </>
   )
 }
