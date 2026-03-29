@@ -215,6 +215,7 @@ export interface DomainEvent {
   description?: string
   position: { x: number; y: number } // 0..100 on ES canvas
   aggregateId?: string // which aggregate this event belongs to
+  contextId?: string // optional direct link to a BoundedContext
   votes?: number
 }
 
@@ -225,6 +226,7 @@ export interface Command {
   position: { x: number; y: number }
   aggregateId?: string
   actorId?: string // which User/Actor triggers this command
+  contextId?: string // optional direct link to a BoundedContext
   votes?: number
 }
 

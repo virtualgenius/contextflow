@@ -9,8 +9,9 @@ import { TeamSidebar } from './components/TeamSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
 import { OfflineBlockingModal } from './components/OfflineBlockingModal'
+import { ESAIChat } from './components/ESAIChat'
 import { useCollabStore } from './model/collabStore'
-import { Users, X } from 'lucide-react'
+import { Users, X, MessageSquare, ChevronDown } from 'lucide-react'
 import { trackEvent } from './utils/analytics'
 import { useUrlRouter } from './hooks/useUrlRouter'
 
@@ -104,6 +105,20 @@ function Workspace() {
     const stored = localStorage.getItem('contextflow.sidebar.collapsed')
     return stored === 'true'
   })
+
+  const [isAIChatCollapsed, setIsAIChatCollapsed] = React.useState(() => {
+    const stored = localStorage.getItem('contextflow.aichat.collapsed')
+    return stored === 'true'
+  })
+
+  const toggleAIChat = () => {
+    setIsAIChatCollapsed((prev) => {
+      const newValue = !prev
+      localStorage.setItem('contextflow.aichat.collapsed', String(newValue))
+      trackEvent('es_ai_chat_toggled', null, { collapsed: newValue })
+      return newValue
+    })
+  }
 
   const [sidebarTab, setSidebarTab] = React.useState<'repos' | 'teams'>(() => {
     const stored = localStorage.getItem('contextflow.sidebarTab')
@@ -344,6 +359,37 @@ function Workspace() {
             </button>
           )}
           <CanvasArea />
+
+          {/* ES AI Chat — floating panel, bottom-right of canvas */}
+          {isESView && (
+            <div
+              className={`absolute bottom-4 right-4 z-20 flex flex-col rounded-xl shadow-2xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden transition-all duration-200 ${
+                isAIChatCollapsed ? 'h-10 w-52' : 'w-80 h-[440px]'
+              }`}
+            >
+              {/* Chat header / toggle */}
+              <button
+                onClick={toggleAIChat}
+                className="flex items-center gap-2 px-3 h-10 flex-shrink-0 hover:bg-slate-50 dark:hover:bg-neutral-700/60 transition-colors w-full text-left"
+              >
+                <MessageSquare size={13} className="text-blue-500 flex-shrink-0" />
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 flex-1">
+                  ES Assistant
+                </span>
+                <ChevronDown
+                  size={13}
+                  className={`text-slate-400 transition-transform duration-200 ${isAIChatCollapsed ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {/* Chat body */}
+              {!isAIChatCollapsed && (
+                <div className="flex-1 min-h-0">
+                  <ESAIChat />
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Inspector Panel - shown when context, group, user, userNeed, relationship, connection, stage, or team is selected */}

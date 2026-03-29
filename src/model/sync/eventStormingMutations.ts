@@ -110,6 +110,7 @@ export function updateDomainEventMutation(
     if ('name' in updates) yMap.set('name', updates.name)
     if ('description' in updates) yMap.set('description', updates.description ?? null)
     if ('aggregateId' in updates) yMap.set('aggregateId', updates.aggregateId ?? null)
+    if ('contextId' in updates) yMap.set('contextId', updates.contextId ?? null)
     if ('position' in updates && updates.position) {
       const yPos = yMap.get('position') as Y.Map<unknown>
       yPos.set('x', updates.position.x)
@@ -155,6 +156,7 @@ export function updateCommandMutation(
     if ('description' in updates) yMap.set('description', updates.description ?? null)
     if ('aggregateId' in updates) yMap.set('aggregateId', updates.aggregateId ?? null)
     if ('actorId' in updates) yMap.set('actorId', updates.actorId ?? null)
+    if ('contextId' in updates) yMap.set('contextId', updates.contextId ?? null)
     if ('position' in updates && updates.position) {
       const yPos = yMap.get('position') as Y.Map<unknown>
       yPos.set('x', updates.position.x)

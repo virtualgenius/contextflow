@@ -33,6 +33,7 @@ export function populateDomainEventYMap(yMap: Y.Map<unknown>, event: DomainEvent
   yMap.set('name', event.name)
   yMap.set('description', event.description ?? null)
   yMap.set('aggregateId', event.aggregateId ?? null)
+  yMap.set('contextId', event.contextId ?? null)
   setPositionYMap(yMap, event.position)
 }
 
@@ -56,6 +57,9 @@ export function yMapToDomainEvent(yMap: Y.Map<unknown>): DomainEvent {
   const aggregateId = yMap.get('aggregateId')
   if (aggregateId !== null) event.aggregateId = aggregateId as string
 
+  const contextId = yMap.get('contextId')
+  if (contextId !== null && contextId !== undefined) event.contextId = contextId as string
+
   return event
 }
 
@@ -67,6 +71,7 @@ export function populateCommandYMap(yMap: Y.Map<unknown>, command: Command): voi
   yMap.set('description', command.description ?? null)
   yMap.set('aggregateId', command.aggregateId ?? null)
   yMap.set('actorId', command.actorId ?? null)
+  yMap.set('contextId', command.contextId ?? null)
   setPositionYMap(yMap, command.position)
 }
 
@@ -92,6 +97,9 @@ export function yMapToCommand(yMap: Y.Map<unknown>): Command {
 
   const actorId = yMap.get('actorId')
   if (actorId !== null) command.actorId = actorId as string
+
+  const contextId = yMap.get('contextId')
+  if (contextId !== null && contextId !== undefined) command.contextId = contextId as string
 
   return command
 }

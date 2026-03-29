@@ -28,6 +28,16 @@ export function reconcileStickiesInBounds(
     )
   }
 
+  for (const ev of es.domainEvents) {
+    const inside = isInside(ev.position)
+    if (inside && ev.contextId !== contextId) st.updateDomainEvent(ev.id, { contextId })
+    else if (!inside && ev.contextId === contextId) st.updateDomainEvent(ev.id, { contextId: undefined })
+  }
+  for (const cmd of es.commands) {
+    const inside = isInside(cmd.position)
+    if (inside && cmd.contextId !== contextId) st.updateCommand(cmd.id, { contextId })
+    else if (!inside && cmd.contextId === contextId) st.updateCommand(cmd.id, { contextId: undefined })
+  }
   for (const agg of es.aggregates) {
     const inside = isInside(agg.position)
     if (inside && agg.contextId !== contextId) st.updateESAggregate(agg.id, { contextId })

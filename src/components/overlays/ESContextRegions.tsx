@@ -50,10 +50,12 @@ function detachContext(contextId: string) {
   for (const id of aggIds) st.updateESAggregate(id, { contextId: undefined })
 
   for (const evt of es.domainEvents) {
-    if (evt.aggregateId && aggIds.has(evt.aggregateId)) st.updateDomainEvent(evt.id, { aggregateId: undefined })
+    if (evt.contextId === contextId) st.updateDomainEvent(evt.id, { contextId: undefined })
+    else if (evt.aggregateId && aggIds.has(evt.aggregateId)) st.updateDomainEvent(evt.id, { aggregateId: undefined })
   }
   for (const cmd of es.commands) {
-    if (cmd.aggregateId && aggIds.has(cmd.aggregateId)) st.updateCommand(cmd.id, { aggregateId: undefined })
+    if (cmd.contextId === contextId) st.updateCommand(cmd.id, { contextId: undefined })
+    else if (cmd.aggregateId && aggIds.has(cmd.aggregateId)) st.updateCommand(cmd.id, { aggregateId: undefined })
   }
   for (const pol of es.policies) {
     if (pol.contextId === contextId) st.updatePolicy(pol.id, { contextId: undefined })
@@ -77,12 +79,12 @@ function moveContextStickies(contextId: string, canvasDx: number, canvasDy: numb
     st.updateESAggregate(agg.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
   }
   for (const evt of es.domainEvents) {
-    if (!evt.aggregateId || !aggIds.has(evt.aggregateId)) continue
+    if (evt.contextId !== contextId && !(evt.aggregateId && aggIds.has(evt.aggregateId))) continue
     const c = toCanvas(evt.position)
     st.updateDomainEvent(evt.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
   }
   for (const cmd of es.commands) {
-    if (!cmd.aggregateId || !aggIds.has(cmd.aggregateId)) continue
+    if (cmd.contextId !== contextId && !(cmd.aggregateId && aggIds.has(cmd.aggregateId))) continue
     const c = toCanvas(cmd.position)
     st.updateCommand(cmd.id, { position: toPercent({ x: c.x + canvasDx, y: c.y + canvasDy }) })
   }
@@ -285,11 +287,11 @@ export function ESContextRegions({ project }: { project: Project }) {
     addPos(agg.contextId, agg.position)
   }
   for (const evt of es.domainEvents) {
-    const ctxId = evt.aggregateId ? aggregateContextMap.get(evt.aggregateId) : undefined
+    const ctxId = evt.contextId ?? (evt.aggregateId ? aggregateContextMap.get(evt.aggregateId) : undefined)
     if (ctxId) addPos(ctxId, evt.position)
   }
   for (const cmd of es.commands) {
-    const ctxId = cmd.aggregateId ? aggregateContextMap.get(cmd.aggregateId) : undefined
+    const ctxId = cmd.contextId ?? (cmd.aggregateId ? aggregateContextMap.get(cmd.aggregateId) : undefined)
     if (ctxId) addPos(ctxId, cmd.position)
   }
   for (const pol of es.policies) {
