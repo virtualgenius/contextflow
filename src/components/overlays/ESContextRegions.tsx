@@ -1,5 +1,4 @@
 import React from 'react'
-import { useViewport } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 
@@ -31,7 +30,6 @@ function detachContext(contextId: string) {
 
   const aggIds = new Set(es.aggregates.filter((a) => a.contextId === contextId).map((a) => a.id))
   for (const id of aggIds) st.updateESAggregate(id, { contextId: undefined })
-
   for (const evt of es.domainEvents) {
     if (evt.aggregateId && aggIds.has(evt.aggregateId)) st.updateDomainEvent(evt.id, { aggregateId: undefined })
   }
@@ -47,7 +45,6 @@ function detachContext(contextId: string) {
 }
 
 export function ESContextRegions({ project }: { project: Project }) {
-  const { x: vpX, y: vpY, zoom } = useViewport()
   const [hoveredContextId, setHoveredContextId] = React.useState<string | null>(null)
 
   const es = project.eventStorming
@@ -83,27 +80,20 @@ export function ESContextRegions({ project }: { project: Project }) {
 
   if (contextPositions.size === 0) return null
 
-  // Rendered inside ReactFlow's .react-flow__renderer (pointer-events: none by default).
-  // We use position:absolute in the viewport coordinate space (vpX/vpY/zoom already applied
-  // by ReactFlow's transform layer), so we work in canvas coords and scale by zoom.
+  // Children of ReactFlow render inside .react-flow__viewport which already has
+  // the pan/zoom transform applied. Use raw canvas px coords with position:absolute.
   return (
-    <div style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'visible', pointerEvents: 'none' }}>
+    <>
       {Array.from(contextPositions.entries()).map(([contextId, positions]) => {
         const ctx = project.contexts.find((c) => c.id === contextId)
         if (!ctx) return null
 
         const xs = positions.map((p) => p.x)
         const ys = positions.map((p) => p.y)
-        const minX = Math.min(...xs) - PADDING
-        const maxX = Math.max(...xs) + STICKY_W + PADDING
-        const minY = Math.min(...ys) - PADDING
-        const maxY = Math.max(...ys) + STICKY_H + PADDING
-
-        // Convert canvas coords to screen (viewport) coords
-        const left = minX * zoom + vpX
-        const top = minY * zoom + vpY
-        const width = (maxX - minX) * zoom
-        const height = (maxY - minY) * zoom
+        const left = Math.min(...xs) - PADDING
+        const top = Math.min(...ys) - PADDING
+        const width = Math.max(...xs) + STICKY_W + PADDING - left
+        const height = Math.max(...ys) + STICKY_H + PADDING - top
 
         const classification = ctx.strategicClassification || 'generic'
         const bgColor = STRATEGIC_COLORS[classification] ?? STRATEGIC_COLORS.generic
@@ -113,8 +103,10 @@ export function ESContextRegions({ project }: { project: Project }) {
         return (
           <div
             key={contextId}
+            onMouseEnter={() => setHoveredContextId(contextId)}
+            onMouseLeave={() => setHoveredContextId(null)}
             style={{
-              position: 'fixed',
+              position: 'absolute',
               left,
               top,
               width,
@@ -122,13 +114,14 @@ export function ESContextRegions({ project }: { project: Project }) {
               backgroundColor: bgColor,
               border: `2px solid ${borderColor}`,
               borderRadius: 12,
+              // Let pointer events through so stickies underneath stay draggable,
+              // but re-enable on the label strip so hover/click work
               pointerEvents: 'none',
+              zIndex: 1,
             }}
           >
-            {/* Label pill — only interactive element */}
+            {/* Label + × button */}
             <div
-              onMouseEnter={() => setHoveredContextId(contextId)}
-              onMouseLeave={() => setHoveredContextId(null)}
               style={{
                 position: 'absolute',
                 top: -13,
@@ -150,6 +143,7 @@ export function ESContextRegions({ project }: { project: Project }) {
                   borderRadius: 20,
                   letterSpacing: '0.02em',
                   whiteSpace: 'nowrap',
+                  userSelect: 'none',
                 }}
               >
                 {ctx.name}
@@ -183,6 +177,6 @@ export function ESContextRegions({ project }: { project: Project }) {
           </div>
         )
       })}
-    </div>
+    </>
   )
 }
