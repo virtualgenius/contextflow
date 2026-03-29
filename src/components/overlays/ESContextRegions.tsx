@@ -106,7 +106,10 @@ interface ContextRegionProps {
 
 function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegionProps) {
   const { flowToScreenPosition, screenToFlowPosition } = useReactFlow()
+  const esToolMode = useEditorStore((s) => s.esToolMode)
   const dragStart = React.useRef<{ screenX: number; screenY: number } | null>(null)
+  const [edgeHovered, setEdgeHovered] = React.useState(false)
+  const isDraggable = esToolMode === 'select'
 
   const xs = positions.map((p) => p.x)
   const ys = positions.map((p) => p.y)
@@ -128,8 +131,7 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
   const borderColor = isOwnership ? OWNERSHIP_BORDER[key] : STRATEGIC_BORDER[key]
 
   const onMouseDown = (e: React.MouseEvent) => {
-    // Only drag from the body, not the label pill
-    if ((e.target as HTMLElement).closest('[data-label-pill]')) return
+    if (!isDraggable) return
     e.stopPropagation()
     dragStart.current = { screenX: e.clientX, screenY: e.clientY }
 
@@ -176,9 +178,11 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
           position: 'absolute',
           inset: 0,
           backgroundColor: bgColor,
-          border: `2px solid ${borderColor}`,
+          border: `2px solid ${edgeHovered && isDraggable ? borderColor : borderColor}`,
           borderRadius: 12,
           mixBlendMode: 'multiply',
+          boxShadow: edgeHovered && isDraggable ? `0 0 0 3px ${borderColor}55` : undefined,
+          transition: 'box-shadow 0.15s',
         }}
       />
       {/* Drag handles: 4 edge strips (16px wide) so stickies inside remain interactive */}
@@ -187,13 +191,15 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
           key={side}
           style={{
             position: 'absolute',
-            pointerEvents: 'auto',
-            cursor: 'grab',
+            pointerEvents: isDraggable ? 'auto' : 'none',
+            cursor: isDraggable ? 'grab' : 'default',
             ...(side === 'top'    && { top: 0, left: 0, right: 0, height: 16 }),
             ...(side === 'bottom' && { bottom: 0, left: 0, right: 0, height: 16 }),
             ...(side === 'left'   && { left: 0, top: 16, bottom: 16, width: 16 }),
             ...(side === 'right'  && { right: 0, top: 16, bottom: 16, width: 16 }),
           }}
+          onMouseEnter={() => setEdgeHovered(true)}
+          onMouseLeave={() => setEdgeHovered(false)}
           onMouseDown={onMouseDown}
         />
       ))}
