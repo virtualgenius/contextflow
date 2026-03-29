@@ -166,14 +166,37 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
         top,
         width,
         height,
-        backgroundColor: bgColor,
-        border: `2px solid ${borderColor}`,
         borderRadius: 12,
-        pointerEvents: 'auto',
-        cursor: 'grab',
+        pointerEvents: 'none',
+        zIndex: 0,
       }}
-      onMouseDown={onMouseDown}
     >
+      {/* Background fill — behind stickies, no pointer events */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundColor: bgColor,
+          border: `2px solid ${borderColor}`,
+          borderRadius: 12,
+        }}
+      />
+      {/* Drag handles: 4 edge strips (16px wide) so stickies inside remain interactive */}
+      {(['top','bottom','left','right'] as const).map((side) => (
+        <div
+          key={side}
+          style={{
+            position: 'absolute',
+            pointerEvents: 'auto',
+            cursor: 'grab',
+            ...(side === 'top'    && { top: 0, left: 0, right: 0, height: 16 }),
+            ...(side === 'bottom' && { bottom: 0, left: 0, right: 0, height: 16 }),
+            ...(side === 'left'   && { left: 0, top: 16, bottom: 16, width: 16 }),
+            ...(side === 'right'  && { right: 0, top: 16, bottom: 16, width: 16 }),
+          }}
+          onMouseDown={onMouseDown}
+        />
+      ))}
       {/* Label pill + detach button */}
       <div
         data-label-pill
