@@ -41,6 +41,7 @@ export interface SelectionState {
   selectedPolicyId: string | null
   selectedESHotSpotId: string | null
   selectedPivotalEventId: string | null
+  selectedSwimLaneId: string | null
   selectedESConnectionId: string | null
   selectedContextIds: string[]
 }
@@ -61,6 +62,7 @@ type SelectionType =
   | 'policy'
   | 'esHotSpot'
   | 'pivotalEvent'
+  | 'swimLane'
   | 'esConnection'
 
 export function createSelectionState(
@@ -90,6 +92,7 @@ export function createSelectionState(
     selectedPolicyId: null,
     selectedESHotSpotId: null,
     selectedPivotalEventId: null,
+    selectedSwimLaneId: null,
     selectedESConnectionId: null,
     selectedContextIds: [],
   }
@@ -125,6 +128,8 @@ export function createSelectionState(
       return { ...baseState, selectedESHotSpotId: selectedValue as string | null }
     case 'pivotalEvent':
       return { ...baseState, selectedPivotalEventId: selectedValue as string | null }
+    case 'swimLane':
+      return { ...baseState, selectedSwimLaneId: selectedValue as string | null }
     case 'esConnection':
       return { ...baseState, selectedESConnectionId: selectedValue as string | null }
   }

@@ -3,6 +3,7 @@ import ReactFlow, {
   Node,
   Edge,
   Background,
+  BackgroundVariant,
   Controls,
   useReactFlow,
   NodeDragHandler,
@@ -27,6 +28,7 @@ import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions
 import { createSelectionState } from '../model/validation'
 import { NODE_SIZES } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
+import { ES_W, ES_H } from '../lib/esCanvasConfig'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
@@ -47,9 +49,11 @@ import {
   EvolutionBands,
   ProblemSpaceBand,
   CanvasBoundary,
+  ESCanvasBoundary,
   YAxisLabels,
   DistillationRegions,
   PivotalEventLines,
+  SwimLaneLines,
   ESContextRegions,
 } from './overlays'
 import { buildESNodes, buildESEdges } from '../lib/esNodeFactories'
@@ -81,10 +85,12 @@ function CustomControls() {
     const bounds =
       viewMode === 'flow'
         ? { x: -120, y: -50, width: 2120, height: 1080 }
-        : { x: 0, y: -50, width: 2000, height: 1080 }
+        : viewMode === 'eventstorming'
+          ? { x: 0, y: 0, width: 16000, height: 9000 }
+          : { x: 0, y: -50, width: 2000, height: 1080 }
 
     fitBounds(bounds, {
-      padding: 0.1,
+      padding: 0.05,
       duration: 200,
     })
   }, [fitBounds, viewMode])
@@ -208,7 +214,9 @@ function CanvasContent() {
   const getBounds = useCallback(() => {
     return viewMode === 'flow'
       ? { x: -120, y: -50, width: 2120, height: 1080 }
-      : { x: 0, y: -50, width: 2000, height: 1080 }
+      : viewMode === 'eventstorming'
+        ? { x: 0, y: 0, width: 16000, height: 9000 }
+        : { x: 0, y: -50, width: 2000, height: 1080 }
   }, [viewMode])
 
   useEffect(() => {
@@ -935,8 +943,8 @@ function CanvasContent() {
 
       // Handle ES sticky note drag (free 2D movement)
       if (node.type === 'esSticky') {
-        const newX = Math.max(0, Math.min(100, (node.position.x / 2000) * 100))
-        const newY = Math.max(0, Math.min(100, (node.position.y / 1000) * 100))
+        const newX = Math.max(0, Math.min(100, (node.position.x / ES_W) * 100))
+        const newY = Math.max(0, Math.min(100, (node.position.y / ES_H) * 100))
         const newPos = { x: newX, y: newY }
         const stickyType = node.data?.stickyType as string
         const state = useEditorStore.getState()
@@ -1111,6 +1119,18 @@ function CanvasContent() {
       // Connections take priority over nodes - if a connection is selected, only delete it
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const state = useEditorStore.getState()
+        if (state.selectedPivotalEventId) {
+          e.preventDefault()
+          e.stopPropagation()
+          state.deletePivotalEvent(state.selectedPivotalEventId)
+          return
+        }
+        if (state.selectedSwimLaneId) {
+          e.preventDefault()
+          e.stopPropagation()
+          state.deleteSwimLane(state.selectedSwimLaneId)
+          return
+        }
         if (state.selectedESConnectionId) {
           e.preventDefault()
           e.stopPropagation()
@@ -1157,7 +1177,7 @@ function CanvasContent() {
 
   return (
     <div className="relative w-full h-full">
-      <TimeSlider />
+      {viewMode !== 'eventstorming' && <TimeSlider />}
       <div
         className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''} ${
           viewMode === 'eventstorming' && esToolMode === 'pan'
@@ -1199,11 +1219,15 @@ function CanvasContent() {
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
         >
-          {/* Wardley-style background with very subtle dots */}
-          <Background gap={24} size={0.4} color="#e5e7eb" />
+          {/* Background: dots for strategy views, lines grid for ES whiteboard feel */}
+          {viewMode === 'eventstorming' ? (
+            <Background variant={BackgroundVariant.Lines} gap={40} color="#efefef" style={{ strokeWidth: 0.4 }} />
+          ) : (
+            <Background gap={24} size={0.4} color="#e5e7eb" />
+          )}
 
-          {/* Canvas boundary - marks the edges of the workspace */}
-          <CanvasBoundary />
+          {/* Canvas boundary */}
+          {viewMode === 'eventstorming' ? <ESCanvasBoundary /> : <CanvasBoundary />}
 
           <CustomControls />
 
@@ -1220,6 +1244,9 @@ function CanvasContent() {
             <>
               {project?.eventStorming?.pivotalEvents && (
                 <PivotalEventLines pivotalEvents={project.eventStorming.pivotalEvents} />
+              )}
+              {project?.eventStorming?.swimLanes && (
+                <SwimLaneLines swimLanes={project.eventStorming.swimLanes} />
               )}
             </>
           ) : (

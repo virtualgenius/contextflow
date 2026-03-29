@@ -12,6 +12,7 @@ import type {
   Policy,
   ESHotSpot,
   PivotalEvent,
+  ESSwimLane,
   ESConnection,
 } from './types'
 import { saveProject } from './persistence'
@@ -152,6 +153,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedPolicyId: null,
   selectedESHotSpotId: null,
   selectedPivotalEventId: null,
+  selectedSwimLaneId: null,
   selectedESConnectionId: null,
   selectedContextIds: [],
   hoveredContextId: null,
@@ -1811,7 +1813,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       return state.selectedESHotSpotId === hotSpotId ? { selectedESHotSpotId: null } : {}
     }),
 
-  addPivotalEvent: (name) =>
+  addPivotalEvent: (name, x, y, height) =>
     set((state) => {
       const projectId = state.activeProjectId
       if (!projectId) return {}
@@ -1820,7 +1822,9 @@ export const useEditorStore = create<EditorState>((set) => ({
       const newEvent: PivotalEvent = {
         id: `pivotal-event-${Date.now()}`,
         name,
-        position: 50,
+        x: x ?? 50,
+        y: y ?? 10,
+        height: height ?? 30,
       }
       getCollabMutations().addPivotalEvent(newEvent)
       return { ...createSelectionState(newEvent.id, 'pivotalEvent') }
@@ -1837,6 +1841,35 @@ export const useEditorStore = create<EditorState>((set) => ({
       getCollabMutations().deletePivotalEvent(eventId)
       return state.selectedPivotalEventId === eventId ? { selectedPivotalEventId: null } : {}
     }),
+
+  addSwimLane: (x, y, width) =>
+    set(() => {
+      const newLane: ESSwimLane = {
+        id: `swim-lane-${Date.now()}`,
+        x: x ?? 20,
+        y: y ?? 50,
+        width: width ?? 30,
+      }
+      getCollabMutations().addSwimLane(newLane)
+      return { ...createSelectionState(newLane.id, 'swimLane') }
+    }),
+
+  updateSwimLane: (laneId, updates) =>
+    set(() => {
+      getCollabMutations().updateSwimLane(laneId, updates)
+      return {}
+    }),
+
+  deleteSwimLane: (laneId) =>
+    set((state) => {
+      getCollabMutations().deleteSwimLane(laneId)
+      return state.selectedSwimLaneId === laneId ? { selectedSwimLaneId: null } : {}
+    }),
+
+  setSelectedSwimLane: (laneId) =>
+    set(() =>
+      laneId ? createSelectionState(laneId, 'swimLane') : createSelectionState(null, 'context')
+    ),
 
   setSelectedDomainEvent: (eventId) =>
     set(() =>
@@ -1957,7 +1990,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         if (!existingStageNames.has(pe.name.toLowerCase())) {
           getCollabMutations().addFlowStage({
             name: pe.name,
-            position: pe.position,
+            position: pe.x,
             description: pe.description,
           })
         }

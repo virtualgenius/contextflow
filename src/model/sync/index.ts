@@ -39,6 +39,9 @@ export {
   addPivotalEventMutation,
   updatePivotalEventMutation,
   deletePivotalEventMutation,
+  addESSwimLaneMutation,
+  updateESSwimLaneMutation,
+  deleteESSwimLaneMutation,
 } from './eventStormingMutations'
 export {
   useCollabStore,

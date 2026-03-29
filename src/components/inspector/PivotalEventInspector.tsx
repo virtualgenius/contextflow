@@ -38,21 +38,6 @@ export function PivotalEventInspector({ project, eventId }: { project: Project; 
         />
       </Section>
 
-      <Section label="Timeline Position">
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={event.position}
-            onChange={(e) => updatePivotalEvent(eventId, { position: Number(e.target.value) })}
-            className="flex-1"
-          />
-          <span className="text-xs text-slate-500 w-8 text-right">
-            {Math.round(event.position)}%
-          </span>
-        </div>
-      </Section>
 
       <div className="pt-4 border-t border-slate-200 dark:border-neutral-700">
         <button

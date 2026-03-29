@@ -5,6 +5,7 @@ import type { ESToolMode } from '../model/storeTypes'
 import type { Project } from '../model/types'
 import { isValidESConnection, getConnectionLabel } from '../lib/esConnectionRules'
 import type { Node } from 'reactflow'
+import { ES_W, ES_H } from '../lib/esCanvasConfig'
 
 // Module-level clipboard for ES sticky copy/paste
 let esClipboard: { stickyType: string; name: string; description?: string } | null = null
@@ -32,8 +33,8 @@ export function useESHandlers() {
 
       const { stickyType, defaultName } = JSON.parse(data)
       const flowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY })
-      const xPercent = Math.max(0, Math.min(100, (flowPos.x / 2000) * 100))
-      const yPercent = Math.max(0, Math.min(100, (flowPos.y / 1000) * 100))
+      const xPercent = Math.max(0, Math.min(100, (flowPos.x / ES_W) * 100))
+      const yPercent = Math.max(0, Math.min(100, (flowPos.y / ES_H) * 100))
       const pos = { x: xPercent, y: yPercent }
 
       const state = useEditorStore.getState()
@@ -98,10 +99,25 @@ export function useESHandlers() {
       const currentTool = useEditorStore.getState().esToolMode
       const stickyTypes = ['domainEvent', 'command', 'aggregate', 'policy', 'hotSpot']
 
+      if (currentTool === 'pivotalEvent') {
+        const xPercent = Math.max(0, Math.min(100, (flowPos.x / ES_W) * 100))
+        const yPercent = Math.max(0, Math.min(100, (flowPos.y / ES_H) * 100))
+        const h = 30
+        useEditorStore.getState().addPivotalEvent('Phase', xPercent, Math.max(0, yPercent - h / 2), h)
+        return true
+      }
+      if (currentTool === 'swimLane') {
+        const xPercent = Math.max(0, Math.min(100, (flowPos.x / ES_W) * 100))
+        const yPercent = Math.max(0, Math.min(100, (flowPos.y / ES_H) * 100))
+        const laneWidth = 30
+        useEditorStore.getState().addSwimLane(Math.max(0, xPercent - laneWidth / 2), yPercent, laneWidth)
+        return true
+      }
+
       if (!stickyTypes.includes(currentTool)) return false
 
-      const xPercent = Math.max(0, Math.min(100, (flowPos.x / 2000) * 100))
-      const yPercent = Math.max(0, Math.min(100, (flowPos.y / 1000) * 100))
+      const xPercent = Math.max(0, Math.min(100, (flowPos.x / ES_W) * 100))
+      const yPercent = Math.max(0, Math.min(100, (flowPos.y / ES_H) * 100))
       const pos = { x: xPercent, y: yPercent }
 
       const defaultNames: Record<string, string> = {
@@ -152,6 +168,8 @@ export function useESHandlers() {
             '3': 'aggregate',
             '4': 'policy',
             '5': 'hotSpot',
+            '6': 'pivotalEvent',
+            '7': 'swimLane',
             c: 'connect',
             a: 'areaSelect',
           }

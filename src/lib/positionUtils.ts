@@ -1,3 +1,5 @@
+import { ES_W, ES_H } from './esCanvasConfig'
+
 type ViewMode = 'flow' | 'strategic' | 'distillation' | 'eventstorming'
 
 interface ContextPositions {
@@ -38,8 +40,8 @@ export function getContextCanvasPosition(
   if (viewMode === 'eventstorming') {
     // Event Storming view uses independent 2D space (like distillation but no Y inversion)
     const esPos = positions.eventstorming ?? { x: 50, y: 50 }
-    const x = (esPos.x / 100) * 2000
-    const y = (esPos.y / 100) * 1000
+    const x = (esPos.x / 100) * ES_W
+    const y = (esPos.y / 100) * ES_H
     return { x, y }
   }
 

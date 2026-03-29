@@ -1,10 +1,11 @@
 import { useEditorStore } from '../../model/store'
+import { ES_W, ES_H } from '../../lib/esCanvasConfig'
 
 const STICKY_W = 140
 const STICKY_H = 100
 
 function toCanvas(pos: { x: number; y: number }) {
-  return { x: (pos.x / 100) * 2000, y: (pos.y / 100) * 1000 }
+  return { x: (pos.x / 100) * ES_W, y: (pos.y / 100) * ES_H }
 }
 
 export function reconcileStickiesInBounds(
@@ -54,10 +55,10 @@ export function reconcileAllContextBounds() {
   for (const ctx of project.contexts) {
     if (!ctx.esBounds) continue
     reconcileStickiesInBounds(ctx.id, {
-      minX: (ctx.esBounds.minX / 100) * 2000,
-      minY: (ctx.esBounds.minY / 100) * 1000,
-      maxX: (ctx.esBounds.maxX / 100) * 2000,
-      maxY: (ctx.esBounds.maxY / 100) * 1000,
+      minX: (ctx.esBounds.minX / 100) * ES_W,
+      minY: (ctx.esBounds.minY / 100) * ES_H,
+      maxX: (ctx.esBounds.maxX / 100) * ES_W,
+      maxY: (ctx.esBounds.maxY / 100) * ES_H,
     })
   }
 }

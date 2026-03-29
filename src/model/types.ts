@@ -43,6 +43,7 @@ export interface Project {
     policies: Policy[]
     hotSpots: ESHotSpot[]
     pivotalEvents: PivotalEvent[]
+    swimLanes: ESSwimLane[]
     connections: ESConnection[]
   }
 }
@@ -259,8 +260,17 @@ export interface ESHotSpot {
 export interface PivotalEvent {
   id: string
   name: string
-  position: number // 0..100 along timeline X axis
+  x: number       // 0..100 horizontal position
+  y: number       // 0..100 top edge
+  height: number  // 0..100 vertical span
   description?: string
+}
+
+export interface ESSwimLane {
+  id: string
+  x: number      // 0..100 left edge
+  y: number      // 0..100 vertical position
+  width: number  // 0..100 horizontal span
 }
 
 export interface ESConnection {

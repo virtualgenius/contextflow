@@ -6,6 +6,7 @@ import type {
   Policy,
   ESHotSpot,
   PivotalEvent,
+  ESSwimLane,
   ESConnection,
 } from '../types'
 import {
@@ -15,6 +16,7 @@ import {
   populatePolicyYMap,
   populateESHotSpotYMap,
   populatePivotalEventYMap,
+  populateESSwimLaneYMap,
   populateESConnectionYMap,
 } from './eventStormingSync'
 
@@ -35,6 +37,7 @@ function ensureESMap(ydoc: Y.Doc): Y.Map<unknown> {
   yNewES.set('policies', new Y.Array<Y.Map<unknown>>())
   yNewES.set('hotSpots', new Y.Array<Y.Map<unknown>>())
   yNewES.set('pivotalEvents', new Y.Array<Y.Map<unknown>>())
+  yNewES.set('swimLanes', new Y.Array<Y.Map<unknown>>())
   yNewES.set('connections', new Y.Array<Y.Map<unknown>>())
   yProject.set('eventStorming', yNewES)
   return yNewES
@@ -72,6 +75,7 @@ export function toggleEventStormingMutation(ydoc: Y.Doc): void {
     yNewES.set('policies', new Y.Array<Y.Map<unknown>>())
     yNewES.set('hotSpots', new Y.Array<Y.Map<unknown>>())
     yNewES.set('pivotalEvents', new Y.Array<Y.Map<unknown>>())
+    yNewES.set('swimLanes', new Y.Array<Y.Map<unknown>>())
     yNewES.set('connections', new Y.Array<Y.Map<unknown>>())
     yProject.set('eventStorming', yNewES)
   } else {
@@ -348,7 +352,9 @@ export function updatePivotalEventMutation(
   ydoc.transact(() => {
     const { yMap } = found
     if ('name' in updates) yMap.set('name', updates.name)
-    if ('position' in updates) yMap.set('position', updates.position)
+    if ('x' in updates) yMap.set('x', updates.x)
+    if ('y' in updates) yMap.set('y', updates.y)
+    if ('height' in updates) yMap.set('height', updates.height)
     if ('description' in updates) yMap.set('description', updates.description ?? null)
   })
 }
@@ -410,6 +416,41 @@ export function deleteESConnectionMutation(ydoc: Y.Doc, connectionId: string): v
   const yArray = getESArray(ydoc, 'connections')
   if (!yArray) return
   const found = findById(yArray, connectionId)
+  if (!found) return
+  yArray.delete(found.index)
+}
+
+// ESSwimLane mutations
+
+export function addESSwimLaneMutation(ydoc: Y.Doc, lane: ESSwimLane): void {
+  const yArray = getESArray(ydoc, 'swimLanes')
+  if (!yArray) return
+  const yMap = new Y.Map<unknown>()
+  populateESSwimLaneYMap(yMap, lane)
+  yArray.push([yMap])
+}
+
+export function updateESSwimLaneMutation(
+  ydoc: Y.Doc,
+  laneId: string,
+  updates: Partial<ESSwimLane>
+): void {
+  const yArray = getESArray(ydoc, 'swimLanes')
+  if (!yArray) return
+  const found = findById(yArray, laneId)
+  if (!found) return
+  ydoc.transact(() => {
+    const { yMap } = found
+    if ('x' in updates) yMap.set('x', updates.x)
+    if ('y' in updates) yMap.set('y', updates.y)
+    if ('width' in updates) yMap.set('width', updates.width)
+  })
+}
+
+export function deleteESSwimLaneMutation(ydoc: Y.Doc, laneId: string): void {
+  const yArray = getESArray(ydoc, 'swimLanes')
+  if (!yArray) return
+  const found = findById(yArray, laneId)
   if (!found) return
   yArray.delete(found.index)
 }

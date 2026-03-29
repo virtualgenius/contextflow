@@ -2,6 +2,7 @@ import type { Node, Edge } from 'reactflow'
 import type { Project, ESConnection } from '../model/types'
 import type { ESStickyType } from '../components/nodes/ESStickyNode'
 import { getValidTargets } from '../lib/esConnectionRules'
+import { ES_W, ES_H } from './esCanvasConfig'
 
 /**
  * Build React Flow nodes for the Event Storming view.
@@ -25,7 +26,7 @@ export function buildESNodes(
     ...(eventStorming.domainEvents || []).map((evt) => ({
       id: evt.id,
       type: 'esSticky' as const,
-      position: { x: (evt.position.x / 100) * 2000, y: (evt.position.y / 100) * 1000 },
+      position: { x: (evt.position.x / 100) * ES_W, y: (evt.position.y / 100) * ES_H },
       data: {
         stickyType: 'domainEvent',
         name: evt.name,
@@ -43,7 +44,7 @@ export function buildESNodes(
     ...(eventStorming.commands || []).map((cmd) => ({
       id: cmd.id,
       type: 'esSticky' as const,
-      position: { x: (cmd.position.x / 100) * 2000, y: (cmd.position.y / 100) * 1000 },
+      position: { x: (cmd.position.x / 100) * ES_W, y: (cmd.position.y / 100) * ES_H },
       data: {
         stickyType: 'command',
         name: cmd.name,
@@ -61,7 +62,7 @@ export function buildESNodes(
     ...(eventStorming.aggregates || []).map((agg) => ({
       id: agg.id,
       type: 'esSticky' as const,
-      position: { x: (agg.position.x / 100) * 2000, y: (agg.position.y / 100) * 1000 },
+      position: { x: (agg.position.x / 100) * ES_W, y: (agg.position.y / 100) * ES_H },
       data: {
         stickyType: 'aggregate',
         name: agg.name,
@@ -79,7 +80,7 @@ export function buildESNodes(
     ...(eventStorming.policies || []).map((pol) => ({
       id: pol.id,
       type: 'esSticky' as const,
-      position: { x: (pol.position.x / 100) * 2000, y: (pol.position.y / 100) * 1000 },
+      position: { x: (pol.position.x / 100) * ES_W, y: (pol.position.y / 100) * ES_H },
       data: {
         stickyType: 'policy',
         name: pol.name,
@@ -97,7 +98,7 @@ export function buildESNodes(
     ...(eventStorming.hotSpots || []).map((hs) => ({
       id: hs.id,
       type: 'esSticky' as const,
-      position: { x: (hs.position.x / 100) * 2000, y: (hs.position.y / 100) * 1000 },
+      position: { x: (hs.position.x / 100) * ES_W, y: (hs.position.y / 100) * ES_H },
       data: {
         stickyType: 'hotSpot',
         name: hs.title,

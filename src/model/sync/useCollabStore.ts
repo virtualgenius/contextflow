@@ -21,6 +21,7 @@ import type {
   Policy,
   ESHotSpot,
   PivotalEvent,
+  ESSwimLane,
   ESConnection,
 } from '../types'
 import { projectToYDoc, yDocToProject } from './projectSync'
@@ -112,6 +113,9 @@ import {
   addPivotalEventMutation,
   updatePivotalEventMutation,
   deletePivotalEventMutation,
+  addESSwimLaneMutation,
+  updateESSwimLaneMutation,
+  deleteESSwimLaneMutation,
   addESConnectionMutation,
   updateESConnectionMutation,
   deleteESConnectionMutation,
@@ -196,6 +200,9 @@ export interface CollabStore {
   addPivotalEvent(event: PivotalEvent): void
   updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void
   deletePivotalEvent(eventId: string): void
+  addSwimLane(lane: ESSwimLane): void
+  updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void
+  deleteSwimLane(laneId: string): void
   addESConnection(connection: ESConnection): void
   updateESConnection(connectionId: string, updates: Partial<ESConnection>): void
   deleteESConnection(connectionId: string): void
@@ -487,6 +494,15 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
     },
     deletePivotalEvent(eventId: string): void {
       deletePivotalEventMutation(ydoc, eventId)
+    },
+    addSwimLane(lane: ESSwimLane): void {
+      addESSwimLaneMutation(ydoc, lane)
+    },
+    updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void {
+      updateESSwimLaneMutation(ydoc, laneId, updates)
+    },
+    deleteSwimLane(laneId: string): void {
+      deleteESSwimLaneMutation(ydoc, laneId)
     },
     addESConnection(connection: ESConnection): void {
       addESConnectionMutation(ydoc, connection)
@@ -824,6 +840,15 @@ export function createCollabStoreFromYDoc(
     },
     deletePivotalEvent(eventId: string): void {
       deletePivotalEventMutation(ydoc, eventId)
+    },
+    addSwimLane(lane: ESSwimLane): void {
+      addESSwimLaneMutation(ydoc, lane)
+    },
+    updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void {
+      updateESSwimLaneMutation(ydoc, laneId, updates)
+    },
+    deleteSwimLane(laneId: string): void {
+      deleteESSwimLaneMutation(ydoc, laneId)
     },
     addESConnection(connection: ESConnection): void {
       addESConnectionMutation(ydoc, connection)

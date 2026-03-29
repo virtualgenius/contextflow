@@ -61,7 +61,6 @@ export function TopBar() {
   const addUser = useEditorStore((s) => s.addUser)
   const addUserNeed = useEditorStore((s) => s.addUserNeed)
   const addFlowStage = useEditorStore((s) => s.addFlowStage)
-  const addPivotalEvent = useEditorStore((s) => s.addPivotalEvent)
   const syncPivotalEventsToFlowStages = useEditorStore((s) => s.syncPivotalEventsToFlowStages)
   const autoLayoutESTimeline = useEditorStore((s) => s.autoLayoutESTimeline)
   const importProject = useEditorStore((s) => s.importProject)
@@ -214,11 +213,6 @@ export function TopBar() {
     }
   }
 
-  const handleAddPivotalEvent = () => {
-    const name = prompt('Pivotal event name (phase boundary):')
-    if (!name) return
-    addPivotalEvent(name.trim())
-  }
 
   return (
     <header className="flex items-center gap-4 px-5 py-3 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
@@ -285,8 +279,6 @@ export function TopBar() {
         {/* Event Storming add buttons */}
         {viewMode === 'eventstorming' && (
           <>
-            <AddButton onClick={handleAddPivotalEvent} icon={<Hash size={14} />} label="Pivot" />
-            <div className="w-px h-4 bg-slate-300 dark:bg-neutral-600 mx-0.5" />
             <AddButton
               onClick={syncPivotalEventsToFlowStages}
               icon={<Share2 size={14} />}

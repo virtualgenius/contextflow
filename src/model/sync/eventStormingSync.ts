@@ -6,6 +6,7 @@ import type {
   Policy,
   ESHotSpot,
   PivotalEvent,
+  ESSwimLane,
   ESConnection,
 } from '../types'
 
@@ -205,7 +206,9 @@ export function yMapToESHotSpot(yMap: Y.Map<unknown>): ESHotSpot {
 export function populatePivotalEventYMap(yMap: Y.Map<unknown>, event: PivotalEvent): void {
   yMap.set('id', event.id)
   yMap.set('name', event.name)
-  yMap.set('position', event.position)
+  yMap.set('x', event.x)
+  yMap.set('y', event.y)
+  yMap.set('height', event.height)
   yMap.set('description', event.description ?? null)
 }
 
@@ -220,13 +223,34 @@ export function yMapToPivotalEvent(yMap: Y.Map<unknown>): PivotalEvent {
   const event: PivotalEvent = {
     id: yMap.get('id') as string,
     name: yMap.get('name') as string,
-    position: yMap.get('position') as number,
+    // Backwards compat: old data had `position` as x
+    x: (yMap.get('x') as number) ?? (yMap.get('position') as number) ?? 50,
+    y: (yMap.get('y') as number) ?? 10,
+    height: (yMap.get('height') as number) ?? 30,
   }
 
   const description = yMap.get('description')
   if (description !== null) event.description = description as string
 
   return event
+}
+
+// ESSwimLane
+
+export function populateESSwimLaneYMap(yMap: Y.Map<unknown>, lane: ESSwimLane): void {
+  yMap.set('id', lane.id)
+  yMap.set('x', lane.x)
+  yMap.set('y', lane.y)
+  yMap.set('width', lane.width)
+}
+
+export function yMapToESSwimLane(yMap: Y.Map<unknown>): ESSwimLane {
+  return {
+    id: yMap.get('id') as string,
+    x: (yMap.get('x') as number) ?? 10,
+    y: (yMap.get('y') as number) ?? 50,
+    width: (yMap.get('width') as number) ?? 30,
+  }
 }
 
 // ESConnection

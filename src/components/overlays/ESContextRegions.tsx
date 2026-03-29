@@ -2,6 +2,7 @@ import React from 'react'
 import { useViewport, useReactFlow } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { Project, BoundedContext } from '../../model/types'
+import { ES_W, ES_H } from '../../lib/esCanvasConfig'
 
 const STRATEGIC_BG: Record<string, string> = {
   core: 'rgba(248, 231, 161, 0.22)',
@@ -32,11 +33,11 @@ const STICKY_H = 100
 const PADDING = 48
 
 function toCanvas(pos: { x: number; y: number }) {
-  return { x: (pos.x / 100) * 2000, y: (pos.y / 100) * 1000 }
+  return { x: (pos.x / 100) * ES_W, y: (pos.y / 100) * ES_H }
 }
 
 function toPercent(canvas: { x: number; y: number }) {
-  return { x: (canvas.x / 2000) * 100, y: (canvas.y / 1000) * 100 }
+  return { x: (canvas.x / ES_W) * 100, y: (canvas.y / ES_H) * 100 }
 }
 
 function detachContext(contextId: string) {
@@ -109,7 +110,7 @@ function ContextRegion({ contextId, ctx, positions, colorByMode }: ContextRegion
   const esToolMode = useEditorStore((s) => s.esToolMode)
   const dragStart = React.useRef<{ screenX: number; screenY: number } | null>(null)
   const [edgeHovered, setEdgeHovered] = React.useState(false)
-  const stickyPlaceTools = ['domainEvent', 'command', 'aggregate', 'policy', 'hotSpot']
+  const stickyPlaceTools = ['domainEvent', 'command', 'aggregate', 'policy', 'hotSpot', 'pivotalEvent', 'swimLane']
   const isDraggable = esToolMode === 'select'
   // When placing stickies, edge strips must be transparent so clicks reach the RF pane
   const edgesActive = isDraggable && !stickyPlaceTools.includes(esToolMode)

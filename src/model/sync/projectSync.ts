@@ -37,6 +37,8 @@ import {
   yMapToPolicy,
   yMapToESHotSpot,
   yMapToPivotalEvent,
+  populateESSwimLaneYMap,
+  yMapToESSwimLane,
   populateESConnectionYMap,
   yMapToESConnection,
 } from './eventStormingSync'
@@ -251,6 +253,10 @@ function setEventStorming(yProject: Y.Map<unknown>, project: Project): void {
     createEntityArray(project.eventStorming.pivotalEvents, populatePivotalEventYMap)
   )
   yES.set(
+    'swimLanes',
+    createEntityArray(project.eventStorming.swimLanes ?? [], populateESSwimLaneYMap)
+  )
+  yES.set(
     'connections',
     createEntityArray(project.eventStorming.connections, populateESConnectionYMap)
   )
@@ -273,6 +279,9 @@ function extractEventStorming(yProject: Y.Map<unknown>): Project['eventStorming'
     policies: extractArray(yESMap, 'policies', yMapToPolicy),
     hotSpots: extractArray(yESMap, 'hotSpots', yMapToESHotSpot),
     pivotalEvents: extractArray(yESMap, 'pivotalEvents', yMapToPivotalEvent),
+    swimLanes: yESMap.has('swimLanes')
+      ? extractArray(yESMap, 'swimLanes', yMapToESSwimLane)
+      : [],
     connections: yESMap.has('connections')
       ? extractArray(yESMap, 'connections', yMapToESConnection)
       : [],

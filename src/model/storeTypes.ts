@@ -15,6 +15,7 @@ import type {
   Policy,
   ESHotSpot,
   PivotalEvent,
+  ESSwimLane,
   ESConnection,
 } from './types'
 
@@ -28,6 +29,8 @@ export type ESToolMode =
   | 'aggregate' // Click canvas to place aggregate
   | 'policy' // Click canvas to place policy
   | 'hotSpot' // Click canvas to place hot spot
+  | 'pivotalEvent' // Click canvas to place vertical divider line
+  | 'swimLane' // Click canvas to place horizontal divider line
   | 'connect' // Drag from sticky to sticky to connect
   | 'areaSelect' // Drag rectangle to select multiple stickies
 
@@ -144,6 +147,7 @@ export interface EditorState {
   selectedPolicyId: string | null
   selectedESHotSpotId: string | null
   selectedPivotalEventId: string | null
+  selectedSwimLaneId: string | null
   selectedESConnectionId: string | null
   selectedContextIds: string[]
   hoveredContextId: string | null
@@ -326,9 +330,13 @@ export interface EditorState {
   addESHotSpot: (title: string, position?: { x: number; y: number }) => void
   updateESHotSpot: (hotSpotId: string, updates: Partial<ESHotSpot>) => void
   deleteESHotSpot: (hotSpotId: string) => void
-  addPivotalEvent: (name: string) => void
+  addPivotalEvent: (name: string, x?: number, y?: number, height?: number) => void
   updatePivotalEvent: (eventId: string, updates: Partial<PivotalEvent>) => void
   deletePivotalEvent: (eventId: string) => void
+  addSwimLane: (x?: number, y?: number, width?: number) => void
+  updateSwimLane: (laneId: string, updates: Partial<ESSwimLane>) => void
+  deleteSwimLane: (laneId: string) => void
+  setSelectedSwimLane: (laneId: string | null) => void
   setSelectedDomainEvent: (eventId: string | null) => void
   setSelectedCommand: (commandId: string | null) => void
   setSelectedESAggregate: (aggregateId: string | null) => void

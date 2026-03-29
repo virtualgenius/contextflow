@@ -21,6 +21,7 @@ import type {
   Policy,
   ESHotSpot,
   PivotalEvent,
+  ESSwimLane,
   ESConnection,
 } from '../types'
 import {
@@ -105,6 +106,9 @@ export interface CollabMutations {
   addPivotalEvent(event: PivotalEvent): void
   updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void
   deletePivotalEvent(eventId: string): void
+  addSwimLane(lane: ESSwimLane): void
+  updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void
+  deleteSwimLane(laneId: string): void
   addESConnection(connection: ESConnection): void
   updateESConnection(connectionId: string, updates: Partial<ESConnection>): void
   deleteESConnection(connectionId: string): void
@@ -361,6 +365,15 @@ export function getCollabMutations(): CollabMutations {
     },
     deletePivotalEvent(eventId: string): void {
       collabStore?.deletePivotalEvent(eventId)
+    },
+    addSwimLane(lane: ESSwimLane): void {
+      collabStore?.addSwimLane(lane)
+    },
+    updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void {
+      collabStore?.updateSwimLane(laneId, updates)
+    },
+    deleteSwimLane(laneId: string): void {
+      collabStore?.deleteSwimLane(laneId)
     },
     addESConnection(connection: ESConnection): void {
       collabStore?.addESConnection(connection)
