@@ -695,6 +695,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                 {/* View in Event Storming button */}
                 <button
                   onClick={() => {
+                    useEditorStore.setState({ selectedContextId: null })
                     useEditorStore.getState().setViewMode('eventstorming')
                   }}
                   className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline pt-1"

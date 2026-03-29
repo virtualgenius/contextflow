@@ -1912,17 +1912,17 @@ export const useEditorStore = create<EditorState>((set) => ({
 
       // Create a new bounded context named after the aggregate
       const contextId = `context-${Date.now()}`
-      const flowPos = findFirstUnoccupiedFlowPosition(project.contexts)
+      const flowGridPos = findFirstUnoccupiedFlowPosition(project.contexts)
       const distilPos = findFirstUnoccupiedGridPosition(project.contexts)
 
       const newContext: BoundedContext = {
         id: contextId,
         name: aggregate.name,
         positions: {
-          flow: flowPos,
+          flow: { x: flowGridPos.x },
           strategic: { x: 50 },
           distillation: distilPos,
-          shared: { y: 50 },
+          shared: { y: flowGridPos.y },
         },
         evolutionStage: 'custom-built',
       }

@@ -264,63 +264,68 @@ function CanvasContent() {
       project.relationships
     )
 
-    const contextNodes = project.contexts.map((context) => {
-      const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
+    const contextNodes =
+      viewMode === 'eventstorming'
+        ? []
+        : project.contexts.map((context) => {
+            const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
-      const keyframes = project.temporal?.keyframes || []
-      const { x, y } = getContextCanvasPosition(
-        context.positions,
-        viewMode as 'flow' | 'strategic' | 'distillation' | 'eventstorming',
-        viewMode === 'strategic' && project.temporal?.enabled ? currentDate : null,
-        keyframes as any,
-        interpolatePosition as any,
-        context.id
-      )
+            const keyframes = project.temporal?.keyframes || []
+            const { x, y } = getContextCanvasPosition(
+              context.positions,
+              viewMode as 'flow' | 'strategic' | 'distillation' | 'eventstorming',
+              viewMode === 'strategic' && project.temporal?.enabled ? currentDate : null,
+              keyframes as any,
+              interpolatePosition as any,
+              context.id
+            )
 
-      // Check if this context is highlighted (by group, user, relationship, or need-context connection selection)
-      const isMemberOfSelectedGroup =
-        selectedGroup?.contextIds.includes(context.id) ||
-        connectedContextIds.has(context.id) ||
-        relationshipConnectedContextIds.has(context.id) ||
-        context.id === needContextConnectionContextId ||
-        false
+            // Check if this context is highlighted (by group, user, relationship, or need-context connection selection)
+            const isMemberOfSelectedGroup =
+              selectedGroup?.contextIds.includes(context.id) ||
+              connectedContextIds.has(context.id) ||
+              relationshipConnectedContextIds.has(context.id) ||
+              context.id === needContextConnectionContextId ||
+              false
 
-      // Calculate opacity based on temporal visibility (Strategic View only)
-      let opacity = 1
-      if (viewMode === 'strategic' && project.temporal?.enabled && currentDate) {
-        const keyframes = project.temporal.keyframes || []
-        if (keyframes.length > 0) {
-          opacity = getContextOpacity(context.id, currentDate, keyframes)
-        }
-      }
+            // Calculate opacity based on temporal visibility (Strategic View only)
+            let opacity = 1
+            if (viewMode === 'strategic' && project.temporal?.enabled && currentDate) {
+              const keyframes = project.temporal.keyframes || []
+              if (keyframes.length > 0) {
+                opacity = getContextOpacity(context.id, currentDate, keyframes)
+              }
+            }
 
-      return {
-        id: context.id,
-        type: 'context',
-        position: { x, y },
-        data: {
-          context,
-          isSelected: context.id === selectedContextId || selectedContextIds.includes(context.id),
-          isMemberOfSelectedGroup,
-          isHoveredByRelationship: hoverConnectedContextIds.has(context.id),
-          opacity,
-        },
-        style: {
-          width: size.width,
-          height: size.height,
-          zIndex: 10,
-        },
-        width: size.width,
-        height: size.height,
-        draggable: true,
-        selectable: true,
-        connectable: true,
-      }
-    })
+            return {
+              id: context.id,
+              type: 'context',
+              position: { x, y },
+              data: {
+                context,
+                isSelected:
+                  context.id === selectedContextId || selectedContextIds.includes(context.id),
+                isMemberOfSelectedGroup,
+                isHoveredByRelationship: hoverConnectedContextIds.has(context.id),
+                opacity,
+              },
+              style: {
+                width: size.width,
+                height: size.height,
+                zIndex: 10,
+              },
+              width: size.width,
+              height: size.height,
+              draggable: true,
+              selectable: true,
+              connectable: true,
+            }
+          })
 
-    // Create group nodes (not shown in distillation view)
+    // Create group nodes (not shown in distillation or ES views)
     const groupNodes =
       (viewMode !== 'distillation' &&
+        viewMode !== 'eventstorming' &&
         (project.groups
           ?.map((group) => {
             const contexts = project.contexts.filter((c) => group.contextIds.includes(c.id))
@@ -396,9 +401,9 @@ function CanvasContent() {
     // Apply group visibility filter
     const finalGroupNodes = showGroups ? reorderedGroupNodes : []
 
-    // Create user nodes (visible in Strategic and Value Stream views, not Distillation)
+    // Create user nodes (visible in Strategic and Value Stream views only)
     const userNodes: Node[] =
-      viewMode !== 'distillation' && project.users
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.users
         ? project.users.map((user) => {
             const x = (user.position / 100) * 2000
             const y = 10 // Fixed y position at top inside boundary
@@ -430,7 +435,7 @@ function CanvasContent() {
 
     // Create userNeed nodes (visible in Strategic and Value Stream views, not Distillation)
     const userNeedNodes: Node[] =
-      viewMode !== 'distillation' && project.userNeeds
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.userNeeds
         ? project.userNeeds
             .filter((need) => need.visibility !== false)
             .map((userNeed) => {
@@ -601,7 +606,7 @@ function CanvasContent() {
 
     // Filter relationships based on view mode and visibility toggle
     const relationshipEdges =
-      viewMode !== 'distillation' && showRelationships
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && showRelationships
         ? project.relationships.map((rel) => ({
             id: rel.id,
             source: rel.fromContextId,
@@ -613,9 +618,9 @@ function CanvasContent() {
           }))
         : []
 
-    // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
+    // Add user-need connection edges (Strategic and Value Stream views only)
     const userNeedConnectionEdges: Edge[] =
-      viewMode !== 'distillation' && project.userNeedConnections
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.userNeedConnections
         ? project.userNeedConnections.map((conn) => ({
             id: conn.id,
             source: conn.userId,
@@ -627,9 +632,9 @@ function CanvasContent() {
           }))
         : []
 
-    // Add need-context connection edges (Strategic and Value Stream views, not Distillation)
+    // Add need-context connection edges (Strategic and Value Stream views only)
     const needContextConnectionEdges: Edge[] =
-      viewMode !== 'distillation' && project.needContextConnections
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.needContextConnections
         ? project.needContextConnections.map((conn) => ({
             id: conn.id,
             source: conn.userNeedId,

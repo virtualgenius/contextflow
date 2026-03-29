@@ -20,37 +20,23 @@ const MAX_ENTRIES = 4
 export function NavigationBreadcrumb() {
   const viewMode = useEditorStore((s) => s.activeViewMode)
   const setViewMode = useEditorStore((s) => s.setViewMode)
-  const selectedContextId = useEditorStore((s) => s.selectedContextId)
-  const selectedESAggregateId = useEditorStore((s) => s.selectedESAggregateId)
-  const projectId = useEditorStore((s) => s.activeProjectId)
-  const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
 
   const historyRef = useRef<BreadcrumbEntry[]>([])
 
-  // Track view changes
+  // Track only view mode changes (not selection changes)
   useEffect(() => {
-    const currentLabel = VIEW_LABELS[viewMode]
-    let entityLabel = ''
-
-    if (viewMode !== 'eventstorming' && selectedContextId && project) {
-      const ctx = project.contexts.find((c) => c.id === selectedContextId)
-      if (ctx) entityLabel = ctx.name
-    } else if (viewMode === 'eventstorming' && selectedESAggregateId && project?.eventStorming) {
-      const agg = project.eventStorming.aggregates.find((a) => a.id === selectedESAggregateId)
-      if (agg) entityLabel = agg.name
-    }
-
-    const label = entityLabel ? `${currentLabel} > ${entityLabel}` : currentLabel
+    const label = VIEW_LABELS[viewMode]
     const history = historyRef.current
     const last = history[history.length - 1]
 
-    if (!last || last.viewMode !== viewMode || last.label !== label) {
+    // Only add entry when the VIEW changes
+    if (!last || last.viewMode !== viewMode) {
       history.push({ viewMode, label })
       if (history.length > MAX_ENTRIES) {
         history.shift()
       }
     }
-  }, [viewMode, selectedContextId, selectedESAggregateId, project])
+  }, [viewMode])
 
   const history = historyRef.current
   if (history.length <= 1) return null

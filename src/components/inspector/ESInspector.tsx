@@ -105,7 +105,7 @@ export function ESInspector({ project, entityType, entityId }: ESInspectorProps)
               </option>
             ))}
           </select>
-          {((entity as Record<string, unknown>).contextId as string) && (
+          {((entity as Record<string, unknown>).contextId as string) ? (
             <button
               onClick={() => {
                 const ctxId = (entity as Record<string, unknown>).contextId as string
@@ -119,6 +119,16 @@ export function ESInspector({ project, entityType, entityId }: ESInspectorProps)
             >
               <ArrowRight size={12} />
               View in Context Map
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                useEditorStore.getState().deriveContextFromAggregate(entityId)
+              }}
+              className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              <ArrowRight size={12} />
+              Create Bounded Context from this Aggregate
             </button>
           )}
         </Section>
