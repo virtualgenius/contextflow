@@ -9,6 +9,9 @@ import { NeedContextConnectionInspector } from './inspector/NeedContextConnectio
 import { FlowStageInspector } from './inspector/FlowStageInspector'
 import { TeamInspector } from './inspector/TeamInspector'
 import { ContextInspector } from './inspector/ContextInspector'
+import { ESInspector } from './inspector/ESInspector'
+import { PivotalEventInspector } from './inspector/PivotalEventInspector'
+import { ESConnectionInspector } from './inspector/ESConnectionInspector'
 
 export function InspectorPanel() {
   const projectId = useEditorStore((s) => s.activeProjectId)
@@ -22,6 +25,13 @@ export function InspectorPanel() {
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
   const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
+  const selectedDomainEventId = useEditorStore((s) => s.selectedDomainEventId)
+  const selectedCommandId = useEditorStore((s) => s.selectedCommandId)
+  const selectedESAggregateId = useEditorStore((s) => s.selectedESAggregateId)
+  const selectedPolicyId = useEditorStore((s) => s.selectedPolicyId)
+  const selectedESHotSpotId = useEditorStore((s) => s.selectedESHotSpotId)
+  const selectedPivotalEventId = useEditorStore((s) => s.selectedPivotalEventId)
+  const selectedESConnectionId = useEditorStore((s) => s.selectedESConnectionId)
 
   if (!project) {
     return null
@@ -64,6 +74,37 @@ export function InspectorPanel() {
 
   if (selectedTeamId) {
     return <TeamInspector project={project} teamId={selectedTeamId} />
+  }
+
+  // Event Storming entity inspectors
+  if (selectedDomainEventId) {
+    return (
+      <ESInspector project={project} entityType="domainEvent" entityId={selectedDomainEventId} />
+    )
+  }
+
+  if (selectedCommandId) {
+    return <ESInspector project={project} entityType="command" entityId={selectedCommandId} />
+  }
+
+  if (selectedESAggregateId) {
+    return <ESInspector project={project} entityType="aggregate" entityId={selectedESAggregateId} />
+  }
+
+  if (selectedPolicyId) {
+    return <ESInspector project={project} entityType="policy" entityId={selectedPolicyId} />
+  }
+
+  if (selectedESHotSpotId) {
+    return <ESInspector project={project} entityType="hotSpot" entityId={selectedESHotSpotId} />
+  }
+
+  if (selectedPivotalEventId) {
+    return <PivotalEventInspector project={project} eventId={selectedPivotalEventId} />
+  }
+
+  if (selectedESConnectionId) {
+    return <ESConnectionInspector project={project} connectionId={selectedESConnectionId} />
   }
 
   if (selectedContextId) {

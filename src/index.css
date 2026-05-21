@@ -80,3 +80,17 @@
     transform: scale(1.4);
   }
 }
+
+/* ES Tool cursors - need !important to override ReactFlow's internal cursor */
+.es-tool-pan .react-flow__pane {
+  cursor: grab !important;
+}
+.es-tool-pan .react-flow__pane:active {
+  cursor: grabbing !important;
+}
+.es-tool-area .react-flow__pane {
+  cursor: crosshair !important;
+}
+.es-tool-place .react-flow__pane {
+  cursor: cell !important;
+}

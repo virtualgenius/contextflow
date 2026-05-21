@@ -3,6 +3,7 @@ import ReactFlow, {
   Node,
   Edge,
   Background,
+  BackgroundVariant,
   Controls,
   useReactFlow,
   NodeDragHandler,
@@ -27,16 +28,18 @@ import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions
 import { createSelectionState } from '../model/validation'
 import { NODE_SIZES } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
+import { ES_W, ES_H } from '../lib/esCanvasConfig'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
-import { ContextNode, GroupNode, UserNode, UserNeedNode } from './nodes'
+import { ContextNode, GroupNode, UserNode, UserNeedNode, ESStickyNode } from './nodes'
 import {
   RelationshipEdge,
   UserConnectionEdge,
   UserNeedConnectionEdge,
   NeedContextConnectionEdge,
+  ESConnectionEdge,
 } from './edges'
 import {
   StageLabels,
@@ -46,15 +49,24 @@ import {
   EvolutionBands,
   ProblemSpaceBand,
   CanvasBoundary,
+  ESCanvasBoundary,
   YAxisLabels,
   DistillationRegions,
+  PivotalEventLines,
+  SwimLaneLines,
+  ESContextRegions,
 } from './overlays'
+import { buildESNodes, buildESEdges } from '../lib/esNodeFactories'
+import { useESAreaSelect } from '../hooks/useESAreaSelect'
+import { ESAreaSelectMenu } from './ESAreaSelectMenu'
+import { useESHandlers } from '../hooks/useESHandlers'
 
 const nodeTypes = {
   context: ContextNode,
   group: GroupNode,
   user: UserNode,
   userNeed: UserNeedNode,
+  esSticky: ESStickyNode,
 }
 
 const edgeTypes = {
@@ -62,6 +74,7 @@ const edgeTypes = {
   userConnection: UserConnectionEdge,
   userNeedConnection: UserNeedConnectionEdge,
   needContextConnection: NeedContextConnectionEdge,
+  esConnection: ESConnectionEdge,
 }
 
 function CustomControls() {
@@ -72,10 +85,12 @@ function CustomControls() {
     const bounds =
       viewMode === 'flow'
         ? { x: -120, y: -50, width: 2120, height: 1080 }
-        : { x: 0, y: -50, width: 2000, height: 1080 }
+        : viewMode === 'eventstorming'
+          ? { x: 0, y: 0, width: 16000, height: 9000 }
+          : { x: 0, y: -50, width: 2000, height: 1080 }
 
     fitBounds(bounds, {
-      padding: 0.1,
+      padding: 0.05,
       duration: 200,
     })
   }, [fitBounds, viewMode])
@@ -95,7 +110,13 @@ function CanvasContent() {
   const selectedUserNeedConnectionId = useEditorStore((s) => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
+  const selectedDomainEventId = useEditorStore((s) => s.selectedDomainEventId)
+  const selectedCommandId = useEditorStore((s) => s.selectedCommandId)
+  const selectedESAggregateId = useEditorStore((s) => s.selectedESAggregateId)
+  const selectedPolicyId = useEditorStore((s) => s.selectedPolicyId)
+  const selectedESHotSpotId = useEditorStore((s) => s.selectedESHotSpotId)
   const viewMode = useEditorStore((s) => s.activeViewMode)
+  const esToolMode = useEditorStore((s) => s.esToolMode)
   const showGroups = useEditorStore((s) => s.showGroups)
   const showRelationships = useEditorStore((s) => s.showRelationships)
   const showIssueLabels = useEditorStore((s) => s.showIssueLabels)
@@ -135,6 +156,35 @@ function CanvasContent() {
     position: { x: number; y: number }
   } | null>(null)
 
+  // Area select state (for ES area select tool) — managed by useESAreaSelect hook
+  const {
+    areaSelectRect,
+    selectedStickyIds,
+    stickyMenuMode,
+    setStickyMenuMode,
+    newContextName,
+    setNewContextName,
+    clearSelection,
+    toggleStickySelection,
+    onWrapperMouseDown,
+    onWrapperMouseMove,
+    onWrapperMouseUp,
+  } = useESAreaSelect()
+
+  // ES handler hooks (drag-drop, connections, keyboard, node clicks for ES stickies)
+  const {
+    esConnectingFromType,
+    handleESDragOver,
+    handleESDrop,
+    handleESNodeClick,
+    handleESConnectStart,
+    handleESConnectEnd,
+    handleESConnect,
+    handleESPaneClick,
+    handleESNodeDelete,
+    handleESKeyDown,
+  } = useESHandlers()
+
   // Value chain guide modal
   const [showValueChainGuide, setShowValueChainGuide] = React.useState(false)
 
@@ -144,12 +194,30 @@ function CanvasContent() {
   const [seenSampleProjects, setSeenSampleProjects] = React.useState<Set<string>>(new Set())
   const _setActiveProject = useEditorStore((s) => s.setActiveProject)
 
-  const { fitBounds } = useReactFlow()
+  const { fitBounds, screenToFlowPosition } = useReactFlow()
+
+  // Drop handler for ES sticky palette
+  const onDragOver = useCallback(
+    (event: React.DragEvent) => {
+      handleESDragOver(event)
+    },
+    [handleESDragOver]
+  )
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      if (viewMode !== 'eventstorming') return
+      handleESDrop(event, screenToFlowPosition)
+    },
+    [viewMode, handleESDrop, screenToFlowPosition]
+  )
 
   const getBounds = useCallback(() => {
     return viewMode === 'flow'
       ? { x: -120, y: -50, width: 2120, height: 1080 }
-      : { x: 0, y: -50, width: 2000, height: 1080 }
+      : viewMode === 'eventstorming'
+        ? { x: 0, y: 0, width: 16000, height: 9000 }
+        : { x: 0, y: -50, width: 2000, height: 1080 }
   }, [viewMode])
 
   useEffect(() => {
@@ -215,63 +283,68 @@ function CanvasContent() {
       project.relationships
     )
 
-    const contextNodes = project.contexts.map((context) => {
-      const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
+    const contextNodes =
+      viewMode === 'eventstorming'
+        ? []
+        : project.contexts.map((context) => {
+            const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
-      const keyframes = project.temporal?.keyframes || []
-      const { x, y } = getContextCanvasPosition(
-        context.positions,
-        viewMode as 'flow' | 'strategic' | 'distillation',
-        viewMode === 'strategic' && project.temporal?.enabled ? currentDate : null,
-        keyframes as any,
-        interpolatePosition as any,
-        context.id
-      )
+            const keyframes = project.temporal?.keyframes || []
+            const { x, y } = getContextCanvasPosition(
+              context.positions,
+              viewMode as 'flow' | 'strategic' | 'distillation' | 'eventstorming',
+              viewMode === 'strategic' && project.temporal?.enabled ? currentDate : null,
+              keyframes as any,
+              interpolatePosition as any,
+              context.id
+            )
 
-      // Check if this context is highlighted (by group, user, relationship, or need-context connection selection)
-      const isMemberOfSelectedGroup =
-        selectedGroup?.contextIds.includes(context.id) ||
-        connectedContextIds.has(context.id) ||
-        relationshipConnectedContextIds.has(context.id) ||
-        context.id === needContextConnectionContextId ||
-        false
+            // Check if this context is highlighted (by group, user, relationship, or need-context connection selection)
+            const isMemberOfSelectedGroup =
+              selectedGroup?.contextIds.includes(context.id) ||
+              connectedContextIds.has(context.id) ||
+              relationshipConnectedContextIds.has(context.id) ||
+              context.id === needContextConnectionContextId ||
+              false
 
-      // Calculate opacity based on temporal visibility (Strategic View only)
-      let opacity = 1
-      if (viewMode === 'strategic' && project.temporal?.enabled && currentDate) {
-        const keyframes = project.temporal.keyframes || []
-        if (keyframes.length > 0) {
-          opacity = getContextOpacity(context.id, currentDate, keyframes)
-        }
-      }
+            // Calculate opacity based on temporal visibility (Strategic View only)
+            let opacity = 1
+            if (viewMode === 'strategic' && project.temporal?.enabled && currentDate) {
+              const keyframes = project.temporal.keyframes || []
+              if (keyframes.length > 0) {
+                opacity = getContextOpacity(context.id, currentDate, keyframes)
+              }
+            }
 
-      return {
-        id: context.id,
-        type: 'context',
-        position: { x, y },
-        data: {
-          context,
-          isSelected: context.id === selectedContextId || selectedContextIds.includes(context.id),
-          isMemberOfSelectedGroup,
-          isHoveredByRelationship: hoverConnectedContextIds.has(context.id),
-          opacity,
-        },
-        style: {
-          width: size.width,
-          height: size.height,
-          zIndex: 10,
-        },
-        width: size.width,
-        height: size.height,
-        draggable: true,
-        selectable: true,
-        connectable: true,
-      }
-    })
+            return {
+              id: context.id,
+              type: 'context',
+              position: { x, y },
+              data: {
+                context,
+                isSelected:
+                  context.id === selectedContextId || selectedContextIds.includes(context.id),
+                isMemberOfSelectedGroup,
+                isHoveredByRelationship: hoverConnectedContextIds.has(context.id),
+                opacity,
+              },
+              style: {
+                width: size.width,
+                height: size.height,
+                zIndex: 10,
+              },
+              width: size.width,
+              height: size.height,
+              draggable: true,
+              selectable: true,
+              connectable: true,
+            }
+          })
 
-    // Create group nodes (not shown in distillation view)
+    // Create group nodes (not shown in distillation or ES views)
     const groupNodes =
       (viewMode !== 'distillation' &&
+        viewMode !== 'eventstorming' &&
         (project.groups
           ?.map((group) => {
             const contexts = project.contexts.filter((c) => group.contextIds.includes(c.id))
@@ -347,9 +420,9 @@ function CanvasContent() {
     // Apply group visibility filter
     const finalGroupNodes = showGroups ? reorderedGroupNodes : []
 
-    // Create user nodes (visible in Strategic and Value Stream views, not Distillation)
+    // Create user nodes (visible in Strategic and Value Stream views only)
     const userNodes: Node[] =
-      viewMode !== 'distillation' && project.users
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.users
         ? project.users.map((user) => {
             const x = (user.position / 100) * 2000
             const y = 10 // Fixed y position at top inside boundary
@@ -381,7 +454,7 @@ function CanvasContent() {
 
     // Create userNeed nodes (visible in Strategic and Value Stream views, not Distillation)
     const userNeedNodes: Node[] =
-      viewMode !== 'distillation' && project.userNeeds
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.userNeeds
         ? project.userNeeds
             .filter((need) => need.visibility !== false)
             .map((userNeed) => {
@@ -415,8 +488,25 @@ function CanvasContent() {
             })
         : []
 
-    // Return groups first (with selected on top), then contexts, then user needs, then users
-    return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...userNodes]
+    // Event Storming sticky nodes (only in ES view)
+    const esNodes: Node[] =
+      viewMode === 'eventstorming' && project.eventStorming?.enabled
+        ? buildESNodes(
+            project.eventStorming,
+            {
+              selectedDomainEventId,
+              selectedCommandId,
+              selectedESAggregateId,
+              selectedPolicyId,
+              selectedESHotSpotId,
+            },
+            selectedStickyIds,
+            esConnectingFromType
+          )
+        : []
+
+    // Return groups first (with selected on top), then contexts, then user needs, then users, then ES stickies
+    return [...finalGroupNodes, ...contextNodes, ...userNeedNodes, ...userNodes, ...esNodes]
   }, [
     project,
     selectedContextId,
@@ -430,6 +520,13 @@ function CanvasContent() {
     viewMode,
     showGroups,
     currentDate,
+    selectedDomainEventId,
+    selectedCommandId,
+    selectedESAggregateId,
+    selectedPolicyId,
+    selectedESHotSpotId,
+    esConnectingFromType,
+    selectedStickyIds,
   ])
 
   // Use React Flow's internal nodes state for smooth updates
@@ -452,7 +549,7 @@ function CanvasContent() {
 
     // Filter relationships based on view mode and visibility toggle
     const relationshipEdges =
-      viewMode !== 'distillation' && showRelationships
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && showRelationships
         ? project.relationships.map((rel) => ({
             id: rel.id,
             source: rel.fromContextId,
@@ -464,9 +561,9 @@ function CanvasContent() {
           }))
         : []
 
-    // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
+    // Add user-need connection edges (Strategic and Value Stream views only)
     const userNeedConnectionEdges: Edge[] =
-      viewMode !== 'distillation' && project.userNeedConnections
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.userNeedConnections
         ? project.userNeedConnections.map((conn) => ({
             id: conn.id,
             source: conn.userId,
@@ -478,9 +575,9 @@ function CanvasContent() {
           }))
         : []
 
-    // Add need-context connection edges (Strategic and Value Stream views, not Distillation)
+    // Add need-context connection edges (Strategic and Value Stream views only)
     const needContextConnectionEdges: Edge[] =
-      viewMode !== 'distillation' && project.needContextConnections
+      viewMode !== 'distillation' && viewMode !== 'eventstorming' && project.needContextConnections
         ? project.needContextConnections.map((conn) => ({
             id: conn.id,
             source: conn.userNeedId,
@@ -492,7 +589,27 @@ function CanvasContent() {
           }))
         : []
 
-    return [...relationshipEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
+    // ES connection edges (only in Event Storming view)
+    // Build a set of all existing sticky IDs to filter orphaned edges
+    const es = project.eventStorming
+    const esNodeIds = new Set<string>([
+      ...(es?.domainEvents ?? []).map((s) => s.id),
+      ...(es?.commands ?? []).map((s) => s.id),
+      ...(es?.aggregates ?? []).map((s) => s.id),
+      ...(es?.policies ?? []).map((s) => s.id),
+      ...(es?.hotSpots ?? []).map((s) => s.id),
+    ])
+    const esConnectionEdges: Edge[] =
+      viewMode === 'eventstorming' && es?.connections
+        ? buildESEdges(es.connections, esNodeIds)
+        : []
+
+    return [
+      ...relationshipEdges,
+      ...userNeedConnectionEdges,
+      ...needContextConnectionEdges,
+      ...esConnectionEdges,
+    ]
   }, [project, viewMode, showRelationships])
 
   // Handle edge click
@@ -537,6 +654,16 @@ function CanvasContent() {
       return
     }
 
+    // Handle ES sticky node clicks (selection)
+    if (node.type === 'esSticky') {
+      handleESNodeClick(node.id, node.data?.stickyType, event.shiftKey, {
+        selectedStickyIds,
+        toggleStickySelection,
+        clearSelection,
+      })
+      return
+    }
+
     // Handle context node clicks
     if (event.shiftKey || event.metaKey || event.ctrlKey) {
       // Multi-select mode (Shift or Cmd/Ctrl)
@@ -547,16 +674,40 @@ function CanvasContent() {
         ...createSelectionState(node.id, 'context'),
       })
     }
-  }, [])
+  }, [handleESNodeClick, selectedStickyIds, toggleStickySelection, clearSelection])
 
-  // Handle pane click (deselect)
-  const onPaneClick = useCallback(() => {
-    useEditorStore.setState({
-      ...createSelectionState(null, 'context'),
-    })
-  }, [])
+  // Handle pane click (deselect or place sticky)
+  const onPaneClick = useCallback(
+    (event: React.MouseEvent) => {
+      // If a sticky tool is active in ES view, create a sticky at click position
+      if (viewMode === 'eventstorming') {
+        const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY })
+        if (handleESPaneClick(flowPos)) return
+        // Clear multi-selection when clicking empty canvas in select/pan mode
+        if (selectedStickyIds.length > 0) clearSelection()
+      }
+
+      // Default: deselect
+      useEditorStore.setState({
+        ...createSelectionState(null, 'context'),
+      })
+    },
+    [viewMode, screenToFlowPosition, handleESPaneClick, selectedStickyIds, clearSelection]
+  )
 
   // Handle edge connection (User → User Need → Context, or Context → Context)
+  // Track ES connection dragging to highlight valid targets
+  const onConnectStart = useCallback(
+    (_event: unknown, params: { nodeId: string | null }) => {
+      handleESConnectStart(params.nodeId, nodes)
+    },
+    [nodes, handleESConnectStart]
+  )
+
+  const onConnectEnd = useCallback(() => {
+    handleESConnectEnd()
+  }, [handleESConnectEnd])
+
   const onConnect = useCallback(
     (connection: any) => {
       const { source, target } = connection
@@ -584,6 +735,12 @@ function CanvasContent() {
         return
       }
 
+      // ES Sticky → ES Sticky (validated connection with auto-label)
+      if (sourceNode.type === 'esSticky' && targetNode.type === 'esSticky') {
+        handleESConnect(source, target, sourceNode, targetNode)
+        return
+      }
+
       // Invalid connection - show guidance tooltip
       const targetNodeElement = document.querySelector(`[data-id="${target}"]`)
       const rect = targetNodeElement?.getBoundingClientRect()
@@ -598,7 +755,7 @@ function CanvasContent() {
           : { x: window.innerWidth / 2, y: window.innerHeight / 3 },
       })
     },
-    [nodes]
+    [nodes, handleESConnect]
   )
 
   // Wrap onNodesChange to handle multi-select drag
@@ -800,6 +957,21 @@ function CanvasContent() {
         return
       }
 
+      // Handle ES sticky note drag (free 2D movement)
+      if (node.type === 'esSticky') {
+        const newX = Math.max(0, Math.min(100, (node.position.x / ES_W) * 100))
+        const newY = Math.max(0, Math.min(100, (node.position.y / ES_H) * 100))
+        const newPos = { x: newX, y: newY }
+        const stickyType = node.data?.stickyType as string
+        const state = useEditorStore.getState()
+        if (stickyType === 'domainEvent') state.updateDomainEvent(node.id, { position: newPos })
+        else if (stickyType === 'command') state.updateCommand(node.id, { position: newPos })
+        else if (stickyType === 'aggregate') state.updateESAggregate(node.id, { position: newPos })
+        else if (stickyType === 'policy') state.updatePolicy(node.id, { position: newPos })
+        else if (stickyType === 'hotSpot') state.updateESHotSpot(node.id, { position: newPos })
+        return
+      }
+
       // Check if we're in temporal mode with an active keyframe (Strategic View only)
       const isEditingKeyframe =
         viewMode === 'strategic' && project.temporal?.enabled && activeKeyframeId
@@ -943,10 +1115,14 @@ function CanvasContent() {
           case 'group':
             deleteGroup(node.id)
             break
+          case 'esSticky': {
+            handleESNodeDelete(node.id, node.data?.stickyType)
+            break
+          }
         }
       }
     },
-    [deleteContext, deleteUser, deleteUserNeed, deleteGroup]
+    [deleteContext, deleteUser, deleteUserNeed, deleteGroup, handleESNodeDelete]
   )
 
   // Handle keyboard shortcuts
@@ -956,19 +1132,48 @@ function CanvasContent() {
         useEditorStore.setState({ selectedContextId: null })
       }
       // Delete/Backspace: Delete selected connection edges
+      // Connections take priority over nodes - if a connection is selected, only delete it
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const state = useEditorStore.getState()
-        // Delete selected user-need connection
+        if (state.selectedPivotalEventId) {
+          e.preventDefault()
+          e.stopPropagation()
+          state.deletePivotalEvent(state.selectedPivotalEventId)
+          return
+        }
+        if (state.selectedSwimLaneId) {
+          e.preventDefault()
+          e.stopPropagation()
+          state.deleteSwimLane(state.selectedSwimLaneId)
+          return
+        }
+        if (state.selectedESConnectionId) {
+          e.preventDefault()
+          e.stopPropagation()
+          state.deleteESConnection(state.selectedESConnectionId)
+          return
+        }
         if (state.selectedUserNeedConnectionId) {
           e.preventDefault()
+          e.stopPropagation()
           state.deleteUserNeedConnection(state.selectedUserNeedConnectionId)
+          return
         }
-        // Delete selected need-context connection
         if (state.selectedNeedContextConnectionId) {
           e.preventDefault()
+          e.stopPropagation()
           state.deleteNeedContextConnection(state.selectedNeedContextConnectionId)
+          return
         }
       }
+      // ES keyboard shortcuts (tool modes, copy, paste, escape) — delegated to hook
+      const currentState = useEditorStore.getState()
+      const currentViewMode = currentState.activeViewMode
+      const currentProject = currentState.activeProjectId
+        ? currentState.projects[currentState.activeProjectId]
+        : undefined
+      handleESKeyDown(e, currentViewMode, currentProject)
+
       // Undo: Cmd/Ctrl + Z
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
@@ -982,20 +1187,37 @@ function CanvasContent() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [handleESKeyDown])
 
   const flowStages = project?.viewConfig.flowStages || []
 
   return (
     <div className="relative w-full h-full">
-      <TimeSlider />
-      <div className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}>
+      {viewMode !== 'eventstorming' && <TimeSlider />}
+      <div
+        className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''} ${
+          viewMode === 'eventstorming' && esToolMode === 'pan'
+            ? 'es-tool-pan'
+            : viewMode === 'eventstorming' && esToolMode === 'areaSelect'
+              ? 'es-tool-area'
+              : viewMode === 'eventstorming' && !['select', 'connect', 'pan', 'areaSelect'].includes(esToolMode)
+                ? 'es-tool-place'
+                : ''
+        }`}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onMouseDown={onWrapperMouseDown}
+        onMouseMove={onWrapperMouseMove}
+        onMouseUp={onWrapperMouseUp}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onConnect={onConnect}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
           connectionMode={ConnectionMode.Loose}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
@@ -1006,17 +1228,22 @@ function CanvasContent() {
           onNodeDrag={constrainNodePosition}
           onNodeDragStop={onNodeDragStop}
           onInit={onInit}
+          panOnDrag={esToolMode === 'connect' || esToolMode === 'pan' || viewMode !== 'eventstorming'}
           elementsSelectable
           deleteKeyCode={['Backspace', 'Delete']}
           minZoom={0.1}
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
         >
-          {/* Wardley-style background with very subtle dots */}
-          <Background gap={24} size={0.4} color="#e5e7eb" />
+          {/* Background: dots for strategy views, lines grid for ES whiteboard feel */}
+          {viewMode === 'eventstorming' ? (
+            <Background variant={BackgroundVariant.Lines} gap={40} color="#efefef" style={{ strokeWidth: 0.4 }} />
+          ) : (
+            <Background gap={24} size={0.4} color="#e5e7eb" />
+          )}
 
-          {/* Canvas boundary - marks the edges of the workspace */}
-          <CanvasBoundary />
+          {/* Canvas boundary */}
+          {viewMode === 'eventstorming' ? <ESCanvasBoundary /> : <CanvasBoundary />}
 
           <CustomControls />
 
@@ -1028,6 +1255,15 @@ function CanvasContent() {
               <StageBoundaryLines stages={flowStages} />
               <StageLabels stages={flowStages} />
               <YAxisLabels />
+            </>
+          ) : viewMode === 'eventstorming' ? (
+            <>
+              {project?.eventStorming?.pivotalEvents && (
+                <PivotalEventLines pivotalEvents={project.eventStorming.pivotalEvents} />
+              )}
+              {project?.eventStorming?.swimLanes && (
+                <SwimLaneLines swimLanes={project.eventStorming.swimLanes} />
+              )}
             </>
           ) : (
             <>
@@ -1121,10 +1357,35 @@ function CanvasContent() {
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
               </marker>
+              <marker
+                id="es-arrow"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="5"
+                markerHeight="5"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#e65100" />
+              </marker>
             </defs>
           </svg>
         </ReactFlow>
       </div>
+      {viewMode === 'eventstorming' && project && (
+        <ESContextRegions project={project} />
+      )}
+
+      <ESAreaSelectMenu
+        selectedStickyIds={selectedStickyIds}
+        areaSelectRect={areaSelectRect}
+        project={project}
+        stickyMenuMode={stickyMenuMode}
+        setStickyMenuMode={setStickyMenuMode}
+        newContextName={newContextName}
+        setNewContextName={setNewContextName}
+        onClearSelection={clearSelection}
+      />
 
       {/* Pattern Picker Dialog for context→context relationships */}
       {pendingConnection &&

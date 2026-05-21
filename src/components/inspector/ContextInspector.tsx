@@ -619,6 +619,201 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         />
       )}
 
+      {/* Event Storming section - shown when ES is enabled and this context has linked aggregates */}
+      {project.eventStorming?.enabled &&
+        (() => {
+          const linkedAggregates = project.eventStorming!.aggregates.filter(
+            (a) => a.contextId === contextId
+          )
+          if (linkedAggregates.length === 0) return null
+
+          // Find events and commands connected to these aggregates via ES connections
+          const aggregateIds = new Set(linkedAggregates.map((a) => a.id))
+          const connections = project.eventStorming!.connections || []
+          const linkedEventIds = new Set(
+            connections.filter((c) => aggregateIds.has(c.sourceId)).map((c) => c.targetId)
+          )
+          const linkedCommandIds = new Set(
+            connections.filter((c) => aggregateIds.has(c.targetId)).map((c) => c.sourceId)
+          )
+          const events = project.eventStorming!.domainEvents.filter((e) => linkedEventIds.has(e.id))
+          const commands = project.eventStorming!.commands.filter((c) => linkedCommandIds.has(c.id))
+          const policies = project.eventStorming!.policies.filter((p) => {
+            const triggerEvents = connections.filter(
+              (c) => linkedEventIds.has(c.sourceId) && c.targetId === p.id
+            )
+            return triggerEvents.length > 0
+          })
+
+          return (
+            <Section label={`Event Storming (${linkedAggregates.length} aggregates)`}>
+              <div className="space-y-2">
+                {linkedAggregates.map((agg) => (
+                  <button
+                    key={agg.id}
+                    onClick={() => {
+                      useEditorStore.getState().setViewMode('eventstorming')
+                      useEditorStore.setState({
+                        selectedESAggregateId: agg.id,
+                        selectedContextId: null,
+                      })
+                    }}
+                    className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700"
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: '#ffeb3b' }}
+                    />
+                    <span className="text-xs font-medium truncate">{agg.name}</span>
+                  </button>
+                ))}
+
+                {/* Summary counts */}
+                <div className="text-[10px] text-slate-400 dark:text-slate-500 pt-1 space-y-0.5">
+                  {events.length > 0 && (
+                    <div>
+                      {events.length} domain event{events.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                  {commands.length > 0 && (
+                    <div>
+                      {commands.length} command{commands.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                  {policies.length > 0 && (
+                    <div>
+                      {policies.length} polic{policies.length !== 1 ? 'ies' : 'y'}
+                    </div>
+                  )}
+                  {policies.length === 0 && events.length > 0 && (
+                    <div className="text-amber-500">
+                      No policies found - consider adding business rules
+                    </div>
+                  )}
+                </div>
+
+                {/* View in Event Storming button */}
+                <button
+                  onClick={() => {
+                    useEditorStore.setState({ selectedContextId: null })
+                    useEditorStore.getState().setViewMode('eventstorming')
+                  }}
+                  className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline pt-1"
+                >
+                  <ArrowRight size={12} />
+                  View in Event Storming
+                </button>
+              </div>
+            </Section>
+          )
+        })()}
+
+      {/* Relationship suggestions from ES connections */}
+      {project.eventStorming?.enabled &&
+        (() => {
+          const es = project.eventStorming!
+          const connections = es.connections || []
+          const suggestions: {
+            contextName: string
+            contextId: string
+            via: string
+            pattern: string
+          }[] = []
+          const existingRelPairs = new Set(
+            project.relationships.map((r) => `${r.fromContextId}-${r.toContextId}`)
+          )
+
+          // Find cross-context connections: event from agg in this context -> command in agg in another context
+          const myAggIds = new Set(
+            es.aggregates.filter((a) => a.contextId === contextId).map((a) => a.id)
+          )
+
+          for (const conn of connections) {
+            // Source is in my context, target is in another
+            const sourceAgg = es.aggregates.find((a) => a.id === conn.sourceId)
+            const targetAgg = es.aggregates.find((a) => a.id === conn.targetId)
+
+            // Check domain events produced by my aggregates that connect to other contexts
+            const sourceEvent = es.domainEvents.find((e) => e.id === conn.sourceId)
+            const targetCmd = es.commands.find((c) => c.id === conn.targetId)
+
+            if (
+              sourceEvent?.aggregateId &&
+              myAggIds.has(sourceEvent.aggregateId) &&
+              targetCmd?.aggregateId
+            ) {
+              const targetAggObj = es.aggregates.find((a) => a.id === targetCmd.aggregateId)
+              if (targetAggObj?.contextId && targetAggObj.contextId !== contextId) {
+                const pair = `${contextId}-${targetAggObj.contextId}`
+                const reversePair = `${targetAggObj.contextId}-${contextId}`
+                if (!existingRelPairs.has(pair) && !existingRelPairs.has(reversePair)) {
+                  const targetCtx = project.contexts.find((c) => c.id === targetAggObj.contextId)
+                  if (targetCtx && !suggestions.find((s) => s.contextId === targetCtx.id)) {
+                    suggestions.push({
+                      contextName: targetCtx.name,
+                      contextId: targetCtx.id,
+                      via: sourceEvent.name,
+                      pattern: 'published-language',
+                    })
+                  }
+                }
+              }
+            }
+
+            // Also check direct aggregate-to-aggregate cross-context links
+            if (
+              sourceAgg?.contextId === contextId &&
+              targetAgg?.contextId &&
+              targetAgg.contextId !== contextId
+            ) {
+              const pair = `${contextId}-${targetAgg.contextId}`
+              const reversePair = `${targetAgg.contextId}-${contextId}`
+              if (!existingRelPairs.has(pair) && !existingRelPairs.has(reversePair)) {
+                const targetCtx = project.contexts.find((c) => c.id === targetAgg.contextId)
+                if (targetCtx && !suggestions.find((s) => s.contextId === targetCtx.id)) {
+                  suggestions.push({
+                    contextName: targetCtx.name,
+                    contextId: targetCtx.id,
+                    via: `${sourceAgg.name} -> ${targetAgg.name}`,
+                    pattern: 'customer-supplier',
+                  })
+                }
+              }
+            }
+          }
+
+          if (suggestions.length === 0) return null
+
+          return (
+            <Section label="Suggested Relationships">
+              <div className="space-y-2">
+                {suggestions.map((s) => (
+                  <div
+                    key={s.contextId}
+                    className="text-xs space-y-1 p-2 bg-amber-50 dark:bg-amber-900/20 rounded"
+                  >
+                    <div className="font-medium text-amber-800 dark:text-amber-300">
+                      {s.contextName}
+                    </div>
+                    <div className="text-amber-600 dark:text-amber-400 text-[10px]">
+                      via {s.via}
+                    </div>
+                    <button
+                      onClick={() => {
+                        addRelationship(contextId, s.contextId, s.pattern as any)
+                      }}
+                      className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      <Plus size={10} />
+                      Create {s.pattern.replace('-', ' ')} relationship
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )
+        })()}
+
       {/* Delete Context - at bottom to avoid confusion with close button */}
       <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
         <button

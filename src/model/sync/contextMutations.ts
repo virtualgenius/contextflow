@@ -23,6 +23,7 @@ export function updateContextMutation(
 
     applyScalarUpdates(yContext, updates)
     applyCodeSizeUpdate(yContext, updates)
+    applyEsBoundsUpdate(yContext, updates)
   })
 }
 
@@ -66,6 +67,16 @@ export function updateContextPositionMutation(
 
     const yShared = yPositions.get('shared') as Y.Map<number>
     yShared.set('y', positions.shared.y)
+
+    if (positions.eventstorming) {
+      let yES = yPositions.get('eventstorming') as Y.Map<number> | null
+      if (!yES) {
+        yES = new Y.Map<number>()
+        yPositions.set('eventstorming' as string, yES as unknown as Y.Map<unknown>)
+      }
+      yES.set('x', positions.eventstorming.x)
+      yES.set('y', positions.eventstorming.y)
+    }
 
     yContext.set(
       'strategicClassification',
@@ -117,6 +128,11 @@ function applyScalarUpdates(yContext: Y.Map<unknown>, updates: Partial<BoundedCo
       yContext.set(field, value ?? null)
     }
   }
+}
+
+function applyEsBoundsUpdate(yContext: Y.Map<unknown>, updates: Partial<BoundedContext>): void {
+  if (!('esBounds' in updates)) return
+  yContext.set('esBounds', updates.esBounds ? JSON.stringify(updates.esBounds) : null)
 }
 
 function applyCodeSizeUpdate(yContext: Y.Map<unknown>, updates: Partial<BoundedContext>): void {

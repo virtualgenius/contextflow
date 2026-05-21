@@ -68,6 +68,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -85,6 +92,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -102,6 +116,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -119,6 +140,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -136,6 +164,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -153,6 +188,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -170,6 +212,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: 'conn2',
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -187,6 +236,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -204,6 +260,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: 2,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -221,6 +284,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -238,6 +308,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: 'team1',
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })
@@ -255,6 +332,13 @@ describe('createSelectionState', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: 0,
       selectedTeamId: null,
+      selectedDomainEventId: null,
+      selectedCommandId: null,
+      selectedESAggregateId: null,
+      selectedPolicyId: null,
+      selectedESHotSpotId: null,
+      selectedPivotalEventId: null,
+      selectedESConnectionId: null,
       selectedContextIds: [],
     })
   })

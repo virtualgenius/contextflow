@@ -35,6 +35,14 @@ export interface SelectionState {
   selectedNeedContextConnectionId: string | null
   selectedStageIndex: number | null
   selectedTeamId: string | null
+  selectedDomainEventId: string | null
+  selectedCommandId: string | null
+  selectedESAggregateId: string | null
+  selectedPolicyId: string | null
+  selectedESHotSpotId: string | null
+  selectedPivotalEventId: string | null
+  selectedSwimLaneId: string | null
+  selectedESConnectionId: string | null
   selectedContextIds: string[]
 }
 
@@ -48,6 +56,14 @@ type SelectionType =
   | 'needContextConnection'
   | 'stage'
   | 'team'
+  | 'domainEvent'
+  | 'command'
+  | 'esAggregate'
+  | 'policy'
+  | 'esHotSpot'
+  | 'pivotalEvent'
+  | 'swimLane'
+  | 'esConnection'
 
 export function createSelectionState(
   selectedId: string | null,
@@ -70,6 +86,14 @@ export function createSelectionState(
     selectedNeedContextConnectionId: null,
     selectedStageIndex: null,
     selectedTeamId: null,
+    selectedDomainEventId: null,
+    selectedCommandId: null,
+    selectedESAggregateId: null,
+    selectedPolicyId: null,
+    selectedESHotSpotId: null,
+    selectedPivotalEventId: null,
+    selectedSwimLaneId: null,
+    selectedESConnectionId: null,
     selectedContextIds: [],
   }
 
@@ -92,5 +116,21 @@ export function createSelectionState(
       return { ...baseState, selectedStageIndex: selectedValue as number | null }
     case 'team':
       return { ...baseState, selectedTeamId: selectedValue as string | null }
+    case 'domainEvent':
+      return { ...baseState, selectedDomainEventId: selectedValue as string | null }
+    case 'command':
+      return { ...baseState, selectedCommandId: selectedValue as string | null }
+    case 'esAggregate':
+      return { ...baseState, selectedESAggregateId: selectedValue as string | null }
+    case 'policy':
+      return { ...baseState, selectedPolicyId: selectedValue as string | null }
+    case 'esHotSpot':
+      return { ...baseState, selectedESHotSpotId: selectedValue as string | null }
+    case 'pivotalEvent':
+      return { ...baseState, selectedPivotalEventId: selectedValue as string | null }
+    case 'swimLane':
+      return { ...baseState, selectedSwimLaneId: selectedValue as string | null }
+    case 'esConnection':
+      return { ...baseState, selectedESConnectionId: selectedValue as string | null }
   }
 }

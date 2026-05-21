@@ -15,6 +15,14 @@ import type {
   Person,
   Issue,
   IssueSeverity,
+  DomainEvent,
+  Command,
+  ESAggregate,
+  Policy,
+  ESHotSpot,
+  PivotalEvent,
+  ESSwimLane,
+  ESConnection,
 } from '../types'
 import {
   useCollabStore,
@@ -78,6 +86,32 @@ export interface CollabMutations {
   updatePerson(personId: string, updates: Partial<Person>): void
   deletePerson(personId: string): void
   renameProject(name: string): void
+  // Event Storming mutations
+  toggleEventStorming(): void
+  addDomainEvent(event: DomainEvent): void
+  updateDomainEvent(eventId: string, updates: Partial<DomainEvent>): void
+  deleteDomainEvent(eventId: string): void
+  addCommand(command: Command): void
+  updateCommand(commandId: string, updates: Partial<Command>): void
+  deleteCommand(commandId: string): void
+  addESAggregate(aggregate: ESAggregate): void
+  updateESAggregate(aggregateId: string, updates: Partial<ESAggregate>): void
+  deleteESAggregate(aggregateId: string): void
+  addPolicy(policy: Policy): void
+  updatePolicy(policyId: string, updates: Partial<Policy>): void
+  deletePolicy(policyId: string): void
+  addESHotSpot(hotSpot: ESHotSpot): void
+  updateESHotSpot(hotSpotId: string, updates: Partial<ESHotSpot>): void
+  deleteESHotSpot(hotSpotId: string): void
+  addPivotalEvent(event: PivotalEvent): void
+  updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void
+  deletePivotalEvent(eventId: string): void
+  addSwimLane(lane: ESSwimLane): void
+  updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void
+  deleteSwimLane(laneId: string): void
+  addESConnection(connection: ESConnection): void
+  updateESConnection(connectionId: string, updates: Partial<ESConnection>): void
+  deleteESConnection(connectionId: string): void
 }
 
 export interface CollabUndoRedo {
@@ -273,6 +307,82 @@ export function getCollabMutations(): CollabMutations {
     },
     renameProject(name: string): void {
       collabStore?.renameProject(name)
+    },
+    // Event Storming mutations
+    toggleEventStorming(): void {
+      collabStore?.toggleEventStorming()
+    },
+    addDomainEvent(event: DomainEvent): void {
+      collabStore?.addDomainEvent(event)
+    },
+    updateDomainEvent(eventId: string, updates: Partial<DomainEvent>): void {
+      collabStore?.updateDomainEvent(eventId, updates)
+    },
+    deleteDomainEvent(eventId: string): void {
+      collabStore?.deleteDomainEvent(eventId)
+    },
+    addCommand(command: Command): void {
+      collabStore?.addCommand(command)
+    },
+    updateCommand(commandId: string, updates: Partial<Command>): void {
+      collabStore?.updateCommand(commandId, updates)
+    },
+    deleteCommand(commandId: string): void {
+      collabStore?.deleteCommand(commandId)
+    },
+    addESAggregate(aggregate: ESAggregate): void {
+      collabStore?.addESAggregate(aggregate)
+    },
+    updateESAggregate(aggregateId: string, updates: Partial<ESAggregate>): void {
+      collabStore?.updateESAggregate(aggregateId, updates)
+    },
+    deleteESAggregate(aggregateId: string): void {
+      collabStore?.deleteESAggregate(aggregateId)
+    },
+    addPolicy(policy: Policy): void {
+      collabStore?.addPolicy(policy)
+    },
+    updatePolicy(policyId: string, updates: Partial<Policy>): void {
+      collabStore?.updatePolicy(policyId, updates)
+    },
+    deletePolicy(policyId: string): void {
+      collabStore?.deletePolicy(policyId)
+    },
+    addESHotSpot(hotSpot: ESHotSpot): void {
+      collabStore?.addESHotSpot(hotSpot)
+    },
+    updateESHotSpot(hotSpotId: string, updates: Partial<ESHotSpot>): void {
+      collabStore?.updateESHotSpot(hotSpotId, updates)
+    },
+    deleteESHotSpot(hotSpotId: string): void {
+      collabStore?.deleteESHotSpot(hotSpotId)
+    },
+    addPivotalEvent(event: PivotalEvent): void {
+      collabStore?.addPivotalEvent(event)
+    },
+    updatePivotalEvent(eventId: string, updates: Partial<PivotalEvent>): void {
+      collabStore?.updatePivotalEvent(eventId, updates)
+    },
+    deletePivotalEvent(eventId: string): void {
+      collabStore?.deletePivotalEvent(eventId)
+    },
+    addSwimLane(lane: ESSwimLane): void {
+      collabStore?.addSwimLane(lane)
+    },
+    updateSwimLane(laneId: string, updates: Partial<ESSwimLane>): void {
+      collabStore?.updateSwimLane(laneId, updates)
+    },
+    deleteSwimLane(laneId: string): void {
+      collabStore?.deleteSwimLane(laneId)
+    },
+    addESConnection(connection: ESConnection): void {
+      collabStore?.addESConnection(connection)
+    },
+    updateESConnection(connectionId: string, updates: Partial<ESConnection>): void {
+      collabStore?.updateESConnection(connectionId, updates)
+    },
+    deleteESConnection(connectionId: string): void {
+      collabStore?.deleteESConnection(connectionId)
     },
   }
 }

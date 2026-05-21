@@ -4,10 +4,12 @@ import { CanvasArea } from './components/CanvasArea'
 import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
+import { ESStickyPalette } from './components/ESStickyPalette'
 import { TeamSidebar } from './components/TeamSidebar'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
 import { OfflineBlockingModal } from './components/OfflineBlockingModal'
+import { ESAIChat, ESCanvasTab } from './components/ESAIChat'
 import { useCollabStore } from './model/collabStore'
 import { Users, X } from 'lucide-react'
 import { trackEvent } from './utils/analytics'
@@ -39,6 +41,14 @@ function Workspace() {
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
   const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
+  const selectedDomainEventId = useEditorStore((s) => s.selectedDomainEventId)
+  const selectedCommandId = useEditorStore((s) => s.selectedCommandId)
+  const selectedESAggregateId = useEditorStore((s) => s.selectedESAggregateId)
+  const selectedPolicyId = useEditorStore((s) => s.selectedPolicyId)
+  const selectedESHotSpotId = useEditorStore((s) => s.selectedESHotSpotId)
+  const selectedPivotalEventId = useEditorStore((s) => s.selectedPivotalEventId)
+  const selectedESConnectionId = useEditorStore((s) => s.selectedESConnectionId)
+  const viewMode = useEditorStore((s) => s.activeViewMode)
   const selectedContextIds = useEditorStore((s) => s.selectedContextIds)
   const clearContextSelection = useEditorStore((s) => s.clearContextSelection)
   const createGroup = useEditorStore((s) => s.createGroup)
@@ -96,6 +106,8 @@ function Workspace() {
     return stored === 'true'
   })
 
+  const [isAIChatCollapsed, setIsAIChatCollapsed] = React.useState(false)
+
   const [sidebarTab, setSidebarTab] = React.useState<'repos' | 'teams'>(() => {
     const stored = localStorage.getItem('contextflow.sidebarTab')
     if (stored === 'repos' || stored === 'teams') return stored
@@ -104,7 +116,8 @@ function Workspace() {
 
   const hasRepos = (project?.repos?.length ?? 0) > 0
   const hasTeams = (project?.teams?.length ?? 0) > 0
-  const hasLeftSidebarContent = hasRepos || hasTeams
+  const isESView = viewMode === 'eventstorming'
+  const hasLeftSidebarContent = isESView || hasRepos || hasTeams
   const showLeftSidebar = hasLeftSidebarContent && !isSidebarCollapsed
 
   // Auto-select appropriate tab when content changes
@@ -114,6 +127,9 @@ function Workspace() {
       : sidebarTab === 'teams' && !hasTeams && hasRepos
         ? 'repos'
         : sidebarTab
+
+  const toggleAIChat = () => setIsAIChatCollapsed((v) => !v)
+
   const hasRightSidebar =
     !!selectedContextId ||
     !!selectedGroupId ||
@@ -123,7 +139,14 @@ function Workspace() {
     !!selectedUserNeedConnectionId ||
     !!selectedNeedContextConnectionId ||
     selectedStageIndex !== null ||
-    !!selectedTeamId
+    !!selectedTeamId ||
+    !!selectedDomainEventId ||
+    !!selectedCommandId ||
+    !!selectedESAggregateId ||
+    !!selectedPolicyId ||
+    !!selectedESHotSpotId ||
+    !!selectedPivotalEventId ||
+    !!selectedESConnectionId
 
   const gridCols =
     showLeftSidebar && hasRightSidebar
@@ -207,7 +230,7 @@ function Workspace() {
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
         {/* Left Sidebar - collapsible, with Repos/Teams tabs */}
         {showLeftSidebar && (
-          <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col">
+          <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col overflow-hidden">
             {/* Tab bar - only show when both tabs have content */}
             {hasRepos && hasTeams ? (
               <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
@@ -274,8 +297,29 @@ function Workspace() {
               </div>
             )}
 
-            <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
-              {activeTab === 'repos' ? (
+            <div className="flex-1 min-h-0 overflow-y-auto text-xs">
+              {isESView ? (
+                <div className="flex flex-col h-full">
+                  <div className="px-4 pt-2 pb-1">
+                    <ESStickyPalette />
+                  </div>
+                  <div className="px-4 pb-2">
+                    <button
+                      onClick={() => {
+                        const id = useEditorStore.getState().activeProjectId
+                        const p = id ? useEditorStore.getState().projects[id] : undefined
+                        if (p) navigator.clipboard.writeText(JSON.stringify(p.eventStorming, null, 2))
+                      }}
+                      className="w-full text-[10px] px-2 py-1 rounded border border-slate-200 dark:border-neutral-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
+                    >
+                      Copy canvas JSON
+                    </button>
+                  </div>
+                  <div className="border-t border-slate-200 dark:border-neutral-700 flex-1 min-h-0 overflow-y-auto">
+                    <ESCanvasTab />
+                  </div>
+                </div>
+              ) : activeTab === 'repos' ? (
                 <RepoSidebar
                   repos={project?.repos || []}
                   teams={project?.teams || []}
@@ -336,12 +380,35 @@ function Workspace() {
           selectedUserNeedConnectionId ||
           selectedNeedContextConnectionId ||
           selectedStageIndex !== null ||
-          selectedTeamId) && (
+          selectedTeamId ||
+          selectedDomainEventId ||
+          selectedCommandId ||
+          selectedESAggregateId ||
+          selectedPolicyId ||
+          selectedESHotSpotId ||
+          selectedPivotalEventId ||
+          selectedESConnectionId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
             <InspectorPanel />
           </aside>
         )}
       </main>
+
+      {/* ES AI Chat floating panel */}
+      {isESView && (
+        <div className={`fixed bottom-4 right-4 z-40 flex flex-col shadow-2xl rounded-xl overflow-hidden border border-slate-200 dark:border-neutral-700 transition-all ${isAIChatCollapsed ? 'w-48 h-10' : 'w-[380px] h-[520px]'}`}>
+          <div
+            className="flex items-center justify-between px-3 py-2 bg-white dark:bg-neutral-800 cursor-pointer select-none border-b border-slate-200 dark:border-neutral-700"
+            onClick={toggleAIChat}
+          >
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">ES Assistant</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={`text-slate-400 transition-transform ${isAIChatCollapsed ? 'rotate-180' : ''}`}>
+              <path d="M2 4l4 4 4-4" />
+            </svg>
+          </div>
+          {!isAIChatCollapsed && <ESAIChat />}
+        </div>
+      )}
     </div>
   )
 }
