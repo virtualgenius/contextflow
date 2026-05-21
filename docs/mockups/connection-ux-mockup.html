@@ -37,11 +37,12 @@
     .ctx.show-stubs .stubs { opacity: 1; }
     .stub { position: absolute; pointer-events: auto; cursor: crosshair; display: flex; align-items: center; justify-content: center; }
 
-    /* Arrow nub variant */
-    .stub.arrow { width: 18px; height: 18px; }
-    .stub.arrow svg { width: 18px; height: 18px; }
+    /* Arrow nub variant -- draw.io style: large and translucent, solid+blue on hover */
+    .stub.arrow { width: 26px; height: 26px; }
+    .stub.arrow svg { width: 26px; height: 26px; transition: opacity 0.12s; opacity: 0.35; }
+    .stub.arrow svg path { fill: #475569; transition: fill 0.12s; }
+    .stub.arrow:hover svg { opacity: 1; }
     .stub.arrow:hover svg path { fill: #2563eb; }
-    .stub.arrow svg path { fill: #64748b; transition: fill 0.12s; }
 
     /* Plus icon variant */
     .stub.plus { width: 18px; height: 18px; background: #fff; border: 1.5px solid #64748b; border-radius: 50%; color: #64748b; font-weight: 700; font-size: 13px; transition: background 0.12s, color 0.12s, border-color 0.12s; }
@@ -52,10 +53,10 @@
     .ctx.show-ring:hover { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45); cursor: crosshair; }
 
     /* Positions */
-    .stub.top    { left: 50%; top: -22px; transform: translateX(-50%); }
-    .stub.right  { right: -22px; top: 50%;  transform: translateY(-50%); }
-    .stub.bottom { left: 50%; bottom: -22px; transform: translateX(-50%); }
-    .stub.left   { left: -22px; top: 50%;  transform: translateY(-50%); }
+    .stub.top    { left: 50%; top: -30px;    transform: translateX(-50%); }
+    .stub.right  { right: -30px; top: 50%;   transform: translateY(-50%); }
+    .stub.bottom { left: 50%; bottom: -30px; transform: translateX(-50%); }
+    .stub.left   { left: -30px; top: 50%;    transform: translateY(-50%); }
 
     /* Pill button group */
     .pill-btn { padding: 6px 10px; font-size: 12px; border: 1px solid #cbd5e1; background: white; color: #334155; cursor: pointer; transition: all 0.12s; }
