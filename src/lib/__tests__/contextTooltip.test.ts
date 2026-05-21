@@ -207,7 +207,21 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines[lines.length - 1]).toBe('Drag handles to connect to other contexts')
+      expect(lines[lines.length - 1]).toBe(
+        'Drag any arrow to another context to map the relationship.'
+      )
+    })
+
+    it('drag guidance line no longer references handles', () => {
+      const lines = getContextTooltipLines({
+        context: makeContext(),
+        viewMode: 'flow',
+        colorByMode: 'strategic',
+        relationships: [],
+        contexts: [],
+      })
+      const guidance = lines[lines.length - 1]
+      expect(guidance.toLowerCase()).not.toContain('handle')
     })
 
     it('returns all lines for fully configured context', () => {
@@ -228,7 +242,7 @@ describe('getContextTooltipLines', () => {
         'Strong boundary - clear API contracts, independently deployable',
         '1 issues',
         'Connected to Billing',
-        'Drag handles to connect to other contexts',
+        'Drag any arrow to another context to map the relationship.',
       ])
     })
 
@@ -262,7 +276,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual(['Drag handles to connect to other contexts'])
+      expect(lines).toEqual(['Drag any arrow to another context to map the relationship.'])
     })
   })
 

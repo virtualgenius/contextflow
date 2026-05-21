@@ -82,7 +82,7 @@ function getFlowLines(params: TooltipParams): string[] {
     lines.push(`Connected to ${connectedNames.join(', ')}`)
   }
 
-  lines.push('Drag handles to connect to other contexts')
+  lines.push('Drag any arrow to another context to map the relationship.')
 
   return lines
 }
