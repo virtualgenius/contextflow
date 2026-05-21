@@ -1055,14 +1055,18 @@ function CanvasContent() {
           {/* Arrow marker definitions */}
           <svg style={{ position: 'absolute', top: 0, left: 0 }}>
             <defs>
-              {/* Marker for relationship edges - default state */}
+              {/* Marker for relationship edges - default state.
+                  refX=0 + markerUnits=userSpaceOnUse pin the marker base at the
+                  path tail; the bezier is pre-shortened by markerWidth so the
+                  arrow tip lands on the box edge with no line overlap (GH #24). */}
               <marker
                 id="arrow-default"
                 viewBox="0 0 10 10"
-                refX="8"
+                refX="0"
                 refY="5"
                 markerWidth="5"
                 markerHeight="5"
+                markerUnits="userSpaceOnUse"
                 orient="auto"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#cbd5e1" />
@@ -1071,10 +1075,11 @@ function CanvasContent() {
               <marker
                 id="arrow-hover"
                 viewBox="0 0 10 10"
-                refX="8"
+                refX="0"
                 refY="5"
                 markerWidth="5"
                 markerHeight="5"
+                markerUnits="userSpaceOnUse"
                 orient="auto"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
@@ -1083,10 +1088,11 @@ function CanvasContent() {
               <marker
                 id="arrow-selected"
                 viewBox="0 0 10 10"
-                refX="8"
+                refX="0"
                 refY="5"
                 markerWidth="5"
                 markerHeight="5"
+                markerUnits="userSpaceOnUse"
                 orient="auto"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />

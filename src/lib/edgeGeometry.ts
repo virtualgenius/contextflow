@@ -10,6 +10,17 @@ interface GeometryNode {
   height?: number | null
 }
 
+const SIDES: Position[] = [Position.Top, Position.Right, Position.Bottom, Position.Left]
+
+const SIDE_NORMALS: Record<Position, { x: number; y: number }> = {
+  [Position.Left]: { x: -1, y: 0 },
+  [Position.Right]: { x: 1, y: 0 },
+  [Position.Top]: { x: 0, y: -1 },
+  [Position.Bottom]: { x: 0, y: 1 },
+}
+
+const HEMISPHERE_PENALTY = 1.5
+
 export function getBoxEdgePoint(
   boxCenter: { x: number; y: number },
   boxWidth: number,
@@ -69,13 +80,11 @@ export function getEdgePosition(node: GeometryNode, intersectionPoint: { x: numb
   const nw = node.width ?? 0
   const nh = node.height ?? 0
 
-  // Calculate distances to each edge
   const distToLeft = Math.abs(intersectionPoint.x - nx)
   const distToRight = Math.abs(intersectionPoint.x - (nx + nw))
   const distToTop = Math.abs(intersectionPoint.y - ny)
   const distToBottom = Math.abs(intersectionPoint.y - (ny + nh))
 
-  // Return the closest edge
   const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom)
 
   if (minDist === distToLeft) return Position.Left
@@ -84,44 +93,107 @@ export function getEdgePosition(node: GeometryNode, intersectionPoint: { x: numb
   return Position.Bottom
 }
 
+export function sideMidpoint(node: GeometryNode, side: Position): { x: number; y: number } {
+  const w = node.width ?? 0
+  const h = node.height ?? 0
+  const cx = node.position.x + w / 2
+  const cy = node.position.y + h / 2
+  switch (side) {
+    case Position.Left:
+      return { x: node.position.x, y: cy }
+    case Position.Right:
+      return { x: node.position.x + w, y: cy }
+    case Position.Top:
+      return { x: cx, y: node.position.y }
+    case Position.Bottom:
+      return { x: cx, y: node.position.y + h }
+  }
+}
+
+function nodeCenter(node: GeometryNode): { x: number; y: number } {
+  return {
+    x: node.position.x + (node.width ?? 0) / 2,
+    y: node.position.y + (node.height ?? 0) / 2,
+  }
+}
+
+function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const dx = a.x - b.x
+  const dy = a.y - b.y
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+/**
+ * Joint selection of source/target anchor sides.
+ *
+ * Why: independent per-end selection (using center-to-center direction) picks
+ * non-facing sides when contexts have different aspect ratios or sit diagonally,
+ * producing wrap-around bezier curves. Joint enumeration of all 16 pairs with a
+ * facing-side preference keeps the line on naturally facing sides. See GH #21.
+ */
+export function selectAnchorSides(
+  source: GeometryNode,
+  target: GeometryNode
+): { sourcePos: Position; targetPos: Position } {
+  const cS = nodeCenter(source)
+  const cT = nodeCenter(target)
+  const dx = cT.x - cS.x
+  const dy = cT.y - cS.y
+  const len = Math.sqrt(dx * dx + dy * dy) || 1
+  const ux = dx / len
+  const uy = dy / len
+
+  let bestScore = Infinity
+  let bestSource: Position = Position.Right
+  let bestTarget: Position = Position.Left
+
+  for (const sSide of SIDES) {
+    for (const tSide of SIDES) {
+      const pS = sideMidpoint(source, sSide)
+      const pT = sideMidpoint(target, tSide)
+      const d = distance(pS, pT)
+      const nS = SIDE_NORMALS[sSide]
+      const nT = SIDE_NORMALS[tSide]
+      const sourceFaces = nS.x * ux + nS.y * uy > 0
+      const targetFaces = nT.x * -ux + nT.y * -uy > 0
+      const facing = sourceFaces && targetFaces
+      const score = facing ? d : d * HEMISPHERE_PENALTY
+      if (score < bestScore) {
+        bestScore = score
+        bestSource = sSide
+        bestTarget = tSide
+      }
+    }
+  }
+
+  return { sourcePos: bestSource, targetPos: bestTarget }
+}
+
+/**
+ * Pull the path endpoint back by `length` along the outward normal of `targetPos`,
+ * so the bezier tail ends at the back of the arrow marker rather than at the
+ * box edge under it. See GH #24.
+ */
+export function shortenEdgeEndpoint(
+  x: number,
+  y: number,
+  targetPos: Position,
+  length: number
+): { x: number; y: number } {
+  const n = SIDE_NORMALS[targetPos]
+  return { x: x + n.x * length, y: y + n.y * length }
+}
+
 export function getEdgeParams(source: GeometryNode, target: GeometryNode) {
-  const sourceIntersectionPoint = getNodeIntersection(source, target)
-  const targetIntersectionPoint = getNodeIntersection(target, source)
-
-  const sourcePos = getEdgePosition(source, sourceIntersectionPoint)
-  const targetPos = getEdgePosition(target, targetIntersectionPoint)
-
-  // Calculate handle positions (center of the edge side)
-  const sourceX = source.position.x + (source.width ?? 0) / 2
-  const sourceY = source.position.y + (source.height ?? 0) / 2
-  const targetX = target.position.x + (target.width ?? 0) / 2
-  const targetY = target.position.y + (target.height ?? 0) / 2
-
-  // Adjust to edge center based on position
-  const sx =
-    sourcePos === Position.Left
-      ? source.position.x
-      : sourcePos === Position.Right
-        ? source.position.x + (source.width ?? 0)
-        : sourceX
-  const sy =
-    sourcePos === Position.Top
-      ? source.position.y
-      : sourcePos === Position.Bottom
-        ? source.position.y + (source.height ?? 0)
-        : sourceY
-  const tx =
-    targetPos === Position.Left
-      ? target.position.x
-      : targetPos === Position.Right
-        ? target.position.x + (target.width ?? 0)
-        : targetX
-  const ty =
-    targetPos === Position.Top
-      ? target.position.y
-      : targetPos === Position.Bottom
-        ? target.position.y + (target.height ?? 0)
-        : targetY
-
-  return { sx, sy, tx, ty, sourcePos, targetPos }
+  const { sourcePos, targetPos } = selectAnchorSides(source, target)
+  const sourceMid = sideMidpoint(source, sourcePos)
+  const targetMid = sideMidpoint(target, targetPos)
+  return {
+    sx: sourceMid.x,
+    sy: sourceMid.y,
+    tx: targetMid.x,
+    ty: targetMid.y,
+    sourcePos,
+    targetPos,
+  }
 }

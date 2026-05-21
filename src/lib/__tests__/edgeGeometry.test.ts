@@ -5,6 +5,9 @@ import {
   getNodeIntersection,
   getEdgePosition,
   getEdgeParams,
+  selectAnchorSides,
+  sideMidpoint,
+  shortenEdgeEndpoint,
 } from '../edgeGeometry'
 
 describe('getBoxEdgePoint', () => {
@@ -129,6 +132,101 @@ describe('getEdgePosition', () => {
   })
 })
 
+describe('sideMidpoint', () => {
+  const node = { position: { x: 10, y: 20 }, width: 100, height: 50 }
+
+  it('returns midpoint of left side', () => {
+    expect(sideMidpoint(node, Position.Left)).toEqual({ x: 10, y: 45 })
+  })
+
+  it('returns midpoint of right side', () => {
+    expect(sideMidpoint(node, Position.Right)).toEqual({ x: 110, y: 45 })
+  })
+
+  it('returns midpoint of top side', () => {
+    expect(sideMidpoint(node, Position.Top)).toEqual({ x: 60, y: 20 })
+  })
+
+  it('returns midpoint of bottom side', () => {
+    expect(sideMidpoint(node, Position.Bottom)).toEqual({ x: 60, y: 70 })
+  })
+
+  it('handles node with missing width/height (defaults to 0)', () => {
+    const empty = { position: { x: 0, y: 0 } }
+    expect(sideMidpoint(empty, Position.Right)).toEqual({ x: 0, y: 0 })
+  })
+})
+
+describe('selectAnchorSides', () => {
+  it('picks Right/Left for side-by-side contexts', () => {
+    const source = { position: { x: 0, y: 0 }, width: 100, height: 50 }
+    const target = { position: { x: 300, y: 0 }, width: 100, height: 50 }
+    const result = selectAnchorSides(source, target)
+    expect(result.sourcePos).toBe(Position.Right)
+    expect(result.targetPos).toBe(Position.Left)
+  })
+
+  it('picks Bottom/Top for vertically stacked contexts', () => {
+    const source = { position: { x: 0, y: 0 }, width: 100, height: 50 }
+    const target = { position: { x: 0, y: 200 }, width: 100, height: 50 }
+    const result = selectAnchorSides(source, target)
+    expect(result.sourcePos).toBe(Position.Bottom)
+    expect(result.targetPos).toBe(Position.Top)
+  })
+
+  it('picks a facing pair for diagonally placed contexts (issue #21)', () => {
+    // Dome Safety (wider than tall, lower-left) -> Central Control (upper-right).
+    // Independent per-end selection would pick Top -> Left (wrap-around).
+    // Joint selection should pick facing sides: Right -> Bottom.
+    const source = { position: { x: 0, y: 300 }, width: 100, height: 60 }
+    const target = { position: { x: 300, y: 0 }, width: 100, height: 100 }
+    const result = selectAnchorSides(source, target)
+    expect(result.sourcePos).toBe(Position.Right)
+    expect(result.targetPos).toBe(Position.Bottom)
+  })
+
+  it('never picks non-facing pair when a facing pair is available', () => {
+    // Asymmetric aspect ratios where current algorithm trips on aspect.
+    const source = { position: { x: 40, y: 80 }, width: 60, height: 220 }
+    const target = { position: { x: 300, y: 160 }, width: 240, height: 60 }
+    const result = selectAnchorSides(source, target)
+    // Source is tall+narrow on the left; target is wide+short on the right.
+    // A facing pair must include source.Right and target.Left.
+    expect(result.sourcePos).toBe(Position.Right)
+    expect(result.targetPos).toBe(Position.Left)
+  })
+
+  it('returns a deterministic pair for symmetric layouts', () => {
+    const source = { position: { x: 0, y: 0 }, width: 100, height: 100 }
+    const target = { position: { x: 300, y: 0 }, width: 100, height: 100 }
+    const a = selectAnchorSides(source, target)
+    const b = selectAnchorSides(source, target)
+    expect(a).toEqual(b)
+  })
+})
+
+describe('shortenEdgeEndpoint', () => {
+  it('pulls endpoint left when target side is Left', () => {
+    const result = shortenEdgeEndpoint(100, 50, Position.Left, 5)
+    expect(result).toEqual({ x: 95, y: 50 })
+  })
+
+  it('pulls endpoint right when target side is Right', () => {
+    const result = shortenEdgeEndpoint(100, 50, Position.Right, 5)
+    expect(result).toEqual({ x: 105, y: 50 })
+  })
+
+  it('pulls endpoint up when target side is Top', () => {
+    const result = shortenEdgeEndpoint(100, 50, Position.Top, 5)
+    expect(result).toEqual({ x: 100, y: 45 })
+  })
+
+  it('pulls endpoint down when target side is Bottom', () => {
+    const result = shortenEdgeEndpoint(100, 50, Position.Bottom, 5)
+    expect(result).toEqual({ x: 100, y: 55 })
+  })
+})
+
 describe('getEdgeParams', () => {
   it('returns correct params for horizontally separated nodes', () => {
     const source = { position: { x: 0, y: 0 }, width: 100, height: 50 }
@@ -179,5 +277,19 @@ describe('getEdgeParams', () => {
     expect([Position.Left, Position.Right, Position.Top, Position.Bottom]).toContain(
       result.targetPos
     )
+  })
+
+  it('emits the edge from a facing side when contexts are placed diagonally (issue #21)', () => {
+    const source = { position: { x: 0, y: 300 }, width: 100, height: 60 }
+    const target = { position: { x: 300, y: 0 }, width: 100, height: 100 }
+
+    const result = getEdgeParams(source, target)
+
+    expect(result.sourcePos).toBe(Position.Right)
+    expect(result.targetPos).toBe(Position.Bottom)
+    expect(result.sx).toBe(100)
+    expect(result.sy).toBe(330)
+    expect(result.tx).toBe(350)
+    expect(result.ty).toBe(100)
   })
 })

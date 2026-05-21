@@ -6,8 +6,9 @@ import { useEditorStore } from '../../model/store'
 import type { Relationship } from '../../model/types'
 import { getEdgeLabelInfo } from '../../lib/canvasHelpers'
 import { getIndicatorBoxPosition } from '../../lib/edgeUtils'
-import { getEdgeParams, getBoxEdgePoint } from '../../lib/edgeGeometry'
+import { getEdgeParams, getBoxEdgePoint, shortenEdgeEndpoint } from '../../lib/edgeGeometry'
 import {
+  ARROW_MARKER_LENGTH,
   EDGE_HIT_AREA_WIDTH,
   EDGE_STROKE_WIDTH,
   EDGE_TRANSITION,
@@ -94,6 +95,21 @@ function RelationshipEdge({
   const isSymmetric =
     pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
 
+  // For directional patterns, render a slightly shorter visible path so the
+  // arrow marker's base sits at the tail and only its tip reaches the box edge
+  // (GH #24). The hit area keeps the full geometry for clicking/hovering.
+  const visibleTarget = isSymmetric
+    ? { x: tx, y: ty }
+    : shortenEdgeEndpoint(tx, ty, targetPos, ARROW_MARKER_LENGTH)
+  const [visibleEdgePath] = getBezierPath({
+    sourceX: sx,
+    sourceY: sy,
+    sourcePosition: sourcePos,
+    targetX: visibleTarget.x,
+    targetY: visibleTarget.y,
+    targetPosition: targetPos,
+  })
+
   // Use ReactFlow's built-in marker system (automatically handles rotation)
   const markerId = isSelected
     ? 'arrow-selected'
@@ -127,13 +143,18 @@ function RelationshipEdge({
         )
       : null
 
+  // ACL: target endpoint is the target context box edge — shorten so the arrow
+  // marker doesn't overlap the path. OHS: target endpoint is the indicator box
+  // edge, which already provides a clean visual break, so leave it untouched.
+  const aclOhsTargetX = isOHS ? boxEdgePoint?.x : visibleTarget.x
+  const aclOhsTargetY = isOHS ? boxEdgePoint?.y : visibleTarget.y
   const [aclOhsPath] = boxEdgePoint
     ? getBezierPath({
         sourceX: isACL ? boxEdgePoint.x : sx,
         sourceY: isACL ? boxEdgePoint.y : sy,
         sourcePosition: sourcePos,
-        targetX: isOHS ? boxEdgePoint.x : tx,
-        targetY: isOHS ? boxEdgePoint.y : ty,
+        targetX: aclOhsTargetX ?? tx,
+        targetY: aclOhsTargetY ?? ty,
         targetPosition: targetPos,
       })
     : [null]
@@ -187,7 +208,7 @@ function RelationshipEdge({
         <path
           id={id}
           className="react-flow__edge-path"
-          d={edgePath}
+          d={visibleEdgePath}
           style={{
             stroke: edgeColor,
             strokeWidth: strokeWidth,

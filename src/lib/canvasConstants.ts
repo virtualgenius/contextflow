@@ -14,6 +14,10 @@ export const EDGE_HIT_AREA_WIDTH = 20
 export const EDGE_STROKE_WIDTH = { default: 1.5, hover: 2, selected: 2.5 }
 export const EDGE_TRANSITION = 'var(--edge-transition)' // CSS variable toggled during drag
 export const EDGE_DASH_ARRAY = '5,5'
+// Length in user-space units that the relationship arrow marker occupies;
+// the visible path is shortened by this amount so the marker base sits at the
+// path tail and the tip touches the box edge (GH #24).
+export const ARROW_MARKER_LENGTH = 5
 
 // Pattern indicator configuration for ACL/OHS boxes on edges
 type PatternIndicatorConfig = {
