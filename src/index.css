@@ -28,8 +28,9 @@
   box-shadow: none !important;
 }
 
-/* Connection handles - hidden by default, appear on hover */
-.react-flow__node-context .react-flow__handle,
+/* Connection handles on user/userNeed nodes - hidden by default, appear on hover.
+   ContextNode uses its own hover-stub affordance (see ContextNodeStubs.tsx, GH #22)
+   and intentionally skips the generic dot styling below. */
 .react-flow__node-user .react-flow__handle,
 .react-flow__node-userNeed .react-flow__handle {
   width: 14px;
@@ -43,7 +44,6 @@
     transform 0.15s ease-in-out;
 }
 
-.react-flow__node-context:hover .react-flow__handle,
 .react-flow__node-user:hover .react-flow__handle,
 .react-flow__node-userNeed:hover .react-flow__handle {
   opacity: 1;
@@ -51,10 +51,34 @@
   transform: scale(1.3);
 }
 
-/* Keep the top handle on contexts always hidden (used for Need→Context connections) */
-.react-flow__node-context .react-flow__handle[data-handlepos='top'] {
-  opacity: 0 !important;
-  transform: none !important;
+/* Context node handles: reset default React Flow handle dot styling.
+   Stubs and body handle paint themselves via inline styles. */
+.react-flow__node-context .react-flow__handle {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* The top target handle on contexts (User Need to Context) stays invisible
+   but hit-testable. */
+.react-flow__node-context .react-flow__handle[data-handleid='top'] {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* Whole-shape target handle: idle has no pointer events so body-drag and
+   inner drop zones work normally. React Flow toggles `.connecting` on the
+   pane during a connection drag, at which point the handle becomes a hit
+   target for the drop. */
+.react-flow__node-context .react-flow__handle[data-handleid='body'] {
+  pointer-events: none;
+}
+
+.react-flow.connecting .react-flow__node-context .react-flow__handle[data-handleid='body'] {
+  pointer-events: auto;
 }
 
 /* Style the connection line drawn while dragging from a handle */

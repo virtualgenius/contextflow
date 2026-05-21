@@ -8,6 +8,7 @@ import { getContextTooltipLines } from '../../lib/contextTooltip'
 import { getContextNodeBorderStyle } from '../../lib/nodeStyles'
 import { NODE_SIZES } from '../../lib/canvasConstants'
 import { SimpleTooltip } from '../SimpleTooltip'
+import { ContextNodeStubs } from './ContextNodeStubs'
 
 // Custom node component
 export function ContextNode({ data }: NodeProps) {
@@ -173,11 +174,34 @@ export function ContextNode({ data }: NodeProps) {
       }}
       style={{ position: 'relative' }}
     >
-      {/* Connection handles - both source so drag direction always determines relationship direction */}
-      <Handle type="source" position={Position.Left} id="left" style={{ zIndex: 1 }} />
-      <Handle type="source" position={Position.Right} id="right" style={{ zIndex: 1 }} />
-      {/* Top handle for receiving connections from User Needs in Strategic View */}
+      {/* Whole-shape transparent target Handle: any drop on the body completes
+         a connection. Pointer-events are toggled by index.css so body-drag
+         still works while idle and the body becomes a drop target during a
+         connection drag (GH #22). */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="body"
+        isConnectable={true}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 8,
+          transform: 'none',
+          opacity: 0,
+          zIndex: 0,
+        }}
+      />
+
+      {/* Top target handle preserved for User Need to Context connections in Strategic View */}
       <Handle type="target" position={Position.Top} id="top" />
+
+      {/* Hover-revealed directional source stubs on all four sides (GH #22) */}
+      <ContextNodeStubs visible={isHovered} />
 
       <div
         style={{
@@ -373,7 +397,7 @@ export function ContextNode({ data }: NodeProps) {
           const lastLine = lines[lines.length - 1]
           const contentLines = lines.slice(0, -1)
           const isGuidanceLine =
-            lastLine === 'Drag handles to connect to other contexts' ||
+            lastLine === 'Drag any arrow to another context to map the relationship.' ||
             lastLine === 'Drag to classify as Core, Supporting, or Generic'
 
           return createPortal(
