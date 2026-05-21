@@ -38,11 +38,16 @@
     .stub { position: absolute; pointer-events: auto; cursor: crosshair; display: flex; align-items: center; justify-content: center; }
 
     /* Arrow nub variant -- draw.io style: large and translucent, solid+blue on hover */
-    .stub.arrow { width: 26px; height: 26px; }
+    .stub.arrow { width: 26px; height: 26px; position: absolute; }
     .stub.arrow svg { width: 26px; height: 26px; transition: opacity 0.12s; opacity: 0.35; }
     .stub.arrow svg path { fill: #475569; transition: fill 0.12s; }
     .stub.arrow:hover svg { opacity: 1; }
     .stub.arrow:hover svg path { fill: #2563eb; }
+    .stub.arrow .stub-tip { position: absolute; left: 50%; top: -34px; transform: translateX(-50%); background: #0f172a; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
+    .stub.arrow.right .stub-tip { left: 36px; top: 50%; transform: translateY(-50%); }
+    .stub.arrow.bottom .stub-tip { top: 36px; }
+    .stub.arrow.left .stub-tip  { left: auto; right: 36px; top: 50%; transform: translateY(-50%); }
+    .stub.arrow:hover .stub-tip { opacity: 1; }
 
     /* Plus icon variant */
     .stub.plus { width: 18px; height: 18px; background: #fff; border: 1.5px solid #64748b; border-radius: 50%; color: #64748b; font-weight: 700; font-size: 13px; transition: background 0.12s, color 0.12s, border-color 0.12s; }
@@ -128,6 +133,11 @@
           <strong>Plus icons:</strong> Excalidraw-style; clearer that something is clickable, but loses directional intent and feels noisier.<br/>
           <strong>Perimeter ring:</strong> subtle, no discrete handles; whole edge is draggable. Lowest visual cost, lowest discoverability for a 2-hour workshop.<br/>
           <strong>Current:</strong> two tiny fixed dots on left/right; the displayed edge floats, so creation and display geometry disagree.
+          <hr class="my-2 border-slate-200"/>
+          <strong>Direction convention (current code, kept for #22):</strong> drag from = downstream (dependent), drag to = upstream (defining authority). The arrow marker points to upstream. Decision to revisit during two-sided pattern work (<code>contextflow-ki1</code> / GH #13), where direction may become a model field set in the pattern picker rather than implied by drag direction.<br/>
+          <strong>Stub tooltip wording (hover a nub):</strong> "Drag to a context this depends on"<br/>
+          <strong>Rich card-hover tooltip line (proposed):</strong> "Drag any arrow to a context this one depends on. Arrow points to the upstream (authority)."<br/>
+          <strong>First-run coach mark (proposed):</strong> "Drag any arrow from this context to another that it depends on. The arrow points to the upstream (defining authority); this card becomes downstream (dependent). After releasing, pick a DDD pattern."
         </div>
       </div>
     </section>
@@ -334,7 +344,11 @@
         const s = document.createElement('div');
         s.className = `stub ${variant} ${side}`;
         s.dataset.side = side;
-        s.innerHTML = variant === 'arrow' ? stubArrowSvg[side] : '+';
+        if (variant === 'arrow') {
+          s.innerHTML = stubArrowSvg[side] + '<div class="stub-tip">Drag to a context this depends on</div>';
+        } else {
+          s.innerHTML = '+';
+        }
         stubsEl.appendChild(s);
       }
       card.classList.add('show-stubs');
