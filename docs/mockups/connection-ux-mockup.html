@@ -110,7 +110,7 @@
       <div class="panel-body">
         <p class="text-sm text-slate-600 mb-3">Hover either card. Drag from any stub to start a connection (in the real app -- here the cursor preview shows where the connection would originate).</p>
         <div class="stage canvas-bg" id="stage-stubs">
-          <svg class="edges-layer" id="stubs-svg"></svg>
+          <svg class="edges-layer" width="100%" height="100%" id="stubs-svg"></svg>
           <div class="ctx" id="stub-ctx-a" style="left:60px; top:90px;">
             <div class="name">Orders</div>
             <div class="purpose">Customer-facing order lifecycle and invoice generation</div>
@@ -147,12 +147,13 @@
         </div>
       </div>
       <div class="panel-body">
-        <p class="text-sm text-slate-600 mb-3">Drag from the highlighted source card and drop anywhere on the destination card. The card highlights as the drop target on hover; the auto-chosen floating anchor is previewed at the closest side.</p>
+        <p class="text-sm text-slate-600 mb-3">Hover the <strong>Orders</strong> card to reveal arrow stubs. Drag from a stub to start a connection. Drop anywhere on a destination card body to complete it. Dragging the card body (not a stub) moves the card -- so node-drag and connection-drag are unambiguous.</p>
         <div class="stage canvas-bg" id="stage-drop">
-          <svg class="edges-layer" id="drop-svg"></svg>
-          <div class="ctx" id="drop-ctx-a" style="left:60px; top:90px; cursor: crosshair;">
-            <div class="name">Orders <span class="text-xs font-normal text-blue-600">(drag from)</span></div>
-            <div class="purpose">Drag the body of this card to draw a ghost connection.</div>
+          <svg class="edges-layer" width="100%" height="100%" id="drop-svg"></svg>
+          <div class="ctx" id="drop-ctx-a" style="left:60px; top:90px;">
+            <div class="name">Orders <span class="text-xs font-normal text-blue-600">(source)</span></div>
+            <div class="purpose">Hover to see stubs. Drag a stub to start a connection; drag the body to move.</div>
+            <div class="stubs"></div>
           </div>
           <div class="ctx" id="drop-ctx-b" style="left:420px; top:30px;">
             <div class="name">Catalog</div>
@@ -164,7 +165,8 @@
           </div>
         </div>
         <div class="legend">
-          Implementation note: a single transparent full-size React Flow target handle is rendered behind the visible card. React Flow's existing hit-testing accepts the drop; the displayed endpoint then floats to the closest side via the joint-anchor algorithm from #21. No fork of React Flow internals.
+          <strong>How body-drag stays unambiguous:</strong> React Flow distinguishes connection-drag from node-drag by which mousedown fired. Stub mousedown -> connection-drag. Body mousedown -> node-drag (move the card). The whole-shape drop target is a destination-side-only affordance: it activates while a connection-drag is in flight, not when the source is idle.<br/>
+          <strong>Implementation note:</strong> a single transparent full-size React Flow target Handle is rendered behind the visible card body. React Flow's existing hit-testing accepts the drop; the displayed endpoint then floats to the closest side via the joint-anchor algorithm from #21.
         </div>
       </div>
     </section>
@@ -184,7 +186,7 @@
       <div class="panel-body">
         <p class="text-sm text-slate-600 mb-3">Drag any card. The rendered edge re-routes in real time. Bezier reads as "flow" and fits the hand-drawn strategic-design register. Orthogonal reads as "system diagram" -- correct for engineering schematics, off-register for context maps.</p>
         <div class="stage canvas-bg" id="stage-routing">
-          <svg class="edges-layer" id="routing-svg"></svg>
+          <svg class="edges-layer" width="100%" height="100%" id="routing-svg"></svg>
           <div class="ctx" id="route-ctx-a" style="left:60px;  top:30px;">
             <div class="name">Orders</div>
             <div class="purpose">Order lifecycle</div>
@@ -398,16 +400,22 @@
       const svg = document.getElementById('drop-svg');
       const src = document.getElementById('drop-ctx-a');
       const targets = [document.getElementById('drop-ctx-b'), document.getElementById('drop-ctx-c')];
+      const allCards = [src, ...targets];
       const showPreview = document.getElementById('show-anchor-preview');
       const resetBtn = document.getElementById('reset-drop');
 
-      let dragging = false, startPt = null, cursorPt = null, hoverTarget = null;
-      let establishedEdges = []; // { sourceId, targetId }
+      // Render arrow stubs on source (always visible while not connecting)
+      renderStubs(src, 'arrow');
+      src.querySelector('.stubs').style.opacity = '0';
+      src.addEventListener('mouseenter', () => {
+        if (!connecting) src.querySelector('.stubs').style.opacity = '1';
+      });
+      src.addEventListener('mouseleave', () => {
+        if (!connecting) src.querySelector('.stubs').style.opacity = '0';
+      });
 
-      function getSourceCenter() {
-        const r = rectOf(src, stage);
-        return { x: r.cx, y: r.cy };
-      }
+      let connecting = false, startPt = null, startSide = null, cursorPt = null, hoverTarget = null;
+      let establishedEdges = []; // { sourceId, targetId }
 
       function hitTest(x, y) {
         for (const t of targets) {
@@ -420,7 +428,6 @@
       function render() {
         let out = `<defs><marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" class="edge-arrow"/></marker></defs>`;
 
-        // established edges
         for (const e of establishedEdges) {
           const sEl = document.getElementById(e.sourceId);
           const tEl = document.getElementById(e.targetId);
@@ -432,21 +439,18 @@
           out += `<path d="${bezierPath(sP, tP, sSide, tSide)}" class="edge-path" marker-end="url(#arrow2)"/>`;
         }
 
-        // ghost-in-progress
-        if (dragging && startPt && cursorPt) {
+        if (connecting && startPt && cursorPt) {
           let endPt = cursorPt;
           let previewSide = null;
           if (hoverTarget) {
             hoverTarget.classList.add('hover-target');
             const tR = rectOf(hoverTarget, stage);
-            const fakeSrc = { cx: startPt.x, cy: startPt.y, x: startPt.x - 1, y: startPt.y - 1, w: 2, h: 2 };
-            const { tSide } = selectAnchorSides(fakeSrc, tR);
+            const sR = rectOf(src, stage);
+            const { tSide } = selectAnchorSides(sR, tR);
             endPt = sideMid(tR, tSide);
             previewSide = tSide;
           }
-          // unhighlight non-targets
           for (const t of targets) if (t !== hoverTarget) t.classList.remove('hover-target');
-
           out += `<path d="M ${startPt.x} ${startPt.y} L ${endPt.x} ${endPt.y}" class="edge-ghost"/>`;
           if (showPreview.checked && previewSide) {
             out += `<circle cx="${endPt.x}" cy="${endPt.y}" r="6" class="cursor-anchor"/>`;
@@ -457,37 +461,40 @@
         svg.innerHTML = out;
       }
 
-      src.addEventListener('mousedown', (e) => {
-        // Only initiate ghost-drag when source has crosshair (not when moving)
-        if (e.shiftKey) return;
-        dragging = true;
-        startPt = getSourceCenter();
+      // Connection drag: only from stubs
+      src.querySelector('.stubs').addEventListener('mousedown', (e) => {
+        const stub = e.target.closest('.stub');
+        if (!stub) return;
+        e.stopPropagation(); // prevent body-drag
+        e.preventDefault();
+        connecting = true;
+        startSide = stub.dataset.side;
+        const sR = rectOf(src, stage);
+        startPt = sideMid(sR, startSide);
         const p = stage.getBoundingClientRect();
         cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
-        e.preventDefault();
+        src.querySelector('.stubs').style.opacity = '0';
         render();
       });
       window.addEventListener('mousemove', (e) => {
-        if (!dragging) return;
+        if (!connecting) return;
         const p = stage.getBoundingClientRect();
         cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
         hoverTarget = hitTest(cursorPt.x, cursorPt.y);
         render();
       });
       window.addEventListener('mouseup', () => {
-        if (!dragging) return;
-        if (hoverTarget) {
-          establishedEdges.push({ sourceId: src.id, targetId: hoverTarget.id });
-        }
-        dragging = false; startPt = null; cursorPt = null; hoverTarget = null;
+        if (!connecting) return;
+        if (hoverTarget) establishedEdges.push({ sourceId: src.id, targetId: hoverTarget.id });
+        connecting = false; startPt = null; startSide = null; cursorPt = null; hoverTarget = null;
         render();
       });
 
       resetBtn.addEventListener('click', () => { establishedEdges = []; render(); });
       showPreview.addEventListener('change', render);
 
-      // allow shift-drag to move target cards
-      targets.forEach(t => makeDraggable(t, stage, render));
+      // Body-drag moves cards (all of them, source included)
+      allCards.forEach(c => makeDraggable(c, stage, render));
 
       render();
     }
