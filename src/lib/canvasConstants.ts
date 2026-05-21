@@ -19,6 +19,11 @@ export const EDGE_DASH_ARRAY = '5,5'
 // path tail and the tip touches the box edge (GH #24).
 export const ARROW_MARKER_LENGTH = 5
 
+// Pixel size of the rendered relationship arrow markers (markerWidth/Height).
+// Larger than the historical 5 so the arrowhead reads clearly at workshop
+// zoom levels (GH #22).
+export const RELATIONSHIP_MARKER_SIZE = 8
+
 // Pattern indicator configuration for ACL/OHS boxes on edges
 type PatternIndicatorConfig = {
   label: string
