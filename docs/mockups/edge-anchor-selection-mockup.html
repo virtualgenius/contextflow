@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Edge anchor selection: current vs proposed</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --panel-bg: #ffffff;
+        --panel-border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        --accent: #0ea5e9;
+        --bad: #dc2626;
+        --good: #16a34a;
+        --node-yellow-bg: #fef3c7;
+        --node-yellow-border: #f59e0b;
+        --node-blue-bg: #dbeafe;
+        --node-blue-border: #3b82f6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .panel h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .panel .desc {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 12px;
+        min-height: 32px;
+      }
+      .panel.current h2 {
+        color: var(--bad);
+      }
+      .panel.proposed h2 {
+        color: var(--good);
+      }
+      .canvas {
+        position: relative;
+        width: 100%;
+        height: 360px;
+        background: #fafbfc;
+        border: 1px dashed var(--panel-border);
+        border-radius: 8px;
+        overflow: hidden;
+        user-select: none;
+      }
+      .canvas svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      .node {
+        position: absolute;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: grab;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        pointer-events: auto;
+      }
+      .node.dragging {
+        cursor: grabbing;
+      }
+      .node.yellow {
+        background: var(--node-yellow-bg);
+        border: 2px solid var(--node-yellow-border);
+      }
+      .node.blue {
+        background: var(--node-blue-bg);
+        border: 2px solid var(--node-blue-border);
+      }
+      .node-resize {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 14px;
+        height: 14px;
+        cursor: nwse-resize;
+        background: linear-gradient(
+          135deg,
+          transparent 0%,
+          transparent 50%,
+          var(--muted) 50%,
+          var(--muted) 100%
+        );
+        border-bottom-right-radius: 6px;
+      }
+      .legend {
+        display: flex;
+        gap: 16px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 12px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .swatch {
+        width: 14px;
+        height: 4px;
+        border-radius: 2px;
+      }
+      .swatch.current {
+        background: var(--bad);
+      }
+      .swatch.proposed {
+        background: var(--good);
+      }
+      .swatch.candidate {
+        background: #cbd5e1;
+      }
+      .swatch.dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      .info {
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--muted);
+        font-family: ui-monospace, "SF Mono", Monaco, monospace;
+        background: #f1f5f9;
+        padding: 8px 10px;
+        border-radius: 6px;
+      }
+      .controls {
+        margin-bottom: 16px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        font-size: 13px;
+      }
+      .controls label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+      .preset-buttons {
+        margin-bottom: 12px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .preset-buttons button {
+        font-size: 12px;
+        padding: 4px 10px;
+        border: 1px solid var(--panel-border);
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .preset-buttons button:hover {
+        background: #f1f5f9;
+      }
+      .explain {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+      .explain strong {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Edge anchor selection: current vs proposed</h1>
+    <div class="subtitle">
+      Drag the boxes (and resize from the corner). Both panels stay in sync so you can compare
+      where each algorithm attaches the edge.
+    </div>
+
+    <div class="explain">
+      <strong>Current algorithm</strong> picks each end's anchor side independently: it draws a
+      line from each box's center to the other's center, and picks the side that line exits.
+      <strong>Proposed algorithm</strong> enumerates all 16 (sourceSide, targetSide) combinations
+      and picks the pair with the shortest distance between side midpoints. Try the
+      "Dome Safety / Central Control" preset to see the bug; the two algorithms agree in
+      the side-by-side and stacked presets.
+    </div>
+
+    <div class="controls">
+      <label
+        ><input type="checkbox" id="show-candidates" /> Show all 16 candidate pairs (proposed
+        panel)</label
+      >
+      <label><input type="checkbox" id="show-midpoints" checked /> Show side midpoints</label>
+    </div>
+
+    <div class="preset-buttons">
+      <button data-preset="dome">Dome Safety / Central Control (bug case)</button>
+      <button data-preset="sidebyside">Side by side</button>
+      <button data-preset="stacked">Stacked</button>
+      <button data-preset="diagonal-far">Far diagonal</button>
+      <button data-preset="aspect">Tall vs wide</button>
+    </div>
+
+    <div class="grid">
+      <div class="panel current">
+        <h2>Current: independent side selection</h2>
+        <div class="desc">
+          Each end picks its own side from the center-to-center direction. Produces wrap-around
+          curves when boxes have different aspect ratios.
+        </div>
+        <div class="canvas" id="canvas-current">
+          <svg></svg>
+        </div>
+        <div class="info" id="info-current"></div>
+      </div>
+
+      <div class="panel proposed">
+        <h2>Proposed: joint side selection</h2>
+        <div class="desc">
+          Enumerate all 16 (sourceSide, targetSide) pairs; pick the pair with the shortest distance
+          between side midpoints. Anchors stay on facing sides.
+        </div>
+        <div class="canvas" id="canvas-proposed">
+          <svg></svg>
+        </div>
+        <div class="info" id="info-proposed"></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <span class="swatch current"></span> Current algorithm path
+      </div>
+      <div class="legend-item">
+        <span class="swatch proposed"></span> Proposed algorithm path
+      </div>
+      <div class="legend-item">
+        <span class="swatch candidate"></span> Candidate pair (when shown)
+      </div>
+      <div class="legend-item">
+        <span class="swatch dot"></span> Side midpoint
+      </div>
+    </div>
+
+    <script>
+      const SIDES = ["L", "R", "T", "B"];
+
+      const state = {
+        boxA: { x: 40, y: 220, w: 130, h: 76, label: "Dome Safety", color: "yellow" },
+        boxB: { x: 360, y: 30, w: 150, h: 70, label: "Central Control", color: "blue" },
+        showCandidates: false,
+        showMidpoints: true,
+      };
+
+      const presets = {
+        dome: {
+          a: { x: 40, y: 220, w: 130, h: 76 },
+          b: { x: 360, y: 30, w: 150, h: 70 },
+        },
+        sidebyside: {
+          a: { x: 40, y: 140, w: 130, h: 76 },
+          b: { x: 380, y: 140, w: 130, h: 76 },
+        },
+        stacked: {
+          a: { x: 220, y: 40, w: 130, h: 76 },
+          b: { x: 220, y: 240, w: 130, h: 76 },
+        },
+        "diagonal-far": {
+          a: { x: 20, y: 270, w: 110, h: 60 },
+          b: { x: 450, y: 30, w: 120, h: 60 },
+        },
+        aspect: {
+          a: { x: 40, y: 80, w: 60, h: 220 },
+          b: { x: 300, y: 160, w: 240, h: 60 },
+        },
+      };
+
+      function sideMidpoint(box, side) {
+        const cx = box.x + box.w / 2;
+        const cy = box.y + box.h / 2;
+        if (side === "L") return { x: box.x, y: cy };
+        if (side === "R") return { x: box.x + box.w, y: cy };
+        if (side === "T") return { x: cx, y: box.y };
+        return { x: cx, y: box.y + box.h };
+      }
+
+      function center(box) {
+        return { x: box.x + box.w / 2, y: box.y + box.h / 2 };
+      }
+
+      function dist(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function getNodeIntersection(self, other) {
+        const w = self.w;
+        const h = self.h;
+        const x2 = self.x + w / 2;
+        const y2 = self.y + h / 2;
+        const x1 = other.x + other.w / 2;
+        const y1 = other.y + other.h / 2;
+        const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
+        const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
+        const a = 1 / (Math.abs(xx1) + Math.abs(yy1));
+        const xx3 = a * xx1;
+        const yy3 = a * yy1;
+        return { x: w * (xx3 + yy3) + x2, y: h * (-xx3 + yy3) + y2 };
+      }
+
+      function getEdgePosition(box, pt) {
+        const distL = Math.abs(pt.x - box.x);
+        const distR = Math.abs(pt.x - (box.x + box.w));
+        const distT = Math.abs(pt.y - box.y);
+        const distB = Math.abs(pt.y - (box.y + box.h));
+        const min = Math.min(distL, distR, distT, distB);
+        if (min === distL) return "L";
+        if (min === distR) return "R";
+        if (min === distT) return "T";
+        return "B";
+      }
+
+      function currentAlgorithm(a, b) {
+        const aInt = getNodeIntersection(a, b);
+        const bInt = getNodeIntersection(b, a);
+        const aSide = getEdgePosition(a, aInt);
+        const bSide = getEdgePosition(b, bInt);
+        return { aSide, bSide, aPoint: sideMidpoint(a, aSide), bPoint: sideMidpoint(b, bSide) };
+      }
+
+      function proposedAlgorithm(a, b) {
+        let best = null;
+        const candidates = [];
+        for (const sA of SIDES) {
+          for (const sB of SIDES) {
+            const pA = sideMidpoint(a, sA);
+            const pB = sideMidpoint(b, sB);
+            const d = dist(pA, pB);
+            candidates.push({ aSide: sA, bSide: sB, aPoint: pA, bPoint: pB, d });
+            if (!best || d < best.d) best = { aSide: sA, bSide: sB, aPoint: pA, bPoint: pB, d };
+          }
+        }
+        return { ...best, candidates };
+      }
+
+      function bezierPath(a, aSide, b, bSide) {
+        const offset = 60;
+        const aCtl = controlOffset(a, aSide, offset);
+        const bCtl = controlOffset(b, bSide, offset);
+        return `M ${a.x},${a.y} C ${aCtl.x},${aCtl.y} ${bCtl.x},${bCtl.y} ${b.x},${b.y}`;
+      }
+
+      function controlOffset(p, side, off) {
+        if (side === "L") return { x: p.x - off, y: p.y };
+        if (side === "R") return { x: p.x + off, y: p.y };
+        if (side === "T") return { x: p.x, y: p.y - off };
+        return { x: p.x, y: p.y + off };
+      }
+
+      function ensureNode(canvas, id, box) {
+        let n = canvas.querySelector("#" + id);
+        if (!n) {
+          n = document.createElement("div");
+          n.id = id;
+          n.className = "node " + box.color;
+          n.textContent = box.label;
+          const handle = document.createElement("div");
+          handle.className = "node-resize";
+          handle.dataset.resize = id;
+          n.appendChild(handle);
+          canvas.appendChild(n);
+        }
+        n.style.left = box.x + "px";
+        n.style.top = box.y + "px";
+        n.style.width = box.w + "px";
+        n.style.height = box.h + "px";
+        return n;
+      }
+
+      function render() {
+        const cur = currentAlgorithm(state.boxA, state.boxB);
+        const prop = proposedAlgorithm(state.boxA, state.boxB);
+
+        for (const which of ["current", "proposed"]) {
+          const canvas = document.getElementById("canvas-" + which);
+          ensureNode(canvas, "node-a-" + which, { ...state.boxA });
+          ensureNode(canvas, "node-b-" + which, { ...state.boxB });
+
+          const svg = canvas.querySelector("svg");
+          while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+          if (state.showMidpoints) {
+            for (const s of SIDES) {
+              for (const box of [state.boxA, state.boxB]) {
+                const m = sideMidpoint(box, s);
+                const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                c.setAttribute("cx", m.x);
+                c.setAttribute("cy", m.y);
+                c.setAttribute("r", 3);
+                c.setAttribute("fill", "#94a3b8");
+                svg.appendChild(c);
+              }
+            }
+          }
+
+          if (which === "proposed" && state.showCandidates) {
+            for (const c of prop.candidates) {
+              if (c.aSide === prop.aSide && c.bSide === prop.bSide) continue;
+              const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+              path.setAttribute("d", bezierPath(c.aPoint, c.aSide, c.bPoint, c.bSide));
+              path.setAttribute("stroke", "#cbd5e1");
+              path.setAttribute("stroke-width", "1");
+              path.setAttribute("fill", "none");
+              path.setAttribute("opacity", "0.6");
+              svg.appendChild(path);
+            }
+          }
+
+          const pick = which === "current" ? cur : prop;
+          const color = which === "current" ? "#dc2626" : "#16a34a";
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("d", bezierPath(pick.aPoint, pick.aSide, pick.bPoint, pick.bSide));
+          path.setAttribute("stroke", color);
+          path.setAttribute("stroke-width", "2.5");
+          path.setAttribute("fill", "none");
+          svg.appendChild(path);
+
+          const head = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          head.setAttribute("cx", pick.bPoint.x);
+          head.setAttribute("cy", pick.bPoint.y);
+          head.setAttribute("r", 5);
+          head.setAttribute("fill", color);
+          svg.appendChild(head);
+        }
+
+        const sideName = { L: "Left", R: "Right", T: "Top", B: "Bottom" };
+        document.getElementById("info-current").textContent =
+          `source = ${sideName[cur.aSide]}(Dome Safety)  →  target = ${sideName[cur.bSide]}(Central Control)`;
+        document.getElementById("info-proposed").textContent =
+          `source = ${sideName[prop.aSide]}(Dome Safety)  →  target = ${sideName[prop.bSide]}(Central Control)   |   distance = ${prop.d.toFixed(0)}px`;
+      }
+
+      function attachDrag() {
+        let active = null;
+        document.addEventListener("mousedown", (e) => {
+          const t = e.target;
+          if (t.dataset.resize) {
+            const id = t.dataset.resize;
+            const which = id.endsWith("current") ? "current" : "proposed";
+            const isA = id.startsWith("node-a");
+            active = {
+              mode: "resize",
+              isA,
+              startX: e.clientX,
+              startY: e.clientY,
+              startW: isA ? state.boxA.w : state.boxB.w,
+              startH: isA ? state.boxA.h : state.boxB.h,
+            };
+            e.preventDefault();
+            return;
+          }
+          const node = t.closest(".node");
+          if (!node) return;
+          const isA = node.id.startsWith("node-a");
+          active = {
+            mode: "drag",
+            isA,
+            startX: e.clientX,
+            startY: e.clientY,
+            origX: isA ? state.boxA.x : state.boxB.x,
+            origY: isA ? state.boxA.y : state.boxB.y,
+          };
+          node.classList.add("dragging");
+          e.preventDefault();
+        });
+        document.addEventListener("mousemove", (e) => {
+          if (!active) return;
+          const dx = e.clientX - active.startX;
+          const dy = e.clientY - active.startY;
+          if (active.mode === "drag") {
+            const target = active.isA ? state.boxA : state.boxB;
+            target.x = Math.max(0, active.origX + dx);
+            target.y = Math.max(0, active.origY + dy);
+          } else {
+            const target = active.isA ? state.boxA : state.boxB;
+            target.w = Math.max(60, active.startW + dx);
+            target.h = Math.max(40, active.startH + dy);
+          }
+          render();
+        });
+        document.addEventListener("mouseup", () => {
+          document.querySelectorAll(".node.dragging").forEach((n) => n.classList.remove("dragging"));
+          active = null;
+        });
+      }
+
+      function applyPreset(name) {
+        const p = presets[name];
+        if (!p) return;
+        Object.assign(state.boxA, p.a);
+        Object.assign(state.boxB, p.b);
+        render();
+      }
+
+      document.getElementById("show-candidates").addEventListener("change", (e) => {
+        state.showCandidates = e.target.checked;
+        render();
+      });
+      document.getElementById("show-midpoints").addEventListener("change", (e) => {
+        state.showMidpoints = e.target.checked;
+        render();
+      });
+      document.querySelectorAll("[data-preset]").forEach((btn) => {
+        btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+      });
+
+      attachDrag();
+      render();
+    </script>
+  </body>
+</html>
