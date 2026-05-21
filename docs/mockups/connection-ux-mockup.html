@@ -79,6 +79,18 @@
     /* Cursor anchor preview */
     .cursor-anchor { fill: #2563eb; stroke: white; stroke-width: 2; }
 
+    /* Coach mark callout */
+    .coach-callout { position: absolute; display: none; z-index: 50; }
+    .coach-callout.visible { display: block; animation: coach-fade 0.18s ease-out; }
+    @keyframes coach-fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .coach-body { background: #1e293b; color: white; padding: 12px 14px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.18); width: 280px; }
+    .coach-title { font-size: 12px; font-weight: 600; color: #93c5fd; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 6px; }
+    .coach-text { font-size: 13px; line-height: 1.5; color: #e2e8f0; margin-bottom: 10px; }
+    .coach-dismiss { background: #2563eb; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.12s; }
+    .coach-dismiss:hover { background: #1d4ed8; }
+    /* Pointer triangle on the left side of the callout (points at the stub on the right side of source card) */
+    .coach-pointer { position: absolute; left: -8px; top: 22px; width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 8px solid #1e293b; }
+
     .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     .panel-h { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
     .panel-body { padding: 18px; }
@@ -214,6 +226,52 @@
         </div>
         <div class="legend">
           The "edge wanders" symptom that motivated reconsidering bezier was the per-end independent anchor selection bug fixed in #21. Once anchors are chosen jointly across all 16 side pairs with a facing-side preference, bezier no longer loops out to the wrong side. The remaining "feels janky" lives in the creation affordance (Panel 1) and drop precision (Panel 2), not in the path type.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 4: First-run coach mark -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Panel 4</div>
+          <h2 class="text-lg font-semibold mt-1">First-run coach mark</h2>
+        </div>
+        <div class="flex gap-3 items-center">
+          <button class="pill-btn" id="coach-replay">Replay coach mark</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p class="text-sm text-slate-600 mb-3">First time a user encounters the new affordance, a one-shot callout teaches the gesture. Anchored to a stub (not a modal). Persisted dismissal via localStorage; "Replay" simulates the reset that workshop facilitators would use for a fresh demo. Try the gesture from any stub to the destination card -- coach auto-dismisses on first successful relationship creation.</p>
+        <div class="stage canvas-bg" id="stage-coach" style="height:320px;">
+          <svg class="edges-layer" width="100%" height="100%" id="coach-svg"></svg>
+          <div class="ctx" id="coach-ctx-a" style="left:80px; top:120px;">
+            <div class="name">Orders</div>
+            <div class="purpose">Hover to see stubs. The coach mark anchors to the right stub.</div>
+            <div class="stubs"></div>
+          </div>
+          <div class="ctx" id="coach-ctx-b" style="left:440px; top:120px;">
+            <div class="name">Catalog</div>
+            <div class="purpose">Drop here to complete the gesture and dismiss the coach.</div>
+          </div>
+
+          <!-- Coach mark callout -->
+          <div id="coach-callout" class="coach-callout">
+            <div class="coach-pointer"></div>
+            <div class="coach-body">
+              <div class="coach-title">Mapping a relationship</div>
+              <div class="coach-text">Drag any arrow from this context to another to map the relationship. After releasing, pick a DDD pattern.</div>
+              <button class="coach-dismiss" id="coach-dismiss">Got it</button>
+            </div>
+          </div>
+        </div>
+        <div class="legend">
+          <strong>Trigger:</strong> first time a project has &geq; 2 contexts AND zero relationships AND the user hovers any context. Less noisy than firing on every initial load; matches the moment where the gesture becomes useful.<br/>
+          <strong>Anchor:</strong> attached to one stub on the hovered card (right stub by default, or the side closest to other contexts so the callout's pointer faces toward a plausible drop target). Re-anchors if the user moves the card.<br/>
+          <strong>Dismissal:</strong> "Got it" button, OR auto-dismiss when the user creates their first relationship. Persisted via <code>localStorage.contextflow_coach_connection_seen = true</code>.<br/>
+          <strong>Reset:</strong> a setting under Help / Workshop Mode (or the Welcome Guide menu) clears the flag so facilitators can demo to a fresh audience.<br/>
+          <strong>Visual register:</strong> matches <code>GettingStartedGuideModal</code> -- slate body, blue accent, no emojis. Pointer triangle indicates which affordance to attend to.<br/>
+          <strong>Wording (carried from Panel 1 legend):</strong> "Drag any arrow from this context to another to map the relationship. After releasing, pick a DDD pattern." Direction-neutral; upstream/downstream teaching deferred to <code>contextflow-ki1</code>.
         </div>
       </div>
     </section>
@@ -557,10 +615,111 @@
       render();
     }
 
+    /* =========================
+       PANEL 4: First-run coach mark
+       ========================= */
+    function initPanel4() {
+      const stage = document.getElementById('stage-coach');
+      const svg = document.getElementById('coach-svg');
+      const src = document.getElementById('coach-ctx-a');
+      const tgt = document.getElementById('coach-ctx-b');
+      const callout = document.getElementById('coach-callout');
+      const dismissBtn = document.getElementById('coach-dismiss');
+      const replayBtn = document.getElementById('coach-replay');
+
+      // Stubs always visible on source for this demo (the user is hovering or has just hovered)
+      renderStubs(src, 'arrow');
+      src.querySelector('.stubs').style.opacity = '1';
+
+      let coachVisible = true;
+      let connecting = false, startPt = null, cursorPt = null, hoverTarget = null;
+      let edges = [];
+
+      function anchorCallout() {
+        const sR = rectOf(src, stage);
+        // Anchor to the right side of the card, level with the right stub
+        callout.style.left = (sR.x + sR.w + 36) + 'px';
+        callout.style.top = (sR.cy - 26) + 'px';
+      }
+      function showCoach() { coachVisible = true; callout.classList.add('visible'); anchorCallout(); }
+      function hideCoach() { coachVisible = false; callout.classList.remove('visible'); }
+
+      function render() {
+        let out = `<defs><marker id="arrow4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" class="edge-arrow"/></marker></defs>`;
+        for (const e of edges) {
+          const sR = rectOf(src, stage), tR = rectOf(tgt, stage);
+          const { sSide, tSide } = selectAnchorSides(sR, tR);
+          const sP = sideMid(sR, sSide);
+          const tP = shorten(sideMid(tR, tSide), tSide, 8);
+          out += `<path d="${bezierPath(sP, tP, sSide, tSide)}" class="edge-path" marker-end="url(#arrow4)"/>`;
+        }
+        if (connecting && startPt && cursorPt) {
+          let endPt = cursorPt;
+          let previewSide = null;
+          const tR = rectOf(tgt, stage);
+          if (cursorPt.x >= tR.x && cursorPt.x <= tR.x + tR.w && cursorPt.y >= tR.y && cursorPt.y <= tR.y + tR.h) {
+            tgt.classList.add('hover-target');
+            hoverTarget = tgt;
+            const sR = rectOf(src, stage);
+            const { tSide } = selectAnchorSides(sR, tR);
+            endPt = sideMid(tR, tSide);
+            previewSide = tSide;
+          } else {
+            tgt.classList.remove('hover-target');
+            hoverTarget = null;
+          }
+          out += `<path d="M ${startPt.x} ${startPt.y} L ${endPt.x} ${endPt.y}" class="edge-ghost"/>`;
+          if (previewSide) out += `<circle cx="${endPt.x}" cy="${endPt.y}" r="6" class="cursor-anchor"/>`;
+        } else {
+          tgt.classList.remove('hover-target');
+        }
+        svg.innerHTML = out;
+      }
+
+      // Stub mousedown starts a connection-drag and auto-dismisses the coach as soon as the user starts the gesture
+      src.querySelector('.stubs').addEventListener('mousedown', (e) => {
+        const stub = e.target.closest('.stub');
+        if (!stub) return;
+        e.stopPropagation();
+        e.preventDefault();
+        connecting = true;
+        const sR = rectOf(src, stage);
+        startPt = sideMid(sR, stub.dataset.side);
+        const p = stage.getBoundingClientRect();
+        cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
+        render();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!connecting) return;
+        const p = stage.getBoundingClientRect();
+        cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
+        render();
+      });
+      window.addEventListener('mouseup', () => {
+        if (!connecting) return;
+        if (hoverTarget) {
+          edges.push({});
+          hideCoach(); // auto-dismiss on successful first relationship
+        }
+        connecting = false; startPt = null; cursorPt = null; hoverTarget = null;
+        render();
+      });
+
+      dismissBtn.addEventListener('click', hideCoach);
+      replayBtn.addEventListener('click', () => { edges = []; render(); showCoach(); });
+
+      makeDraggable(src, stage, () => { render(); if (coachVisible) anchorCallout(); });
+      makeDraggable(tgt, stage, render);
+
+      showCoach();
+      render();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initPanel1();
       initPanel2();
       initPanel3();
+      initPanel4();
     });
   </script>
 </body>
