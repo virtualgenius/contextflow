@@ -216,12 +216,17 @@
       <strong>Current algorithm</strong> picks each end's anchor side independently: it draws a
       line from each box's center to the other's center, and picks the side that line exits.
       <strong>Proposed algorithm</strong> enumerates all 16 (sourceSide, targetSide) combinations
-      and picks the pair with the shortest distance between side midpoints. Try the
-      "Dome Safety / Central Control" preset to see the bug; the two algorithms agree in
-      the side-by-side and stacked presets.
+      and picks the pair with the shortest distance between side midpoints. With
+      <strong>hemisphere preference</strong> on, pairs where a side faces away from the other box
+      get a 1.5x distance penalty, breaking ties and avoiding clip-through on overlaps. Try
+      "Symmetric diagonal" and "Overlapping" to see when the hemisphere preference matters.
     </div>
 
     <div class="controls">
+      <label
+        ><input type="checkbox" id="hemisphere" checked /> Hemisphere preference (proposed
+        panel)</label
+      >
       <label
         ><input type="checkbox" id="show-candidates" /> Show all 16 candidate pairs (proposed
         panel)</label
@@ -235,6 +240,8 @@
       <button data-preset="stacked">Stacked</button>
       <button data-preset="diagonal-far">Far diagonal</button>
       <button data-preset="aspect">Tall vs wide</button>
+      <button data-preset="symmetric">Symmetric diagonal (tie case)</button>
+      <button data-preset="overlap">Overlapping</button>
     </div>
 
     <div class="grid">
@@ -271,7 +278,7 @@
         <span class="swatch proposed"></span> Proposed algorithm path
       </div>
       <div class="legend-item">
-        <span class="swatch candidate"></span> Candidate pair (when shown)
+        <span class="swatch candidate"></span> Candidate pair (gray = facing, red dashed = wrong-facing)
       </div>
       <div class="legend-item">
         <span class="swatch dot"></span> Side midpoint
@@ -286,6 +293,7 @@
         boxB: { x: 360, y: 30, w: 150, h: 70, label: "Central Control", color: "blue" },
         showCandidates: false,
         showMidpoints: true,
+        hemisphere: true,
       };
 
       const presets = {
@@ -309,7 +317,24 @@
           a: { x: 40, y: 80, w: 60, h: 220 },
           b: { x: 300, y: 160, w: 240, h: 60 },
         },
+        symmetric: {
+          a: { x: 60, y: 60, w: 120, h: 120 },
+          b: { x: 360, y: 200, w: 120, h: 120 },
+        },
+        overlap: {
+          a: { x: 140, y: 100, w: 160, h: 110 },
+          b: { x: 240, y: 170, w: 160, h: 110 },
+        },
       };
+
+      const SIDE_NORMALS = {
+        L: { x: -1, y: 0 },
+        R: { x: 1, y: 0 },
+        T: { x: 0, y: -1 },
+        B: { x: 0, y: 1 },
+      };
+
+      const HEMISPHERE_PENALTY = 1.5;
 
       function sideMidpoint(box, side) {
         const cx = box.x + box.w / 2;
@@ -365,7 +390,13 @@
         return { aSide, bSide, aPoint: sideMidpoint(a, aSide), bPoint: sideMidpoint(b, bSide) };
       }
 
-      function proposedAlgorithm(a, b) {
+      function proposedAlgorithm(a, b, useHemisphere) {
+        const cA = center(a);
+        const cB = center(b);
+        const ab = { x: cB.x - cA.x, y: cB.y - cA.y };
+        const abLen = Math.sqrt(ab.x * ab.x + ab.y * ab.y) || 1;
+        const abUnit = { x: ab.x / abLen, y: ab.y / abLen };
+
         let best = null;
         const candidates = [];
         for (const sA of SIDES) {
@@ -373,8 +404,16 @@
             const pA = sideMidpoint(a, sA);
             const pB = sideMidpoint(b, sB);
             const d = dist(pA, pB);
-            candidates.push({ aSide: sA, bSide: sB, aPoint: pA, bPoint: pB, d });
-            if (!best || d < best.d) best = { aSide: sA, bSide: sB, aPoint: pA, bPoint: pB, d };
+
+            const nA = SIDE_NORMALS[sA];
+            const nB = SIDE_NORMALS[sB];
+            const aFaces = nA.x * abUnit.x + nA.y * abUnit.y > 0;
+            const bFaces = nB.x * -abUnit.x + nB.y * -abUnit.y > 0;
+            const facing = aFaces && bFaces;
+
+            const score = useHemisphere && !facing ? d * HEMISPHERE_PENALTY : d;
+            candidates.push({ aSide: sA, bSide: sB, aPoint: pA, bPoint: pB, d, score, facing });
+            if (!best || score < best.score) best = candidates[candidates.length - 1];
           }
         }
         return { ...best, candidates };
@@ -416,7 +455,7 @@
 
       function render() {
         const cur = currentAlgorithm(state.boxA, state.boxB);
-        const prop = proposedAlgorithm(state.boxA, state.boxB);
+        const prop = proposedAlgorithm(state.boxA, state.boxB, state.hemisphere);
 
         for (const which of ["current", "proposed"]) {
           const canvas = document.getElementById("canvas-" + which);
@@ -445,10 +484,12 @@
               if (c.aSide === prop.aSide && c.bSide === prop.bSide) continue;
               const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
               path.setAttribute("d", bezierPath(c.aPoint, c.aSide, c.bPoint, c.bSide));
-              path.setAttribute("stroke", "#cbd5e1");
+              const isWrongFacing = state.hemisphere && !c.facing;
+              path.setAttribute("stroke", isWrongFacing ? "#fca5a5" : "#cbd5e1");
               path.setAttribute("stroke-width", "1");
+              path.setAttribute("stroke-dasharray", isWrongFacing ? "3,3" : "0");
               path.setAttribute("fill", "none");
-              path.setAttribute("opacity", "0.6");
+              path.setAttribute("opacity", "0.5");
               svg.appendChild(path);
             }
           }
@@ -473,9 +514,10 @@
 
         const sideName = { L: "Left", R: "Right", T: "Top", B: "Bottom" };
         document.getElementById("info-current").textContent =
-          `source = ${sideName[cur.aSide]}(Dome Safety)  →  target = ${sideName[cur.bSide]}(Central Control)`;
+          `source = ${sideName[cur.aSide]}(A)  ->  target = ${sideName[cur.bSide]}(B)`;
+        const hemiNote = state.hemisphere ? ` | hemisphere: ${prop.facing ? "facing" : "wrong-facing"}` : "";
         document.getElementById("info-proposed").textContent =
-          `source = ${sideName[prop.aSide]}(Dome Safety)  →  target = ${sideName[prop.bSide]}(Central Control)   |   distance = ${prop.d.toFixed(0)}px`;
+          `source = ${sideName[prop.aSide]}(A)  ->  target = ${sideName[prop.bSide]}(B)   |   dist = ${prop.d.toFixed(0)}px${hemiNote}`;
       }
 
       function attachDrag() {
@@ -540,6 +582,10 @@
         render();
       }
 
+      document.getElementById("hemisphere").addEventListener("change", (e) => {
+        state.hemisphere = e.target.checked;
+        render();
+      });
       document.getElementById("show-candidates").addEventListener("change", (e) => {
         state.showCandidates = e.target.checked;
         render();
