@@ -135,9 +135,9 @@
           <strong>Current:</strong> two tiny fixed dots on left/right; the displayed edge floats, so creation and display geometry disagree.
           <hr class="my-2 border-slate-200"/>
           <strong>Direction convention (current code, kept for #22):</strong> drag from = downstream (dependent), drag to = upstream (defining authority). The arrow marker points to upstream. Decision to revisit during two-sided pattern work (<code>contextflow-ki1</code> / GH #13), where direction may become a model field set in the pattern picker rather than implied by drag direction.<br/>
-          <strong>Stub tooltip wording (hover a nub):</strong> "Drag to a context this depends on"<br/>
-          <strong>Rich card-hover tooltip line (proposed):</strong> "Drag any arrow to a context this one depends on. Arrow points to the upstream (authority)."<br/>
-          <strong>First-run coach mark (proposed):</strong> "Drag any arrow from this context to another that it depends on. The arrow points to the upstream (defining authority); this card becomes downstream (dependent). After releasing, pick a DDD pattern."
+          <strong>Stub tooltip wording (hover a nub):</strong> "Drag to another context to map the relationship"<br/>
+          <strong>Rich card-hover tooltip line (proposed):</strong> "Drag any arrow to another context to map the relationship. The arrow points to the upstream context (defining authority)."<br/>
+          <strong>First-run coach mark (proposed):</strong> "Drag any arrow from this context to another to map the relationship. The arrow points to upstream (defining authority); this card becomes downstream (dependent). After releasing, pick a DDD pattern."
         </div>
       </div>
     </section>
@@ -345,7 +345,7 @@
         s.className = `stub ${variant} ${side}`;
         s.dataset.side = side;
         if (variant === 'arrow') {
-          s.innerHTML = stubArrowSvg[side] + '<div class="stub-tip">Drag to a context this depends on</div>';
+          s.innerHTML = stubArrowSvg[side] + '<div class="stub-tip">Drag to another context to map the relationship</div>';
         } else {
           s.innerHTML = '+';
         }
