@@ -137,6 +137,15 @@ export function ContextNode({ data }: NodeProps) {
       ? OWNERSHIP_COLORS[context.ownership || 'ours']
       : STRATEGIC_COLORS[context.strategicClassification || 'generic']
 
+  // Reserve horizontal space for absolutely-positioned top-right badges so a
+  // long context name does not slide under them. Badge anchors do not change;
+  // only the name input shrinks to fit.
+  const hasIssues = (context.issues?.length ?? 0) > 0
+  const hasTopRightBadge =
+    context.isLegacy || context.isBigBallOfMud || (context.ownership === 'external' && hasIssues)
+  const topRightBadgeReserve =
+    context.isLegacy && context.isBigBallOfMud ? 44 : hasTopRightBadge ? 24 : 0
+
   // Consolidated highlight state for selected or group member contexts
   const isHighlighted = isSelected || isMemberOfSelectedGroup || isHoveredByRelationship
   const { borderWidth, borderStyle, borderColor, shadow } = getContextNodeBorderStyle(
@@ -325,14 +334,8 @@ export function ContextNode({ data }: NodeProps) {
             fontSize: '13px',
             fontWeight: 600,
             color: '#0f172a',
-            marginTop:
-              context.ownership === 'external'
-                ? '20px'
-                : context.isLegacy ||
-                    context.isBigBallOfMud ||
-                    (context.issues && context.issues.length > 0)
-                  ? '20px'
-                  : '0',
+            marginTop: 0,
+            paddingRight: topRightBadgeReserve,
             lineHeight: '1.3',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
