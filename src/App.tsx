@@ -337,8 +337,10 @@ function Workspace() {
           selectedNeedContextConnectionId ||
           selectedStageIndex !== null ||
           selectedTeamId) && (
-          <aside className="border-l border-slate-200 dark:border-neutral-700 p-4 text-xs overflow-y-auto bg-white dark:bg-neutral-800">
-            <InspectorPanel />
+          <aside className="border-l border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 text-xs">
+              <InspectorPanel />
+            </div>
           </aside>
         )}
       </main>
