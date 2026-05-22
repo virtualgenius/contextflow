@@ -536,29 +536,38 @@ export function ContextInspector({ project, contextId }: { project: Project; con
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <TogglePill
-            active={context.isLegacy || false}
-            onToggle={() => handleUpdate({ isLegacy: !context.isLegacy })}
-            icon={<Archive size={12} />}
-            label="Legacy"
-            labelAdornment={
-              <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
-                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
-              </InfoTooltip>
-            }
-          />
-          <TogglePill
-            active={context.isBigBallOfMud || false}
-            onToggle={() => handleUpdate({ isBigBallOfMud: !context.isBigBallOfMud })}
-            icon={<CloudFog size={12} />}
-            label="Big Ball of Mud"
-            labelAdornment={
-              <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
-                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
-              </InfoTooltip>
-            }
-          />
+        <div>
+          <div className={FIELD_LABEL_CLASS}>Concerns</div>
+          <div className="flex flex-wrap gap-2">
+            <TogglePill
+              active={context.isLegacy || false}
+              onToggle={() => handleUpdate({ isLegacy: !context.isLegacy })}
+              icon={<Archive size={12} />}
+              label="Legacy"
+              labelAdornment={
+                <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+                  <HelpCircle
+                    size={12}
+                    className="text-slate-400 dark:text-slate-500 cursor-help"
+                  />
+                </InfoTooltip>
+              }
+            />
+            <TogglePill
+              active={context.isBigBallOfMud || false}
+              onToggle={() => handleUpdate({ isBigBallOfMud: !context.isBigBallOfMud })}
+              icon={<CloudFog size={12} />}
+              label="Big Ball of Mud"
+              labelAdornment={
+                <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
+                  <HelpCircle
+                    size={12}
+                    className="text-slate-400 dark:text-slate-500 cursor-help"
+                  />
+                </InfoTooltip>
+              }
+            />
+          </div>
         </div>
       </SectionDivider>
 
