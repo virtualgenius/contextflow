@@ -326,6 +326,84 @@ describe('builtInProjects', () => {
 
       localStorage.removeItem('contextflow.activeProjectId')
     })
+
+    it('invokes connect callback for hydrated user project after async load', async () => {
+      const { initializeBuiltInProjects, loadAllProjects } = await getModules()
+
+      const userProject = createTestProject({
+        id: 'user-project-connect',
+        name: 'User Project To Connect',
+        isBuiltIn: false,
+      })
+
+      loadAllProjects.mockResolvedValue([userProject])
+      localStorage.setItem('contextflow.activeProjectId', 'user-project-connect')
+
+      const setState = vi.fn()
+      const onActiveProjectReady = vi.fn().mockResolvedValue(undefined)
+      initializeBuiltInProjects(setState, onActiveProjectReady)
+
+      await vi.waitFor(() => expect(onActiveProjectReady).toHaveBeenCalled())
+
+      expect(onActiveProjectReady).toHaveBeenCalledTimes(1)
+      const [projectId, project] = onActiveProjectReady.mock.calls[0]
+      expect(projectId).toBe('user-project-connect')
+      expect(project.id).toBe('user-project-connect')
+
+      localStorage.removeItem('contextflow.activeProjectId')
+    })
+
+    it('invokes connect callback for built-in active project', async () => {
+      const { initializeBuiltInProjects, BUILT_IN_PROJECTS, loadAllProjects } = await getModules()
+
+      loadAllProjects.mockResolvedValue([])
+      const builtInId = BUILT_IN_PROJECTS[0].id
+      localStorage.setItem('contextflow.activeProjectId', builtInId)
+
+      const setState = vi.fn()
+      const onActiveProjectReady = vi.fn().mockResolvedValue(undefined)
+      initializeBuiltInProjects(setState, onActiveProjectReady)
+
+      await vi.waitFor(() => expect(onActiveProjectReady).toHaveBeenCalled())
+
+      const [projectId, project] = onActiveProjectReady.mock.calls[0]
+      expect(projectId).toBe(builtInId)
+      expect(project.id).toBe(builtInId)
+
+      localStorage.removeItem('contextflow.activeProjectId')
+    })
+
+    it('does not invoke connect callback when no active project is stored', async () => {
+      const { initializeBuiltInProjects, loadAllProjects } = await getModules()
+
+      loadAllProjects.mockResolvedValue([])
+      localStorage.removeItem('contextflow.activeProjectId')
+
+      const setState = vi.fn()
+      const onActiveProjectReady = vi.fn().mockResolvedValue(undefined)
+      initializeBuiltInProjects(setState, onActiveProjectReady)
+
+      await vi.waitFor(() => expect(setState).toHaveBeenCalled())
+
+      expect(onActiveProjectReady).not.toHaveBeenCalled()
+    })
+
+    it('does not invoke connect callback when stored active project no longer exists', async () => {
+      const { initializeBuiltInProjects, loadAllProjects } = await getModules()
+
+      loadAllProjects.mockResolvedValue([])
+      localStorage.setItem('contextflow.activeProjectId', 'no-such-project')
+
+      const setState = vi.fn()
+      const onActiveProjectReady = vi.fn().mockResolvedValue(undefined)
+      initializeBuiltInProjects(setState, onActiveProjectReady)
+
+      await vi.waitFor(() => expect(setState).toHaveBeenCalled())
+
+      expect(onActiveProjectReady).not.toHaveBeenCalled()
+
+      localStorage.removeItem('contextflow.activeProjectId')
+    })
   })
 
   describe('project versioning', () => {
