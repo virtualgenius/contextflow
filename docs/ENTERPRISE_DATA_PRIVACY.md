@@ -21,7 +21,8 @@ This doc covers what exists today, what's planned, and how to communicate Contex
 When you use ContextFlow without sharing:
 - All project data stays in your browser's IndexedDB
 - Nothing is transmitted to any server
-- No account, no login, no telemetry (unless opted in on the hosted demo)
+- No account, no login
+- Anonymous usage analytics are on by default on the hosted demo and self-hosted instances; off by default on localhost. You can opt out at any time via Settings -> Help -> Anonymous usage analytics. No PII and no project content is ever collected.
 - Fully offline-capable
 
 ### Shared / Collaborative
@@ -34,12 +35,12 @@ When you share a project via URL:
 - **Anyone with the project URL can view and edit** (no authentication currently)
 - URLs use high-entropy IDs (62^8 character space) to prevent enumeration
 
-### Analytics (hosted demo only)
+### Analytics (PostHog)
 
-- PostHog analytics on `contextflow.virtualgenius.com` only
-- Disabled by default on self-hosted instances
+- Anonymous usage analytics are on by default on the hosted demo (`contextflow.virtualgenius.com`) and on self-hosted instances; off by default on localhost
+- No PII and no project content is collected (no names, no notes, no canvas text). Only feature usage, project size metrics, deployment type, and app version
 - Privacy-first config: no cookies, no IP collection, no URL tracking, session-scoped anonymous IDs
-- Users can opt out via Settings
+- Users can opt out at any time via Settings -> Help -> Anonymous usage analytics; the opt-out is persisted and respected on every subsequent visit
 
 ---
 

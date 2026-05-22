@@ -26,7 +26,9 @@ export function hashProjectId(id: string): string {
 }
 
 function getAnalyticsDefault(): boolean {
-  return getDeploymentContext() === 'hosted_demo'
+  // Default ON for hosted_demo and self_hosted; OFF for localhost (dev convenience).
+  // Users can opt out via Settings; explicit preferences are preserved.
+  return getDeploymentContext() !== 'localhost'
 }
 
 export function isAnalyticsEnabled(): boolean {
