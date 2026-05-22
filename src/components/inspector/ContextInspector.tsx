@@ -710,11 +710,7 @@ function ClassificationBadge({
   const Icon =
     classification === 'core' ? Sparkles : classification === 'supporting' ? Wrench : Package
   const label =
-    classification === 'core'
-      ? 'Core'
-      : classification === 'supporting'
-        ? 'Supporting'
-        : 'Generic'
+    classification === 'core' ? 'Core' : classification === 'supporting' ? 'Supporting' : 'Generic'
   return (
     <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[classification]} position="bottom">
       <span
