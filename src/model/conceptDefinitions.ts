@@ -519,7 +519,7 @@ export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
 export const STRATEGIC_CLASSIFICATION_CONCEPT: ConceptDefinition = {
   title: 'Strategic Classification',
   description:
-    "Where this context sits on the DDD Core Domain Chart. Tells you where to invest your team's effort.",
+    "Where this context sits on the DDD Core Domain Chart. Tells you where to invest your team's effort. Set by positioning the context in the Distillation view.",
   characteristics: [
     'Core: source of competitive advantage; invest heavily',
     'Supporting: necessary but not differentiating; keep simple',
@@ -531,7 +531,7 @@ export const STRATEGIC_CLASSIFICATION_CONCEPT: ConceptDefinition = {
 export const WARDLEY_EVOLUTION_CONCEPT: ConceptDefinition = {
   title: 'Evolution Stage',
   description:
-    'How mature and well-understood this capability is. Maturity changes how you should build, buy, or operate it.',
+    'How mature and well-understood this capability is. Maturity changes how you should build, buy, or operate it. Set by positioning the context in the Strategic view.',
   characteristics: [
     'Genesis: novel and uncertain; experiment',
     'Custom-Built: emerging understanding; tailored implementation',
@@ -595,28 +595,16 @@ export const ISSUES_CONCEPT: ConceptDefinition = {
   ],
 }
 
-// Section-level concepts (for SectionDivider headers)
-export const STRATEGIC_PROFILE_SECTION: ConceptDefinition = {
-  title: 'Strategic Profile',
+// Boundary concept (field label level; per-value tooltips live in BOUNDARY_INTEGRITY)
+export const BOUNDARY_CONCEPT: ConceptDefinition = {
+  title: 'Boundary Integrity',
   description:
-    'Where this context sits strategically: domain classification, evolution stage, and business role. Use these to decide where to invest.',
+    'How clearly this context is separated from its neighbors. Strong boundaries decouple change; weak boundaries propagate it.',
   characteristics: [
-    'Domain is set by positioning the context in the Distillation view',
-    'Evolution is set by positioning the context in the Strategic view',
-    'Role is set here in the inspector',
+    'Strong: clear contracts, independent deployment',
+    'Moderate: defined interface but some shared coupling',
+    'Weak: shared data or models; changes ripple across contexts',
   ],
-}
-
-export const TEAM_ORG_SECTION: ConceptDefinition = {
-  title: 'Team & Organization',
-  description:
-    'Who owns this context and how it relates to your team structure. Aligns the context map with Team Topologies.',
-}
-
-export const CODEBASE_SECTION: ConceptDefinition = {
-  title: 'Codebase',
-  description:
-    'Repos that implement this context, plus signals about code size and the strength of the boundary. Useful for sizing investment and refactoring effort.',
 }
 
 // Relationship Patterns (DDD Context Mapping patterns)

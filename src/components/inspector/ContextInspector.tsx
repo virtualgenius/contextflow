@@ -10,7 +10,6 @@ import { SimpleTooltip } from '../SimpleTooltip'
 import {
   EVOLUTION_STAGES,
   STRATEGIC_CLASSIFICATIONS,
-  BOUNDARY_INTEGRITY,
   CODE_SIZE_TIERS,
   LEGACY_CONTEXT,
   BIG_BALL_OF_MUD,
@@ -23,9 +22,7 @@ import {
   GROUPS_CONCEPT,
   NOTES_CONCEPT,
   ISSUES_CONCEPT,
-  STRATEGIC_PROFILE_SECTION,
-  TEAM_ORG_SECTION,
-  CODEBASE_SECTION,
+  BOUNDARY_CONCEPT,
   type ConceptDefinition,
 } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
@@ -258,9 +255,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       )}
 
       {/* ---------- 2. Strategic Profile ---------- */}
-      <SectionDivider
-        label={<SectionHeader text="Strategic Profile" tooltip={STRATEGIC_PROFILE_SECTION} />}
-      >
+      <SectionDivider label="Strategic Profile">
         <div className="flex flex-wrap gap-3">
           <div>
             <MiniLabel text="Domain" tooltip={STRATEGIC_CLASSIFICATION_CONCEPT} />
@@ -308,9 +303,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       )}
 
       {/* ---------- 3. Team & Organization ---------- */}
-      <SectionDivider
-        label={<SectionHeader text="Team & Organization" tooltip={TEAM_ORG_SECTION} />}
-      >
+      <SectionDivider label="Team & Organization">
         <div>
           <FieldLabel text="Ownership" tooltip={{ content: OWNERSHIP_CONCEPT }} />
           <PillGroup
@@ -405,7 +398,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       </SectionDivider>
 
       {/* ---------- 4. Codebase ---------- */}
-      <SectionDivider label={<SectionHeader text="Codebase" tooltip={CODEBASE_SECTION} />}>
+      <SectionDivider label="Codebase">
         <div className="space-y-2">
           {assignedRepos.map((repo) => (
             <RepoCard
@@ -450,14 +443,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
 
         <div>
-          <FieldLabel
-            text="Boundary"
-            tooltip={
-              context.boundaryIntegrity && BOUNDARY_INTEGRITY[context.boundaryIntegrity]
-                ? { content: BOUNDARY_INTEGRITY[context.boundaryIntegrity] }
-                : undefined
-            }
-          />
+          <FieldLabel text="Boundary" tooltip={{ content: BOUNDARY_CONCEPT }} />
           <PillGroup
             options={BOUNDARY_OPTIONS}
             value={context.boundaryIntegrity}
