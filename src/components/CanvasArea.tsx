@@ -1022,7 +1022,7 @@ function CanvasContent() {
           elementsSelectable
           deleteKeyCode={['Backspace', 'Delete']}
           minZoom={0.1}
-          maxZoom={2}
+          maxZoom={8}
           proOptions={{ hideAttribution: true }}
         >
           {/* Wardley-style background with very subtle dots */}
