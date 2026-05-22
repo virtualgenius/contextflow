@@ -95,9 +95,9 @@ export function RepoCard({
               href={repo.remoteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-700 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mb-3"
+              className="text-slate-700 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mb-3 min-w-0"
             >
-              <span className="truncate">{repo.remoteUrl}</span>
+              <span className="truncate min-w-0">{repo.remoteUrl}</span>
               <ExternalLink size={10} className="flex-shrink-0" />
             </a>
           )}
@@ -176,9 +176,9 @@ export function RepoCard({
                         href={team.jiraBoard}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 text-[10px] flex items-center gap-1 hover:underline"
+                        className="text-blue-600 dark:text-blue-400 text-[10px] flex items-center gap-1 hover:underline min-w-0"
                       >
-                        <span className="truncate">Jira Board</span>
+                        <span className="truncate min-w-0">Jira Board</span>
                         <ExternalLink size={9} className="flex-shrink-0" />
                       </a>
                     )}
