@@ -329,9 +329,8 @@ function RelationshipEdge({
           e.stopPropagation()
           setContextMenu({ x: e.clientX, y: e.clientY })
         }}
-      >
-        <title>{pattern}</title>
-      </path>
+      />
+
       {/* Tooltip on hover or when selected - uses portal to render above all layers */}
       {showHelpTooltips &&
         (isHovered || isSelected) &&

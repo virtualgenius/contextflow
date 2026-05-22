@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import RelationshipEdge from '../RelationshipEdge'
 import { useEditorStore } from '../../../model/store'
 
@@ -86,5 +86,59 @@ describe('RelationshipEdge label visibility', () => {
     )
     const labelRenderer = screen.queryByTestId('edge-label-renderer')
     expect(labelRenderer).toBeNull()
+  })
+})
+
+describe('RelationshipEdge tooltip layering', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('does not render a native <title> element on the hit-area path', () => {
+    setupMock({
+      showRelationshipLabels: true,
+      showHelpTooltips: true,
+    })
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const titleElements = container.querySelectorAll('title')
+    expect(titleElements.length).toBe(0)
+  })
+
+  it('does not show educational tooltip on hover when showHelpTooltips is false', () => {
+    setupMock({
+      showRelationshipLabels: true,
+      showHelpTooltips: false,
+    })
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    expect(hitArea).not.toBeNull()
+    fireEvent.mouseEnter(hitArea!)
+    expect(
+      document.body.textContent?.includes('Upstream delivers what downstream needs') ?? false
+    ).toBe(false)
+  })
+
+  it('shows educational tooltip on hover when showHelpTooltips is true', () => {
+    setupMock({
+      showRelationshipLabels: false,
+      showHelpTooltips: true,
+    })
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    expect(hitArea).not.toBeNull()
+    fireEvent.mouseEnter(hitArea!)
+    expect(document.body.textContent).toContain('Upstream delivers what downstream needs')
   })
 })
