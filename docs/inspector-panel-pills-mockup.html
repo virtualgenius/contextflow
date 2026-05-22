@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspector Panel - Dropdowns vs All Pills</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .panel { width: 320px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+  .panel-scroll { padding: 16px; }
+  .pill {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.2;
+  }
+  .pill.active-amber { background: #fef3c7; color: #92400e; box-shadow: 0 0 0 1px #f59e0b inset; }
+  .pill.active-green { background: #dcfce7; color: #166534; box-shadow: 0 0 0 1px #22c55e inset; }
+  .pill.active-blue  { background: #dbeafe; color: #1e40af; box-shadow: 0 0 0 1px #3b82f6 inset; }
+  .pill.active-slate { background: #e2e8f0; color: #1e293b; box-shadow: 0 0 0 1px #64748b inset; }
+
+  /* Boundary pills preview the border treatment */
+  .boundary-preview {
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+    border-radius: 2px;
+    background: white;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+  .bp-weak   { border: 1.5px dotted #64748b; }
+  .bp-mod    { border: 2px solid #64748b; }
+  .bp-strong { border: 3px solid #1e293b; }
+
+  /* Code-size pills scale to hint at the node size effect */
+  .size-dot {
+    display: inline-block;
+    background: #64748b;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+  .sd-tiny   { width: 6px;  height: 6px;  }
+  .sd-small  { width: 8px;  height: 8px;  }
+  .sd-medium { width: 10px; height: 10px; }
+  .sd-large  { width: 12px; height: 12px; }
+  .sd-huge   { width: 14px; height: 14px; }
+</style>
+</head>
+<body class="p-8">
+
+<h1 class="text-2xl font-bold text-slate-800 mb-2">Inspector: Dropdowns vs All Pills</h1>
+<p class="text-sm text-slate-500 mb-6">Focused on the contested fields: Role, Ownership, Code Size, Boundary. Other sections are abbreviated.</p>
+
+<div class="flex gap-8 items-start">
+
+<!-- ==================== DROPDOWNS (current proposal) ==================== -->
+<div>
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Dropdowns (current proposal)</h2>
+  <div class="panel">
+    <div class="panel-scroll">
+
+      <!-- Strategic Profile -->
+      <div>
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Strategic Profile</div>
+        <div class="space-y-3">
+          <div class="flex flex-wrap gap-3">
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Domain</div>
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">&#9889; Core</span>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Evolution</div>
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 text-violet-800">&#128296; Custom-Built</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Role</span>
+            <select class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+              <option>Revenue Generator</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team & Org -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Team &amp; Organization</div>
+        <div class="space-y-3">
+          <div class="flex gap-1.5">
+            <button class="flex-1 px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800 ring-1 ring-green-400 text-center">Our Team</button>
+            <button class="flex-1 px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-600 text-center">Internal</button>
+            <button class="flex-1 px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-600 text-center">External</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Team</span>
+            <select class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+              <option>Payments Team (stream-aligned)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Codebase -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Codebase</div>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Code Size</span>
+            <select class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+              <option>Large</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Boundary</span>
+            <select class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+              <option>Moderate</option>
+            </select>
+          </div>
+          <textarea readonly rows="2"
+            class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Some shared models with Order context still need extraction</textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ALL PILLS ==================== -->
+<div>
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">All Pills</h2>
+  <div class="panel">
+    <div class="panel-scroll">
+
+      <!-- Strategic Profile -->
+      <div>
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Strategic Profile</div>
+        <div class="space-y-3">
+          <div class="flex flex-wrap gap-3">
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Domain</div>
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-amber-100 text-amber-800">&#9889; Core</span>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Evolution</div>
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 text-violet-800">&#128296; Custom-Built</span>
+            </div>
+          </div>
+
+          <!-- Role: 4 options, labels long -> 2x2 grid of pills -->
+          <div>
+            <div class="text-xs text-slate-500 mb-1">Role</div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button class="pill active-green text-left">Revenue</button>
+              <button class="pill text-left">Engagement</button>
+              <button class="pill text-left">Compliance</button>
+              <button class="pill text-left">Cost Reduction</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team & Org -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Team &amp; Organization</div>
+        <div class="space-y-3">
+
+          <!-- Ownership: 3 pills, same as before -->
+          <div>
+            <div class="text-xs text-slate-500 mb-1">Ownership</div>
+            <div class="flex gap-1.5">
+              <button class="pill active-green flex-1 text-center">Our Team</button>
+              <button class="pill flex-1 text-center">Internal</button>
+              <button class="pill flex-1 text-center">External</button>
+            </div>
+          </div>
+
+          <!-- Team: still picker; not a fixed enum -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Team</span>
+            <select class="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
+              <option>Payments Team (stream-aligned)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Codebase -->
+      <div class="border-t border-slate-100 mt-4 pt-4">
+        <div class="text-[11px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Codebase</div>
+        <div class="space-y-3">
+
+          <!-- Code Size: 3 + 2 grid -->
+          <div>
+            <div class="text-xs text-slate-500 mb-1">Code Size</div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button class="pill text-center"><span class="size-dot sd-tiny"></span>Tiny</button>
+              <button class="pill text-center"><span class="size-dot sd-small"></span>Small</button>
+              <button class="pill text-center"><span class="size-dot sd-medium"></span>Medium</button>
+              <button class="pill active-slate text-center"><span class="size-dot sd-large"></span>Large</button>
+              <button class="pill text-center"><span class="size-dot sd-huge"></span>Huge</button>
+            </div>
+          </div>
+
+          <!-- Boundary: 3 pills, each previewing border style -->
+          <div>
+            <div class="text-xs text-slate-500 mb-1">Boundary</div>
+            <div class="flex gap-1.5">
+              <button class="pill flex-1 text-center"><span class="boundary-preview bp-weak"></span>Weak</button>
+              <button class="pill active-slate flex-1 text-center"><span class="boundary-preview bp-mod"></span>Moderate</button>
+              <button class="pill flex-1 text-center"><span class="boundary-preview bp-strong"></span>Strong</button>
+            </div>
+          </div>
+
+          <textarea readonly rows="2"
+            class="w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Some shared models with Order context still need extraction</textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ANNOTATIONS ==================== -->
+<div class="w-72 space-y-4 text-xs text-slate-600">
+  <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Tradeoffs</h2>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Wins</div>
+    <ul class="list-disc list-inside space-y-1 text-slate-600">
+      <li>Every option visible without a click</li>
+      <li>Boundary pills can preview the border style (dotted/thin/thick) the node will get</li>
+      <li>Code Size pills can hint at relative node size</li>
+      <li>One interaction pattern across all enum fields</li>
+    </ul>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Costs</div>
+    <ul class="list-disc list-inside space-y-1 text-slate-600">
+      <li>Code Size's 5 pills crowd a 320px panel and wrap on narrower widths</li>
+      <li>Role labels are long; abbreviating ("Revenue" for "Revenue Generator") loses precision</li>
+      <li>Pill rows take more vertical space than a single-line dropdown</li>
+      <li>If we add a 5th boundary level or 6th size bucket, pills don't scale</li>
+    </ul>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+    <div class="font-semibold text-slate-800">Team picker stays a dropdown</div>
+    <p class="text-slate-600">Team is not a fixed enum (user-defined list, could be 20+), so it stays a select in both variants.</p>
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>
