@@ -13,6 +13,7 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
+import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
 import { X, ArrowRight } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
@@ -961,7 +962,7 @@ function CanvasContent() {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        useEditorStore.setState({ selectedContextId: null })
+        useEditorStore.setState(CLEARED_SELECTION)
       }
       // Delete/Backspace: Delete selected connection edges
       if (e.key === 'Delete' || e.key === 'Backspace') {

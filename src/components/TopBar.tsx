@@ -18,10 +18,7 @@ import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { Switch } from './Switch'
-import { SettingsViewOptions } from './settings/SettingsViewOptions'
-import { SettingsHelp } from './settings/SettingsHelp'
-import { SettingsDisplay } from './settings/SettingsDisplay'
-import { SettingsIntegrations } from './settings/SettingsIntegrations'
+import { SettingsPopover } from './settings/SettingsPopover'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
@@ -389,28 +386,19 @@ export function TopBar() {
           </SimpleTooltip>
 
           {showSettings && (
-            <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-lg p-4 z-50">
-              <div className="space-y-4">
-                <SettingsViewOptions />
-                <div className="border-t border-slate-200 dark:border-neutral-700" />
-                <SettingsHelp
-                  onOpenGettingStarted={() => {
-                    trackEvent('getting_started_guide_opened', project || null)
-                    setShowGettingStartedGuide(true)
-                    setShowSettings(false)
-                  }}
-                  onOpenKeyboardShortcuts={() => {
-                    trackEvent('keyboard_shortcuts_opened', project || null)
-                    setShowKeyboardShortcuts(true)
-                    setShowSettings(false)
-                  }}
-                />
-                <div className="border-t border-slate-200 dark:border-neutral-700" />
-                <SettingsDisplay />
-                <div className="border-t border-slate-200 dark:border-neutral-700" />
-                <SettingsIntegrations />
-              </div>
-            </div>
+            <SettingsPopover
+              onClose={() => setShowSettings(false)}
+              onOpenGettingStarted={() => {
+                trackEvent('getting_started_guide_opened', project || null)
+                setShowGettingStartedGuide(true)
+                setShowSettings(false)
+              }}
+              onOpenKeyboardShortcuts={() => {
+                trackEvent('keyboard_shortcuts_opened', project || null)
+                setShowKeyboardShortcuts(true)
+                setShowSettings(false)
+              }}
+            />
           )}
         </div>
       </div>
