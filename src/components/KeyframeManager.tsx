@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { X, Plus, Trash2, Copy, ChevronRight } from 'lucide-react'
 import type { TemporalKeyframe } from '../model/types'
 import { useEditorStore } from '../model/store'
+import { SimpleTooltip } from './SimpleTooltip'
 
 interface KeyframeManagerProps {
   onClose: () => void
@@ -120,27 +121,30 @@ export function KeyframeManager({ onClose }: KeyframeManagerProps) {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleJumpTo(keyframe)}
-                      className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                      title="Jump to keyframe"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDuplicate(keyframe)}
-                      className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-600 rounded transition-colors"
-                      title="Duplicate keyframe"
-                    >
-                      <Copy size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(keyframe)}
-                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                      title="Delete keyframe"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <SimpleTooltip text="Jump to keyframe">
+                      <button
+                        onClick={() => handleJumpTo(keyframe)}
+                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </SimpleTooltip>
+                    <SimpleTooltip text="Duplicate keyframe">
+                      <button
+                        onClick={() => handleDuplicate(keyframe)}
+                        className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-600 rounded transition-colors"
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </SimpleTooltip>
+                    <SimpleTooltip text="Delete keyframe">
+                      <button
+                        onClick={() => handleDelete(keyframe)}
+                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </SimpleTooltip>
                   </div>
                 </div>
               )
