@@ -1,5 +1,6 @@
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { ContextNode } from '../ContextNode'
 import { useEditorStore } from '../../../model/store'
 import type { BoundedContext } from '../../../model/types'
@@ -10,32 +11,33 @@ vi.mock('../../../model/store', () => ({
 
 vi.mock('reactflow', () => ({
   Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
-  Handle: ({
-    type,
-    position,
-    id,
-    children,
-    style,
-    className,
-  }: {
-    type: string
-    position: string
-    id?: string
-    children?: React.ReactNode
-    style?: React.CSSProperties
-    className?: string
-  }) => (
+  Handle: React.forwardRef<
+    HTMLDivElement,
+    {
+      type: string
+      position: string
+      id?: string
+      children?: React.ReactNode
+      style?: React.CSSProperties
+      className?: string
+      onMouseEnter?: (e: React.MouseEvent) => void
+      onMouseLeave?: (e: React.MouseEvent) => void
+    }
+  >(({ type, position, id, children, style, className, onMouseEnter, onMouseLeave }, ref) => (
     <div
+      ref={ref}
       data-testid={`handle-${type}-${position}${id ? `-${id}` : ''}`}
       data-handle-type={type}
       data-handle-position={position}
       data-handle-id={id}
       style={style}
       className={className}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {children}
     </div>
-  ),
+  )),
 }))
 
 const mockSetHoveredContext = vi.fn()
@@ -136,10 +138,17 @@ describe('ContextNode hover stubs (GH #22)', () => {
     expect(screen.getByTestId('handle-target-left-body')).toBeInTheDocument()
   })
 
-  it('labels each stub with the direction-neutral connection tooltip text', () => {
+  it('shows the direction-neutral connection tooltip when a stub is hovered', () => {
     renderContextNode()
-    const tooltips = screen.getAllByText('Drag to another context to map the relationship')
-    expect(tooltips.length).toBe(4)
+    const nubs = document.querySelectorAll('[data-context-stub]')
+    expect(nubs.length).toBe(4)
+    for (const nub of nubs) {
+      fireEvent.mouseEnter(nub as Element)
+      expect(
+        screen.getByText('Drag to another context to map the relationship')
+      ).toBeInTheDocument()
+      fireEvent.mouseLeave(nub as Element)
+    }
   })
 
   it('marks the stubs container with the data-stub attribute so it can be targeted in CSS/tests', () => {
