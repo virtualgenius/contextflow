@@ -18,10 +18,6 @@ import {
   POWER_DYNAMICS,
 } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
-
-type BusinessModelRole = NonNullable<Project['contexts'][number]['businessModelRole']>
-type BoundaryIntegrity = NonNullable<Project['contexts'][number]['boundaryIntegrity']>
-type CodeSizeBucket = NonNullable<NonNullable<Project['contexts'][number]['codeSize']>['bucket']>
 import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
 import { RepoCard } from './ContextRepoCard'
 import { RelationshipGroup } from './RelationshipGroup'
@@ -36,6 +32,10 @@ import {
   PillGroup,
   type PillOption,
 } from './inspectorShared'
+
+type BusinessModelRole = NonNullable<Project['contexts'][number]['businessModelRole']>
+type BoundaryIntegrity = NonNullable<Project['contexts'][number]['boundaryIntegrity']>
+type CodeSizeBucket = NonNullable<NonNullable<Project['contexts'][number]['codeSize']>['bucket']>
 
 const OWNERSHIP_OPTIONS: ReadonlyArray<PillOption<ContextOwnership>> = [
   { value: 'ours', label: 'Our Team' },
