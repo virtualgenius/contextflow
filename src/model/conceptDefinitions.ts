@@ -600,6 +600,11 @@ export const STRATEGIC_PROFILE_SECTION: ConceptDefinition = {
   title: 'Strategic Profile',
   description:
     'Where this context sits strategically: domain classification, evolution stage, and business role. Use these to decide where to invest.',
+  characteristics: [
+    'Domain is set by positioning the context in the Distillation view',
+    'Evolution is set by positioning the context in the Strategic view',
+    'Role is set here in the inspector',
+  ],
 }
 
 export const TEAM_ORG_SECTION: ConceptDefinition = {
