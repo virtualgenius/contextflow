@@ -140,6 +140,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedTeamId: null,
   selectedContextIds: [],
   hoveredContextId: null,
+  hoveredRelationshipId: null,
 
   isDragging: false,
 
@@ -249,6 +250,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     }),
 
   setHoveredContext: (contextId) => set({ hoveredContextId: contextId }),
+
+  setHoveredRelationship: (relationshipId) => set({ hoveredRelationshipId: relationshipId }),
 
   setViewMode: (mode) =>
     set((state) => {

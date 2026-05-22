@@ -39,6 +39,7 @@ function RelationshipEdge({
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
   const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
+  const setHoveredRelationship = useEditorStore((s) => s.setHoveredRelationship)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
   const isSelected = id === selectedRelationshipId
@@ -315,8 +316,14 @@ function RelationshipEdge({
           cursor: 'pointer',
           pointerEvents: 'all',
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true)
+          setHoveredRelationship(id)
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoveredRelationship(null)
+        }}
         onClick={(e) => {
           e.stopPropagation()
           useEditorStore.setState({

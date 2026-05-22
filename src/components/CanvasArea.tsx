@@ -98,6 +98,7 @@ function CanvasContent() {
   const selectedUserNeedConnectionId = useEditorStore((s) => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
+  const hoveredRelationshipId = useEditorStore((s) => s.hoveredRelationshipId)
   const viewMode = useEditorStore((s) => s.activeViewMode)
   const showGroups = useEditorStore((s) => s.showGroups)
   const showRelationships = useEditorStore((s) => s.showRelationships)
@@ -459,18 +460,24 @@ function CanvasContent() {
   const edges: Edge[] = useMemo(() => {
     if (!project) return []
 
-    // Filter relationships based on view mode and visibility toggle
+    // Filter relationships based on view mode and visibility toggle.
+    // Hovered or selected edges get bumped above their neighbors so the line
+    // the user is interacting with renders in front of crossing relationships.
     const relationshipEdges =
       viewMode !== 'distillation' && showRelationships
-        ? project.relationships.map((rel) => ({
-            id: rel.id,
-            source: rel.fromContextId,
-            target: rel.toContextId,
-            type: 'relationship',
-            data: { relationship: rel },
-            animated: false,
-            zIndex: 5, // Above groups (0) but below contexts (10)
-          }))
+        ? project.relationships.map((rel) => {
+            const isEmphasized =
+              rel.id === hoveredRelationshipId || rel.id === selectedRelationshipId
+            return {
+              id: rel.id,
+              source: rel.fromContextId,
+              target: rel.toContextId,
+              type: 'relationship',
+              data: { relationship: rel },
+              animated: false,
+              zIndex: isEmphasized ? 9 : 5,
+            }
+          })
         : []
 
     // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
@@ -502,7 +509,7 @@ function CanvasContent() {
         : []
 
     return [...relationshipEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
-  }, [project, viewMode, showRelationships])
+  }, [project, viewMode, showRelationships, hoveredRelationshipId, selectedRelationshipId])
 
   // Handle edge click
   const onEdgeClick = useCallback(

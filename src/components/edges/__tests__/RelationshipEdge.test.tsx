@@ -26,6 +26,7 @@ function setupMock(overrides: Record<string, unknown> = {}) {
       showHelpTooltips: false,
       showRelationshipLabels: true,
       hoveredContextId: null,
+      setHoveredRelationship: vi.fn(),
       ...overrides,
     }
     return selector(state as never)

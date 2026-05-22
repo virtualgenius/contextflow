@@ -54,6 +54,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   selectedTeamId: null,
   selectedContextIds: [],
   hoveredContextId: null,
+  hoveredRelationshipId: null,
   canvasView: {
     flow: { zoom: 1, panX: 0, panY: 0 },
     strategic: { zoom: 1, panX: 0, panY: 0 },
@@ -135,6 +136,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   toggleHelpTooltips: vi.fn(),
   clearActiveProject: vi.fn(),
   setHoveredContext: vi.fn(),
+  setHoveredRelationship: vi.fn(),
   setGroupOpacity: vi.fn(),
   setColorByMode: vi.fn(),
   setDragging: vi.fn(),
