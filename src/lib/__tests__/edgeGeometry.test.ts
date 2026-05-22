@@ -5,9 +5,11 @@ import {
   getNodeIntersection,
   getEdgePosition,
   getEdgeParams,
+  getIndicatorBoxAttachment,
   selectAnchorSides,
   sideMidpoint,
   shortenEdgeEndpoint,
+  tangentBezierPath,
 } from '../edgeGeometry'
 
 describe('getBoxEdgePoint', () => {
@@ -224,6 +226,65 @@ describe('shortenEdgeEndpoint', () => {
   it('pulls endpoint down when target side is Bottom', () => {
     const result = shortenEdgeEndpoint(100, 50, Position.Bottom, 5)
     expect(result).toEqual({ x: 100, y: 55 })
+  })
+})
+
+describe('getIndicatorBoxAttachment', () => {
+  const boxCenter = { x: 100, y: 200 }
+  const boxWidth = 28
+  const boxHeight = 18
+
+  it('returns left-edge midpoint and outward normal for Left indicator side', () => {
+    const result = getIndicatorBoxAttachment(boxCenter, boxWidth, boxHeight, Position.Left)
+    expect(result.point).toEqual({ x: 100 - 14, y: 200 })
+    expect(result.normal).toEqual({ x: -1, y: 0 })
+  })
+
+  it('returns right-edge midpoint and outward normal for Right indicator side', () => {
+    const result = getIndicatorBoxAttachment(boxCenter, boxWidth, boxHeight, Position.Right)
+    expect(result.point).toEqual({ x: 100 + 14, y: 200 })
+    expect(result.normal).toEqual({ x: 1, y: 0 })
+  })
+
+  it('returns top-edge midpoint and outward normal for Top indicator side', () => {
+    const result = getIndicatorBoxAttachment(boxCenter, boxWidth, boxHeight, Position.Top)
+    expect(result.point).toEqual({ x: 100, y: 200 - 9 })
+    expect(result.normal).toEqual({ x: 0, y: -1 })
+  })
+
+  it('returns bottom-edge midpoint and outward normal for Bottom indicator side', () => {
+    const result = getIndicatorBoxAttachment(boxCenter, boxWidth, boxHeight, Position.Bottom)
+    expect(result.point).toEqual({ x: 100, y: 200 + 9 })
+    expect(result.normal).toEqual({ x: 0, y: 1 })
+  })
+})
+
+describe('tangentBezierPath', () => {
+  it('emits an SVG cubic bezier with control points along each outward tangent', () => {
+    const a = { x: 0, y: 0 }
+    const b = { x: 100, y: 0 }
+    const aTan = { x: -1, y: 0 }
+    const bTan = { x: 1, y: 0 }
+    const d = tangentBezierPath(a, b, aTan, bTan)
+    expect(d).toBe('M 0,0 C -60,0 160,0 100,0')
+  })
+
+  it('uses dist * 0.5 when that exceeds the minimum stub length of 60', () => {
+    const a = { x: 0, y: 0 }
+    const b = { x: 400, y: 0 }
+    const aTan = { x: -1, y: 0 }
+    const bTan = { x: 1, y: 0 }
+    const d = tangentBezierPath(a, b, aTan, bTan)
+    expect(d).toBe('M 0,0 C -200,0 600,0 400,0')
+  })
+
+  it('places control points perpendicular when tangents are vertical', () => {
+    const a = { x: 50, y: 0 }
+    const b = { x: 50, y: 200 }
+    const aTan = { x: 0, y: -1 }
+    const bTan = { x: 0, y: 1 }
+    const d = tangentBezierPath(a, b, aTan, bTan)
+    expect(d).toBe('M 50,0 C 50,-100 50,300 50,200')
   })
 })
 

@@ -84,7 +84,7 @@ export function getEdgeStrokeWidth(
   }
 }
 
-const INDICATOR_BOX_GAP = 6
+const INDICATOR_BOX_GAP = 2
 
 export function getIndicatorBoxPosition(
   node: NodeRect | undefined,

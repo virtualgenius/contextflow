@@ -6,7 +6,13 @@ import { useEditorStore } from '../../model/store'
 import type { Relationship } from '../../model/types'
 import { getEdgeLabelInfo } from '../../lib/canvasHelpers'
 import { getIndicatorBoxPosition } from '../../lib/edgeUtils'
-import { getEdgeParams, getBoxEdgePoint, shortenEdgeEndpoint } from '../../lib/edgeGeometry'
+import {
+  getEdgeParams,
+  getIndicatorBoxAttachment,
+  shortenEdgeEndpoint,
+  SIDE_NORMALS,
+  tangentBezierPath,
+} from '../../lib/edgeGeometry'
 import {
   ARROW_MARKER_LENGTH,
   EDGE_ENDPOINT_GAP,
@@ -139,31 +145,40 @@ function RelationshipEdge({
       )
     : null
 
-  const boxEdgePoint =
+  // ACL/OHS edge geometry (contextflow-if3):
+  // - Indicator box hugs its parent context; line attaches to the box's outer
+  //   edge midpoint (the side facing AWAY from the parent), with the same
+  //   EDGE_ENDPOINT_GAP used at context attachments.
+  // - Path is a tangent-aware bezier so it leaves the box perpendicular to the
+  //   outer edge and enters the other context perpendicular to that edge.
+  // - Arrow always points to the upstream (target) end of the relationship.
+  const boxAttachment =
     boxPos && indicatorConfig
-      ? getBoxEdgePoint(
+      ? getIndicatorBoxAttachment(
           boxPos,
           indicatorConfig.boxWidth,
           indicatorConfig.boxHeight,
-          indicatorConfig.position === 'source' ? { x: tx, y: ty } : { x: sx, y: sy }
+          indicatorEdgePos
         )
       : null
 
-  // ACL: target endpoint is the target context box edge — shorten so the arrow
-  // marker doesn't overlap the path. OHS: target endpoint is the indicator box
-  // edge, which already provides a clean visual break, so leave it untouched.
-  const aclOhsTargetX = isOHS ? boxEdgePoint?.x : visibleTarget.x
-  const aclOhsTargetY = isOHS ? boxEdgePoint?.y : visibleTarget.y
-  const [aclOhsPath] = boxEdgePoint
-    ? getBezierPath({
-        sourceX: isACL ? boxEdgePoint.x : sx,
-        sourceY: isACL ? boxEdgePoint.y : sy,
-        sourcePosition: sourcePos,
-        targetX: aclOhsTargetX ?? tx,
-        targetY: aclOhsTargetY ?? ty,
-        targetPosition: targetPos,
-      })
-    : [null]
+  const aclOhsPath = (() => {
+    if (!boxAttachment) return null
+    const boxEndpoint = {
+      x: boxAttachment.point.x + boxAttachment.normal.x * EDGE_ENDPOINT_GAP,
+      y: boxAttachment.point.y + boxAttachment.normal.y * EDGE_ENDPOINT_GAP,
+    }
+    if (isACL) {
+      // Path: box (no arrow) -> target context (arrow). Source = box outer edge.
+      const targetEndpoint = visibleTarget
+      const targetNormal = SIDE_NORMALS[targetPos]
+      return tangentBezierPath(boxEndpoint, targetEndpoint, boxAttachment.normal, targetNormal)
+    }
+    // OHS: source context (no arrow) -> box (arrow at box).
+    const sourceEndpoint = visibleSource
+    const sourceNormal = SIDE_NORMALS[sourcePos]
+    return tangentBezierPath(sourceEndpoint, boxEndpoint, sourceNormal, boxAttachment.normal)
+  })()
 
   // Edge color based on state
   const isEmphasized = isSelected || isHovered || isHighlightedByHover
