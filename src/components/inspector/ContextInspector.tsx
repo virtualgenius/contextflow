@@ -109,13 +109,15 @@ const BOUNDARY_OPTIONS: ReadonlyArray<PillOption<BoundaryIntegrity>> = [
 function FieldLabel({
   text,
   tooltip,
+  id,
 }: {
   text: string
   tooltip?: { content: Parameters<typeof InfoTooltip>[0]['content'] }
+  id?: string
 }) {
   return (
     <div className={`${FIELD_LABEL_CLASS} flex items-center gap-1`}>
-      <span>{text}</span>
+      <span id={id}>{text}</span>
       {tooltip && (
         <InfoTooltip content={tooltip.content} position="bottom">
           <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
@@ -268,14 +270,18 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
 
         <div>
-          <FieldLabel text="Role" tooltip={{ content: BUSINESS_MODEL_ROLE }} />
+          <FieldLabel
+            text="Role"
+            tooltip={{ content: BUSINESS_MODEL_ROLE }}
+            id={`field-role-${context.id}`}
+          />
           <PillGroup
             options={ROLE_OPTIONS}
             value={context.businessModelRole}
             onChange={(next) => handleUpdate({ businessModelRole: next })}
             layout="grid-2"
             variant="green"
-            ariaLabel="Business Model Role"
+            labelId={`field-role-${context.id}`}
           />
         </div>
       </SectionDivider>
@@ -305,14 +311,18 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {/* ---------- 3. Team & Organization ---------- */}
       <SectionDivider label="Team & Organization">
         <div>
-          <FieldLabel text="Ownership" tooltip={{ content: OWNERSHIP_CONCEPT }} />
+          <FieldLabel
+            text="Ownership"
+            tooltip={{ content: OWNERSHIP_CONCEPT }}
+            id={`field-ownership-${context.id}`}
+          />
           <PillGroup
             options={OWNERSHIP_OPTIONS}
             value={(context.ownership || 'ours') as ContextOwnership}
             onChange={(next) => handleUpdate({ ownership: (next ?? 'ours') as ContextOwnership })}
             layout="horizontal"
             variant="green"
-            ariaLabel="Ownership"
+            labelId={`field-ownership-${context.id}`}
           />
         </div>
 
@@ -429,7 +439,11 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
 
         <div>
-          <FieldLabel text="Code Size" tooltip={{ content: CODE_SIZE_TIERS }} />
+          <FieldLabel
+            text="Code Size"
+            tooltip={{ content: CODE_SIZE_TIERS }}
+            id={`field-code-size-${context.id}`}
+          />
           <PillGroup
             options={CODE_SIZE_OPTIONS}
             value={context.codeSize?.bucket}
@@ -438,19 +452,23 @@ export function ContextInspector({ project, contextId }: { project: Project; con
             }
             layout="grid-3"
             variant="slate"
-            ariaLabel="Code Size"
+            labelId={`field-code-size-${context.id}`}
           />
         </div>
 
         <div>
-          <FieldLabel text="Boundary" tooltip={{ content: BOUNDARY_CONCEPT }} />
+          <FieldLabel
+            text="Boundary"
+            tooltip={{ content: BOUNDARY_CONCEPT }}
+            id={`field-boundary-${context.id}`}
+          />
           <PillGroup
             options={BOUNDARY_OPTIONS}
             value={context.boundaryIntegrity}
             onChange={(next) => handleUpdate({ boundaryIntegrity: next })}
             layout="grid-3"
             variant="slate"
-            ariaLabel="Boundary Integrity"
+            labelId={`field-boundary-${context.id}`}
           />
           {context.boundaryIntegrity && (
             <textarea
