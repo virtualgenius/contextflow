@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   HelpCircle,
   Clock,
+  ArrowUpRight,
   Sparkles,
   Wrench,
   Package,
@@ -439,10 +440,12 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                         selectedContextId: null,
                       })
                     }
-                    className="text-xs font-medium hover:underline"
+                    aria-label={`Open group: ${group.label}`}
+                    className="inline-flex items-center gap-1 text-xs font-medium rounded px-1 -mx-1 hover:bg-white/40 dark:hover:bg-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 transition-colors"
                     style={{ color: group.color || '#3b82f6' }}
                   >
                     {group.label}
+                    <ArrowUpRight size={10} aria-hidden />
                   </button>
                   <SimpleTooltip text="Remove from group" position="top">
                     <button
