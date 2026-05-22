@@ -619,12 +619,6 @@ export const CODEBASE_SECTION: ConceptDefinition = {
     'Repos that implement this context, plus signals about code size and the strength of the boundary. Useful for sizing investment and refactoring effort.',
 }
 
-export const NOTES_ISSUES_SECTION: ConceptDefinition = {
-  title: 'Notes & Issues',
-  description:
-    'Unstructured context plus tracked problems. Use Notes for narrative; Issues for items that need attention.',
-}
-
 // Relationship Patterns (DDD Context Mapping patterns)
 export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   'customer-supplier': {

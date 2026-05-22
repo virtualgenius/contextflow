@@ -26,7 +26,6 @@ import {
   STRATEGIC_PROFILE_SECTION,
   TEAM_ORG_SECTION,
   CODEBASE_SECTION,
-  NOTES_ISSUES_SECTION,
   type ConceptDefinition,
 } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
@@ -503,9 +502,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       </SectionDivider>
 
       {/* ---------- 5. Notes & Issues ---------- */}
-      <SectionDivider
-        label={<SectionHeader text="Notes & Issues" tooltip={NOTES_ISSUES_SECTION} />}
-      >
+      <SectionDivider label="Notes & Issues">
         <Section label={<SectionHeader text="Notes" tooltip={NOTES_CONCEPT} />}>
           <textarea
             value={context.notes || ''}
