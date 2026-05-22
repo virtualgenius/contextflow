@@ -27,7 +27,6 @@ import {
 import {
   getCollabMutations,
   getCollabUndoRedo,
-  initializeCollabMode,
   initializeCollabModeWithYDoc,
   destroyCollabMode,
 } from './sync/useCollabMode'
@@ -1638,18 +1637,4 @@ export const useEditorStore = create<EditorState>((set) => ({
     }),
 }))
 
-initializeBuiltInProjects(useEditorStore.setState)
-
-// Initialize collab mode for the active project at startup
-const initialState = useEditorStore.getState()
-if (initialState.activeProjectId && initialState.projects[initialState.activeProjectId]) {
-  const onProjectChange = (updatedProject: Project): void => {
-    useEditorStore.setState((s) => ({
-      projects: {
-        ...s.projects,
-        [updatedProject.id]: updatedProject,
-      },
-    }))
-  }
-  initializeCollabMode(initialState.projects[initialState.activeProjectId], { onProjectChange })
-}
+initializeBuiltInProjects(useEditorStore.setState, reconnectCollabForProject)

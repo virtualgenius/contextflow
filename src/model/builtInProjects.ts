@@ -105,8 +105,14 @@ export function isBuiltInNewer(
   return builtInVersion > savedVersion
 }
 
+export type ActiveProjectReadyCallback = (
+  projectId: string,
+  project: Project
+) => void | Promise<void>
+
 export function initializeBuiltInProjects(
-  setState: (state: { projects: Record<string, Project>; activeProjectId?: string | null }) => void
+  setState: (state: { projects: Record<string, Project>; activeProjectId?: string | null }) => void,
+  onActiveProjectReady?: ActiveProjectReadyCallback
 ): void {
   Promise.all([
     Promise.all(BUILT_IN_PROJECTS.map((project) => loadProject(project.id))),
@@ -136,6 +142,14 @@ export function initializeBuiltInProjects(
         storedActiveId && projects[storedActiveId] ? storedActiveId : undefined
 
       setState({ projects, ...(activeProjectId && { activeProjectId }) })
+
+      if (activeProjectId && onActiveProjectReady) {
+        Promise.resolve(onActiveProjectReady(activeProjectId, projects[activeProjectId])).catch(
+          (err) => {
+            console.error('Failed to connect collab for active project:', err)
+          }
+        )
+      }
     })
     .catch((err) => {
       console.error('Failed to load projects from IndexedDB:', err)
