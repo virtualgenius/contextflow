@@ -31,6 +31,7 @@
   ],
   "scripts": {
     "dev": "vite --open",
+    "dev:local": "bash scripts/dev-local.sh",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",

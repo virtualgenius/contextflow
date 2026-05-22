@@ -24,7 +24,17 @@ npm test        # Run tests
 
 ## Local Collaboration Worker
 
-**Required for browser testing.** Without the local worker, Yjs state does not persist across navigation (teams, repos, temporal data disappear when leaving a project). Always start both processes before browser testing:
+**Required for browser testing.** Without the local worker, Yjs state does not persist across navigation (teams, repos, temporal data disappear when leaving a project).
+
+**Use the single-command startup:**
+
+```bash
+npm run dev:local
+```
+
+This wraps `scripts/dev-local.sh`, which: kills anything stale on the dev ports, starts `wrangler dev` on 8787, verifies the WebSocket upgrade works, starts vite on 5173 with `VITE_COLLAB_HOST=localhost:8787` and `--strictPort` (so it can't silently slide to 5174), compile-checks the entry modules, then tails both logs. Ctrl-C stops both. Logs persist under `/tmp/contextflow-dev/`.
+
+If you need the two processes in separate terminals for any reason, the equivalent manual form is:
 
 ```bash
 # Terminal 1: start collab worker (defaults to port 8787)
@@ -33,6 +43,8 @@ npx wrangler dev
 # Terminal 2: start dev server pointed at local worker
 VITE_COLLAB_HOST=localhost:8787 npm run dev
 ```
+
+Do not stop at "port 5173 returns 200" — that is the HTML shell, not a working app. The script's verification step is there to surface real failures (missing env, TS compile error, worker not ready) instead of letting them show up as a blank page.
 
 ## Quality Gates
 
