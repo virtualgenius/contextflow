@@ -171,8 +171,8 @@ describe('ContextNode no native title attributes on badges', () => {
 
   it('Legacy badge text "Legacy" is shown when SimpleTooltip wrapper is hovered', () => {
     renderContextNode(makeContext({ isLegacy: true }))
-    const warningGlyph = screen.getByText('⚠')
-    const wrapper = warningGlyph.closest('span.inline-flex')!
+    const badge = screen.getByTestId('legacy-badge')
+    const wrapper = badge.querySelector('span.inline-flex')!
     act(() => {
       fireEvent.mouseEnter(wrapper)
     })

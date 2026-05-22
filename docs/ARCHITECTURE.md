@@ -235,7 +235,7 @@ export interface TemporalKeyframe {
   - moderate → medium solid
   - weak → dashed / porous
 - `codeSize.bucket` → node radius (`tiny`..`huge` → progressively larger)
-- `isLegacy` → show a ⚠ Legacy badge in the corner of the node
+- `isLegacy` → show a Legacy badge (Archive icon) in the corner of the node
 - `ownership` → when set to `'external'`, show an “External” badge and dotted outer ring, and disallow repo assignment
 - `positions` drives layout:
   - Value Stream View uses `positions.flow.x` (horizontal) and `positions.shared.y` (vertical)
@@ -497,7 +497,7 @@ User Action → Yjs Y.Doc → WebSocket → Cloudflare Durable Object
   - `moderate` → medium solid
   - `weak` → dashed / porous
 - Legacy:
-  - ⚠ badge in corner of node
+  - Archive icon badge in corner of node
 - Ownership `'external'`:
   - Small “External” badge and dotted ring
   - Cannot assign repos to this node

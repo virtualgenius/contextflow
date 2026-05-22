@@ -3,7 +3,7 @@ import React from 'react'
 export interface SwitchProps {
   checked: boolean
   onCheckedChange: (checked: boolean) => void
-  label?: string
+  label?: React.ReactNode
   labelAdornment?: React.ReactNode
   className?: string
 }

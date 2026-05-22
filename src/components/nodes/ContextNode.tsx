@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { NodeProps, Position, Handle } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { BoundedContext } from '../../model/types'
-import { AlertTriangle, AlertOctagon, Info } from 'lucide-react'
+import { AlertTriangle, AlertOctagon, Info, Archive, CloudFog } from 'lucide-react'
 import { getContextTooltipLines } from '../../lib/contextTooltip'
 import { getContextNodeBorderStyle } from '../../lib/nodeStyles'
 import { NODE_SIZES } from '../../lib/canvasConstants'
@@ -230,15 +230,19 @@ export function ContextNode({ data }: NodeProps) {
         {/* Legacy badge */}
         {context.isLegacy && (
           <div
+            data-testid="legacy-badge"
             style={{
               position: 'absolute',
               top: '4px',
               right: '4px',
-              fontSize: '16px',
+              color: '#d97706',
+              display: 'inline-flex',
             }}
           >
             <SimpleTooltip text="Legacy" position="bottom">
-              <span>⚠</span>
+              <span className="inline-flex">
+                <Archive size={16} />
+              </span>
             </SimpleTooltip>
           </div>
         )}
@@ -251,11 +255,14 @@ export function ContextNode({ data }: NodeProps) {
               position: 'absolute',
               top: '4px',
               right: context.isLegacy ? '24px' : '4px',
-              fontSize: '16px',
+              color: '#78350f',
+              display: 'inline-flex',
             }}
           >
             <SimpleTooltip text="Big Ball of Mud" position="bottom">
-              <span>🟤</span>
+              <span className="inline-flex">
+                <CloudFog size={16} />
+              </span>
             </SimpleTooltip>
           </div>
         )}

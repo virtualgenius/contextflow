@@ -1,5 +1,31 @@
 import React from 'react'
-import { Trash2, X, Users, Plus, ArrowRight, HelpCircle, Clock } from 'lucide-react'
+import {
+  Trash2,
+  X,
+  Users,
+  Plus,
+  ArrowRight,
+  ArrowLeftRight,
+  HelpCircle,
+  Clock,
+  Sparkles,
+  Wrench,
+  Package,
+  Sprout,
+  Hammer,
+  Boxes,
+  Plug,
+  MapPin,
+  Activity,
+  Archive,
+  CloudFog,
+  Building2,
+  ExternalLink,
+  DollarSign,
+  Heart,
+  Shield,
+  TrendingDown,
+} from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import { RelationshipCreateDialog } from '../RelationshipCreateDialog'
 import { Switch } from '../Switch'
@@ -46,17 +72,43 @@ type BusinessModelRole = NonNullable<Project['contexts'][number]['businessModelR
 type BoundaryIntegrity = NonNullable<Project['contexts'][number]['boundaryIntegrity']>
 type CodeSizeBucket = NonNullable<NonNullable<Project['contexts'][number]['codeSize']>['bucket']>
 
+const PILL_ICON_CLASS = 'mr-1 align-middle text-current'
+
 const OWNERSHIP_OPTIONS: ReadonlyArray<PillOption<ContextOwnership>> = [
-  { value: 'ours', label: 'Our Team' },
-  { value: 'internal', label: 'Internal' },
-  { value: 'external', label: 'External' },
+  { value: 'ours', label: 'Our Team', adornment: <Users size={12} className={PILL_ICON_CLASS} /> },
+  {
+    value: 'internal',
+    label: 'Internal',
+    adornment: <Building2 size={12} className={PILL_ICON_CLASS} />,
+  },
+  {
+    value: 'external',
+    label: 'External',
+    adornment: <ExternalLink size={12} className={PILL_ICON_CLASS} />,
+  },
 ]
 
 const ROLE_OPTIONS: ReadonlyArray<PillOption<BusinessModelRole>> = [
-  { value: 'revenue-generator', label: 'Revenue' },
-  { value: 'engagement-creator', label: 'Engagement' },
-  { value: 'compliance-enforcer', label: 'Compliance' },
-  { value: 'cost-reduction', label: 'Cost Reduction' },
+  {
+    value: 'revenue-generator',
+    label: 'Revenue',
+    adornment: <DollarSign size={12} className={PILL_ICON_CLASS} />,
+  },
+  {
+    value: 'engagement-creator',
+    label: 'Engagement',
+    adornment: <Heart size={12} className={PILL_ICON_CLASS} />,
+  },
+  {
+    value: 'compliance-enforcer',
+    label: 'Compliance',
+    adornment: <Shield size={12} className={PILL_ICON_CLASS} />,
+  },
+  {
+    value: 'cost-reduction',
+    label: 'Cost Reduction',
+    adornment: <TrendingDown size={12} className={PILL_ICON_CLASS} />,
+  },
 ]
 
 const CODE_SIZE_DOT_PX: Record<CodeSizeBucket, number> = {
@@ -483,7 +535,12 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
         <div className="grid grid-cols-2 gap-3">
           <Switch
-            label="Legacy"
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <Archive size={14} className="text-slate-500 dark:text-slate-400" />
+                Legacy
+              </span>
+            }
             labelAdornment={
               <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
                 <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
@@ -493,7 +550,12 @@ export function ContextInspector({ project, contextId }: { project: Project; con
             onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
           />
           <Switch
-            label="Big Ball of Mud"
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <CloudFog size={14} className="text-slate-500 dark:text-slate-400" />
+                Big Ball of Mud
+              </span>
+            }
             labelAdornment={
               <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
                 <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
@@ -642,10 +704,18 @@ function ClassificationBadge({
       </span>
     )
   }
+  const Icon =
+    classification === 'core' ? Sparkles : classification === 'supporting' ? Wrench : Package
+  const label =
+    classification === 'core'
+      ? 'Core'
+      : classification === 'supporting'
+        ? 'Supporting'
+        : 'Generic'
   return (
     <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[classification]} position="bottom">
       <span
-        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
           classification === 'core'
             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
             : classification === 'supporting'
@@ -653,9 +723,8 @@ function ClassificationBadge({
               : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
         }`}
       >
-        {classification === 'core' && '⚡ Core'}
-        {classification === 'supporting' && '🔧 Supporting'}
-        {classification === 'generic' && '📦 Generic'}
+        <Icon size={12} />
+        {label}
       </span>
     </InfoTooltip>
   )
@@ -673,24 +742,34 @@ function EvolutionBadge({
       </span>
     )
   }
+  const Icon =
+    stage === 'genesis'
+      ? Sprout
+      : stage === 'custom-built'
+        ? Hammer
+        : stage === 'product/rental'
+          ? Boxes
+          : Plug
   const label =
     stage === 'genesis'
-      ? '🌱 Genesis'
+      ? 'Genesis'
       : stage === 'custom-built'
-        ? '🔨 Custom-Built'
+        ? 'Custom-Built'
         : stage === 'product/rental'
-          ? '📦 Product'
-          : '⚡ Commodity'
+          ? 'Product'
+          : 'Commodity'
   if (!EVOLUTION_STAGES[stage]) {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
+        <Icon size={12} />
         {label}
       </span>
     )
   }
   return (
     <InfoTooltip content={EVOLUTION_STAGES[stage]} position="bottom">
-      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 cursor-help">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 cursor-help">
+        <Icon size={12} />
         {label}
       </span>
     </InfoTooltip>
@@ -726,12 +805,14 @@ function TemporalPositionBlock({
         <div>Value Chain: {position.y.toFixed(1)}%</div>
       </div>
       {activeKeyframe ? (
-        <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
-          📍 Viewing keyframe: {activeKeyframe.label || activeKeyframe.date}
+        <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+          <MapPin size={12} />
+          Viewing keyframe: {activeKeyframe.label || activeKeyframe.date}
         </div>
       ) : (
-        <div className="text-xs text-amber-600 dark:text-amber-400">
-          ⚡ Interpolated between keyframes
+        <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+          <Activity size={12} />
+          Interpolated between keyframes
         </div>
       )}
     </div>
@@ -776,7 +857,7 @@ function RelationshipsBlock({
         relationships={mutual}
         contexts={project.contexts}
         onDelete={onDelete}
-        icon={<span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>}
+        icon={<ArrowLeftRight size={12} className="text-slate-400 flex-shrink-0" />}
         getTargetContextId={(rel) =>
           rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId
         }
