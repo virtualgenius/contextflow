@@ -161,8 +161,9 @@ describe('RelationshipEdge ACL/OHS geometry (contextflow-if3)', () => {
     // OHS hugs the upstream (target) context's left side at gap=2.
     // Box outer-edge midpoint sits at (target.x - gap - boxWidth, target.y + height/2)
     //   = (300 - 2 - 28, 30) = (270, 30).
-    // Pulled outward (left) by EDGE_ENDPOINT_GAP=6 -> (264, 30).
-    expect(parsed.end).toEqual({ x: 264, y: 30 })
+    // Pulled outward (left) by ARROW_MARKER_LENGTH=14 (so the arrow tip lands
+    // EDGE_ENDPOINT_GAP units before the box border) -> (256, 30).
+    expect(parsed.end).toEqual({ x: 256, y: 30 })
 
     // The line LEAVES the source context perpendicular to its facing edge.
     // Source right-edge midpoint = (100, 30); pulled back by EDGE_ENDPOINT_GAP=6 -> (106, 30).

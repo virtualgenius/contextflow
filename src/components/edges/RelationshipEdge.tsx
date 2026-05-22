@@ -164,9 +164,15 @@ function RelationshipEdge({
 
   const aclOhsPath = (() => {
     if (!boxAttachment) return null
+    // Pull the path back from the box border by EDGE_ENDPOINT_GAP on the
+    // non-arrow side (ACL: box is the source end, no arrow) or
+    // ARROW_MARKER_LENGTH on the arrow side (OHS: box is the target end with
+    // arrow), so the arrow tip lands in the same gap before the box border
+    // that it does before the context border.
+    const boxPullback = isACL ? EDGE_ENDPOINT_GAP : ARROW_MARKER_LENGTH
     const boxEndpoint = {
-      x: boxAttachment.point.x + boxAttachment.normal.x * EDGE_ENDPOINT_GAP,
-      y: boxAttachment.point.y + boxAttachment.normal.y * EDGE_ENDPOINT_GAP,
+      x: boxAttachment.point.x + boxAttachment.normal.x * boxPullback,
+      y: boxAttachment.point.y + boxAttachment.normal.y * boxPullback,
     }
     if (isACL) {
       // Path: box (no arrow) -> target context (arrow). Source = box outer edge.
