@@ -16,14 +16,105 @@ import {
   BIG_BALL_OF_MUD,
   BUSINESS_MODEL_ROLE,
   POWER_DYNAMICS,
-  OWNERSHIP_DEFINITIONS,
 } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
+
+type BusinessModelRole = NonNullable<Project['contexts'][number]['businessModelRole']>
+type BoundaryIntegrity = NonNullable<Project['contexts'][number]['boundaryIntegrity']>
+type CodeSizeBucket = NonNullable<NonNullable<Project['contexts'][number]['codeSize']>['bucket']>
 import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
 import { RepoCard } from './ContextRepoCard'
 import { RelationshipGroup } from './RelationshipGroup'
 import { IssueSeverityButton } from './IssueSeverityButton'
-import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
+import {
+  INPUT_TITLE_CLASS,
+  TEXTAREA_CLASS,
+  SELECT_CLASS,
+  FIELD_LABEL_CLASS,
+  Section,
+  SectionDivider,
+  PillGroup,
+  type PillOption,
+} from './inspectorShared'
+
+const OWNERSHIP_OPTIONS: ReadonlyArray<PillOption<ContextOwnership>> = [
+  { value: 'ours', label: 'Our Team' },
+  { value: 'internal', label: 'Internal' },
+  { value: 'external', label: 'External' },
+]
+
+const ROLE_OPTIONS: ReadonlyArray<PillOption<BusinessModelRole>> = [
+  { value: 'revenue-generator', label: 'Revenue' },
+  { value: 'engagement-creator', label: 'Engagement' },
+  { value: 'compliance-enforcer', label: 'Compliance' },
+  { value: 'cost-reduction', label: 'Cost Reduction' },
+]
+
+const CODE_SIZE_DOT_PX: Record<CodeSizeBucket, number> = {
+  tiny: 6,
+  small: 8,
+  medium: 10,
+  large: 12,
+  huge: 14,
+}
+
+function CodeSizeDot({ size }: { size: number }) {
+  return (
+    <span
+      aria-hidden
+      className="inline-block bg-slate-500 dark:bg-slate-400 rounded-[2px] mr-1.5 align-middle"
+      style={{ width: size, height: size }}
+    />
+  )
+}
+
+const CODE_SIZE_OPTIONS: ReadonlyArray<PillOption<CodeSizeBucket>> = (
+  ['tiny', 'small', 'medium', 'large', 'huge'] as const
+).map((value) => ({
+  value,
+  label: value.charAt(0).toUpperCase() + value.slice(1),
+  adornment: <CodeSizeDot size={CODE_SIZE_DOT_PX[value]} />,
+}))
+
+function BoundarySwatch({ style }: { style: BoundaryIntegrity }) {
+  const styleMap: Record<BoundaryIntegrity, React.CSSProperties> = {
+    weak: { border: '1.5px dotted currentColor' },
+    moderate: { border: '2px solid currentColor' },
+    strong: { border: '3px solid currentColor' },
+  }
+  return (
+    <span
+      aria-hidden
+      className="inline-block rounded-[2px] mr-1.5 align-middle text-slate-500 dark:text-slate-400"
+      style={{ width: 14, height: 10, ...styleMap[style] }}
+    />
+  )
+}
+
+const BOUNDARY_OPTIONS: ReadonlyArray<PillOption<BoundaryIntegrity>> = [
+  { value: 'weak', label: 'Weak', adornment: <BoundarySwatch style="weak" /> },
+  { value: 'moderate', label: 'Moderate', adornment: <BoundarySwatch style="moderate" /> },
+  { value: 'strong', label: 'Strong', adornment: <BoundarySwatch style="strong" /> },
+]
+
+function FieldLabel({
+  text,
+  tooltip,
+}: {
+  text: string
+  tooltip?: { content: Parameters<typeof InfoTooltip>[0]['content'] }
+}) {
+  return (
+    <div className={`${FIELD_LABEL_CLASS} flex items-center gap-1`}>
+      <span>{text}</span>
+      {tooltip && (
+        <InfoTooltip content={tooltip.content} position="bottom">
+          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+        </InfoTooltip>
+      )}
+    </div>
+  )
+}
 
 export function ContextInspector({ project, contextId }: { project: Project; contextId: string }) {
   const viewMode = useEditorStore((s) => s.activeViewMode)
@@ -59,14 +150,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
     return <div className="text-neutral-500 dark:text-neutral-400">Context not found.</div>
   }
 
-  // Find assigned repos
   const assignedRepos = project.repos.filter((r) => r.contextId === context.id)
-
-  // Get team names from repos
   const teamIds = new Set(assignedRepos.flatMap((r) => r.teamIds))
   const teams = project.teams.filter((t) => teamIds.has(t.id))
-
-  // Find groups this context is a member of
   const memberOfGroups = project.groups.filter((g) => g.contextIds.includes(context.id))
 
   const handleUpdate = (updates: Partial<typeof context>) => {
@@ -79,42 +165,19 @@ export function ContextInspector({ project, contextId }: { project: Project; con
     }
   }
 
+  const usersForContext = getConnectedUsers(project, context.id)
+  const hasTemporal = viewMode === 'strategic' && project.temporal?.enabled && Boolean(currentDate)
+
   return (
-    <div className="space-y-5">
-      {/* Name */}
-      <div>
-        <input
-          type="text"
-          value={context.name}
-          onChange={(e) => handleUpdate({ name: e.target.value })}
-          className={INPUT_TITLE_CLASS}
-        />
-      </div>
+    <div className="space-y-3">
+      {/* ---------- 1. Identity ---------- */}
+      <input
+        type="text"
+        value={context.name}
+        onChange={(e) => handleUpdate({ name: e.target.value })}
+        className={INPUT_TITLE_CLASS}
+      />
 
-      {/* Users connected via user needs - between name and purpose, no heading */}
-      {(() => {
-        const usersForContext = getConnectedUsers(project, context.id)
-
-        return usersForContext.length > 0 ? (
-          <div className="space-y-1">
-            {usersForContext.map((user) => (
-              <div key={user.id} className="flex items-center gap-2 group/user">
-                <button
-                  onClick={() =>
-                    useEditorStore.setState({ selectedUserId: user.id, selectedContextId: null })
-                  }
-                  className="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-400"
-                >
-                  <Users size={12} className="text-blue-500 flex-shrink-0" />
-                  {user.name}
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : null
-      })()}
-
-      {/* Purpose - no section header */}
       <textarea
         value={context.purpose || ''}
         onChange={(e) => handleUpdate({ purpose: e.target.value })}
@@ -123,7 +186,24 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         className={TEXTAREA_CLASS}
       />
 
-      {/* Teams - under purpose, no heading */}
+      {usersForContext.length > 0 && (
+        <div className="space-y-1">
+          {usersForContext.map((user) => (
+            <div key={user.id} className="flex items-center gap-2 group/user">
+              <button
+                onClick={() =>
+                  useEditorStore.setState({ selectedUserId: user.id, selectedContextId: null })
+                }
+                className="flex-1 text-left px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-xs flex items-center gap-2 text-slate-600 dark:text-slate-400"
+              >
+                <Users size={12} className="text-blue-500 flex-shrink-0" />
+                {user.name}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {teams.length > 0 && (
         <div className="space-y-1">
           {teams.map((team) => (
@@ -139,88 +219,76 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
       )}
 
-      {/* Ownership */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-1">
-          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Ownership</span>
-        </div>
-        <div className="flex gap-1.5">
-          {(['ours', 'internal', 'external'] as const).map((value) => (
-            <InfoTooltip key={value} content={OWNERSHIP_DEFINITIONS[value]} position="bottom">
-              <button
-                onClick={() => handleUpdate({ ownership: value as ContextOwnership })}
-                className={`px-2 py-1 text-xs font-medium rounded transition-colors cursor-help ${
-                  context.ownership === value || (!context.ownership && value === 'ours')
-                    ? value === 'ours'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 ring-1 ring-green-400'
-                      : value === 'internal'
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 ring-1 ring-blue-400'
-                        : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 ring-1 ring-orange-400'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {value === 'ours' && 'Our Team'}
-                {value === 'internal' && 'Internal'}
-                {value === 'external' && 'External'}
-              </button>
-            </InfoTooltip>
-          ))}
-        </div>
-      </div>
-
-      {/* Legacy toggle */}
-      <div className="flex items-center gap-2">
-        <Switch
-          label="Legacy"
-          checked={context.isLegacy || false}
-          onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
-        />
-        <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
-          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-        </InfoTooltip>
-      </div>
-
-      {/* Big Ball of Mud toggle */}
-      <div className="flex items-center gap-2">
-        <Switch
-          label="Big Ball of Mud"
-          checked={context.isBigBallOfMud || false}
-          onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
-        />
-        <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
-          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-        </InfoTooltip>
-      </div>
-
-      {/* Business Model Role */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Role</span>
-        <select
-          value={context.businessModelRole || ''}
-          onChange={(e) =>
-            handleUpdate({ businessModelRole: (e.target.value || undefined) as any })
-          }
-          className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-        >
-          <option value="">Not set</option>
-          <option value="revenue-generator">Revenue Generator</option>
-          <option value="engagement-creator">Engagement Creator</option>
-          <option value="compliance-enforcer">Compliance Enforcer</option>
-          <option value="cost-reduction">Cost Reduction</option>
-        </select>
-        <InfoTooltip content={BUSINESS_MODEL_ROLE} position="bottom">
-          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-        </InfoTooltip>
-      </div>
-
-      {/* Team Assignment - only for non-external contexts */}
-      {context.ownership !== 'external' && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Team</span>
+      {/* ---------- 2. Strategic Profile ---------- */}
+      <SectionDivider label="Strategic Profile">
+        <div className="flex flex-wrap gap-3">
+          <div>
+            <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
+              Domain
+            </div>
+            <ClassificationBadge classification={context.strategicClassification} />
           </div>
-          {project.teams && project.teams.length > 0 ? (
-            <div className="flex items-center gap-2">
+          <div>
+            <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
+              Evolution
+            </div>
+            <EvolutionBadge stage={context.evolutionStage} />
+          </div>
+        </div>
+
+        <div>
+          <FieldLabel text="Role" tooltip={{ content: BUSINESS_MODEL_ROLE }} />
+          <PillGroup
+            options={ROLE_OPTIONS}
+            value={context.businessModelRole}
+            onChange={(next) => handleUpdate({ businessModelRole: next })}
+            layout="grid-2"
+            variant="green"
+            ariaLabel="Business Model Role"
+          />
+        </div>
+      </SectionDivider>
+
+      {/* ---------- Temporal Position (conditional, after Strategic Profile) ---------- */}
+      {hasTemporal && (
+        <SectionDivider
+          label={
+            <div className="flex items-center gap-1">
+              <Clock size={14} /> Position at {currentDate}
+            </div>
+          }
+        >
+          <TemporalPositionBlock
+            project={project}
+            contextId={context.id}
+            currentDate={currentDate!}
+            activeKeyframeId={activeKeyframeId}
+            basePosition={{
+              x: context.positions.strategic.x,
+              y: context.positions.shared.y,
+            }}
+          />
+        </SectionDivider>
+      )}
+
+      {/* ---------- 3. Team & Organization ---------- */}
+      <SectionDivider label="Team & Organization">
+        <div>
+          <FieldLabel text="Ownership" />
+          <PillGroup
+            options={OWNERSHIP_OPTIONS}
+            value={(context.ownership || 'ours') as ContextOwnership}
+            onChange={(next) => handleUpdate({ ownership: (next ?? 'ours') as ContextOwnership })}
+            layout="horizontal"
+            variant="green"
+            ariaLabel="Ownership"
+          />
+        </div>
+
+        {context.ownership !== 'external' && (
+          <div>
+            <FieldLabel text="Team" />
+            {project.teams && project.teams.length > 0 ? (
               <select
                 value={context.teamId || ''}
                 onChange={(e) => {
@@ -231,7 +299,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                     unassignTeamFromContext(context.id)
                   }
                 }}
-                className="flex-1 text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                className={SELECT_CLASS}
               >
                 <option value="">No team assigned</option>
                 {project.teams.map((team) => (
@@ -241,160 +309,67 @@ export function ContextInspector({ project, contextId }: { project: Project; con
                   </option>
                 ))}
               </select>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                const name = window.prompt('Team name:')
-                if (name) {
-                  addTeam(name)
-                }
-              }}
-              className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              <Plus size={12} />
-              Add Team
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Member of Groups - under pills, no heading */}
-      {memberOfGroups.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {memberOfGroups.map((group) => (
-            <div
-              key={group.id}
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded border transition-all group/chip"
-              style={{
-                backgroundColor: group.color ? `${group.color}15` : '#3b82f615',
-                borderColor: group.color || '#3b82f6',
-              }}
-            >
+            ) : (
               <button
-                onClick={() =>
-                  useEditorStore.setState({ selectedGroupId: group.id, selectedContextId: null })
-                }
-                className="text-xs font-medium hover:underline"
-                style={{ color: group.color || '#3b82f6' }}
+                onClick={() => {
+                  const name = window.prompt('Team name:')
+                  if (name) {
+                    addTeam(name)
+                  }
+                }}
+                className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                {group.label}
+                <Plus size={12} />
+                Add Team
               </button>
-              <SimpleTooltip text="Remove from group" position="top">
-                <button
-                  onClick={() => removeContextFromGroup(group.id, context.id)}
-                  className="opacity-0 group-hover/chip:opacity-100 transition-opacity hover:bg-white/50 dark:hover:bg-black/20 rounded p-0.5"
-                >
-                  <X size={10} />
-                </button>
-              </SimpleTooltip>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Domain Classification - position-based, no section header */}
-      <div>
-        {context.strategicClassification &&
-        STRATEGIC_CLASSIFICATIONS[context.strategicClassification] ? (
-          <InfoTooltip
-            content={STRATEGIC_CLASSIFICATIONS[context.strategicClassification]}
-            position="bottom"
-          >
-            <span
-              className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
-                context.strategicClassification === 'core'
-                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
-                  : context.strategicClassification === 'supporting'
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              {context.strategicClassification === 'core' && '⚡ Core'}
-              {context.strategicClassification === 'supporting' && '🔧 Supporting'}
-              {context.strategicClassification === 'generic' && '📦 Generic'}
-            </span>
-          </InfoTooltip>
-        ) : (
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            Not classified
-          </span>
-        )}
-      </div>
-
-      {/* Evolution Stage - position-based, no section header */}
-      <div>
-        {context.evolutionStage && EVOLUTION_STAGES[context.evolutionStage] ? (
-          <InfoTooltip content={EVOLUTION_STAGES[context.evolutionStage]} position="bottom">
-            <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 cursor-help">
-              {context.evolutionStage === 'genesis' && '🌱 Genesis'}
-              {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
-              {context.evolutionStage === 'product/rental' && '📦 Product'}
-              {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
-            </span>
-          </InfoTooltip>
-        ) : (
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
-            {context.evolutionStage === 'genesis' && '🌱 Genesis'}
-            {context.evolutionStage === 'custom-built' && '🔨 Custom-Built'}
-            {context.evolutionStage === 'product/rental' && '📦 Product'}
-            {context.evolutionStage === 'commodity/utility' && '⚡ Commodity'}
-          </span>
-        )}
-      </div>
-
-      {/* Temporal Position (only in Strategic View with temporal mode enabled) */}
-      {viewMode === 'strategic' && project.temporal?.enabled && currentDate && (
-        <Section
-          label={
-            <div className="flex items-center gap-1">
-              <Clock size={14} /> Position at {currentDate}
-            </div>
-          }
-        >
-          <div className="space-y-2">
-            {(() => {
-              const keyframes = project.temporal.keyframes || []
-              const activeKeyframe = activeKeyframeId
-                ? keyframes.find((kf) => kf.id === activeKeyframeId)
-                : null
-
-              // Calculate interpolated position
-              const basePosition = {
-                x: context.positions.strategic.x,
-                y: context.positions.shared.y,
-              }
-              const position = interpolatePosition(context.id, currentDate, keyframes, basePosition)
-              const evolutionStage = classifyFromStrategicPosition(position.x)
-
-              return (
-                <>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-                    <div>
-                      Evolution: {position.x.toFixed(1)}% ({evolutionStage.replace('-', ' ')})
-                    </div>
-                    <div>Value Chain: {position.y.toFixed(1)}%</div>
-                  </div>
-                  {activeKeyframe ? (
-                    <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                      📍 Viewing keyframe: {activeKeyframe.label || activeKeyframe.date}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-amber-600 dark:text-amber-400">
-                      ⚡ Interpolated between keyframes
-                    </div>
-                  )}
-                </>
-              )
-            })()}
+            )}
           </div>
-        </Section>
-      )}
+        )}
 
-      {/* Assigned Repos */}
-      <div className="space-y-2">
-        {assignedRepos.map((repo) => {
-          return (
+        {memberOfGroups.length > 0 && (
+          <div>
+            <div className={FIELD_LABEL_CLASS}>Groups</div>
+            <div className="flex flex-wrap gap-2">
+              {memberOfGroups.map((group) => (
+                <div
+                  key={group.id}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded border transition-all group/chip"
+                  style={{
+                    backgroundColor: group.color ? `${group.color}15` : '#3b82f615',
+                    borderColor: group.color || '#3b82f6',
+                  }}
+                >
+                  <button
+                    onClick={() =>
+                      useEditorStore.setState({
+                        selectedGroupId: group.id,
+                        selectedContextId: null,
+                      })
+                    }
+                    className="text-xs font-medium hover:underline"
+                    style={{ color: group.color || '#3b82f6' }}
+                  >
+                    {group.label}
+                  </button>
+                  <SimpleTooltip text="Remove from group" position="top">
+                    <button
+                      onClick={() => removeContextFromGroup(group.id, context.id)}
+                      className="opacity-0 group-hover/chip:opacity-100 transition-opacity hover:bg-white/50 dark:hover:bg-black/20 rounded p-0.5"
+                    >
+                      <X size={10} />
+                    </button>
+                  </SimpleTooltip>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </SectionDivider>
+
+      {/* ---------- 4. Codebase ---------- */}
+      <SectionDivider label="Codebase">
+        <div className="space-y-2">
+          {assignedRepos.map((repo) => (
             <RepoCard
               key={repo.id}
               repo={repo}
@@ -406,207 +381,180 @@ export function ContextInspector({ project, contextId }: { project: Project; con
               onToggleRepo={setExpandedRepoId}
               onUnassign={unassignRepo}
             />
-          )
-        })}
-        <button
-          onClick={() => {
-            const name = window.prompt('Repo name:')
-            if (name) {
-              const repoId = addRepo(name)
-              assignRepoToContext(repoId, context.id)
-            }
-          }}
-          className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-        >
-          <Plus size={12} />
-          Add Repo
-        </button>
-      </div>
-
-      {/* Code */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">Code</span>
-        <select
-          value={context.codeSize?.bucket || ''}
-          onChange={(e) =>
-            handleUpdate({ codeSize: { ...context.codeSize, bucket: e.target.value as any } })
-          }
-          className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-        >
-          <option value="">Not set</option>
-          <option value="tiny">Tiny</option>
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-          <option value="huge">Huge</option>
-        </select>
-        <InfoTooltip content={CODE_SIZE_TIERS} position="bottom">
-          <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-        </InfoTooltip>
-      </div>
-
-      {/* Boundary */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 w-16">
-            Boundary
-          </span>
-          <select
-            value={context.boundaryIntegrity || ''}
-            onChange={(e) => handleUpdate({ boundaryIntegrity: e.target.value as any })}
-            className="w-32 text-xs px-2.5 py-1.5 rounded-md border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+          ))}
+          <button
+            onClick={() => {
+              const name = window.prompt('Repo name:')
+              if (name) {
+                const repoId = addRepo(name)
+                assignRepoToContext(repoId, context.id)
+              }
+            }}
+            className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
-            <option value="">Not set</option>
-            <option value="strong">Strong</option>
-            <option value="moderate">Moderate</option>
-            <option value="weak">Weak</option>
-          </select>
-          {context.boundaryIntegrity && BOUNDARY_INTEGRITY[context.boundaryIntegrity] && (
-            <InfoTooltip content={BOUNDARY_INTEGRITY[context.boundaryIntegrity]} position="bottom">
-              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-            </InfoTooltip>
+            <Plus size={12} />
+            Add Repo
+          </button>
+        </div>
+
+        <div>
+          <FieldLabel text="Code Size" tooltip={{ content: CODE_SIZE_TIERS }} />
+          <PillGroup
+            options={CODE_SIZE_OPTIONS}
+            value={context.codeSize?.bucket}
+            onChange={(next) =>
+              handleUpdate({ codeSize: { ...context.codeSize, bucket: next as CodeSizeBucket } })
+            }
+            layout="grid-3"
+            variant="slate"
+            ariaLabel="Code Size"
+          />
+        </div>
+
+        <div>
+          <FieldLabel
+            text="Boundary"
+            tooltip={
+              context.boundaryIntegrity && BOUNDARY_INTEGRITY[context.boundaryIntegrity]
+                ? { content: BOUNDARY_INTEGRITY[context.boundaryIntegrity] }
+                : undefined
+            }
+          />
+          <PillGroup
+            options={BOUNDARY_OPTIONS}
+            value={context.boundaryIntegrity}
+            onChange={(next) => handleUpdate({ boundaryIntegrity: next })}
+            layout="grid-3"
+            variant="slate"
+            ariaLabel="Boundary Integrity"
+          />
+          {context.boundaryIntegrity && (
+            <textarea
+              value={context.boundaryNotes || ''}
+              onChange={(e) => handleUpdate({ boundaryNotes: e.target.value })}
+              placeholder="Why is the boundary strong or weak?"
+              rows={2}
+              className={`${TEXTAREA_CLASS} mt-2`}
+            />
           )}
         </div>
-        <textarea
-          value={context.boundaryNotes || ''}
-          onChange={(e) => handleUpdate({ boundaryNotes: e.target.value })}
-          placeholder="Why is the boundary strong or weak?"
-          rows={2}
-          className={TEXTAREA_CLASS}
-        />
-      </div>
 
-      {/* Notes */}
-      <Section label="Notes">
-        <textarea
-          value={context.notes || ''}
-          onChange={(e) => handleUpdate({ notes: e.target.value })}
-          placeholder="Assumptions, politics, bottlenecks, risks..."
-          rows={3}
-          className={TEXTAREA_CLASS}
-        />
-      </Section>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <Switch
+              label="Legacy"
+              checked={context.isLegacy || false}
+              onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
+            />
+            <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              label="Big Ball of Mud"
+              checked={context.isBigBallOfMud || false}
+              onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
+            />
+            <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
+              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          </div>
+        </div>
+      </SectionDivider>
 
-      {/* Issues */}
-      <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
-        {context.issues && context.issues.length > 0 ? (
-          <div className="space-y-1">
-            {context.issues.map((issue, index) => (
-              <div key={issue.id} className="group/issue flex items-center gap-1.5">
-                <div className="flex-shrink-0 flex items-center gap-0.5">
-                  {(['info', 'warning', 'critical'] as const).map((severity) => (
-                    <IssueSeverityButton
-                      key={severity}
-                      severity={severity}
-                      isActive={issue.severity === severity}
-                      onClick={() => updateContextIssue(context.id, issue.id, { severity })}
-                    />
-                  ))}
+      {/* ---------- 5. Notes & Issues ---------- */}
+      <SectionDivider label="Notes & Issues">
+        <Section label="Notes">
+          <textarea
+            value={context.notes || ''}
+            onChange={(e) => handleUpdate({ notes: e.target.value })}
+            placeholder="Assumptions, politics, bottlenecks, risks..."
+            rows={3}
+            className={TEXTAREA_CLASS}
+          />
+        </Section>
+
+        <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
+          {context.issues && context.issues.length > 0 ? (
+            <div className="space-y-1">
+              {context.issues.map((issue, index) => (
+                <div key={issue.id} className="group/issue flex items-center gap-1.5">
+                  <div className="flex-shrink-0 flex items-center gap-0.5">
+                    {(['info', 'warning', 'critical'] as const).map((severity) => (
+                      <IssueSeverityButton
+                        key={severity}
+                        severity={severity}
+                        isActive={issue.severity === severity}
+                        onClick={() => updateContextIssue(context.id, issue.id, { severity })}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={issue.title}
+                    onChange={(e) =>
+                      updateContextIssue(context.id, issue.id, { title: e.target.value })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        addContextIssue(context.id, '')
+                      }
+                    }}
+                    onFocus={(e) => {
+                      if (issue.title === 'New issue') {
+                        e.target.select()
+                      }
+                    }}
+                    autoFocus={
+                      index === context.issues!.length - 1 &&
+                      (issue.title === '' || issue.title === 'New issue')
+                    }
+                    placeholder="Issue title..."
+                    className="flex-1 min-w-0 text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 outline-none"
+                  />
+                  <button
+                    onClick={() => deleteContextIssue(context.id, issue.id)}
+                    className="opacity-0 group-hover/issue:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity"
+                  >
+                    <X size={12} />
+                  </button>
                 </div>
-                <input
-                  type="text"
-                  value={issue.title}
-                  onChange={(e) =>
-                    updateContextIssue(context.id, issue.id, { title: e.target.value })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      addContextIssue(context.id, '')
-                    }
-                  }}
-                  onFocus={(e) => {
-                    if (issue.title === 'New issue') {
-                      e.target.select()
-                    }
-                  }}
-                  autoFocus={
-                    index === context.issues!.length - 1 &&
-                    (issue.title === '' || issue.title === 'New issue')
-                  }
-                  placeholder="Issue title..."
-                  className="flex-1 min-w-0 text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 hover:border-slate-300 dark:hover:border-neutral-500 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-0.5 outline-none"
-                />
-                <button
-                  onClick={() => deleteContextIssue(context.id, issue.id)}
-                  className="opacity-0 group-hover/issue:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-opacity"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-slate-400 dark:text-slate-500 italic">No issues marked</p>
-        )}
-        <button
-          onClick={() => addContextIssue(context.id, 'New issue')}
-          className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-        >
-          <Plus size={12} />
-          Add Issue
-        </button>
-      </Section>
-
-      {/* Relationships */}
-      {(() => {
-        const { upstream, downstream, mutual } = categorizeRelationships(
-          project.relationships,
-          context.id
-        )
-
-        return (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Relationships
-              </span>
-              <InfoTooltip content={POWER_DYNAMICS} position="bottom">
-                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
-              </InfoTooltip>
+              ))}
             </div>
-            <div className="text-[13px]">
-              <RelationshipGroup
-                title="Upstream"
-                relationships={upstream}
-                contexts={project.contexts}
-                onDelete={deleteRelationship}
-                icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0" />}
-                getTargetContextId={(rel) => rel.toContextId}
-              />
-              <RelationshipGroup
-                title="Downstream"
-                relationships={downstream}
-                contexts={project.contexts}
-                onDelete={deleteRelationship}
-                icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />}
-                getTargetContextId={(rel) => rel.fromContextId}
-              />
-              <RelationshipGroup
-                title="Mutual"
-                relationships={mutual}
-                contexts={project.contexts}
-                onDelete={deleteRelationship}
-                icon={<span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>}
-                getTargetContextId={(rel) =>
-                  rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId
-                }
-              />
+          ) : (
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic">No issues marked</p>
+          )}
+          <button
+            onClick={() => addContextIssue(context.id, 'New issue')}
+            className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            <Plus size={12} />
+            Add Issue
+          </button>
+        </Section>
+      </SectionDivider>
 
-              {/* Add Relationship button */}
-              <button
-                onClick={() => setShowRelationshipDialog(true)}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-300 rounded transition-colors"
-              >
-                <Plus size={12} />
-                Add Relationship
-              </button>
-            </div>
+      {/* ---------- 6. Relationships ---------- */}
+      <SectionDivider
+        label={
+          <div className="flex items-center gap-2">
+            <span>Relationships</span>
+            <InfoTooltip content={POWER_DYNAMICS} position="bottom">
+              <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
           </div>
-        )
-      })()}
+        }
+      >
+        <RelationshipsBlock
+          project={project}
+          context={context}
+          onDelete={deleteRelationship}
+          onAdd={() => setShowRelationshipDialog(true)}
+        />
+      </SectionDivider>
 
-      {/* Relationship Dialog */}
       {showRelationshipDialog && (
         <RelationshipCreateDialog
           fromContext={context}
@@ -619,8 +567,8 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         />
       )}
 
-      {/* Delete Context - at bottom to avoid confusion with close button */}
-      <div className="pt-2 border-t border-slate-200 dark:border-neutral-700">
+      {/* ---------- Danger Zone ---------- */}
+      <div className="pt-2 border-t border-slate-200 dark:border-neutral-700 mt-4">
         <button
           onClick={handleDelete}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
@@ -629,6 +577,169 @@ export function ContextInspector({ project, contextId }: { project: Project; con
           Delete Context
         </button>
       </div>
+    </div>
+  )
+}
+
+function ClassificationBadge({
+  classification,
+}: {
+  classification: 'core' | 'supporting' | 'generic' | undefined
+}) {
+  if (!classification || !STRATEGIC_CLASSIFICATIONS[classification]) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+        Not classified
+      </span>
+    )
+  }
+  return (
+    <InfoTooltip content={STRATEGIC_CLASSIFICATIONS[classification]} position="bottom">
+      <span
+        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md cursor-help ${
+          classification === 'core'
+            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+            : classification === 'supporting'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+        }`}
+      >
+        {classification === 'core' && '⚡ Core'}
+        {classification === 'supporting' && '🔧 Supporting'}
+        {classification === 'generic' && '📦 Generic'}
+      </span>
+    </InfoTooltip>
+  )
+}
+
+function EvolutionBadge({
+  stage,
+}: {
+  stage: 'genesis' | 'custom-built' | 'product/rental' | 'commodity/utility' | undefined
+}) {
+  if (!stage) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+        Not set
+      </span>
+    )
+  }
+  const label =
+    stage === 'genesis'
+      ? '🌱 Genesis'
+      : stage === 'custom-built'
+        ? '🔨 Custom-Built'
+        : stage === 'product/rental'
+          ? '📦 Product'
+          : '⚡ Commodity'
+  if (!EVOLUTION_STAGES[stage]) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
+        {label}
+      </span>
+    )
+  }
+  return (
+    <InfoTooltip content={EVOLUTION_STAGES[stage]} position="bottom">
+      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300 cursor-help">
+        {label}
+      </span>
+    </InfoTooltip>
+  )
+}
+
+function TemporalPositionBlock({
+  project,
+  contextId,
+  currentDate,
+  activeKeyframeId,
+  basePosition,
+}: {
+  project: Project
+  contextId: string
+  currentDate: string
+  activeKeyframeId: string | null
+  basePosition: { x: number; y: number }
+}) {
+  const keyframes = project.temporal?.keyframes || []
+  const activeKeyframe = activeKeyframeId
+    ? keyframes.find((kf) => kf.id === activeKeyframeId)
+    : null
+  const position = interpolatePosition(contextId, currentDate, keyframes, basePosition)
+  const evolutionStage = classifyFromStrategicPosition(position.x)
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+        <div>
+          Evolution: {position.x.toFixed(1)}% ({evolutionStage.replace('-', ' ')})
+        </div>
+        <div>Value Chain: {position.y.toFixed(1)}%</div>
+      </div>
+      {activeKeyframe ? (
+        <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+          📍 Viewing keyframe: {activeKeyframe.label || activeKeyframe.date}
+        </div>
+      ) : (
+        <div className="text-xs text-amber-600 dark:text-amber-400">
+          ⚡ Interpolated between keyframes
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RelationshipsBlock({
+  project,
+  context,
+  onDelete,
+  onAdd,
+}: {
+  project: Project
+  context: Project['contexts'][number]
+  onDelete: (id: string) => void
+  onAdd: () => void
+}) {
+  const { upstream, downstream, mutual } = categorizeRelationships(
+    project.relationships,
+    context.id
+  )
+  return (
+    <div className="text-[13px]">
+      <RelationshipGroup
+        title="Upstream"
+        relationships={upstream}
+        contexts={project.contexts}
+        onDelete={onDelete}
+        icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0" />}
+        getTargetContextId={(rel) => rel.toContextId}
+      />
+      <RelationshipGroup
+        title="Downstream"
+        relationships={downstream}
+        contexts={project.contexts}
+        onDelete={onDelete}
+        icon={<ArrowRight size={12} className="text-slate-400 flex-shrink-0 rotate-180" />}
+        getTargetContextId={(rel) => rel.fromContextId}
+      />
+      <RelationshipGroup
+        title="Mutual"
+        relationships={mutual}
+        contexts={project.contexts}
+        onDelete={onDelete}
+        icon={<span className="text-slate-400 flex-shrink-0 text-[10px]">⟷</span>}
+        getTargetContextId={(rel) =>
+          rel.fromContextId === context.id ? rel.toContextId : rel.fromContextId
+        }
+      />
+
+      <button
+        onClick={onAdd}
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-300 rounded transition-colors"
+      >
+        <Plus size={12} />
+        Add Relationship
+      </button>
     </div>
   )
 }

@@ -145,21 +145,20 @@ describe('ContextInspector', () => {
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { isBigBallOfMud: true })
   })
 
-  it('renders Business Model Role label and dropdown', () => {
+  it('renders Business Model Role as a pill group with all four options', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    expect(screen.getByText('Role')).toBeInTheDocument()
-    const roleLabel = screen.getByText('Role')
-    const container = roleLabel.closest('div')!
-    const select = container.querySelector('select')!
-    expect(select.value).toBe('')
+    const roleGroup = screen.getByRole('group', { name: 'Business Model Role' })
+    expect(roleGroup).toBeInTheDocument()
+    expect(roleGroup.querySelector('select')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Revenue' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Engagement' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Compliance' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cost Reduction' })).toBeInTheDocument()
   })
 
-  it('calls updateContext when Business Model Role changes', () => {
+  it('calls updateContext with the underlying enum value when a Role pill is clicked', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    const roleLabel = screen.getByText('Role')
-    const container = roleLabel.closest('div')!
-    const select = container.querySelector('select')!
-    fireEvent.change(select, { target: { value: 'revenue-generator' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Revenue' }))
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', {
       businessModelRole: 'revenue-generator',
     })
@@ -252,7 +251,7 @@ describe('ContextInspector', () => {
     expect(mockAddRepo).not.toHaveBeenCalled()
   })
 
-  it('calls updateContext with undefined when Business Model Role is cleared', () => {
+  it('clicking the active Role pill clears the value', () => {
     const project = makeProject({
       contexts: [
         {
@@ -274,8 +273,67 @@ describe('ContextInspector', () => {
       ],
     })
     render(<ContextInspector project={project} contextId="ctx-1" />)
-    const roleSelect = screen.getByDisplayValue('Revenue Generator')
-    fireEvent.change(roleSelect, { target: { value: '' } })
+    const activePill = screen.getByRole('button', { name: 'Revenue' })
+    expect(activePill).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(activePill)
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { businessModelRole: undefined })
+  })
+
+  it('renders Code Size as a pill group with all five buckets', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const group = screen.getByRole('group', { name: 'Code Size' })
+    expect(group).toBeInTheDocument()
+    expect(group.querySelector('select')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Tiny' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Huge' })).toBeInTheDocument()
+  })
+
+  it('calls updateContext with codeSize.bucket when a Code Size pill is clicked', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Medium' }))
+    expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', {
+      codeSize: { bucket: 'medium' },
+    })
+  })
+
+  it('renders Boundary as a pill group', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const group = screen.getByRole('group', { name: 'Boundary Integrity' })
+    expect(group).toBeInTheDocument()
+    expect(group.querySelector('select')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Weak' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Moderate' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Strong' })).toBeInTheDocument()
+  })
+
+  it('hides Boundary Notes textarea when boundaryIntegrity is unset', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(
+      screen.queryByPlaceholderText('Why is the boundary strong or weak?')
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows Boundary Notes textarea when boundaryIntegrity is set', () => {
+    const project = makeProject({
+      contexts: [
+        {
+          id: 'ctx-1',
+          name: 'Orders',
+          purpose: '',
+          ownership: 'ours',
+          positions: {
+            flow: { x: 0 },
+            strategic: { x: 50 },
+            distillation: { x: 40, y: 60 },
+            shared: { y: 30 },
+          },
+          evolutionStage: 'custom-built',
+          boundaryIntegrity: 'strong',
+          issues: [],
+        },
+      ],
+    })
+    render(<ContextInspector project={project} contextId="ctx-1" />)
+    expect(screen.getByPlaceholderText('Why is the boundary strong or weak?')).toBeInTheDocument()
   })
 })
