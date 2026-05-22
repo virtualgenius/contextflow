@@ -217,7 +217,7 @@ export function ContextNode({ data }: NodeProps) {
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-          cursor: 'pointer',
+          cursor: 'grab',
           opacity: opacity ?? 1,
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
@@ -393,12 +393,10 @@ export function ContextNode({ data }: NodeProps) {
             relationships: project?.relationships || [],
             contexts: project?.contexts || [],
           })
-          if (lines.length === 0) return null
-          const lastLine = lines[lines.length - 1]
+          if (lines.length === 0 && !context.purpose) return null
+          const lastLine = lines.length > 0 ? lines[lines.length - 1] : ''
           const contentLines = lines.slice(0, -1)
-          const isGuidanceLine =
-            lastLine === 'Drag any arrow to another context to map the relationship.' ||
-            lastLine === 'Drag to classify as Core, Supporting, or Generic'
+          const isGuidanceLine = lastLine === 'Drag to classify as Core, Supporting, or Generic'
 
           return createPortal(
             <div

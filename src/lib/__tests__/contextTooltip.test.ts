@@ -199,7 +199,7 @@ describe('getContextTooltipLines', () => {
       expect(lines.some((l) => l.includes('Connected'))).toBe(false)
     })
 
-    it('always includes drag guidance as last line', () => {
+    it('omits gesture guidance from the rich tooltip (it lives on the per-stub tooltip)', () => {
       const lines = getContextTooltipLines({
         context: makeContext(),
         viewMode: 'flow',
@@ -207,21 +207,8 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines[lines.length - 1]).toBe(
-        'Drag any arrow to another context to map the relationship.'
-      )
-    })
-
-    it('drag guidance line no longer references handles', () => {
-      const lines = getContextTooltipLines({
-        context: makeContext(),
-        viewMode: 'flow',
-        colorByMode: 'strategic',
-        relationships: [],
-        contexts: [],
-      })
-      const guidance = lines[lines.length - 1]
-      expect(guidance.toLowerCase()).not.toContain('handle')
+      expect(lines.some((l) => l.toLowerCase().includes('drag'))).toBe(false)
+      expect(lines.some((l) => l.toLowerCase().includes('handle'))).toBe(false)
     })
 
     it('returns all lines for fully configured context', () => {
@@ -242,7 +229,6 @@ describe('getContextTooltipLines', () => {
         'Strong boundary - clear API contracts, independently deployable',
         '1 issues',
         'Connected to Billing',
-        'Drag any arrow to another context to map the relationship.',
       ])
     })
 
@@ -268,7 +254,7 @@ describe('getContextTooltipLines', () => {
       expect(lines).toContain('Legacy system')
     })
 
-    it('returns minimal lines for unconfigured context', () => {
+    it('returns empty lines for unconfigured context (no gesture guidance in rich tooltip)', () => {
       const lines = getContextTooltipLines({
         context: makeContext(),
         viewMode: 'flow',
@@ -276,7 +262,7 @@ describe('getContextTooltipLines', () => {
         relationships: [],
         contexts: [],
       })
-      expect(lines).toEqual(['Drag any arrow to another context to map the relationship.'])
+      expect(lines).toEqual([])
     })
   })
 
