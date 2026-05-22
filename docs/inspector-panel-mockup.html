@@ -14,6 +14,34 @@
   .switch.on { background: #3b82f6; }
   .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: white; transition: transform 0.15s; }
   .switch.on::after { transform: translateX(12px); }
+
+  /* Pill group styles for enum fields */
+  .pill {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.2;
+  }
+  .pill.active-green { background: #dcfce7; color: #166534; box-shadow: 0 0 0 1px #22c55e inset; }
+  .pill.active-slate { background: #e2e8f0; color: #1e293b; box-shadow: 0 0 0 1px #64748b inset; }
+
+  /* Boundary pills preview the border treatment */
+  .boundary-preview { display: inline-block; width: 14px; height: 10px; border-radius: 2px; background: white; vertical-align: middle; margin-right: 5px; }
+  .bp-weak   { border: 1.5px dotted #64748b; }
+  .bp-mod    { border: 2px solid #64748b; }
+  .bp-strong { border: 3px solid #1e293b; }
+
+  /* Code-size pills scale a dot to hint at the node size effect */
+  .size-dot { display: inline-block; background: #64748b; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+  .sd-tiny   { width: 6px;  height: 6px;  }
+  .sd-small  { width: 8px;  height: 8px;  }
+  .sd-medium { width: 10px; height: 10px; }
+  .sd-large  { width: 12px; height: 12px; }
+  .sd-huge   { width: 14px; height: 14px; }
 </style>
 </head>
 <body class="p-8">
@@ -297,14 +325,17 @@
             </div>
           </div>
 
-          <!-- Business Model Role - full width property row -->
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Role</span>
-            <div class="flex-1 flex items-center gap-2">
-              <select class="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
-                <option>Revenue Generator</option>
-              </select>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <!-- Business Model Role - 2x2 pill grid -->
+          <div>
+            <div class="flex items-center gap-1 mb-1">
+              <span class="text-xs text-slate-500">Role</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button class="pill active-green text-left">Revenue</button>
+              <button class="pill text-left">Engagement</button>
+              <button class="pill text-left">Compliance</button>
+              <button class="pill text-left">Cost Reduction</button>
             </div>
           </div>
         </div>
@@ -364,26 +395,32 @@
             </button>
           </div>
 
-          <!-- Code Size -->
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-500 w-16 flex-shrink-0">Code Size</span>
-            <div class="flex-1 flex items-center gap-2">
-              <select class="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
-                <option>Large</option>
-              </select>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <!-- Code Size - 3+2 pill grid with scaled dots -->
+          <div>
+            <div class="flex items-center gap-1 mb-1">
+              <span class="text-xs text-slate-500">Code Size</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button class="pill text-center"><span class="size-dot sd-tiny"></span>Tiny</button>
+              <button class="pill text-center"><span class="size-dot sd-small"></span>Small</button>
+              <button class="pill text-center"><span class="size-dot sd-medium"></span>Medium</button>
+              <button class="pill active-slate text-center"><span class="size-dot sd-large"></span>Large</button>
+              <button class="pill text-center"><span class="size-dot sd-huge"></span>Huge</button>
             </div>
           </div>
 
-          <!-- Boundary Integrity + Notes -->
+          <!-- Boundary Integrity (pills preview border style) + Notes -->
           <div class="space-y-2">
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500 w-16 flex-shrink-0">Boundary</span>
-              <div class="flex-1 flex items-center gap-2">
-                <select class="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-900 outline-none">
-                  <option>Moderate</option>
-                </select>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div>
+              <div class="flex items-center gap-1 mb-1">
+                <span class="text-xs text-slate-500">Boundary</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button class="pill text-center"><span class="boundary-preview bp-weak"></span>Weak</button>
+                <button class="pill active-slate text-center"><span class="boundary-preview bp-mod"></span>Moderate</button>
+                <button class="pill text-center"><span class="boundary-preview bp-strong"></span>Strong</button>
               </div>
             </div>
             <!-- Boundary Notes (shown when boundary is set) -->
@@ -501,8 +538,8 @@
   </div>
 
   <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
-    <div class="font-semibold text-slate-800">Consistent Property Rows</div>
-    <p>Code Size, Boundary, Role, and Team all use the same label-left/control-right layout with full-width selects (no more <code class="bg-slate-100 px-1 rounded">w-32</code>).</p>
+    <div class="font-semibold text-slate-800">Pills, Not Dropdowns</div>
+    <p>All enum fields (Ownership, Role, Code Size, Boundary) use pill groups. Every option visible without a click. Boundary pills preview the border style; Code Size pills scale a dot to hint at node size. Team stays a dropdown (not a fixed enum).</p>
   </div>
 
   <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
