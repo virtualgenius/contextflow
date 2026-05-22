@@ -6,7 +6,7 @@ import { EXTERNAL_USER } from '../../model/conceptDefinitions'
 import { InfoTooltip } from '../InfoTooltip'
 import { SimpleTooltip } from '../SimpleTooltip'
 import { Switch } from '../Switch'
-import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
+import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, InspectorHeader, Section } from './inspectorShared'
 
 export function UserInspector({ project, userId }: { project: Project; userId: string }) {
   const updateUser = useEditorStore((s) => s.updateUser)
@@ -43,14 +43,14 @@ export function UserInspector({ project, userId }: { project: Project; userId: s
   return (
     <div className="space-y-5">
       {/* Name */}
-      <div>
+      <InspectorHeader>
         <input
           type="text"
           value={user.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}
           className={INPUT_TITLE_CLASS}
         />
-      </div>
+      </InspectorHeader>
 
       {/* Description */}
       <Section label="Description">
@@ -64,18 +64,16 @@ export function UserInspector({ project, userId }: { project: Project; userId: s
       </Section>
 
       {/* External Toggle */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Switch
-            label="External"
-            checked={user.isExternal || false}
-            onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
-          />
+      <Switch
+        label="External"
+        labelAdornment={
           <InfoTooltip content={EXTERNAL_USER} position="bottom">
             <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
           </InfoTooltip>
-        </div>
-      </div>
+        }
+        checked={user.isExternal || false}
+        onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
+      />
 
       {/* Connected User Needs */}
       <Section label={`Connected User Needs (${connectedUserNeeds.length})`}>

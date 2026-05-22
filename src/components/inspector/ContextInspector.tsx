@@ -10,12 +10,20 @@ import { SimpleTooltip } from '../SimpleTooltip'
 import {
   EVOLUTION_STAGES,
   STRATEGIC_CLASSIFICATIONS,
-  BOUNDARY_INTEGRITY,
   CODE_SIZE_TIERS,
   LEGACY_CONTEXT,
   BIG_BALL_OF_MUD,
   BUSINESS_MODEL_ROLE,
   POWER_DYNAMICS,
+  STRATEGIC_CLASSIFICATION_CONCEPT,
+  WARDLEY_EVOLUTION_CONCEPT,
+  OWNERSHIP_CONCEPT,
+  TEAM_ASSIGNMENT_CONCEPT,
+  GROUPS_CONCEPT,
+  NOTES_CONCEPT,
+  ISSUES_CONCEPT,
+  BOUNDARY_CONCEPT,
+  type ConceptDefinition,
 } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
 import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
@@ -27,6 +35,7 @@ import {
   TEXTAREA_CLASS,
   SELECT_CLASS,
   FIELD_LABEL_CLASS,
+  InspectorHeader,
   Section,
   SectionDivider,
   PillGroup,
@@ -116,6 +125,30 @@ function FieldLabel({
   )
 }
 
+function SectionHeader({ text, tooltip }: { text: string; tooltip: ConceptDefinition }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span>{text}</span>
+      <InfoTooltip content={tooltip} position="bottom">
+        <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+      </InfoTooltip>
+    </div>
+  )
+}
+
+function MiniLabel({ text, tooltip }: { text: string; tooltip: ConceptDefinition }) {
+  return (
+    <div className="flex items-center gap-1 mb-1">
+      <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+        {text}
+      </span>
+      <InfoTooltip content={tooltip} position="bottom">
+        <HelpCircle size={10} className="text-slate-400 dark:text-slate-500 cursor-help" />
+      </InfoTooltip>
+    </div>
+  )
+}
+
 export function ContextInspector({ project, contextId }: { project: Project; contextId: string }) {
   const viewMode = useEditorStore((s) => s.activeViewMode)
   const updateContext = useEditorStore((s) => s.updateContext)
@@ -171,12 +204,14 @@ export function ContextInspector({ project, contextId }: { project: Project; con
   return (
     <div className="space-y-3">
       {/* ---------- 1. Identity ---------- */}
-      <input
-        type="text"
-        value={context.name}
-        onChange={(e) => handleUpdate({ name: e.target.value })}
-        className={INPUT_TITLE_CLASS}
-      />
+      <InspectorHeader>
+        <input
+          type="text"
+          value={context.name}
+          onChange={(e) => handleUpdate({ name: e.target.value })}
+          className={INPUT_TITLE_CLASS}
+        />
+      </InspectorHeader>
 
       <textarea
         value={context.purpose || ''}
@@ -223,15 +258,11 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       <SectionDivider label="Strategic Profile">
         <div className="flex flex-wrap gap-3">
           <div>
-            <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-              Domain
-            </div>
+            <MiniLabel text="Domain" tooltip={STRATEGIC_CLASSIFICATION_CONCEPT} />
             <ClassificationBadge classification={context.strategicClassification} />
           </div>
           <div>
-            <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-              Evolution
-            </div>
+            <MiniLabel text="Evolution" tooltip={WARDLEY_EVOLUTION_CONCEPT} />
             <EvolutionBadge stage={context.evolutionStage} />
           </div>
         </div>
@@ -274,7 +305,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {/* ---------- 3. Team & Organization ---------- */}
       <SectionDivider label="Team & Organization">
         <div>
-          <FieldLabel text="Ownership" />
+          <FieldLabel text="Ownership" tooltip={{ content: OWNERSHIP_CONCEPT }} />
           <PillGroup
             options={OWNERSHIP_OPTIONS}
             value={(context.ownership || 'ours') as ContextOwnership}
@@ -287,7 +318,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
         {context.ownership !== 'external' && (
           <div>
-            <FieldLabel text="Team" />
+            <FieldLabel text="Team" tooltip={{ content: TEAM_ASSIGNMENT_CONCEPT }} />
             {project.teams && project.teams.length > 0 ? (
               <select
                 value={context.teamId || ''}
@@ -328,7 +359,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
 
         {memberOfGroups.length > 0 && (
           <div>
-            <div className={FIELD_LABEL_CLASS}>Groups</div>
+            <FieldLabel text="Groups" tooltip={{ content: GROUPS_CONCEPT }} />
             <div className="flex flex-wrap gap-2">
               {memberOfGroups.map((group) => (
                 <div
@@ -412,14 +443,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
 
         <div>
-          <FieldLabel
-            text="Boundary"
-            tooltip={
-              context.boundaryIntegrity && BOUNDARY_INTEGRITY[context.boundaryIntegrity]
-                ? { content: BOUNDARY_INTEGRITY[context.boundaryIntegrity] }
-                : undefined
-            }
-          />
+          <FieldLabel text="Boundary" tooltip={{ content: BOUNDARY_CONCEPT }} />
           <PillGroup
             options={BOUNDARY_OPTIONS}
             value={context.boundaryIntegrity}
@@ -440,32 +464,32 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2">
-            <Switch
-              label="Legacy"
-              checked={context.isLegacy || false}
-              onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
-            />
-            <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
-              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-            </InfoTooltip>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              label="Big Ball of Mud"
-              checked={context.isBigBallOfMud || false}
-              onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
-            />
-            <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
-              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-            </InfoTooltip>
-          </div>
+          <Switch
+            label="Legacy"
+            labelAdornment={
+              <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            }
+            checked={context.isLegacy || false}
+            onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
+          />
+          <Switch
+            label="Big Ball of Mud"
+            labelAdornment={
+              <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
+                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            }
+            checked={context.isBigBallOfMud || false}
+            onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
+          />
         </div>
       </SectionDivider>
 
       {/* ---------- 5. Notes & Issues ---------- */}
       <SectionDivider label="Notes & Issues">
-        <Section label="Notes">
+        <Section label={<SectionHeader text="Notes" tooltip={NOTES_CONCEPT} />}>
           <textarea
             value={context.notes || ''}
             onChange={(e) => handleUpdate({ notes: e.target.value })}
@@ -475,7 +499,14 @@ export function ContextInspector({ project, contextId }: { project: Project; con
           />
         </Section>
 
-        <Section label={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}>
+        <Section
+          label={
+            <SectionHeader
+              text={`Issues${context.issues?.length ? ` (${context.issues.length})` : ''}`}
+              tooltip={ISSUES_CONCEPT}
+            />
+          }
+        >
           {context.issues && context.issues.length > 0 ? (
             <div className="space-y-1">
               {context.issues.map((issue, index) => (

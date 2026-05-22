@@ -18,7 +18,7 @@ import {
 import { InfoTooltip } from '../InfoTooltip'
 import { PatternsGuideModal } from '../PatternsGuideModal'
 import { COMMUNICATION_MODE } from '../../model/conceptDefinitions'
-import { INPUT_TEXT_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
+import { INPUT_TEXT_CLASS, TEXTAREA_CLASS, InspectorHeader, Section } from './inspectorShared'
 
 export function RelationshipInspector({
   project,
@@ -74,9 +74,11 @@ export function RelationshipInspector({
   return (
     <div className="space-y-5">
       {/* Relationship Title */}
-      <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
-        Relationship
-      </div>
+      <InspectorHeader>
+        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+          Relationship
+        </div>
+      </InspectorHeader>
 
       {/* From/To Contexts */}
       <Section

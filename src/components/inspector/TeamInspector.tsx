@@ -5,7 +5,7 @@ import type { Project } from '../../model/types'
 import { TEAM_TOPOLOGIES } from '../../model/conceptDefinitions'
 import { InfoTooltip } from '../InfoTooltip'
 import { SimpleTooltip } from '../SimpleTooltip'
-import { INPUT_TITLE_CLASS, Section } from './inspectorShared'
+import { INPUT_TITLE_CLASS, InspectorHeader, Section } from './inspectorShared'
 import { getTopologyColors } from '../../lib/teamColors'
 
 export function TeamInspector({ project, teamId }: { project: Project; teamId: string }) {
@@ -24,14 +24,14 @@ export function TeamInspector({ project, teamId }: { project: Project; teamId: s
   return (
     <div className="space-y-5">
       {/* Name */}
-      <div>
+      <InspectorHeader>
         <input
           type="text"
           value={team.name}
           onChange={(e) => updateTeam(team.id, { name: e.target.value })}
           className={INPUT_TITLE_CLASS}
         />
-      </div>
+      </InspectorHeader>
 
       {/* Team Topology Type */}
       <Section label="Team Topology">

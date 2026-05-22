@@ -1,4 +1,7 @@
 import React from 'react'
+import { X } from 'lucide-react'
+import { useEditorStore } from '../../model/store'
+import { CLEARED_SELECTION } from '../../lib/selectionDismiss'
 
 // Shared input styles for consistency across all inspector panels
 export const INPUT_TITLE_CLASS =
@@ -14,6 +17,24 @@ export const SELECT_CLASS =
   'w-full text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400'
 
 export const FIELD_LABEL_CLASS = 'text-xs text-slate-500 dark:text-slate-400 mb-1'
+
+export function InspectorHeader({ children }: { children: React.ReactNode }) {
+  const handleClose = () => {
+    useEditorStore.setState(CLEARED_SELECTION)
+  }
+  return (
+    <div className="flex items-start gap-2 -mt-1 -mr-1">
+      <div className="flex-1 min-w-0">{children}</div>
+      <button
+        onClick={handleClose}
+        aria-label="Close inspector"
+        className="p-1.5 rounded text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+      >
+        <X size={16} />
+      </button>
+    </div>
+  )
+}
 
 export function Section({
   label,
