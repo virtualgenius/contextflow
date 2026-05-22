@@ -168,7 +168,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   })(),
   showRelationshipLabels: (() => {
     const stored = localStorage.getItem('contextflow.showRelationshipLabels')
-    return stored !== null ? stored === 'true' : true
+    return stored !== null ? stored === 'true' : false
   })(),
 
   showHelpTooltips: (() => {

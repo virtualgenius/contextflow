@@ -88,6 +88,53 @@ describe('RelationshipEdge label visibility', () => {
     const labelRenderer = screen.queryByTestId('edge-label-renderer')
     expect(labelRenderer).toBeNull()
   })
+
+  it('reveals the label on hover when showRelationshipLabels is false', () => {
+    setupMock({
+      showRelationshipLabels: false,
+      selectedRelationshipId: null,
+      hoveredContextId: null,
+    })
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.mouseEnter(hitArea!)
+    const labelRenderer = screen.queryByTestId('edge-label-renderer')
+    expect(labelRenderer?.textContent).toContain('Customer-Supplier')
+  })
+
+  it('reveals the label while selected when showRelationshipLabels is false', () => {
+    setupMock({
+      showRelationshipLabels: false,
+      selectedRelationshipId: 'rel-1',
+      hoveredContextId: null,
+    })
+    render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const labelRenderer = screen.queryByTestId('edge-label-renderer')
+    expect(labelRenderer?.textContent).toContain('Customer-Supplier')
+  })
+
+  it('reveals the label when an endpoint context is hovered (highlight-by-hover)', () => {
+    setupMock({
+      showRelationshipLabels: false,
+      selectedRelationshipId: null,
+      hoveredContextId: 'ctx-1',
+    })
+    render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const labelRenderer = screen.queryByTestId('edge-label-renderer')
+    expect(labelRenderer?.textContent).toContain('Customer-Supplier')
+  })
 })
 
 describe('RelationshipEdge tooltip layering', () => {
