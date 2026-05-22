@@ -29,7 +29,6 @@ import {
 } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import { RelationshipCreateDialog } from '../RelationshipCreateDialog'
-import { Switch } from '../Switch'
 import { interpolatePosition } from '../../lib/temporal'
 import { classifyFromStrategicPosition } from '../../model/classification'
 import { InfoTooltip } from '../InfoTooltip'
@@ -66,6 +65,7 @@ import {
   Section,
   SectionDivider,
   PillGroup,
+  TogglePill,
   type PillOption,
 } from './inspectorShared'
 
@@ -536,36 +536,28 @@ export function ContextInspector({ project, contextId }: { project: Project; con
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Switch
-            label={
-              <span className="inline-flex items-center gap-1.5">
-                <Archive size={14} className="text-slate-500 dark:text-slate-400" />
-                Legacy
-              </span>
-            }
+        <div className="flex flex-wrap gap-2">
+          <TogglePill
+            active={context.isLegacy || false}
+            onToggle={() => handleUpdate({ isLegacy: !context.isLegacy })}
+            icon={<Archive size={12} />}
+            label="Legacy"
             labelAdornment={
               <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
-                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
               </InfoTooltip>
             }
-            checked={context.isLegacy || false}
-            onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
           />
-          <Switch
-            label={
-              <span className="inline-flex items-center gap-1.5">
-                <CloudFog size={14} className="text-slate-500 dark:text-slate-400" />
-                Big Ball of Mud
-              </span>
-            }
+          <TogglePill
+            active={context.isBigBallOfMud || false}
+            onToggle={() => handleUpdate({ isBigBallOfMud: !context.isBigBallOfMud })}
+            icon={<CloudFog size={12} />}
+            label="Big Ball of Mud"
             labelAdornment={
               <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
-                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+                <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
               </InfoTooltip>
             }
-            checked={context.isBigBallOfMud || false}
-            onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
           />
         </div>
       </SectionDivider>

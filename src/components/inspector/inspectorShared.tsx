@@ -108,6 +108,42 @@ function nextIndex(current: number, length: number, delta: number): number {
   return (current + delta + length) % length
 }
 
+const TOGGLE_PILL_ACTIVE_AMBER =
+  'bg-amber-100 text-amber-800 ring-1 ring-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:ring-amber-600'
+
+export function TogglePill({
+  active,
+  onToggle,
+  icon,
+  label,
+  ariaLabel,
+  labelAdornment,
+}: {
+  active: boolean
+  onToggle: () => void
+  icon: React.ReactNode
+  label: string
+  ariaLabel?: string
+  labelAdornment?: React.ReactNode
+}) {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={active}
+        aria-label={ariaLabel || label}
+        onClick={onToggle}
+        className={`${PILL_BASE} inline-flex items-center gap-1.5 ${active ? TOGGLE_PILL_ACTIVE_AMBER : PILL_INACTIVE}`}
+      >
+        {icon}
+        <span>{label}</span>
+      </button>
+      {labelAdornment}
+    </div>
+  )
+}
+
 export function PillGroup<T extends string>({
   options,
   value,
