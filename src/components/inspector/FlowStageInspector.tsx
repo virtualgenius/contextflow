@@ -2,7 +2,13 @@ import React from 'react'
 import { Trash2, Users } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
-import { INPUT_TITLE_CLASS, INPUT_TEXT_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
+import {
+  INPUT_TITLE_CLASS,
+  INPUT_TEXT_CLASS,
+  TEXTAREA_CLASS,
+  InspectorHeader,
+  Section,
+} from './inspectorShared'
 
 export function FlowStageInspector({
   project,
@@ -59,14 +65,14 @@ export function FlowStageInspector({
   return (
     <div className="space-y-5">
       {/* Name */}
-      <div>
+      <InspectorHeader>
         <input
           type="text"
           value={stage.name}
           onChange={(e) => handleStageUpdate({ name: e.target.value })}
           className={INPUT_TITLE_CLASS}
         />
-      </div>
+      </InspectorHeader>
 
       {/* Description */}
       <Section label="Description">

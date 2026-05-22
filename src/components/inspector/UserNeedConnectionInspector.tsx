@@ -2,7 +2,7 @@ import React from 'react'
 import { ArrowRight, Trash2 } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
-import { TEXTAREA_CLASS, Section } from './inspectorShared'
+import { TEXTAREA_CLASS, InspectorHeader, Section } from './inspectorShared'
 
 export function UserNeedConnectionInspector({
   project,
@@ -42,9 +42,11 @@ export function UserNeedConnectionInspector({
   return (
     <div className="space-y-5">
       {/* Connection Title */}
-      <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
-        User → Need Connection
-      </div>
+      <InspectorHeader>
+        <div className="font-semibold text-base text-slate-900 dark:text-slate-100 leading-tight">
+          User → Need Connection
+        </div>
+      </InspectorHeader>
 
       {/* From/To - User and User Need */}
       <Section label="Connection">

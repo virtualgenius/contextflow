@@ -3,7 +3,7 @@ import { Trash2, X } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 import { SimpleTooltip } from '../SimpleTooltip'
-import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
+import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, InspectorHeader, Section } from './inspectorShared'
 
 export function UserNeedInspector({
   project,
@@ -56,14 +56,14 @@ export function UserNeedInspector({
   return (
     <div className="space-y-4">
       {/* Name */}
-      <Section label="User Need">
+      <InspectorHeader>
         <input
           type="text"
           value={userNeed.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}
           className={INPUT_TITLE_CLASS}
         />
-      </Section>
+      </InspectorHeader>
 
       {/* Description */}
       <Section label="Description">

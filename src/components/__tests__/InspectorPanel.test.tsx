@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { InspectorPanel } from '../InspectorPanel'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
@@ -8,7 +8,9 @@ vi.mock('../../model/store', () => ({
   useEditorStore: Object.assign(vi.fn(), { setState: vi.fn() }),
 }))
 
-// Stub heavy sub-inspectors so this test focuses on header chrome.
+// Stub each sub-inspector so this test focuses on routing only. Close-button
+// behavior is now part of the shared InspectorHeader rendered inside each
+// inspector, and is exercised by the InspectorHeader test.
 vi.mock('../inspector/ContextInspector', () => ({
   ContextInspector: () => <div data-testid="context-inspector" />,
 }))
@@ -77,57 +79,39 @@ function setupStore(overrides: Record<string, unknown>) {
   })
 }
 
-describe('InspectorPanel header close button', () => {
+describe('InspectorPanel routing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders a Close button when a context is selected', () => {
+  it('routes to ContextInspector for a selected context', () => {
     setupStore({ selectedContextId: 'ctx-1' })
     render(<InspectorPanel />)
-    expect(screen.getByRole('button', { name: /close inspector/i })).toBeInTheDocument()
+    expect(screen.getByTestId('context-inspector')).toBeInTheDocument()
   })
 
-  it('clears all selection state when Close is clicked', () => {
-    setupStore({ selectedContextId: 'ctx-1' })
-    render(<InspectorPanel />)
-    fireEvent.click(screen.getByRole('button', { name: /close inspector/i }))
-    expect(useEditorStore.setState).toHaveBeenCalledWith({
-      selectedContextId: null,
-      selectedGroupId: null,
-      selectedUserId: null,
-      selectedUserNeedId: null,
-      selectedRelationshipId: null,
-      selectedUserNeedConnectionId: null,
-      selectedNeedContextConnectionId: null,
-      selectedStageIndex: null,
-      selectedTeamId: null,
-      selectedContextIds: [],
-    })
-  })
-
-  it('renders Close button for a selected relationship', () => {
+  it('routes to RelationshipInspector for a selected relationship', () => {
     setupStore({ selectedRelationshipId: 'rel-1' })
     render(<InspectorPanel />)
-    expect(screen.getByRole('button', { name: /close inspector/i })).toBeInTheDocument()
+    expect(screen.getByTestId('relationship-inspector')).toBeInTheDocument()
   })
 
-  it('renders Close button for a selected group', () => {
+  it('routes to GroupInspector for a selected group', () => {
     setupStore({ selectedGroupId: 'grp-1' })
     render(<InspectorPanel />)
-    expect(screen.getByRole('button', { name: /close inspector/i })).toBeInTheDocument()
+    expect(screen.getByTestId('group-inspector')).toBeInTheDocument()
   })
 
-  it('renders Close button for a selected team', () => {
+  it('routes to TeamInspector for a selected team', () => {
     setupStore({ selectedTeamId: 'team-1' })
     render(<InspectorPanel />)
-    expect(screen.getByRole('button', { name: /close inspector/i })).toBeInTheDocument()
+    expect(screen.getByTestId('team-inspector')).toBeInTheDocument()
   })
 
-  it('renders Close button for a selected stage', () => {
+  it('routes to FlowStageInspector for a selected stage', () => {
     setupStore({ selectedStageIndex: 0 })
     render(<InspectorPanel />)
-    expect(screen.getByRole('button', { name: /close inspector/i })).toBeInTheDocument()
+    expect(screen.getByTestId('flow-stage-inspector')).toBeInTheDocument()
   })
 
   it('renders nothing when no selection is active', () => {

@@ -3,7 +3,7 @@ import { Plus, Trash2, X } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Project } from '../../model/types'
 import { SimpleTooltip } from '../SimpleTooltip'
-import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, Section } from './inspectorShared'
+import { INPUT_TITLE_CLASS, TEXTAREA_CLASS, InspectorHeader, Section } from './inspectorShared'
 
 export function GroupInspector({ project, groupId }: { project: Project; groupId: string }) {
   const updateGroup = useEditorStore((s) => s.updateGroup)
@@ -42,14 +42,14 @@ export function GroupInspector({ project, groupId }: { project: Project; groupId
   return (
     <div className="space-y-5">
       {/* Label */}
-      <div>
+      <InspectorHeader>
         <input
           type="text"
           value={group.label}
           onChange={(e) => updateGroup(group.id, { label: e.target.value })}
           className={INPUT_TITLE_CLASS}
         />
-      </div>
+      </InspectorHeader>
 
       {/* Notes */}
       <Section label="Notes">

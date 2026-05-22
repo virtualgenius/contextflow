@@ -515,6 +515,111 @@ export const TEAM_TOPOLOGIES: Record<string, ConceptDefinition> = {
   },
 }
 
+// Strategic Classification (Domain label-level concept)
+export const STRATEGIC_CLASSIFICATION_CONCEPT: ConceptDefinition = {
+  title: 'Strategic Classification',
+  description:
+    "Where this context sits on the DDD Core Domain Chart. Tells you where to invest your team's effort.",
+  characteristics: [
+    'Core: source of competitive advantage; invest heavily',
+    'Supporting: necessary but not differentiating; keep simple',
+    'Generic: common to most businesses; buy or use open source',
+  ],
+}
+
+// Wardley Evolution (Evolution label-level concept)
+export const WARDLEY_EVOLUTION_CONCEPT: ConceptDefinition = {
+  title: 'Evolution Stage',
+  description:
+    'How mature and well-understood this capability is. Maturity changes how you should build, buy, or operate it.',
+  characteristics: [
+    'Genesis: novel and uncertain; experiment',
+    'Custom-Built: emerging understanding; tailored implementation',
+    'Product: well-understood; vendor solutions available',
+    'Commodity: standardized utility; focus on cost',
+  ],
+}
+
+// Ownership concept (label-level)
+export const OWNERSHIP_CONCEPT: ConceptDefinition = {
+  title: 'Ownership',
+  description:
+    'Who builds and maintains this context. Shapes how much you can change it and how much coordination changes require.',
+  characteristics: [
+    'Our Team: you own the roadmap and code',
+    'Internal: another team in your org owns it',
+    'External: a third party owns it',
+  ],
+}
+
+// Team assignment concept
+export const TEAM_ASSIGNMENT_CONCEPT: ConceptDefinition = {
+  title: 'Team Assignment',
+  description:
+    'The team responsible for this bounded context. Aligning contexts with teams keeps cognitive load manageable and supports clear ownership.',
+  characteristics: [
+    'One team should own a context end to end where possible',
+    'A team can own multiple related contexts',
+    'See Team Topologies for guidance on team shapes',
+  ],
+}
+
+// Groups concept
+export const GROUPS_CONCEPT: ConceptDefinition = {
+  title: 'Capability Groups',
+  description:
+    'Visual clusters of contexts that share a business capability or theme. Groups overlay the canvas; deleting a group does not delete its contexts.',
+  characteristics: [
+    'A context can belong to multiple groups',
+    'Used to highlight subsystems or strategic clusters',
+    'Different from teams; groups are about capability, not ownership',
+  ],
+}
+
+// Notes concept
+export const NOTES_CONCEPT: ConceptDefinition = {
+  title: 'Notes',
+  description:
+    'Free-form context about politics, assumptions, history, or risks. Things that matter for decisions but do not fit the structured fields.',
+}
+
+// Issues concept
+export const ISSUES_CONCEPT: ConceptDefinition = {
+  title: 'Issues',
+  description:
+    'Known problems, risks, or open questions about this context. Severity indicates urgency; surfaced on the canvas as a badge.',
+  characteristics: [
+    'Critical: blocks progress or threatens delivery',
+    'Warning: should be addressed soon',
+    'Info: worth tracking but not urgent',
+  ],
+}
+
+// Section-level concepts (for SectionDivider headers)
+export const STRATEGIC_PROFILE_SECTION: ConceptDefinition = {
+  title: 'Strategic Profile',
+  description:
+    'Where this context sits strategically: domain classification, evolution stage, and business role. Use these to decide where to invest.',
+}
+
+export const TEAM_ORG_SECTION: ConceptDefinition = {
+  title: 'Team & Organization',
+  description:
+    'Who owns this context and how it relates to your team structure. Aligns the context map with Team Topologies.',
+}
+
+export const CODEBASE_SECTION: ConceptDefinition = {
+  title: 'Codebase',
+  description:
+    'Repos that implement this context, plus signals about code size and the strength of the boundary. Useful for sizing investment and refactoring effort.',
+}
+
+export const NOTES_ISSUES_SECTION: ConceptDefinition = {
+  title: 'Notes & Issues',
+  description:
+    'Unstructured context plus tracked problems. Use Notes for narrative; Issues for items that need attention.',
+}
+
 // Relationship Patterns (DDD Context Mapping patterns)
 export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
   'customer-supplier': {
