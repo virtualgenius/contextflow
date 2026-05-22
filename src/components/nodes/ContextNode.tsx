@@ -18,7 +18,6 @@ export function ContextNode({ data }: NodeProps) {
   const opacity = data.opacity as number | undefined
   const [isHovered, setIsHovered] = React.useState(false)
   const [showTooltip, setShowTooltip] = React.useState(false)
-  const tooltipTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const assignRepoToContext = useEditorStore((s) => s.assignRepoToContext)
@@ -162,23 +161,15 @@ export function ContextNode({ data }: NodeProps) {
         setIsHovered(true)
         setHoveredContext(context.id)
         if (showHelpTooltips) {
-          tooltipTimerRef.current = setTimeout(() => setShowTooltip(true), 500)
+          setShowTooltip(true)
         }
       }}
       onMouseLeave={() => {
         setIsHovered(false)
         setHoveredContext(null)
-        if (tooltipTimerRef.current) {
-          clearTimeout(tooltipTimerRef.current)
-          tooltipTimerRef.current = null
-        }
         setShowTooltip(false)
       }}
       onMouseDown={() => {
-        if (tooltipTimerRef.current) {
-          clearTimeout(tooltipTimerRef.current)
-          tooltipTimerRef.current = null
-        }
         setShowTooltip(false)
       }}
       style={{ position: 'relative' }}
@@ -245,9 +236,10 @@ export function ContextNode({ data }: NodeProps) {
               right: '4px',
               fontSize: '16px',
             }}
-            title="Legacy"
           >
-            ⚠
+            <SimpleTooltip text="Legacy" position="bottom">
+              <span>⚠</span>
+            </SimpleTooltip>
           </div>
         )}
 
@@ -261,9 +253,10 @@ export function ContextNode({ data }: NodeProps) {
               right: context.isLegacy ? '24px' : '4px',
               fontSize: '16px',
             }}
-            title="Big Ball of Mud"
           >
-            🟤
+            <SimpleTooltip text="Big Ball of Mud" position="bottom">
+              <span>🟤</span>
+            </SimpleTooltip>
           </div>
         )}
 

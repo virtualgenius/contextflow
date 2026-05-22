@@ -9,6 +9,7 @@ import {
 import { isBuiltInProject } from '../model/projectUtils'
 import { ProjectCreateDialog } from './ProjectCreateDialog'
 import { ProjectDeleteDialog } from './ProjectDeleteDialog'
+import { SimpleTooltip } from './SimpleTooltip'
 
 const EXAMPLE_DESCRIPTIONS: Record<string, string> = {
   'ACME E-Commerce Platform': 'Fictional e-commerce company with teams, repos, and value flow',
@@ -232,28 +233,31 @@ export function ProjectListContent({
                   </div>
                 </button>
                 <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => handleEditClick(e, project)}
-                    className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    title="Rename project"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    onClick={(e) => handleDuplicateClick(e, project.id)}
-                    className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    title="Duplicate project"
-                  >
-                    <Copy size={14} />
-                  </button>
-                  {canDelete && (
+                  <SimpleTooltip text="Rename project">
                     <button
-                      onClick={(e) => handleDeleteClick(e, project)}
-                      className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
-                      title="Delete project"
+                      onClick={(e) => handleEditClick(e, project)}
+                      className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     >
-                      <Trash2 size={14} />
+                      <Pencil size={14} />
                     </button>
+                  </SimpleTooltip>
+                  <SimpleTooltip text="Duplicate project">
+                    <button
+                      onClick={(e) => handleDuplicateClick(e, project.id)}
+                      className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </SimpleTooltip>
+                  {canDelete && (
+                    <SimpleTooltip text="Delete project">
+                      <button
+                        onClick={(e) => handleDeleteClick(e, project)}
+                        className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </SimpleTooltip>
                   )}
                 </div>
               </div>
@@ -314,13 +318,14 @@ export function ProjectListContent({
                     </div>
                   </button>
                   <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => handleDuplicateClick(e, project.id)}
-                      className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                      title="Duplicate project"
-                    >
-                      <Copy size={14} />
-                    </button>
+                    <SimpleTooltip text="Duplicate project">
+                      <button
+                        onClick={(e) => handleDuplicateClick(e, project.id)}
+                        className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      >
+                        <Copy size={14} />
+                      </button>
+                    </SimpleTooltip>
                   </div>
                 </div>
               )

@@ -104,7 +104,6 @@ describe('ContextNode Big Ball of Mud badge', () => {
   it('renders BBoM badge when isBigBallOfMud is true', () => {
     renderContextNode(makeContext({ isBigBallOfMud: true }))
     expect(screen.getByTestId('bbom-badge')).toBeInTheDocument()
-    expect(screen.getByTitle('Big Ball of Mud')).toBeInTheDocument()
   })
 
   it('does not render BBoM badge when isBigBallOfMud is false', () => {
@@ -119,8 +118,9 @@ describe('ContextNode Big Ball of Mud badge', () => {
 
   it('renders both Legacy and BBoM badges when both are true', () => {
     renderContextNode(makeContext({ isLegacy: true, isBigBallOfMud: true }))
-    expect(screen.getByTitle('Legacy')).toBeInTheDocument()
-    expect(screen.getByTitle('Big Ball of Mud')).toBeInTheDocument()
+    expect(screen.getByTestId('bbom-badge')).toBeInTheDocument()
+    expect(screen.getByText('⚠')).toBeInTheDocument()
+    expect(screen.getByText('🟤')).toBeInTheDocument()
   })
 })
 
