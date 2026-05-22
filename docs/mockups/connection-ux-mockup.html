@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connection UX Mockup - ContextFlow (GH #22)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Context card */
+    .ctx {
+      position: absolute;
+      width: 180px;
+      height: 96px;
+      border-radius: 8px;
+      background: #d1fae5;
+      border: 2px solid #94a3b8;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      cursor: grab;
+      user-select: none;
+      transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+    }
+    .ctx.hover-target { box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 4px 12px rgba(0,0,0,0.08); border-color: #3b82f6; }
+    .ctx .name { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .ctx .purpose { font-size: 10.5px; color: #64748b; margin-top: 6px; line-height: 1.35; }
+
+    /* Hover stubs container -- anchored to ctx */
+    .stubs { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+    .ctx.show-stubs .stubs { opacity: 1; }
+    .stub { position: absolute; pointer-events: auto; cursor: crosshair; display: flex; align-items: center; justify-content: center; }
+
+    /* Arrow nub variant -- draw.io style: large and translucent, solid+blue on hover */
+    .stub.arrow { width: 26px; height: 26px; position: absolute; }
+    .stub.arrow svg { width: 26px; height: 26px; transition: opacity 0.12s; opacity: 0.35; }
+    .stub.arrow svg path { fill: #475569; transition: fill 0.12s; }
+    .stub.arrow:hover svg { opacity: 1; }
+    .stub.arrow:hover svg path { fill: #2563eb; }
+    .stub.arrow .stub-tip { position: absolute; left: 50%; top: -34px; transform: translateX(-50%); background: #0f172a; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
+    .stub.arrow.right .stub-tip { left: 36px; top: 50%; transform: translateY(-50%); }
+    .stub.arrow.bottom .stub-tip { top: 36px; }
+    .stub.arrow.left .stub-tip  { left: auto; right: 36px; top: 50%; transform: translateY(-50%); }
+    .stub.arrow:hover .stub-tip { opacity: 1; }
+
+    /* Plus icon variant */
+    .stub.plus { width: 18px; height: 18px; background: #fff; border: 1.5px solid #64748b; border-radius: 50%; color: #64748b; font-weight: 700; font-size: 13px; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+    .stub.plus:hover { background: #2563eb; color: white; border-color: #2563eb; }
+
+    /* Ring variant: highlight entire perimeter */
+    .ctx.show-ring { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18); }
+    .ctx.show-ring:hover { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45); cursor: crosshair; }
+
+    /* Positions */
+    .stub.top    { left: 50%; top: -30px;    transform: translateX(-50%); }
+    .stub.right  { right: -30px; top: 50%;   transform: translateY(-50%); }
+    .stub.bottom { left: 50%; bottom: -30px; transform: translateX(-50%); }
+    .stub.left   { left: -30px; top: 50%;    transform: translateY(-50%); }
+
+    /* Pill button group */
+    .pill-btn { padding: 6px 10px; font-size: 12px; border: 1px solid #cbd5e1; background: white; color: #334155; cursor: pointer; transition: all 0.12s; }
+    .pill-btn:hover { background: #f1f5f9; }
+    .pill-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+    .pill-group { display: inline-flex; border-radius: 6px; overflow: hidden; }
+    .pill-group .pill-btn:not(:first-child) { border-left: none; }
+
+    /* SVG layer */
+    .edges-layer { position: absolute; inset: 0; pointer-events: none; }
+    .edge-path { fill: none; stroke: #475569; stroke-width: 2; }
+    .edge-arrow { fill: #475569; }
+    .edge-ghost { stroke: #2563eb; stroke-width: 2; stroke-dasharray: 6 4; fill: none; }
+
+    /* Cursor anchor preview */
+    .cursor-anchor { fill: #2563eb; stroke: white; stroke-width: 2; }
+
+    /* Coach mark callout */
+    .coach-callout { position: absolute; display: none; z-index: 50; }
+    .coach-callout.visible { display: block; animation: coach-fade 0.18s ease-out; }
+    @keyframes coach-fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .coach-body { background: #1e293b; color: white; padding: 12px 14px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.18); width: 280px; }
+    .coach-title { font-size: 12px; font-weight: 600; color: #93c5fd; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 6px; }
+    .coach-text { font-size: 13px; line-height: 1.5; color: #e2e8f0; margin-bottom: 10px; }
+    .coach-dismiss { background: #2563eb; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.12s; }
+    .coach-dismiss:hover { background: #1d4ed8; }
+    /* Pointer triangle on the left side of the callout (points at the stub on the right side of source card) */
+    .coach-pointer { position: absolute; left: -8px; top: 22px; width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 8px solid #1e293b; }
+
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .panel-h { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .panel-body { padding: 18px; }
+    .stage { position: relative; width: 100%; height: 280px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .legend { font-size: 11px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+    .kicker { font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 0.04em; text-transform: uppercase; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-6xl mx-auto p-8">
+    <header class="mb-8">
+      <div class="kicker">ContextFlow / GH #22</div>
+      <h1 class="text-2xl font-semibold mt-1">Connection UX redesign mockup</h1>
+      <p class="text-sm text-slate-600 mt-2 max-w-3xl">
+        Three changes proposed for the DDD Europe 2026 workshop audience: discoverable hover stubs, whole-shape drop targets, and bezier curves preserved. Open
+        <a href="../connection-ux-research.md" class="text-blue-600 underline">connection-ux-research.md</a>
+        for the survey and rationale. Settled in #21: joint anchor side selection (see <a href="https://github.com/paulrayner/contextflow/pull/21" class="text-blue-600 underline">PR #21</a>).
+      </p>
+    </header>
+
+    <!-- PANEL 1: Hover stubs -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Panel 1</div>
+          <h2 class="text-lg font-semibold mt-1">Hover stub variants</h2>
+        </div>
+        <div class="pill-group" id="stub-variant">
+          <button class="pill-btn active" data-variant="arrow">Arrow nubs</button>
+          <button class="pill-btn" data-variant="plus">Plus icons</button>
+          <button class="pill-btn" data-variant="ring">Perimeter ring</button>
+          <button class="pill-btn" data-variant="none">Current (left/right dots)</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p class="text-sm text-slate-600 mb-3">Hover either card. Drag from any stub to start a connection (in the real app -- here the cursor preview shows where the connection would originate).</p>
+        <div class="stage canvas-bg" id="stage-stubs">
+          <svg class="edges-layer" width="100%" height="100%" id="stubs-svg"></svg>
+          <div class="ctx" id="stub-ctx-a" style="left:60px; top:90px;">
+            <div class="name">Orders</div>
+            <div class="purpose">Customer-facing order lifecycle and invoice generation</div>
+            <div class="stubs"></div>
+          </div>
+          <div class="ctx" id="stub-ctx-b" style="left:380px; top:90px;">
+            <div class="name">Billing</div>
+            <div class="purpose">Charge processing and dunning</div>
+            <div class="stubs"></div>
+          </div>
+        </div>
+        <div class="legend">
+          <strong>Arrow nubs:</strong> small directional triangles on 4 sides, draw.io's signature affordance. Highest discoverability for non-power-users.<br/>
+          <strong>Plus icons:</strong> Excalidraw-style; clearer that something is clickable, but loses directional intent and feels noisier.<br/>
+          <strong>Perimeter ring:</strong> subtle, no discrete handles; whole edge is draggable. Lowest visual cost, lowest discoverability for a 2-hour workshop.<br/>
+          <strong>Current:</strong> two tiny fixed dots on left/right; the displayed edge floats, so creation and display geometry disagree.
+          <hr class="my-2 border-slate-200"/>
+          <strong>Direction convention (current code, kept for #22):</strong> drag from = downstream (dependent), drag to = upstream (defining authority). The arrow marker points to upstream. Decision to revisit during two-sided pattern work (<code>contextflow-ki1</code> / GH #13), where direction may become a model field set in the pattern picker rather than implied by drag direction.<br/>
+          <strong>Stub tooltip wording (hover a nub):</strong> "Drag to another context to map the relationship"<br/>
+          <strong>Rich card-hover tooltip line (proposed):</strong> "Drag any arrow to another context to map the relationship."<br/>
+          <strong>First-run coach mark (proposed):</strong> "Drag any arrow from this context to another to map the relationship. After releasing, pick a DDD pattern."<br/>
+          <em>All three surfaces are direction-neutral for #22.</em> Symmetric patterns (Partnership, Shared Kernel, Separate Ways) render with no arrow head and have no upstream/downstream, so any "arrow points to upstream" teaching would be wrong for them. Introducing upstream/downstream language is deferred to <code>contextflow-ki1</code> (GH #13), where the two-sided pattern work will resolve whether direction stays implied by the gesture (P1) or moves into the pattern picker (P3) -- and where symmetric patterns are first-class. For #22, users still meet the DDD terms in the pattern picker descriptions and the inspector.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 2: Whole-shape drop -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Panel 2</div>
+          <h2 class="text-lg font-semibold mt-1">Whole-shape drop target</h2>
+        </div>
+        <div class="flex gap-3 items-center">
+          <label class="text-xs text-slate-600 flex items-center gap-2">
+            <input type="checkbox" id="show-anchor-preview" checked />
+            Show floating anchor preview
+          </label>
+          <button class="pill-btn" id="reset-drop">Reset</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p class="text-sm text-slate-600 mb-3">Hover the <strong>Orders</strong> card to reveal arrow stubs. Drag from a stub to start a connection. Drop anywhere on a destination card body to complete it. Dragging the card body (not a stub) moves the card -- so node-drag and connection-drag are unambiguous.</p>
+        <div class="stage canvas-bg" id="stage-drop">
+          <svg class="edges-layer" width="100%" height="100%" id="drop-svg"></svg>
+          <div class="ctx" id="drop-ctx-a" style="left:60px; top:90px;">
+            <div class="name">Orders <span class="text-xs font-normal text-blue-600">(source)</span></div>
+            <div class="purpose">Hover to see stubs. Drag a stub to start a connection; drag the body to move.</div>
+            <div class="stubs"></div>
+          </div>
+          <div class="ctx" id="drop-ctx-b" style="left:420px; top:30px;">
+            <div class="name">Catalog</div>
+            <div class="purpose">SKU pricing and availability</div>
+          </div>
+          <div class="ctx" id="drop-ctx-c" style="left:420px; top:160px;">
+            <div class="name">Billing</div>
+            <div class="purpose">Charge processing and dunning</div>
+          </div>
+        </div>
+        <div class="legend">
+          <strong>How body-drag stays unambiguous:</strong> React Flow distinguishes connection-drag from node-drag by which mousedown fired. Stub mousedown -> connection-drag. Body mousedown -> node-drag (move the card). The whole-shape drop target is a destination-side-only affordance: it activates while a connection-drag is in flight, not when the source is idle.<br/>
+          <strong>Implementation note:</strong> a single transparent full-size React Flow target Handle is rendered behind the visible card body. React Flow's existing hit-testing accepts the drop; the displayed endpoint then floats to the closest side via the joint-anchor algorithm from #21.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: Bezier preserved -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Panel 3</div>
+          <h2 class="text-lg font-semibold mt-1">Routing: bezier vs. orthogonal</h2>
+        </div>
+        <div class="pill-group" id="routing-variant">
+          <button class="pill-btn active" data-routing="bezier">Bezier (chosen)</button>
+          <button class="pill-btn" data-routing="orthogonal">Orthogonal (rejected)</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p class="text-sm text-slate-600 mb-3">Drag any card. The rendered edge re-routes in real time. Bezier reads as "flow" and fits the hand-drawn strategic-design register. Orthogonal reads as "system diagram" -- correct for engineering schematics, off-register for context maps.</p>
+        <div class="stage canvas-bg" id="stage-routing">
+          <svg class="edges-layer" width="100%" height="100%" id="routing-svg"></svg>
+          <div class="ctx" id="route-ctx-a" style="left:60px;  top:30px;">
+            <div class="name">Orders</div>
+            <div class="purpose">Order lifecycle</div>
+          </div>
+          <div class="ctx" id="route-ctx-b" style="left:420px; top:160px;">
+            <div class="name">Billing</div>
+            <div class="purpose">Charge processing</div>
+          </div>
+          <div class="ctx" id="route-ctx-c" style="left:60px; top:160px; background:#dbeafe;">
+            <div class="name">Catalog</div>
+            <div class="purpose">SKU pricing</div>
+          </div>
+        </div>
+        <div class="legend">
+          The "edge wanders" symptom that motivated reconsidering bezier was the per-end independent anchor selection bug fixed in #21. Once anchors are chosen jointly across all 16 side pairs with a facing-side preference, bezier no longer loops out to the wrong side. The remaining "feels janky" lives in the creation affordance (Panel 1) and drop precision (Panel 2), not in the path type.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 4: First-run coach mark -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Panel 4</div>
+          <h2 class="text-lg font-semibold mt-1">First-run coach mark</h2>
+        </div>
+        <div class="flex gap-3 items-center">
+          <button class="pill-btn" id="coach-replay">Replay coach mark</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p class="text-sm text-slate-600 mb-3">First time a user encounters the new affordance, a one-shot callout teaches the gesture. Anchored to a stub (not a modal). Persisted dismissal via localStorage; "Replay" simulates the reset that workshop facilitators would use for a fresh demo. Try the gesture from any stub to the destination card -- coach auto-dismisses on first successful relationship creation.</p>
+        <div class="stage canvas-bg" id="stage-coach" style="height:320px;">
+          <svg class="edges-layer" width="100%" height="100%" id="coach-svg"></svg>
+          <div class="ctx" id="coach-ctx-a" style="left:80px; top:120px;">
+            <div class="name">Orders</div>
+            <div class="purpose">Hover to see stubs. The coach mark anchors to the right stub.</div>
+            <div class="stubs"></div>
+          </div>
+          <div class="ctx" id="coach-ctx-b" style="left:440px; top:120px;">
+            <div class="name">Catalog</div>
+            <div class="purpose">Drop here to complete the gesture and dismiss the coach.</div>
+          </div>
+
+          <!-- Coach mark callout -->
+          <div id="coach-callout" class="coach-callout">
+            <div class="coach-pointer"></div>
+            <div class="coach-body">
+              <div class="coach-title">Mapping a relationship</div>
+              <div class="coach-text">Drag any arrow from this context to another to map the relationship. After releasing, pick a DDD pattern.</div>
+              <button class="coach-dismiss" id="coach-dismiss">Got it</button>
+            </div>
+          </div>
+        </div>
+        <div class="legend">
+          <strong>Trigger:</strong> first time a project has &geq; 2 contexts AND zero relationships AND the user hovers any context. Less noisy than firing on every initial load; matches the moment where the gesture becomes useful.<br/>
+          <strong>Anchor:</strong> attached to one stub on the hovered card (right stub by default, or the side closest to other contexts so the callout's pointer faces toward a plausible drop target). Re-anchors if the user moves the card.<br/>
+          <strong>Dismissal:</strong> "Got it" button, OR auto-dismiss when the user creates their first relationship. Persisted via <code>localStorage.contextflow_coach_connection_seen = true</code>.<br/>
+          <strong>Reset:</strong> a setting under Help / Workshop Mode (or the Welcome Guide menu) clears the flag so facilitators can demo to a fresh audience.<br/>
+          <strong>Visual register:</strong> matches <code>GettingStartedGuideModal</code> -- slate body, blue accent, no emojis. Pointer triangle indicates which affordance to attend to.<br/>
+          <strong>Wording (carried from Panel 1 legend):</strong> "Drag any arrow from this context to another to map the relationship. After releasing, pick a DDD pattern." Direction-neutral; upstream/downstream teaching deferred to <code>contextflow-ki1</code>.
+        </div>
+      </div>
+    </section>
+
+    <footer class="text-xs text-slate-500 pt-6 border-t border-slate-200">
+      Mockup branch: <code>mockup/connection-ux</code>. Bead: <code>contextflow-twa</code>. Issue: <a class="text-blue-600 underline" href="https://github.com/paulrayner/contextflow/issues/22">GH #22</a>.
+    </footer>
+  </div>
+
+  <script>
+    /* =========================
+       Shared geometry helpers
+       ========================= */
+    const SIDES = ['top','right','bottom','left'];
+    const NORMALS = { top:{x:0,y:-1}, right:{x:1,y:0}, bottom:{x:0,y:1}, left:{x:-1,y:0} };
+
+    function rectOf(el, parent) {
+      const r = el.getBoundingClientRect();
+      const p = parent.getBoundingClientRect();
+      return { x: r.left - p.left, y: r.top - p.top, w: r.width, h: r.height,
+               cx: r.left - p.left + r.width/2, cy: r.top - p.top + r.height/2 };
+    }
+
+    function sideMid(rect, side) {
+      switch(side) {
+        case 'top':    return { x: rect.cx, y: rect.y };
+        case 'right':  return { x: rect.x + rect.w, y: rect.cy };
+        case 'bottom': return { x: rect.cx, y: rect.y + rect.h };
+        case 'left':   return { x: rect.x, y: rect.cy };
+      }
+    }
+
+    const HEMISPHERE_PENALTY = 1.5;
+    function selectAnchorSides(s, t) {
+      const dx = t.cx - s.cx, dy = t.cy - s.cy;
+      const len = Math.hypot(dx, dy) || 1;
+      const ux = dx/len, uy = dy/len;
+      let best = { score: Infinity, sSide: 'right', tSide: 'left' };
+      for (const sSide of SIDES) for (const tSide of SIDES) {
+        const pS = sideMid(s, sSide), pT = sideMid(t, tSide);
+        const d = Math.hypot(pS.x - pT.x, pS.y - pT.y);
+        const nS = NORMALS[sSide], nT = NORMALS[tSide];
+        const sFaces = nS.x*ux + nS.y*uy > 0;
+        const tFaces = nT.x*-ux + nT.y*-uy > 0;
+        const score = (sFaces && tFaces) ? d : d * HEMISPHERE_PENALTY;
+        if (score < best.score) best = { score, sSide, tSide };
+      }
+      return best;
+    }
+
+    function bezierPath(s, t, sSide, tSide) {
+      const handle = Math.max(60, Math.hypot(t.x - s.x, t.y - s.y) * 0.35);
+      const nS = NORMALS[sSide], nT = NORMALS[tSide];
+      const c1 = { x: s.x + nS.x*handle, y: s.y + nS.y*handle };
+      const c2 = { x: t.x + nT.x*handle, y: t.y + nT.y*handle };
+      return `M ${s.x},${s.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${t.x},${t.y}`;
+    }
+
+    function orthogonalPath(s, t, sSide, tSide) {
+      const mx = (s.x + t.x) / 2, my = (s.y + t.y) / 2;
+      if (sSide === 'left' || sSide === 'right') {
+        return `M ${s.x},${s.y} L ${mx},${s.y} L ${mx},${t.y} L ${t.x},${t.y}`;
+      } else {
+        return `M ${s.x},${s.y} L ${s.x},${my} L ${t.x},${my} L ${t.x},${t.y}`;
+      }
+    }
+
+    function shorten(pt, side, by) {
+      const n = NORMALS[side];
+      return { x: pt.x + n.x*by, y: pt.y + n.y*by };
+    }
+
+    /* =========================
+       Draggable cards (free move)
+       ========================= */
+    function makeDraggable(el, stage, onMove) {
+      let dragging = false, ox = 0, oy = 0;
+      el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.stub')) return; // don't drag from stubs
+        dragging = true;
+        ox = e.clientX - el.offsetLeft;
+        oy = e.clientY - el.offsetTop;
+        el.style.cursor = 'grabbing';
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const sr = stage.getBoundingClientRect();
+        const nx = Math.max(0, Math.min(sr.width  - el.offsetWidth,  e.clientX - ox));
+        const ny = Math.max(0, Math.min(sr.height - el.offsetHeight, e.clientY - oy));
+        el.style.left = nx + 'px';
+        el.style.top  = ny + 'px';
+        onMove && onMove();
+      });
+      window.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        el.style.cursor = 'grab';
+      });
+    }
+
+    /* =========================
+       PANEL 1: Hover stub variants
+       ========================= */
+    const stubArrowSvg = {
+      top:    '<svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z"/></svg>',
+      right:  '<svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg>',
+      bottom: '<svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg>',
+      left:   '<svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg>',
+    };
+
+    function renderStubs(card, variant) {
+      const stubsEl = card.querySelector('.stubs');
+      stubsEl.innerHTML = '';
+      card.classList.remove('show-stubs','show-ring');
+      if (variant === 'ring') { card.classList.add('show-ring'); return; }
+      if (variant === 'none') {
+        // render two tiny dots like the current implementation
+        const dotL = document.createElement('div');
+        dotL.style.cssText = 'position:absolute;left:-5px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:#555;border:1px solid white;';
+        const dotR = dotL.cloneNode();
+        dotR.style.left = 'auto'; dotR.style.right = '-5px';
+        stubsEl.appendChild(dotL); stubsEl.appendChild(dotR);
+        card.classList.add('show-stubs');
+        stubsEl.style.opacity = '1';
+        return;
+      }
+      for (const side of SIDES) {
+        const s = document.createElement('div');
+        s.className = `stub ${variant} ${side}`;
+        s.dataset.side = side;
+        if (variant === 'arrow') {
+          s.innerHTML = stubArrowSvg[side] + '<div class="stub-tip">Drag to another context to map the relationship</div>';
+        } else {
+          s.innerHTML = '+';
+        }
+        stubsEl.appendChild(s);
+      }
+      card.classList.add('show-stubs');
+    }
+
+    function initPanel1() {
+      const stage = document.getElementById('stage-stubs');
+      const svg = document.getElementById('stubs-svg');
+      const a = document.getElementById('stub-ctx-a');
+      const b = document.getElementById('stub-ctx-b');
+      const cards = [a, b];
+
+      let currentVariant = 'arrow';
+      cards.forEach(c => renderStubs(c, currentVariant));
+
+      // make stubs reveal on hover (arrow/plus variants)
+      cards.forEach(c => {
+        c.addEventListener('mouseenter', () => {
+          if (['arrow','plus'].includes(currentVariant)) c.classList.add('show-stubs');
+          c.querySelector('.stubs').style.opacity = '1';
+        });
+        c.addEventListener('mouseleave', () => {
+          if (['arrow','plus'].includes(currentVariant)) c.classList.remove('show-stubs');
+          if (currentVariant !== 'none') c.querySelector('.stubs').style.opacity = '0';
+        });
+      });
+      // initial: hide unless none
+      cards.forEach(c => {
+        if (currentVariant !== 'none') c.querySelector('.stubs').style.opacity = '0';
+      });
+
+      function drawEdge() {
+        const sR = rectOf(a, stage), tR = rectOf(b, stage);
+        const { sSide, tSide } = selectAnchorSides(sR, tR);
+        const sP = shorten(sideMid(sR, sSide), sSide, -2);
+        const tP = shorten(sideMid(tR, tSide), tSide, 8);
+        const d = bezierPath(sP, tP, sSide, tSide);
+        svg.innerHTML = `
+          <defs><marker id="arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" class="edge-arrow"/></marker></defs>
+          <path d="${d}" class="edge-path" marker-end="url(#arrow1)"/>
+        `;
+      }
+      cards.forEach(c => makeDraggable(c, stage, drawEdge));
+      drawEdge();
+
+      document.querySelectorAll('#stub-variant .pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#stub-variant .pill-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentVariant = btn.dataset.variant;
+          cards.forEach(c => {
+            renderStubs(c, currentVariant);
+            if (currentVariant !== 'none') c.querySelector('.stubs').style.opacity = '0';
+          });
+        });
+      });
+    }
+
+    /* =========================
+       PANEL 2: Whole-shape drop target
+       ========================= */
+    function initPanel2() {
+      const stage = document.getElementById('stage-drop');
+      const svg = document.getElementById('drop-svg');
+      const src = document.getElementById('drop-ctx-a');
+      const targets = [document.getElementById('drop-ctx-b'), document.getElementById('drop-ctx-c')];
+      const allCards = [src, ...targets];
+      const showPreview = document.getElementById('show-anchor-preview');
+      const resetBtn = document.getElementById('reset-drop');
+
+      // Render arrow stubs on source (always visible while not connecting)
+      renderStubs(src, 'arrow');
+      src.querySelector('.stubs').style.opacity = '0';
+      src.addEventListener('mouseenter', () => {
+        if (!connecting) src.querySelector('.stubs').style.opacity = '1';
+      });
+      src.addEventListener('mouseleave', () => {
+        if (!connecting) src.querySelector('.stubs').style.opacity = '0';
+      });
+
+      let connecting = false, startPt = null, startSide = null, cursorPt = null, hoverTarget = null;
+      let establishedEdges = []; // { sourceId, targetId }
+
+      function hitTest(x, y) {
+        for (const t of targets) {
+          const r = rectOf(t, stage);
+          if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return t;
+        }
+        return null;
+      }
+
+      function render() {
+        let out = `<defs><marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" class="edge-arrow"/></marker></defs>`;
+
+        for (const e of establishedEdges) {
+          const sEl = document.getElementById(e.sourceId);
+          const tEl = document.getElementById(e.targetId);
+          if (!sEl || !tEl) continue;
+          const sR = rectOf(sEl, stage), tR = rectOf(tEl, stage);
+          const { sSide, tSide } = selectAnchorSides(sR, tR);
+          const sP = sideMid(sR, sSide);
+          const tP = shorten(sideMid(tR, tSide), tSide, 8);
+          out += `<path d="${bezierPath(sP, tP, sSide, tSide)}" class="edge-path" marker-end="url(#arrow2)"/>`;
+        }
+
+        if (connecting && startPt && cursorPt) {
+          let endPt = cursorPt;
+          let previewSide = null;
+          if (hoverTarget) {
+            hoverTarget.classList.add('hover-target');
+            const tR = rectOf(hoverTarget, stage);
+            const sR = rectOf(src, stage);
+            const { tSide } = selectAnchorSides(sR, tR);
+            endPt = sideMid(tR, tSide);
+            previewSide = tSide;
+          }
+          for (const t of targets) if (t !== hoverTarget) t.classList.remove('hover-target');
+          out += `<path d="M ${startPt.x} ${startPt.y} L ${endPt.x} ${endPt.y}" class="edge-ghost"/>`;
+          if (showPreview.checked && previewSide) {
+            out += `<circle cx="${endPt.x}" cy="${endPt.y}" r="6" class="cursor-anchor"/>`;
+          }
+        } else {
+          for (const t of targets) t.classList.remove('hover-target');
+        }
+        svg.innerHTML = out;
+      }
+
+      // Connection drag: only from stubs
+      src.querySelector('.stubs').addEventListener('mousedown', (e) => {
+        const stub = e.target.closest('.stub');
+        if (!stub) return;
+        e.stopPropagation(); // prevent body-drag
+        e.preventDefault();
+        connecting = true;
+        startSide = stub.dataset.side;
+        const sR = rectOf(src, stage);
+        startPt = sideMid(sR, startSide);
+        const p = stage.getBoundingClientRect();
+        cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
+        src.querySelector('.stubs').style.opacity = '0';
+        render();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!connecting) return;
+        const p = stage.getBoundingClientRect();
+        cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
+        hoverTarget = hitTest(cursorPt.x, cursorPt.y);
+        render();
+      });
+      window.addEventListener('mouseup', () => {
+        if (!connecting) return;
+        if (hoverTarget) establishedEdges.push({ sourceId: src.id, targetId: hoverTarget.id });
+        connecting = false; startPt = null; startSide = null; cursorPt = null; hoverTarget = null;
+        render();
+      });
+
+      resetBtn.addEventListener('click', () => { establishedEdges = []; render(); });
+      showPreview.addEventListener('change', render);
+
+      // Body-drag moves cards (all of them, source included)
+      allCards.forEach(c => makeDraggable(c, stage, render));
+
+      render();
+    }
+
+    /* =========================
+       PANEL 3: Bezier vs orthogonal
+       ========================= */
+    function initPanel3() {
+      const stage = document.getElementById('stage-routing');
+      const svg = document.getElementById('routing-svg');
+      const a = document.getElementById('route-ctx-a');
+      const b = document.getElementById('route-ctx-b');
+      const c = document.getElementById('route-ctx-c');
+      const cards = [a, b, c];
+      let routing = 'bezier';
+
+      const edges = [
+        { src: a, tgt: b },
+        { src: a, tgt: c },
+        { src: c, tgt: b },
+      ];
+
+      function render() {
+        let out = `<defs><marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" class="edge-arrow"/></marker></defs>`;
+        for (const e of edges) {
+          const sR = rectOf(e.src, stage), tR = rectOf(e.tgt, stage);
+          const { sSide, tSide } = selectAnchorSides(sR, tR);
+          const sP = sideMid(sR, sSide);
+          const tP = shorten(sideMid(tR, tSide), tSide, 8);
+          const d = routing === 'bezier' ? bezierPath(sP, tP, sSide, tSide) : orthogonalPath(sP, tP, sSide, tSide);
+          out += `<path d="${d}" class="edge-path" marker-end="url(#arrow3)"/>`;
+        }
+        svg.innerHTML = out;
+      }
+      cards.forEach(card => makeDraggable(card, stage, render));
+      document.querySelectorAll('#routing-variant .pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#routing-variant .pill-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          routing = btn.dataset.routing;
+          render();
+        });
+      });
+      render();
+    }
+
+    /* =========================
+       PANEL 4: First-run coach mark
+       ========================= */
+    function initPanel4() {
+      const stage = document.getElementById('stage-coach');
+      const svg = document.getElementById('coach-svg');
+      const src = document.getElementById('coach-ctx-a');
+      const tgt = document.getElementById('coach-ctx-b');
+      const callout = document.getElementById('coach-callout');
+      const dismissBtn = document.getElementById('coach-dismiss');
+      const replayBtn = document.getElementById('coach-replay');
+
+      // Stubs always visible on source for this demo (the user is hovering or has just hovered)
+      renderStubs(src, 'arrow');
+      src.querySelector('.stubs').style.opacity = '1';
+
+      let coachVisible = true;
+      let connecting = false, startPt = null, cursorPt = null, hoverTarget = null;
+      let edges = [];
+
+      function anchorCallout() {
+        const sR = rectOf(src, stage);
+        // Anchor to the right side of the card, level with the right stub
+        callout.style.left = (sR.x + sR.w + 36) + 'px';
+        callout.style.top = (sR.cy - 26) + 'px';
+      }
+      function showCoach() { coachVisible = true; callout.classList.add('visible'); anchorCallout(); }
+      function hideCoach() { coachVisible = false; callout.classList.remove('visible'); }
+
+      function render() {
+        let out = `<defs><marker id="arrow4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" class="edge-arrow"/></marker></defs>`;
+        for (const e of edges) {
+          const sR = rectOf(src, stage), tR = rectOf(tgt, stage);
+          const { sSide, tSide } = selectAnchorSides(sR, tR);
+          const sP = sideMid(sR, sSide);
+          const tP = shorten(sideMid(tR, tSide), tSide, 8);
+          out += `<path d="${bezierPath(sP, tP, sSide, tSide)}" class="edge-path" marker-end="url(#arrow4)"/>`;
+        }
+        if (connecting && startPt && cursorPt) {
+          let endPt = cursorPt;
+          let previewSide = null;
+          const tR = rectOf(tgt, stage);
+          if (cursorPt.x >= tR.x && cursorPt.x <= tR.x + tR.w && cursorPt.y >= tR.y && cursorPt.y <= tR.y + tR.h) {
+            tgt.classList.add('hover-target');
+            hoverTarget = tgt;
+            const sR = rectOf(src, stage);
+            const { tSide } = selectAnchorSides(sR, tR);
+            endPt = sideMid(tR, tSide);
+            previewSide = tSide;
+          } else {
+            tgt.classList.remove('hover-target');
+            hoverTarget = null;
+          }
+          out += `<path d="M ${startPt.x} ${startPt.y} L ${endPt.x} ${endPt.y}" class="edge-ghost"/>`;
+          if (previewSide) out += `<circle cx="${endPt.x}" cy="${endPt.y}" r="6" class="cursor-anchor"/>`;
+        } else {
+          tgt.classList.remove('hover-target');
+        }
+        svg.innerHTML = out;
+      }
+
+      // Stub mousedown starts a connection-drag and auto-dismisses the coach as soon as the user starts the gesture
+      src.querySelector('.stubs').addEventListener('mousedown', (e) => {
+        const stub = e.target.closest('.stub');
+        if (!stub) return;
+        e.stopPropagation();
+        e.preventDefault();
+        connecting = true;
+        const sR = rectOf(src, stage);
+        startPt = sideMid(sR, stub.dataset.side);
+        const p = stage.getBoundingClientRect();
+        cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
+        render();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!connecting) return;
+        const p = stage.getBoundingClientRect();
+        cursorPt = { x: e.clientX - p.left, y: e.clientY - p.top };
+        render();
+      });
+      window.addEventListener('mouseup', () => {
+        if (!connecting) return;
+        if (hoverTarget) {
+          edges.push({});
+          hideCoach(); // auto-dismiss on successful first relationship
+        }
+        connecting = false; startPt = null; cursorPt = null; hoverTarget = null;
+        render();
+      });
+
+      dismissBtn.addEventListener('click', hideCoach);
+      replayBtn.addEventListener('click', () => { edges = []; render(); showCoach(); });
+
+      makeDraggable(src, stage, () => { render(); if (coachVisible) anchorCallout(); });
+      makeDraggable(tgt, stage, render);
+
+      showCoach();
+      render();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initPanel1();
+      initPanel2();
+      initPanel3();
+      initPanel4();
+    });
+  </script>
+</body>
+</html>

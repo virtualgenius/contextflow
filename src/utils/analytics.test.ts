@@ -152,26 +152,39 @@ describe('analytics', () => {
       expect(isAnalyticsEnabled()).toBe(true)
     })
 
-    it('defaults to OFF for localhost', () => {
+    it('defaults to ON for self_hosted', () => {
+      // @ts-expect-error -- mock window.location for test
+      window.location = { hostname: 'my-company.com' }
+      expect(isAnalyticsEnabled()).toBe(true)
+    })
+
+    it('defaults to OFF for localhost (dev convenience)', () => {
       // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'localhost' }
       expect(isAnalyticsEnabled()).toBe(false)
     })
 
-    it('defaults to OFF for self_hosted', () => {
+    it('defaults to OFF for 127.0.0.1 (dev convenience)', () => {
       // @ts-expect-error -- mock window.location for test
-      window.location = { hostname: 'my-company.com' }
+      window.location = { hostname: '127.0.0.1' }
       expect(isAnalyticsEnabled()).toBe(false)
     })
 
-    it('explicit user preference overrides hosted_demo default', () => {
+    it('preserves existing opt-out on hosted_demo', () => {
       // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'contextflow.virtualgenius.com' }
       localStorage.setItem('contextflow.analytics_enabled', 'false')
       expect(isAnalyticsEnabled()).toBe(false)
     })
 
-    it('explicit user preference overrides localhost default', () => {
+    it('preserves existing opt-out on self_hosted', () => {
+      // @ts-expect-error -- mock window.location for test
+      window.location = { hostname: 'my-company.com' }
+      localStorage.setItem('contextflow.analytics_enabled', 'false')
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('explicit opt-in overrides localhost default', () => {
       // @ts-expect-error -- mock window.location for test
       window.location = { hostname: 'localhost' }
       localStorage.setItem('contextflow.analytics_enabled', 'true')

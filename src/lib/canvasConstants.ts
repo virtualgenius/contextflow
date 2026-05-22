@@ -14,10 +14,23 @@ export const EDGE_HIT_AREA_WIDTH = 20
 export const EDGE_STROKE_WIDTH = { default: 1.5, hover: 2, selected: 2.5 }
 export const EDGE_TRANSITION = 'var(--edge-transition)' // CSS variable toggled during drag
 export const EDGE_DASH_ARRAY = '5,5'
-// Length in user-space units that the relationship arrow marker occupies;
-// the visible path is shortened by this amount so the marker base sits at the
-// path tail and the tip touches the box edge (GH #24).
-export const ARROW_MARKER_LENGTH = 5
+// Pixel size of the rendered relationship arrow markers (markerWidth/Height).
+// Larger than the historical 5 so the arrowhead reads clearly at workshop
+// zoom levels (GH #22).
+export const RELATIONSHIP_MARKER_SIZE = 8
+
+// Visible breathing room between the line / arrow tip and the source or
+// target context border. Applied symmetrically to both ends so the line
+// reads as connecting BETWEEN two contexts rather than tied flush to their
+// borders, matching the mockup.
+export const EDGE_ENDPOINT_GAP = 6
+
+// Length in user-space units to pull the visible path back from the target
+// box edge. With markerWidth/Height = RELATIONSHIP_MARKER_SIZE and refX=0,
+// the arrow tip lands RELATIONSHIP_MARKER_SIZE forward of the path tail.
+// Shortening by (marker size + gap) leaves the arrow tip EDGE_ENDPOINT_GAP
+// units before the target border.
+export const ARROW_MARKER_LENGTH = RELATIONSHIP_MARKER_SIZE + EDGE_ENDPOINT_GAP
 
 // Pattern indicator configuration for ACL/OHS boxes on edges
 type PatternIndicatorConfig = {

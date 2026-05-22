@@ -6,9 +6,16 @@ import { useEditorStore } from '../../model/store'
 import type { Relationship } from '../../model/types'
 import { getEdgeLabelInfo } from '../../lib/canvasHelpers'
 import { getIndicatorBoxPosition } from '../../lib/edgeUtils'
-import { getEdgeParams, getBoxEdgePoint, shortenEdgeEndpoint } from '../../lib/edgeGeometry'
+import {
+  getEdgeParams,
+  getIndicatorBoxAttachment,
+  shortenEdgeEndpoint,
+  SIDE_NORMALS,
+  tangentBezierPath,
+} from '../../lib/edgeGeometry'
 import {
   ARROW_MARKER_LENGTH,
+  EDGE_ENDPOINT_GAP,
   EDGE_HIT_AREA_WIDTH,
   EDGE_STROKE_WIDTH,
   EDGE_TRANSITION,
@@ -38,6 +45,7 @@ function RelationshipEdge({
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
   const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
+  const setHoveredRelationship = useEditorStore((s) => s.setHoveredRelationship)
   const relationship = data?.relationship as Relationship | undefined
   const pattern = relationship?.pattern || ''
   const isSelected = id === selectedRelationshipId
@@ -95,15 +103,19 @@ function RelationshipEdge({
   const isSymmetric =
     pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
 
-  // For directional patterns, render a slightly shorter visible path so the
-  // arrow marker's base sits at the tail and only its tip reaches the box edge
-  // (GH #24). The hit area keeps the full geometry for clicking/hovering.
+  // Visible path: pulled back from both context borders so the line floats
+  // BETWEEN contexts rather than tied flush to their edges. Source side gets
+  // EDGE_ENDPOINT_GAP; target side gets ARROW_MARKER_LENGTH for directional
+  // patterns (marker size + gap, so arrow tip lands inside the gap) or
+  // EDGE_ENDPOINT_GAP for symmetric patterns (no marker). The hit area uses
+  // the full geometry above so hover/click works against the longer line.
+  const visibleSource = shortenEdgeEndpoint(sx, sy, sourcePos, EDGE_ENDPOINT_GAP)
   const visibleTarget = isSymmetric
-    ? { x: tx, y: ty }
+    ? shortenEdgeEndpoint(tx, ty, targetPos, EDGE_ENDPOINT_GAP)
     : shortenEdgeEndpoint(tx, ty, targetPos, ARROW_MARKER_LENGTH)
   const [visibleEdgePath] = getBezierPath({
-    sourceX: sx,
-    sourceY: sy,
+    sourceX: visibleSource.x,
+    sourceY: visibleSource.y,
     sourcePosition: sourcePos,
     targetX: visibleTarget.x,
     targetY: visibleTarget.y,
@@ -133,31 +145,46 @@ function RelationshipEdge({
       )
     : null
 
-  const boxEdgePoint =
+  // ACL/OHS edge geometry (contextflow-if3):
+  // - Indicator box hugs its parent context; line attaches to the box's outer
+  //   edge midpoint (the side facing AWAY from the parent), with the same
+  //   EDGE_ENDPOINT_GAP used at context attachments.
+  // - Path is a tangent-aware bezier so it leaves the box perpendicular to the
+  //   outer edge and enters the other context perpendicular to that edge.
+  // - Arrow always points to the upstream (target) end of the relationship.
+  const boxAttachment =
     boxPos && indicatorConfig
-      ? getBoxEdgePoint(
+      ? getIndicatorBoxAttachment(
           boxPos,
           indicatorConfig.boxWidth,
           indicatorConfig.boxHeight,
-          indicatorConfig.position === 'source' ? { x: tx, y: ty } : { x: sx, y: sy }
+          indicatorEdgePos
         )
       : null
 
-  // ACL: target endpoint is the target context box edge — shorten so the arrow
-  // marker doesn't overlap the path. OHS: target endpoint is the indicator box
-  // edge, which already provides a clean visual break, so leave it untouched.
-  const aclOhsTargetX = isOHS ? boxEdgePoint?.x : visibleTarget.x
-  const aclOhsTargetY = isOHS ? boxEdgePoint?.y : visibleTarget.y
-  const [aclOhsPath] = boxEdgePoint
-    ? getBezierPath({
-        sourceX: isACL ? boxEdgePoint.x : sx,
-        sourceY: isACL ? boxEdgePoint.y : sy,
-        sourcePosition: sourcePos,
-        targetX: aclOhsTargetX ?? tx,
-        targetY: aclOhsTargetY ?? ty,
-        targetPosition: targetPos,
-      })
-    : [null]
+  const aclOhsPath = (() => {
+    if (!boxAttachment) return null
+    // Pull the path back from the box border by EDGE_ENDPOINT_GAP on the
+    // non-arrow side (ACL: box is the source end, no arrow) or
+    // ARROW_MARKER_LENGTH on the arrow side (OHS: box is the target end with
+    // arrow), so the arrow tip lands in the same gap before the box border
+    // that it does before the context border.
+    const boxPullback = isACL ? EDGE_ENDPOINT_GAP : ARROW_MARKER_LENGTH
+    const boxEndpoint = {
+      x: boxAttachment.point.x + boxAttachment.normal.x * boxPullback,
+      y: boxAttachment.point.y + boxAttachment.normal.y * boxPullback,
+    }
+    if (isACL) {
+      // Path: box (no arrow) -> target context (arrow). Source = box outer edge.
+      const targetEndpoint = visibleTarget
+      const targetNormal = SIDE_NORMALS[targetPos]
+      return tangentBezierPath(boxEndpoint, targetEndpoint, boxAttachment.normal, targetNormal)
+    }
+    // OHS: source context (no arrow) -> box (arrow at box).
+    const sourceEndpoint = visibleSource
+    const sourceNormal = SIDE_NORMALS[sourcePos]
+    return tangentBezierPath(sourceEndpoint, boxEndpoint, sourceNormal, boxAttachment.normal)
+  })()
 
   // Edge color based on state
   const isEmphasized = isSelected || isHovered || isHighlightedByHover
@@ -310,8 +337,14 @@ function RelationshipEdge({
           cursor: 'pointer',
           pointerEvents: 'all',
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true)
+          setHoveredRelationship(id)
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoveredRelationship(null)
+        }}
         onClick={(e) => {
           e.stopPropagation()
           useEditorStore.setState({
@@ -324,9 +357,8 @@ function RelationshipEdge({
           e.stopPropagation()
           setContextMenu({ x: e.clientX, y: e.clientY })
         }}
-      >
-        <title>{pattern}</title>
-      </path>
+      />
+
       {/* Tooltip on hover or when selected - uses portal to render above all layers */}
       {showHelpTooltips &&
         (isHovered || isSelected) &&

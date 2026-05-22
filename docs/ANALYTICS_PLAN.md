@@ -1133,8 +1133,9 @@ Migrated from Simple Analytics to PostHog for richer product analytics (funnels,
 
 **Deployment-aware defaults:**
 - `hosted_demo` (contextflow.virtualgenius.com): analytics ON by default
-- `self_hosted` and `localhost`: analytics OFF by default
-- User can always override via Settings toggle
+- `self_hosted`: analytics ON by default (opt-out via Settings)
+- `localhost` and `127.0.0.1`: analytics OFF by default (dev convenience)
+- User can always override via Settings toggle; explicit preferences are always preserved across visits
 - Developer mode still disables analytics regardless
 
 **User-facing opt-out:**

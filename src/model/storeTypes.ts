@@ -121,6 +121,7 @@ export interface EditorState {
   selectedTeamId: string | null
   selectedContextIds: string[]
   hoveredContextId: string | null
+  hoveredRelationshipId: string | null
   isDragging: boolean
 
   canvasView: {
@@ -178,6 +179,7 @@ export interface EditorState {
   toggleContextSelection: (contextId: string) => void
   clearContextSelection: () => void
   setHoveredContext: (contextId: string | null) => void
+  setHoveredRelationship: (relationshipId: string | null) => void
   setViewMode: (mode: ViewMode) => void
   setActiveProject: (projectId: string) => Promise<void>
   createProject: (name: string) => Promise<void>

@@ -22,7 +22,7 @@ export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: 
 
   const deployment = getDeploymentContext()
   const hasExplicitPreference = getAnalyticsPreference() !== null
-  const defaultLabel = deployment === 'hosted_demo' ? 'on' : 'off'
+  const defaultLabel = deployment === 'localhost' ? 'off' : 'on'
 
   function handleAnalyticsToggle(checked: boolean) {
     setAnalyticsOn(checked)

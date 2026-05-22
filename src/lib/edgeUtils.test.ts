@@ -111,7 +111,7 @@ describe('getIndicatorBoxPosition', () => {
   }
   const boxWidth = 28
   const boxHeight = 18
-  const gap = 6
+  const gap = 2
 
   it('positions box above node center when edge is at top', () => {
     const result = getIndicatorBoxPosition(node, Position.Top, boxWidth, boxHeight)

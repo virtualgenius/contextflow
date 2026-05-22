@@ -12,7 +12,7 @@ interface GeometryNode {
 
 const SIDES: Position[] = [Position.Top, Position.Right, Position.Bottom, Position.Left]
 
-const SIDE_NORMALS: Record<Position, { x: number; y: number }> = {
+export const SIDE_NORMALS: Record<Position, { x: number; y: number }> = {
   [Position.Left]: { x: -1, y: 0 },
   [Position.Right]: { x: 1, y: 0 },
   [Position.Top]: { x: 0, y: -1 },
@@ -167,6 +167,51 @@ export function selectAnchorSides(
   }
 
   return { sourcePos: bestSource, targetPos: bestTarget }
+}
+
+/**
+ * Attachment on the outer edge of an ACL/OHS indicator box: the edge of the box
+ * facing AWAY from its parent context. Returns the midpoint of that edge plus
+ * its outward normal, for use with tangent-aware bezier paths. See contextflow-if3.
+ */
+export function getIndicatorBoxAttachment(
+  boxCenter: { x: number; y: number },
+  boxWidth: number,
+  boxHeight: number,
+  indicatorSide: Position
+): { point: { x: number; y: number }; normal: { x: number; y: number } } {
+  const halfW = boxWidth / 2
+  const halfH = boxHeight / 2
+  const normal = SIDE_NORMALS[indicatorSide]
+  return {
+    point: {
+      x: boxCenter.x + normal.x * halfW,
+      y: boxCenter.y + normal.y * halfH,
+    },
+    normal,
+  }
+}
+
+/**
+ * Tangent-aware cubic bezier between two endpoints. Each endpoint's control
+ * point lies along the outward tangent at that endpoint, so the path leaves
+ * and enters perpendicular to the attachment edges. Control-point distance
+ * scales with endpoint distance so a visible perpendicular stub reads at each
+ * end before the curve bends. See contextflow-if3.
+ */
+export function tangentBezierPath(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  aTangent: { x: number; y: number },
+  bTangent: { x: number; y: number }
+): string {
+  const dist = Math.hypot(b.x - a.x, b.y - a.y)
+  const k = Math.max(60, dist * 0.5)
+  const c1x = a.x + aTangent.x * k
+  const c1y = a.y + aTangent.y * k
+  const c2x = b.x + bTangent.x * k
+  const c2y = b.y + bTangent.y * k
+  return `M ${a.x},${a.y} C ${c1x},${c1y} ${c2x},${c2y} ${b.x},${b.y}`
 }
 
 /**

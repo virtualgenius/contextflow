@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect } from 'react'
+import React, { useMemo, useCallback, useEffect, useState } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -9,9 +9,11 @@ import ReactFlow, {
   useNodesState,
   ReactFlowProvider,
   ConnectionMode,
+  ConnectionLineType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
+import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
 import { X, ArrowRight } from 'lucide-react'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
@@ -25,13 +27,14 @@ import {
 } from '../lib/blobPositioning'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { createSelectionState } from '../model/validation'
-import { NODE_SIZES } from '../lib/canvasConstants'
+import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { ContextNode, GroupNode, UserNode, UserNeedNode } from './nodes'
+import { StubConnectionLine } from './StubConnectionLine'
 import {
   RelationshipEdge,
   UserConnectionEdge,
@@ -95,6 +98,7 @@ function CanvasContent() {
   const selectedUserNeedConnectionId = useEditorStore((s) => s.selectedUserNeedConnectionId)
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
+  const hoveredRelationshipId = useEditorStore((s) => s.hoveredRelationshipId)
   const viewMode = useEditorStore((s) => s.activeViewMode)
   const showGroups = useEditorStore((s) => s.showGroups)
   const showRelationships = useEditorStore((s) => s.showRelationships)
@@ -125,6 +129,12 @@ function CanvasContent() {
     sourceId: string
     targetId: string
   } | null>(null)
+
+  // Tracks whether a connection drag is currently in flight. Toggled by
+  // ReactFlow's onConnectStart and onConnectEnd. Drives CSS that lifts the
+  // whole-shape body handle above the visible card and hides hover stubs on
+  // potential drop targets (GH #22).
+  const [isConnecting, setIsConnecting] = useState(false)
 
   // Invalid connection state (for showing guidance tooltip)
   const [invalidConnectionAttempt, setInvalidConnectionAttempt] = React.useState<{
@@ -450,18 +460,24 @@ function CanvasContent() {
   const edges: Edge[] = useMemo(() => {
     if (!project) return []
 
-    // Filter relationships based on view mode and visibility toggle
+    // Filter relationships based on view mode and visibility toggle.
+    // Hovered or selected edges get bumped above their neighbors so the line
+    // the user is interacting with renders in front of crossing relationships.
     const relationshipEdges =
       viewMode !== 'distillation' && showRelationships
-        ? project.relationships.map((rel) => ({
-            id: rel.id,
-            source: rel.fromContextId,
-            target: rel.toContextId,
-            type: 'relationship',
-            data: { relationship: rel },
-            animated: false,
-            zIndex: 5, // Above groups (0) but below contexts (10)
-          }))
+        ? project.relationships.map((rel) => {
+            const isEmphasized =
+              rel.id === hoveredRelationshipId || rel.id === selectedRelationshipId
+            return {
+              id: rel.id,
+              source: rel.fromContextId,
+              target: rel.toContextId,
+              type: 'relationship',
+              data: { relationship: rel },
+              animated: false,
+              zIndex: isEmphasized ? 9 : 5,
+            }
+          })
         : []
 
     // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
@@ -493,7 +509,7 @@ function CanvasContent() {
         : []
 
     return [...relationshipEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
-  }, [project, viewMode, showRelationships])
+  }, [project, viewMode, showRelationships, hoveredRelationshipId, selectedRelationshipId])
 
   // Handle edge click
   const onEdgeClick = useCallback(
@@ -953,7 +969,7 @@ function CanvasContent() {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        useEditorStore.setState({ selectedContextId: null })
+        useEditorStore.setState(CLEARED_SELECTION)
       }
       // Delete/Backspace: Delete selected connection edges
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -996,7 +1012,12 @@ function CanvasContent() {
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onConnect={onConnect}
+          onConnectStart={() => setIsConnecting(true)}
+          onConnectEnd={() => setIsConnecting(false)}
           connectionMode={ConnectionMode.Loose}
+          connectionLineType={ConnectionLineType.Straight}
+          connectionLineComponent={StubConnectionLine}
+          className={isConnecting ? 'rf-connecting' : ''}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodeClick={onNodeClick}
@@ -1009,7 +1030,7 @@ function CanvasContent() {
           elementsSelectable
           deleteKeyCode={['Backspace', 'Delete']}
           minZoom={0.1}
-          maxZoom={2}
+          maxZoom={8}
           proOptions={{ hideAttribution: true }}
         >
           {/* Wardley-style background with very subtle dots */}
@@ -1064,8 +1085,8 @@ function CanvasContent() {
                 viewBox="0 0 10 10"
                 refX="0"
                 refY="5"
-                markerWidth="5"
-                markerHeight="5"
+                markerWidth={RELATIONSHIP_MARKER_SIZE}
+                markerHeight={RELATIONSHIP_MARKER_SIZE}
                 markerUnits="userSpaceOnUse"
                 orient="auto"
               >
@@ -1077,8 +1098,8 @@ function CanvasContent() {
                 viewBox="0 0 10 10"
                 refX="0"
                 refY="5"
-                markerWidth="5"
-                markerHeight="5"
+                markerWidth={RELATIONSHIP_MARKER_SIZE}
+                markerHeight={RELATIONSHIP_MARKER_SIZE}
                 markerUnits="userSpaceOnUse"
                 orient="auto"
               >
@@ -1090,8 +1111,8 @@ function CanvasContent() {
                 viewBox="0 0 10 10"
                 refX="0"
                 refY="5"
-                markerWidth="5"
-                markerHeight="5"
+                markerWidth={RELATIONSHIP_MARKER_SIZE}
+                markerHeight={RELATIONSHIP_MARKER_SIZE}
                 markerUnits="userSpaceOnUse"
                 orient="auto"
               >
@@ -1103,8 +1124,8 @@ function CanvasContent() {
                 viewBox="0 0 10 10"
                 refX="8"
                 refY="5"
-                markerWidth="5"
-                markerHeight="5"
+                markerWidth={RELATIONSHIP_MARKER_SIZE}
+                markerHeight={RELATIONSHIP_MARKER_SIZE}
                 orient="auto"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
@@ -1115,8 +1136,8 @@ function CanvasContent() {
                 viewBox="0 0 10 10"
                 refX="8"
                 refY="5"
-                markerWidth="5"
-                markerHeight="5"
+                markerWidth={RELATIONSHIP_MARKER_SIZE}
+                markerHeight={RELATIONSHIP_MARKER_SIZE}
                 orient="auto"
               >
                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
