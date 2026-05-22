@@ -4,14 +4,26 @@ export interface SwitchProps {
   checked: boolean
   onCheckedChange: (checked: boolean) => void
   label?: string
+  labelAdornment?: React.ReactNode
   className?: string
 }
 
-export function Switch({ checked, onCheckedChange, label, className = '' }: SwitchProps) {
+export function Switch({
+  checked,
+  onCheckedChange,
+  label,
+  labelAdornment,
+  className = '',
+}: SwitchProps) {
   return (
     <label className={`flex items-center gap-2 cursor-pointer ${className}`}>
       {label && (
         <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">{label}</span>
+      )}
+      {labelAdornment && (
+        <span onClick={(e) => e.stopPropagation()} className="cursor-auto inline-flex">
+          {labelAdornment}
+        </span>
       )}
       <button
         type="button"

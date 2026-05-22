@@ -64,18 +64,16 @@ export function UserInspector({ project, userId }: { project: Project; userId: s
       </Section>
 
       {/* External Toggle */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Switch
-            label="External"
-            checked={user.isExternal || false}
-            onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
-          />
+      <Switch
+        label="External"
+        labelAdornment={
           <InfoTooltip content={EXTERNAL_USER} position="bottom">
             <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
           </InfoTooltip>
-        </div>
-      </div>
+        }
+        checked={user.isExternal || false}
+        onCheckedChange={(checked) => handleUpdate({ isExternal: checked })}
+      />
 
       {/* Connected User Needs */}
       <Section label={`Connected User Needs (${connectedUserNeeds.length})`}>

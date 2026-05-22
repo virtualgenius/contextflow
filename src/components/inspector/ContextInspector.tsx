@@ -464,26 +464,26 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2">
-            <Switch
-              label="Legacy"
-              checked={context.isLegacy || false}
-              onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
-            />
-            <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
-              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-            </InfoTooltip>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              label="Big Ball of Mud"
-              checked={context.isBigBallOfMud || false}
-              onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
-            />
-            <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
-              <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
-            </InfoTooltip>
-          </div>
+          <Switch
+            label="Legacy"
+            labelAdornment={
+              <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            }
+            checked={context.isLegacy || false}
+            onCheckedChange={(checked) => handleUpdate({ isLegacy: checked })}
+          />
+          <Switch
+            label="Big Ball of Mud"
+            labelAdornment={
+              <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
+                <HelpCircle size={14} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            }
+            checked={context.isBigBallOfMud || false}
+            onCheckedChange={(checked) => handleUpdate({ isBigBallOfMud: checked })}
+          />
         </div>
       </SectionDivider>
 
