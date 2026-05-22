@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect } from 'react'
+import React, { useMemo, useCallback, useEffect, useState } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -9,6 +9,7 @@ import ReactFlow, {
   useNodesState,
   ReactFlowProvider,
   ConnectionMode,
+  ConnectionLineType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
@@ -32,6 +33,7 @@ import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { ContextNode, GroupNode, UserNode, UserNeedNode } from './nodes'
+import { StubConnectionLine } from './StubConnectionLine'
 import {
   RelationshipEdge,
   UserConnectionEdge,
@@ -125,6 +127,12 @@ function CanvasContent() {
     sourceId: string
     targetId: string
   } | null>(null)
+
+  // Tracks whether a connection drag is currently in flight. Toggled by
+  // ReactFlow's onConnectStart and onConnectEnd. Drives CSS that lifts the
+  // whole-shape body handle above the visible card and hides hover stubs on
+  // potential drop targets (GH #22).
+  const [isConnecting, setIsConnecting] = useState(false)
 
   // Invalid connection state (for showing guidance tooltip)
   const [invalidConnectionAttempt, setInvalidConnectionAttempt] = React.useState<{
@@ -996,7 +1004,12 @@ function CanvasContent() {
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onConnect={onConnect}
+          onConnectStart={() => setIsConnecting(true)}
+          onConnectEnd={() => setIsConnecting(false)}
           connectionMode={ConnectionMode.Loose}
+          connectionLineType={ConnectionLineType.Straight}
+          connectionLineComponent={StubConnectionLine}
+          className={isConnecting ? 'rf-connecting' : ''}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodeClick={onNodeClick}

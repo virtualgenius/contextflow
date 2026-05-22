@@ -70,22 +70,48 @@
 }
 
 /* Whole-shape target handle: idle has no pointer events so body-drag and
-   inner drop zones work normally. React Flow toggles `.connecting` on the
-   pane during a connection drag, at which point the handle becomes a hit
-   target for the drop. */
+   inner drop zones work normally. CanvasArea toggles `.rf-connecting` on
+   the ReactFlow wrapper via onConnectStart/onConnectEnd, at which point
+   the body handle becomes a hit target. We also lift it above the visible
+   card so document.elementFromPoint reliably picks it up. */
 .react-flow__node-context .react-flow__handle[data-handleid='body'] {
   pointer-events: none;
 }
 
-.react-flow.connecting .react-flow__node-context .react-flow__handle[data-handleid='body'] {
+/* !important on z-index because the inline style sets zIndex: 0; we need to
+   override only during a connection drag. */
+.rf-connecting .react-flow__node-context .react-flow__handle[data-handleid='body'] {
   pointer-events: auto;
+  z-index: 10 !important;
+}
+
+/* Hide hover stubs on all contexts while a connection drag is in flight so
+   they don't compete with the body handle for hit-testing on the target.
+   !important overrides inline display:flex on the stub handle. */
+.rf-connecting .react-flow__node-context .react-flow__handle[data-handleid^='stub-'] {
+  display: none !important;
+}
+
+/* Highlight the destination context while the cursor is over a valid drop
+   target during a connection drag. React Flow adds `.connecting.valid` to
+   the active handle; we paint a ring around the full-shape body handle so
+   it reads as the whole card lighting up. !important overrides inline
+   opacity:0 on the handle. */
+.react-flow__node-context .react-flow__handle[data-handleid='body'].connecting.valid {
+  opacity: 1 !important;
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
 }
 
 /* Style the connection line drawn while dragging from a handle */
 .react-flow__connection-path {
-  stroke: #3b82f6;
+  stroke: #2563eb;
   stroke-width: 2;
-  stroke-dasharray: 6 3;
+  stroke-dasharray: 6 4;
+  fill: none;
 }
 
 /* Highlight valid drop targets while dragging a connection */
