@@ -77,7 +77,9 @@ describe('RepoCard scroll-safety in the inspector', () => {
 
   it('App right-sidebar aside has a min-h-0 scroll container so grid items can shrink', () => {
     const source = readFileSync(APP_TSX_PATH, 'utf8')
-    const asideMatch = source.match(/<aside[^>]*border-l[^>]*>[\s\S]*?<InspectorPanel\s*\/>[\s\S]*?<\/aside>/)
+    const asideMatch = source.match(
+      /<aside[^>]*border-l[^>]*>[\s\S]*?<InspectorPanel\s*\/>[\s\S]*?<\/aside>/
+    )
     expect(asideMatch, 'right-sidebar aside not found in App.tsx').not.toBeNull()
     const asideBlock = asideMatch![0]
     expect(asideBlock).toMatch(/overflow-y-auto/)

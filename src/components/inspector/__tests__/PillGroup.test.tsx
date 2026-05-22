@@ -33,7 +33,7 @@ function renderGroup(props: {
           variant="green"
         />
         <button>Outside</button>
-      </div>,
+      </div>
     ),
   }
 }

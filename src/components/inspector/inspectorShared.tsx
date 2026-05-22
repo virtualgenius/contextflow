@@ -98,7 +98,7 @@ const LAYOUT_CLASS: Record<PillLayout, string> = {
 
 function getTabbableIndex<T extends string>(
   options: ReadonlyArray<PillOption<T>>,
-  value: T | undefined,
+  value: T | undefined
 ): number {
   const selected = options.findIndex((opt) => opt.value === value)
   return selected >= 0 ? selected : 0
