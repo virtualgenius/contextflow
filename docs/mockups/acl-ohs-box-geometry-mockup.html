@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACL/OHS Indicator Box Geometry - ContextFlow (contextflow-if3)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #0f172a; }
+
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .badge-bad  { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .badge-good { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+
+    .stage { position: relative; width: 100%; height: 420px; border-radius: 8px; overflow: hidden; user-select: none; }
+
+    .ctx {
+      position: absolute;
+      width: 150px;
+      height: 92px;
+      border-radius: 8px;
+      background: #dbeafe;
+      border: 2px solid #2563eb;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      cursor: grab;
+      touch-action: none;
+    }
+    .ctx:active { cursor: grabbing; }
+    .ctx .name { font-size: 12px; font-weight: 600; }
+    .ctx .sub  { font-size: 10px; color: #475569; margin-top: 4px; }
+
+    .indicator-box {
+      position: absolute;
+      width: 48px;
+      height: 24px;
+      border-radius: 4px;
+      background: #fed7aa;
+      border: 1.5px solid #f97316;
+      color: #9a3412;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+    .indicator-box.ohs {
+      background: #bae6fd;
+      border-color: #0284c7;
+      color: #075985;
+    }
+
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .legend-sw { width: 28px; height: 0; border-top: 2px solid #475569; }
+
+    h2 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .small { font-size: 12px; color: #475569; line-height: 1.45; }
+
+    .toggle {
+      position: absolute; top: 10px; left: 10px;
+      display: inline-flex; background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      z-index: 5;
+    }
+    .toggle button {
+      padding: 6px 10px; font-size: 11px; font-weight: 600; background: white; border: none; cursor: pointer; color: #475569;
+    }
+    .toggle button + button { border-left: 1px solid #e2e8f0; }
+    .toggle button.active { background: #0f172a; color: white; }
+
+    .side-tag {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 11px; padding: 4px 10px; border-radius: 999px; background: white; border: 1px solid #cbd5e1; font-weight: 600;
+      z-index: 5;
+    }
+    .toggle-row { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+    .toggle-row .toggle { position: static; }
+    .toggle-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 700; padding: 0 2px; }
+
+    .ctx.source { background: #e0f2fe; border-color: #0284c7; width: 130px; height: 80px; }
+
+    code.k { font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
+  </style>
+</head>
+<body class="bg-slate-50">
+
+<div class="max-w-6xl mx-auto p-6 space-y-6">
+
+  <!-- Header -->
+  <header class="panel p-6">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <div class="text-xs uppercase tracking-widest text-slate-500 font-semibold">contextflow-if3</div>
+        <h1 class="text-2xl font-bold mt-1">ACL/OHS Indicator Box: Line Connection Geometry</h1>
+        <p class="small mt-2 max-w-3xl">
+          Drag either context around. Two independent toggles per stage:
+          <strong>Attachment edge</strong> (Current / A: nearest / B: opposite from context) and
+          <strong>Curve style</strong> (Auto bezier / Tangent at edge / Orthogonal). Defaults are
+          <strong>B: opposite from context</strong> and <strong>Tangent at edge</strong>, the recommended target behavior.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="chip badge-bad">Current</span>
+        <span class="chip badge-good">Proposed</span>
+      </div>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-6 small">
+      <div class="legend-row"><span class="legend-sw"></span>Relationship line</div>
+      <div class="legend-row">
+        <span class="indicator-box" style="position: static; width: 32px; height: 18px; font-size: 9px;">ACL</span>
+        Anti-Corruption Layer
+      </div>
+      <div class="legend-row">
+        <span class="indicator-box ohs" style="position: static; width: 32px; height: 18px; font-size: 9px;">OHS</span>
+        Open-Host Service
+      </div>
+    </div>
+  </header>
+
+  <!-- Demo 1: ACL with source handle, all four sides reachable -->
+  <section class="panel p-5">
+    <h2>Demo 1. ACL on the downstream context's left side</h2>
+    <p class="small mb-3">
+      Drag either context. The relationship line leaves the source context's facing edge (centered, with the standard context offset) and lands on the ACL box's outer edge with the same offset gap. No line is drawn between the ACL and its parent context.
+    </p>
+    <div id="stage1" class="stage canvas-bg" data-box-x="540" data-box-y="160" data-box-w="48" data-box-h="24" data-variant="acl"></div>
+  </section>
+
+  <!-- Demo 2: OHS upstream symmetric case -->
+  <section class="panel p-5">
+    <h2>Demo 2. OHS on the upstream context's right side</h2>
+    <p class="small mb-3">
+      Same logic, mirrored. The line leaves the OHS box's outer edge and lands on the destination context's facing edge.
+    </p>
+    <div id="stage2" class="stage canvas-bg" data-box-x="220" data-box-y="180" data-box-w="48" data-box-h="24" data-variant="ohs"></div>
+  </section>
+
+  <!-- Demo 3: ACL box auto-relocates to the context side facing the source -->
+  <section class="panel p-5">
+    <h2>Demo 3. ACL auto-relocates as the context (or source) moves</h2>
+    <p class="small mb-3">
+      Drag either context. The ACL snaps to whichever side of the destination context is currently facing the source: left, right, top, or bottom. This mirrors how indicator boxes reposition today when contexts are moved. The chip shows both the current context-side (where the ACL sits) and the box edge the line attaches to.
+    </p>
+    <div id="stage3" class="stage canvas-bg" data-box-x="0" data-box-y="0" data-box-w="48" data-box-h="24" data-variant="acl"></div>
+  </section>
+
+  <!-- Rules -->
+  <section class="panel p-5">
+    <h2>Two proposals for the attachment edge</h2>
+    <div class="grid grid-cols-2 gap-4 small">
+      <div>
+        <div class="font-semibold text-slate-900 mb-1">A. Nearest edge (dynamic)</div>
+        <p>The line picks whichever box edge faces the source endpoint. Feels natural when the source is far off to one side, but can look odd when the source is roughly opposite the context (line approaches the box from the wrong side, e.g., enters the top of the ACL even though the ACL semantically guards the context to its right).</p>
+      </div>
+      <div>
+        <div class="font-semibold text-slate-900 mb-1">B. Opposite from context (locked)</div>
+        <p>The line always lands on the outer-facing edge of the box (the side away from the parent context). The ACL/OHS reads as a gate the line passes through on its way into the context, regardless of where the source sits. Trade-off: when the source is well off to a perpendicular side, the line bends more than strictly necessary.</p>
+      </div>
+    </div>
+    <h2 class="mt-5">Curve style options</h2>
+    <div class="grid grid-cols-3 gap-4 small">
+      <div>
+        <div class="font-semibold text-slate-900 mb-1">Auto bezier</div>
+        <p>Today's behavior. Control points use a horizontal-vs-vertical bias from endpoint deltas, ignoring which edge of the box is being attached to. Causes the awkward near-vertical entry when source and box are roughly diagonal.</p>
+      </div>
+      <div>
+        <div class="font-semibold text-slate-900 mb-1">Tangent at edge (recommended)</div>
+        <p>The curve enters the box perpendicular to the attachment edge (e.g., horizontal for a left-edge attachment). Preserves the organic bezier feel while removing the wrong-angle entry. Control-point length scales with endpoint distance.</p>
+      </div>
+      <div>
+        <div class="font-semibold text-slate-900 mb-1">Orthogonal</div>
+        <p>A right-angle elbow: short stub out from the box along its attachment normal, then 90° turns to the source. Reads cleanly but breaks the hand-drawn aesthetic the project has intentionally preserved on context-to-context edges.</p>
+      </div>
+    </div>
+
+    <h2 class="mt-5">Shared rules (both proposals)</h2>
+    <ol class="small list-decimal pl-5 space-y-1">
+      <li><strong>Box hugs the context.</strong> The ACL/OHS indicator sits flush against the context edge (~2px visual gap so borders read as separate). No relationship line is drawn between the indicator and the context.</li>
+      <li><strong>Centered on the chosen edge.</strong> Attachment sits at the midpoint of the indicator's outer edge.</li>
+      <li><strong>Same offset as context boxes.</strong> Visible path is shortened by the existing context-box offset so the tip sits in a small gap, not on the border.</li>
+      <li><strong>Arrow head (where applicable).</strong> Sits in the gap with its tip pointing at the edge midpoint.</li>
+      <li><strong>Applies to both ACL and OHS,</strong> on all four sides of the parent context.</li>
+    </ol>
+  </section>
+
+  <footer class="text-center small py-4">
+    Mockup for <code>contextflow-if3</code>. Interactive geometry preview; not pulled from the live canvas.
+  </footer>
+
+</div>
+
+<script>
+  // Shared offset that matches what context boxes use (visual approximation).
+  const CTX_EDGE_OFFSET = 10;
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // Given a box rect and an external point, find:
+  //   - which side of the box faces the point (left/right/top/bottom)
+  //   - the midpoint of that side (the centered attachment point)
+  //   - the attachment point offset outward by `offset` (where the visible path should end)
+  function chooseAttachment(box, point, offset) {
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
+    const dx = point.x - cx;
+    const dy = point.y - cy;
+
+    // Normalize to box aspect, so left/right vs top/bottom is chosen by which side the point projects past first.
+    const nx = dx / (box.w / 2);
+    const ny = dy / (box.h / 2);
+
+    let side, attach, gapStart;
+    if (Math.abs(nx) >= Math.abs(ny)) {
+      // left/right
+      if (nx >= 0) {
+        side = 'right';
+        attach = { x: box.x + box.w, y: cy };
+        gapStart = { x: box.x + box.w + offset, y: cy };
+      } else {
+        side = 'left';
+        attach = { x: box.x, y: cy };
+        gapStart = { x: box.x - offset, y: cy };
+      }
+    } else {
+      if (ny >= 0) {
+        side = 'bottom';
+        attach = { x: cx, y: box.y + box.h };
+        gapStart = { x: cx, y: box.y + box.h + offset };
+      } else {
+        side = 'top';
+        attach = { x: cx, y: box.y };
+        gapStart = { x: cx, y: box.y - offset };
+      }
+    }
+    return { side, attach, gapStart };
+  }
+
+  // Simple auto bezier (no tangent awareness).
+  function bezier(a, b) {
+    const dx = (b.x - a.x);
+    const dy = (b.y - a.y);
+    const horizontal = Math.abs(dx) >= Math.abs(dy);
+    const c1 = horizontal
+      ? { x: a.x + dx * 0.5, y: a.y }
+      : { x: a.x,             y: a.y + dy * 0.5 };
+    const c2 = horizontal
+      ? { x: a.x + dx * 0.5, y: b.y }
+      : { x: b.x,             y: a.y + dy * 0.5 };
+    return `M ${a.x},${a.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${b.x},${b.y}`;
+  }
+
+  // Tangent-aware bezier: control points are placed along the outward tangent at each endpoint,
+  // so the path leaves/enters each endpoint perpendicular to the respective box edge. The control
+  // points are placed far enough that a clear horizontal/vertical "stub" reads at each end before
+  // the curve bends toward the other endpoint.
+  function bezierTangent(a, b, aTan, bTan) {
+    const dist = Math.hypot(b.x - a.x, b.y - a.y);
+    // Stronger pull so the perpendicular stub is visually pronounced at both endpoints.
+    const k = Math.max(60, dist * 0.5);
+    const c1 = { x: a.x + aTan.x * k, y: a.y + aTan.y * k };
+    const c2 = { x: b.x + bTan.x * k, y: b.y + bTan.y * k };
+    return `M ${a.x},${a.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${b.x},${b.y}`;
+  }
+
+  // Orthogonal "elbow" path: from source to box, ending perpendicular to the box's attachment edge
+  // (so the arrow marker at the path end points cleanly into the box edge).
+  function orthogonal(sourceEnd, boxEnd, boxEdgeTan) {
+    const stub = 24;
+    const turn = { x: boxEnd.x + boxEdgeTan.x * stub, y: boxEnd.y + boxEdgeTan.y * stub };
+    if (boxEdgeTan.x !== 0) {
+      // box edge is left/right: final segment is horizontal
+      return `M ${sourceEnd.x},${sourceEnd.y} L ${sourceEnd.x},${turn.y} L ${turn.x},${turn.y} L ${boxEnd.x},${boxEnd.y}`;
+    } else {
+      // box edge is top/bottom: final segment is vertical
+      return `M ${sourceEnd.x},${sourceEnd.y} L ${turn.x},${sourceEnd.y} L ${turn.x},${turn.y} L ${boxEnd.x},${boxEnd.y}`;
+    }
+  }
+
+  function sideToTangent(side) {
+    if (side === 'left')   return { x: -1, y: 0 };
+    if (side === 'right')  return { x:  1, y: 0 };
+    if (side === 'top')    return { x: 0,  y: -1 };
+    return { x: 0,  y: 1 }; // bottom
+  }
+
+  function buildStage(stage, opts) {
+    const variant = stage.dataset.variant; // 'acl' or 'ohs'
+    let box = {
+      x: parseFloat(stage.dataset.boxX),
+      y: parseFloat(stage.dataset.boxY),
+      w: parseFloat(stage.dataset.boxW),
+      h: parseFloat(stage.dataset.boxH),
+    };
+
+    // Toggles
+    const row = document.createElement('div');
+    row.className = 'toggle-row';
+    row.innerHTML = `
+      <div>
+        <div class="toggle-label">Attachment edge</div>
+        <div class="toggle" id="modeToggle">
+          <button data-mode="current">Current</button>
+          <button data-mode="nearest">A: nearest edge</button>
+          <button data-mode="opposite" class="active">B: opposite from context</button>
+        </div>
+      </div>
+      <div>
+        <div class="toggle-label">Curve style</div>
+        <div class="toggle" id="curveToggle">
+          <button data-curve="auto">Auto bezier</button>
+          <button data-curve="tangent" class="active">Tangent at edge</button>
+          <button data-curve="orthogonal">Orthogonal</button>
+        </div>
+      </div>
+    `;
+    stage.appendChild(row);
+    const toggle = row.querySelector('#modeToggle');
+    const curveToggle = row.querySelector('#curveToggle');
+
+    const sideTag = document.createElement('div');
+    sideTag.className = 'side-tag';
+    sideTag.textContent = 'edge: ' + (opts.initialSide || '—');
+    stage.appendChild(sideTag);
+
+    // SVG layer
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.style.position = 'absolute';
+    svg.style.inset = '0';
+    svg.style.pointerEvents = 'none';
+
+    // Arrow marker (unique per stage so multiple SVGs do not collide).
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const markerId = 'arrow-' + stage.id;
+    const defs = document.createElementNS(SVG_NS, 'defs');
+    const marker = document.createElementNS(SVG_NS, 'marker');
+    marker.setAttribute('id', markerId);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '9');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '8');
+    marker.setAttribute('orient', 'auto-start-reverse');
+    const markerPath = document.createElementNS(SVG_NS, 'path');
+    markerPath.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    markerPath.setAttribute('fill', '#475569');
+    marker.appendChild(markerPath);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    stage.appendChild(svg);
+
+    // Context box (anchor of the indicator)
+    const ctx = document.createElement('div');
+    ctx.className = 'ctx';
+    ctx.innerHTML = `<div class="name">${opts.ctxName}</div><div class="sub">${opts.ctxSub}</div>`;
+    ctx.style.left = opts.ctxX + 'px';
+    ctx.style.top = opts.ctxY + 'px';
+    stage.appendChild(ctx);
+
+    // Indicator box
+    const indicator = document.createElement('div');
+    indicator.className = 'indicator-box' + (variant === 'ohs' ? ' ohs' : '');
+    indicator.textContent = variant === 'ohs' ? 'OHS' : 'ACL';
+    indicator.style.left = box.x + 'px';
+    indicator.style.top = box.y + 'px';
+    indicator.style.width = box.w + 'px';
+    indicator.style.height = box.h + 'px';
+    stage.appendChild(indicator);
+
+    // Source context box (replaces the old debug handle dot)
+    const sourceCtx = document.createElement('div');
+    sourceCtx.className = 'ctx source';
+    sourceCtx.innerHTML = `<div class="name">${opts.sourceName}</div><div class="sub">${opts.sourceSub}</div>`;
+    sourceCtx.style.left = opts.sourceX + 'px';
+    sourceCtx.style.top = opts.sourceY + 'px';
+    stage.appendChild(sourceCtx);
+
+    let mode = 'opposite';
+    let curve = 'tangent';
+    let sourcePos = { x: opts.sourceX, y: opts.sourceY };
+    let ctxPos = { x: opts.ctxX, y: opts.ctxY };
+
+    function render() {
+      // Recompute ctx-bound indicator if requested. Indicator sits flush against the context edge
+      // (small visual nudge of 2px so borders read as separate, no line between them).
+      const INDICATOR_TO_CTX_GAP = 2;
+      // The line origin lives on the source context's edge; use its center as the reference
+      // for "which side of the destination context faces the source".
+      const sourceCenter = {
+        x: sourcePos.x + sourceCtx.offsetWidth / 2,
+        y: sourcePos.y + sourceCtx.offsetHeight / 2,
+      };
+      // If autoRelocate is on, choose the destination-context side facing the source.
+      let resolvedSide = opts.indicatorSide;
+      if (opts.autoRelocate) {
+        const ctxRect = { x: ctxPos.x, y: ctxPos.y, w: ctx.offsetWidth, h: ctx.offsetHeight };
+        const choice = chooseAttachment(ctxRect, sourceCenter, 0);
+        resolvedSide = choice.side;
+      }
+      if (opts.indicatorFollowsCtx) {
+        const side = resolvedSide;
+        const cw = ctx.offsetWidth, ch = ctx.offsetHeight;
+        if (side === 'left') {
+          box.x = ctxPos.x - box.w - INDICATOR_TO_CTX_GAP;
+          box.y = ctxPos.y + ch / 2 - box.h / 2;
+        } else if (side === 'right') {
+          box.x = ctxPos.x + cw + INDICATOR_TO_CTX_GAP;
+          box.y = ctxPos.y + ch / 2 - box.h / 2;
+        } else if (side === 'top') {
+          box.x = ctxPos.x + cw / 2 - box.w / 2;
+          box.y = ctxPos.y - box.h - INDICATOR_TO_CTX_GAP;
+        } else if (side === 'bottom') {
+          box.x = ctxPos.x + cw / 2 - box.w / 2;
+          box.y = ctxPos.y + ch + INDICATOR_TO_CTX_GAP;
+        }
+        indicator.style.left = box.x + 'px';
+        indicator.style.top = box.y + 'px';
+      }
+
+      // Compute attachment between the handle (line endpoint) and the indicator box.
+      // 'nearest' = side facing the source. 'opposite' = side facing away from the context (constant per indicatorSide).
+      function attachmentForOppositeSide() {
+        const side = resolvedSide; // outer-facing side of the box (== side of context the indicator sits on)
+        const cx = box.x + box.w / 2;
+        const cy = box.y + box.h / 2;
+        let attach, gapStart;
+        if (side === 'left') {
+          attach = { x: box.x, y: cy };
+          gapStart = { x: box.x - CTX_EDGE_OFFSET, y: cy };
+        } else if (side === 'right') {
+          attach = { x: box.x + box.w, y: cy };
+          gapStart = { x: box.x + box.w + CTX_EDGE_OFFSET, y: cy };
+        } else if (side === 'top') {
+          attach = { x: cx, y: box.y };
+          gapStart = { x: cx, y: box.y - CTX_EDGE_OFFSET };
+        } else {
+          attach = { x: cx, y: box.y + box.h };
+          gapStart = { x: cx, y: box.y + box.h + CTX_EDGE_OFFSET };
+        }
+        return { side, attach, gapStart };
+      }
+      // Source attachment: pick the source-context edge facing the indicator box, with the same offset.
+      const sourceRect = {
+        x: sourcePos.x, y: sourcePos.y,
+        w: sourceCtx.offsetWidth, h: sourceCtx.offsetHeight,
+      };
+      const sourceAtt = chooseAttachment(sourceRect, { x: box.x + box.w / 2, y: box.y + box.h / 2 }, CTX_EDGE_OFFSET);
+
+      const att = (mode === 'opposite') ? attachmentForOppositeSide() : chooseAttachment(box, sourceCenter, CTX_EDGE_OFFSET);
+      const sideSuffix = opts.autoRelocate
+        ? ` (ctx side: ${resolvedSide})`
+        : (mode === 'opposite' ? ' (locked)' : '');
+      sideTag.textContent = 'edge: ' + att.side + sideSuffix;
+
+      // Endpoints depending on which side is the "source"
+      // The indicator box hugs the context (no line between them). The relationship line
+      // only exists on the outer side of the indicator box and terminates there.
+
+      // Clear SVG (but keep <defs> so the arrow marker survives re-renders)
+      Array.from(svg.children).forEach((c) => { if (c.tagName !== 'defs') svg.removeChild(c); });
+
+      if (mode === 'nearest' || mode === 'opposite') {
+        // Single path: source-context edge -> outer edge of the indicator box.
+        const p1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        let d;
+        if (curve === 'tangent') {
+          const boxTan = sideToTangent(att.side);
+          const srcTan = sideToTangent(sourceAtt.side);
+          d = bezierTangent(sourceAtt.gapStart, att.gapStart, srcTan, boxTan);
+        } else if (curve === 'orthogonal') {
+          const boxTan = sideToTangent(att.side);
+          d = orthogonal(sourceAtt.gapStart, att.gapStart, boxTan);
+        } else {
+          d = bezier(sourceAtt.gapStart, att.gapStart);
+        }
+        p1.setAttribute('d', d);
+        p1.setAttribute('fill', 'none');
+        p1.setAttribute('stroke', '#475569');
+        p1.setAttribute('stroke-width', '2');
+        p1.setAttribute('stroke-linejoin', 'round');
+        // Arrow points to upstream. ACL sits on downstream, so arrow goes at the source end
+        // (auto-start-reverse flips the marker to point back into the source context).
+        // OHS sits on upstream, so arrow goes at the box end.
+        if (variant === 'ohs') {
+          p1.setAttribute('marker-end', `url(#${markerId})`);
+        } else {
+          p1.setAttribute('marker-start', `url(#${markerId})`);
+        }
+        svg.appendChild(p1);
+
+      } else {
+        // CURRENT: line goes from source-context (no proper attachment) straight to a fixed,
+        // off-center point on the box; no offset.
+        const wrongPoint = { x: box.x + 6, y: box.y + 4 };
+        const p1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p1.setAttribute('d', bezier(sourceAtt.gapStart, wrongPoint));
+        p1.setAttribute('fill', 'none');
+        p1.setAttribute('stroke', '#475569');
+        p1.setAttribute('stroke-width', '2');
+        // Arrow points to upstream. ACL sits on downstream, so arrow goes at the source end
+        // (auto-start-reverse flips the marker to point back into the source context).
+        // OHS sits on upstream, so arrow goes at the box end.
+        if (variant === 'ohs') {
+          p1.setAttribute('marker-end', `url(#${markerId})`);
+        } else {
+          p1.setAttribute('marker-start', `url(#${markerId})`);
+        }
+        svg.appendChild(p1);
+      }
+    }
+
+    // Drag handlers
+    function dragify(el, getPos, setPos, onMove) {
+      el.addEventListener('pointerdown', (e) => {
+        el.setPointerCapture(e.pointerId);
+        const rect = stage.getBoundingClientRect();
+        const start = getPos();
+        const startX = e.clientX, startY = e.clientY;
+        const move = (e2) => {
+          const x = clamp(start.x + (e2.clientX - startX), 0, rect.width);
+          const y = clamp(start.y + (e2.clientY - startY), 0, rect.height);
+          setPos(x, y);
+          onMove && onMove();
+          render();
+        };
+        const up = () => {
+          el.removeEventListener('pointermove', move);
+          el.removeEventListener('pointerup', up);
+        };
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerup', up);
+      });
+    }
+
+    dragify(
+      sourceCtx,
+      () => sourcePos,
+      (x, y) => {
+        sourcePos = { x, y };
+        sourceCtx.style.left = x + 'px';
+        sourceCtx.style.top = y + 'px';
+      }
+    );
+
+    dragify(
+      ctx,
+      () => ctxPos,
+      (x, y) => {
+        ctxPos = { x, y };
+        ctx.style.left = x + 'px';
+        ctx.style.top = y + 'px';
+      }
+    );
+
+    toggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      mode = btn.dataset.mode;
+      toggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      sideTag.style.background = (mode === 'current') ? '#fef2f2' : 'white';
+      render();
+    });
+
+    curveToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      curve = btn.dataset.curve;
+      curveToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      render();
+    });
+
+    render();
+  }
+
+  // Demo 1: ACL on left side of a downstream context, source context to the left.
+  buildStage(document.getElementById('stage1'), {
+    ctxName: 'Order Fulfillment',
+    ctxSub: 'Downstream',
+    ctxX: 560,
+    ctxY: 150,
+    sourceName: 'Checkout',
+    sourceSub: 'Upstream',
+    sourceX: 80,
+    sourceY: 180,
+    indicatorFollowsCtx: true,
+    indicatorSide: 'left',
+    initialSide: 'left',
+  });
+
+  // Demo 2: OHS on right side of an upstream context, source/destination to the right.
+  buildStage(document.getElementById('stage2'), {
+    ctxName: 'Catalog',
+    ctxSub: 'Upstream',
+    ctxX: 80,
+    ctxY: 150,
+    sourceName: 'Storefront',
+    sourceSub: 'Downstream',
+    sourceX: 560,
+    sourceY: 180,
+    indicatorFollowsCtx: true,
+    indicatorSide: 'right',
+    initialSide: 'right',
+  });
+
+  // Demo 3: ACL auto-relocates around the destination context as either context moves.
+  buildStage(document.getElementById('stage3'), {
+    ctxName: 'Order Fulfillment',
+    ctxSub: 'Downstream',
+    ctxX: 420,
+    ctxY: 170,
+    sourceName: 'Checkout',
+    sourceSub: 'Upstream',
+    sourceX: 100,
+    sourceY: 200,
+    indicatorFollowsCtx: true,
+    autoRelocate: true,
+    indicatorSide: 'left',
+    initialSide: 'left',
+  });
+</script>
+
+</body>
+</html>
