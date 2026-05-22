@@ -81,7 +81,8 @@ export type PillOption<T extends string> = {
 export type PillVariant = 'green' | 'slate'
 export type PillLayout = 'horizontal' | 'grid-2' | 'grid-3'
 
-const PILL_BASE = 'px-2 py-1 text-[11px] font-medium rounded transition-colors cursor-pointer'
+const PILL_BASE =
+  'px-2 py-1 text-[11px] font-medium rounded transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-1'
 const PILL_INACTIVE =
   'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-neutral-800 dark:text-slate-400 dark:hover:bg-neutral-700'
 const PILL_ACTIVE_GREEN =
@@ -95,12 +96,25 @@ const LAYOUT_CLASS: Record<PillLayout, string> = {
   'grid-3': 'grid grid-cols-3 gap-1.5',
 }
 
+function getTabbableIndex<T extends string>(
+  options: ReadonlyArray<PillOption<T>>,
+  value: T | undefined,
+): number {
+  const selected = options.findIndex((opt) => opt.value === value)
+  return selected >= 0 ? selected : 0
+}
+
+function nextIndex(current: number, length: number, delta: number): number {
+  return (current + delta + length) % length
+}
+
 export function PillGroup<T extends string>({
   options,
   value,
   onChange,
   layout,
   variant,
+  labelId,
   ariaLabel,
 }: {
   options: ReadonlyArray<PillOption<T>>
@@ -108,20 +122,75 @@ export function PillGroup<T extends string>({
   onChange: (next: T | undefined) => void
   layout: PillLayout
   variant: PillVariant
+  labelId?: string
   ariaLabel?: string
 }) {
   const activeClass = variant === 'green' ? PILL_ACTIVE_GREEN : PILL_ACTIVE_SLATE
+  const pillRefs = React.useRef<Array<HTMLButtonElement | null>>([])
+  const tabbableIndex = getTabbableIndex(options, value)
+
+  const selectAt = (index: number) => {
+    const target = options[index]
+    if (!target) return
+    pillRefs.current[index]?.focus()
+    if (target.value !== value) {
+      onChange(target.value)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault()
+        selectAt(nextIndex(index, options.length, 1))
+        return
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault()
+        selectAt(nextIndex(index, options.length, -1))
+        return
+      case 'Home':
+        e.preventDefault()
+        selectAt(0)
+        return
+      case 'End':
+        e.preventDefault()
+        selectAt(options.length - 1)
+        return
+      case ' ':
+      case 'Enter':
+        e.preventDefault()
+        selectAt(index)
+        return
+    }
+  }
+
   return (
-    <div role="group" aria-label={ariaLabel} className={LAYOUT_CLASS[layout]}>
-      {options.map((opt) => {
+    <div
+      role="radiogroup"
+      aria-labelledby={labelId}
+      aria-label={labelId ? undefined : ariaLabel}
+      className={LAYOUT_CLASS[layout]}
+    >
+      {options.map((opt, index) => {
         const isActive = value === opt.value
         const stretch = layout === 'horizontal' ? 'flex-1 text-center' : 'text-center'
         return (
           <button
             key={opt.value}
+            ref={(el) => {
+              pillRefs.current[index] = el
+            }}
             type="button"
-            aria-pressed={isActive}
-            onClick={() => onChange(isActive ? undefined : opt.value)}
+            role="radio"
+            aria-checked={isActive}
+            tabIndex={index === tabbableIndex ? 0 : -1}
+            onClick={() => {
+              pillRefs.current[index]?.focus()
+              onChange(isActive ? undefined : opt.value)
+            }}
+            onKeyDown={(e) => handleKeyDown(e, index)}
             className={`${PILL_BASE} ${stretch} ${isActive ? activeClass : PILL_INACTIVE} inline-flex items-center justify-center`}
           >
             {opt.adornment}

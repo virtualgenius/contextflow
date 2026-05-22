@@ -147,18 +147,18 @@ describe('ContextInspector', () => {
 
   it('renders Business Model Role as a pill group with all four options', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    const roleGroup = screen.getByRole('group', { name: 'Business Model Role' })
+    const roleGroup = screen.getByRole('radiogroup', { name: 'Role' })
     expect(roleGroup).toBeInTheDocument()
     expect(roleGroup.querySelector('select')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Revenue' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Engagement' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Compliance' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Cost Reduction' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Revenue' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Engagement' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Compliance' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Cost Reduction' })).toBeInTheDocument()
   })
 
   it('calls updateContext with the underlying enum value when a Role pill is clicked', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    fireEvent.click(screen.getByRole('button', { name: 'Revenue' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Revenue' }))
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', {
       businessModelRole: 'revenue-generator',
     })
@@ -273,24 +273,24 @@ describe('ContextInspector', () => {
       ],
     })
     render(<ContextInspector project={project} contextId="ctx-1" />)
-    const activePill = screen.getByRole('button', { name: 'Revenue' })
-    expect(activePill).toHaveAttribute('aria-pressed', 'true')
+    const activePill = screen.getByRole('radio', { name: 'Revenue' })
+    expect(activePill).toHaveAttribute('aria-checked', 'true')
     fireEvent.click(activePill)
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', { businessModelRole: undefined })
   })
 
   it('renders Code Size as a pill group with all five buckets', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    const group = screen.getByRole('group', { name: 'Code Size' })
+    const group = screen.getByRole('radiogroup', { name: 'Code Size' })
     expect(group).toBeInTheDocument()
     expect(group.querySelector('select')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Tiny' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Huge' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Tiny' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Huge' })).toBeInTheDocument()
   })
 
   it('calls updateContext with codeSize.bucket when a Code Size pill is clicked', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    fireEvent.click(screen.getByRole('button', { name: 'Medium' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Medium' }))
     expect(mockUpdateContext).toHaveBeenCalledWith('ctx-1', {
       codeSize: { bucket: 'medium' },
     })
@@ -298,12 +298,12 @@ describe('ContextInspector', () => {
 
   it('renders Boundary as a pill group', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
-    const group = screen.getByRole('group', { name: 'Boundary Integrity' })
+    const group = screen.getByRole('radiogroup', { name: 'Boundary' })
     expect(group).toBeInTheDocument()
     expect(group.querySelector('select')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Weak' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Moderate' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Strong' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Weak' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Moderate' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Strong' })).toBeInTheDocument()
   })
 
   it('hides Boundary Notes textarea when boundaryIntegrity is unset', () => {
