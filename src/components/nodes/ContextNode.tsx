@@ -144,6 +144,11 @@ export function ContextNode({ data }: NodeProps) {
     context.isLegacy || context.isBigBallOfMud || (context.ownership === 'external' && hasIssues)
   const topRightBadgeReserve =
     context.isLegacy && context.isBigBallOfMud ? 44 : hasTopRightBadge ? 24 : 0
+  // Issue icons sit at top-left for non-external contexts. Push the name down
+  // so the icons do not overlap the name text. (External contexts render
+  // issues at top-right where topRightBadgeReserve handles horizontal space.)
+  const hasTopLeftIssueIcons = hasIssues && context.ownership !== 'external'
+  const nameMarginTop = hasTopLeftIssueIcons ? 14 : 0
 
   // Consolidated highlight state for selected or group member contexts
   const isHighlighted = isSelected || isMemberOfSelectedGroup || isHoveredByRelationship
@@ -330,11 +335,12 @@ export function ContextNode({ data }: NodeProps) {
 
         {/* Context name */}
         <div
+          data-testid="context-name"
           style={{
             fontSize: '13px',
             fontWeight: 600,
             color: '#0f172a',
-            marginTop: 0,
+            marginTop: nameMarginTop,
             paddingRight: topRightBadgeReserve,
             lineHeight: '1.3',
             overflow: 'hidden',
