@@ -169,23 +169,25 @@ describe('ContextNode no native title attributes on badges', () => {
     expect(screen.queryByTitle('Big Ball of Mud')).not.toBeInTheDocument()
   })
 
-  it('Legacy badge text "Legacy" is shown when SimpleTooltip wrapper is hovered', () => {
+  it('Legacy badge shows Legacy Context concept tooltip when hovered with help tooltips enabled', () => {
+    setupStoreMock(true)
     renderContextNode(makeContext({ isLegacy: true }))
     const badge = screen.getByTestId('legacy-badge')
     const wrapper = badge.querySelector('span.inline-flex')!
     act(() => {
       fireEvent.mouseEnter(wrapper)
     })
-    expect(screen.getByText('Legacy')).toBeInTheDocument()
+    expect(screen.getAllByText(/Legacy Context/i).length).toBeGreaterThan(0)
   })
 
-  it('Big Ball of Mud badge tooltip text is shown when SimpleTooltip wrapper is hovered', () => {
+  it('Big Ball of Mud badge shows BBoM concept tooltip when hovered with help tooltips enabled', () => {
+    setupStoreMock(true)
     renderContextNode(makeContext({ isBigBallOfMud: true }))
     const badge = screen.getByTestId('bbom-badge')
     const wrapper = badge.querySelector('span.inline-flex')!
     act(() => {
       fireEvent.mouseEnter(wrapper)
     })
-    expect(screen.getByText('Big Ball of Mud')).toBeInTheDocument()
+    expect(screen.getAllByText(/Big Ball of Mud/i).length).toBeGreaterThan(0)
   })
 })

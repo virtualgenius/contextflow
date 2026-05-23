@@ -3,12 +3,14 @@ import { createPortal } from 'react-dom'
 import { NodeProps, Position, Handle } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { BoundedContext } from '../../model/types'
-import { AlertTriangle, AlertOctagon, Info, Archive, CloudFog } from 'lucide-react'
+import { Archive, CloudFog } from 'lucide-react'
 import { getContextTooltipLines } from '../../lib/contextTooltip'
 import { getContextNodeBorderStyle } from '../../lib/nodeStyles'
 import { NODE_SIZES } from '../../lib/canvasConstants'
-import { SimpleTooltip } from '../SimpleTooltip'
+import { InfoTooltip } from '../InfoTooltip'
+import { LEGACY_CONTEXT, BIG_BALL_OF_MUD } from '../../model/conceptDefinitions'
 import { ContextNodeStubs } from './ContextNodeStubs'
+import { IssueCounterPill } from './IssueCounterPill'
 
 // Custom node component
 export function ContextNode({ data }: NodeProps) {
@@ -30,6 +32,7 @@ export function ContextNode({ data }: NodeProps) {
   const colorByMode = useEditorStore((s) => s.colorByMode)
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const setHoveredContext = useEditorStore((s) => s.setHoveredContext)
+  const setSelectedContext = useEditorStore((s) => s.setSelectedContext)
   const isHoveredByRelationship = data.isHoveredByRelationship as boolean
   const nodeRef = React.useRef<HTMLDivElement>(null)
 
@@ -124,7 +127,7 @@ export function ContextNode({ data }: NodeProps) {
   const OWNERSHIP_COLORS = {
     ours: '#d1fae5', // green-100
     internal: '#dbeafe', // blue-100
-    external: '#fed7aa', // orange-200
+    external: '#e2e8f0', // slate-200
   }
   const STRATEGIC_COLORS = {
     core: '#f8e7a1', // yellow
@@ -136,19 +139,11 @@ export function ContextNode({ data }: NodeProps) {
       ? OWNERSHIP_COLORS[context.ownership || 'ours']
       : STRATEGIC_COLORS[context.strategicClassification || 'generic']
 
-  // Reserve horizontal space for absolutely-positioned top-right badges so a
-  // long context name does not slide under them. Badge anchors do not change;
-  // only the name input shrinks to fit.
+  // Reserve horizontal space for the absolutely-positioned identity icons in
+  // the top-right corner so a long context name does not slide under them.
+  const identityIconCount = (context.isLegacy ? 1 : 0) + (context.isBigBallOfMud ? 1 : 0)
+  const topRightBadgeReserve = identityIconCount === 2 ? 44 : identityIconCount === 1 ? 24 : 0
   const hasIssues = (context.issues?.length ?? 0) > 0
-  const hasTopRightBadge =
-    context.isLegacy || context.isBigBallOfMud || (context.ownership === 'external' && hasIssues)
-  const topRightBadgeReserve =
-    context.isLegacy && context.isBigBallOfMud ? 44 : hasTopRightBadge ? 24 : 0
-  // Issue icons sit at top-left for non-external contexts. Push the name down
-  // so the icons do not overlap the name text. (External contexts render
-  // issues at top-right where topRightBadgeReserve handles horizontal space.)
-  const hasTopLeftIssueIcons = hasIssues && context.ownership !== 'external'
-  const nameMarginTop = hasTopLeftIssueIcons ? 14 : 0
 
   // Consolidated highlight state for selected or group member contexts
   const isHighlighted = isSelected || isMemberOfSelectedGroup || isHoveredByRelationship
@@ -232,104 +227,37 @@ export function ContextNode({ data }: NodeProps) {
         onContextMenu={handleContextMenu}
         title={hideDescription && context.purpose ? context.purpose : undefined}
       >
-        {/* Legacy badge */}
-        {context.isLegacy && (
+        {/* Identity icons: Legacy then BBoM, in a single top-right container */}
+        {identityIconCount > 0 && (
           <div
-            data-testid="legacy-badge"
+            data-testid="identity-icons"
             style={{
               position: 'absolute',
               top: '4px',
               right: '4px',
-              color: '#d97706',
               display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
             }}
           >
-            <SimpleTooltip text="Legacy" position="bottom">
-              <span className="inline-flex">
-                <Archive size={16} />
-              </span>
-            </SimpleTooltip>
-          </div>
-        )}
-
-        {/* Big Ball of Mud badge */}
-        {context.isBigBallOfMud && (
-          <div
-            data-testid="bbom-badge"
-            style={{
-              position: 'absolute',
-              top: '4px',
-              right: context.isLegacy ? '24px' : '4px',
-              color: '#78350f',
-              display: 'inline-flex',
-            }}
-          >
-            <SimpleTooltip text="Big Ball of Mud" position="bottom">
-              <span className="inline-flex">
-                <CloudFog size={16} />
-              </span>
-            </SimpleTooltip>
-          </div>
-        )}
-
-        {/* External badge */}
-        {context.ownership === 'external' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '6px',
-              left: '6px',
-              fontSize: '9px',
-              backgroundColor: '#f1f5f9',
-              color: '#64748b',
-              padding: '3px 7px',
-              borderRadius: '6px',
-              fontWeight: 600,
-              letterSpacing: '0.03em',
-              textTransform: 'uppercase',
-            }}
-          >
-            External
-          </div>
-        )}
-
-        {/* Issue indicators */}
-        {context.issues && context.issues.length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '4px',
-              left: context.ownership === 'external' ? undefined : '4px',
-              right:
-                context.ownership === 'external' ? (context.isLegacy ? '24px' : '4px') : undefined,
-              display: 'flex',
-              gap: '2px',
-            }}
-          >
-            {context.issues.map((issue) => {
-              const severityColors = {
-                critical: '#dc2626',
-                warning: '#d97706',
-                info: '#3b82f6',
-              }
-              return (
-                <SimpleTooltip
-                  key={issue.id}
-                  text={issue.title || 'Untitled issue'}
-                  position="bottom"
-                >
-                  <div style={{ cursor: 'default' }}>
-                    {issue.severity === 'info' ? (
-                      <Info size={14} color={severityColors[issue.severity]} />
-                    ) : issue.severity === 'critical' ? (
-                      <AlertOctagon size={14} color={severityColors[issue.severity]} />
-                    ) : (
-                      <AlertTriangle size={14} color={severityColors[issue.severity]} />
-                    )}
-                  </div>
-                </SimpleTooltip>
-              )
-            })}
+            {context.isLegacy && (
+              <div data-testid="legacy-badge" style={{ color: '#d97706', display: 'inline-flex' }}>
+                <InfoTooltip content={LEGACY_CONTEXT} position="bottom">
+                  <span className="inline-flex">
+                    <Archive size={16} />
+                  </span>
+                </InfoTooltip>
+              </div>
+            )}
+            {context.isBigBallOfMud && (
+              <div data-testid="bbom-badge" style={{ color: '#78350f', display: 'inline-flex' }}>
+                <InfoTooltip content={BIG_BALL_OF_MUD} position="bottom">
+                  <span className="inline-flex">
+                    <CloudFog size={16} />
+                  </span>
+                </InfoTooltip>
+              </div>
+            )}
           </div>
         )}
 
@@ -340,11 +268,12 @@ export function ContextNode({ data }: NodeProps) {
             fontSize: '13px',
             fontWeight: 600,
             color: '#0f172a',
-            marginTop: nameMarginTop,
+            marginTop: 0,
             paddingRight: topRightBadgeReserve,
             lineHeight: '1.3',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
         >
           {context.name}
@@ -367,6 +296,14 @@ export function ContextNode({ data }: NodeProps) {
           >
             {context.purpose}
           </div>
+        )}
+
+        {/* Per-severity issue counter pill (bottom-right) */}
+        {hasIssues && (
+          <IssueCounterPill
+            issues={context.issues!}
+            onSelect={() => setSelectedContext(context.id)}
+          />
         )}
       </div>
 
