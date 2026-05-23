@@ -13,6 +13,7 @@ import {
   SIDE_NORMALS,
   tangentBezierPath,
 } from '../../lib/edgeGeometry'
+import { boxesOverlap } from '../../lib/sharedKernelGeometry'
 import {
   ARROW_MARKER_LENGTH,
   EDGE_ENDPOINT_GAP,
@@ -66,6 +67,36 @@ function RelationshipEdge({
   const { getNode } = useReactFlow()
   const sourceNode = getNode(source)
   const targetNode = getNode(target)
+
+  // Shared Kernel suppression: when the relationship pattern is shared-kernel
+  // AND both endpoint contexts overlap, the SharedKernelOverlay renders the
+  // hatched intersection region instead of an edge line (cqi). Skip the entire
+  // edge to avoid a redundant connector and double-selection target.
+  if (
+    pattern === 'shared-kernel' &&
+    sourceNode &&
+    targetNode &&
+    sourceNode.width &&
+    sourceNode.height &&
+    targetNode.width &&
+    targetNode.height &&
+    boxesOverlap(
+      {
+        x: sourceNode.position.x,
+        y: sourceNode.position.y,
+        width: sourceNode.width,
+        height: sourceNode.height,
+      },
+      {
+        x: targetNode.position.x,
+        y: targetNode.position.y,
+        width: targetNode.width,
+        height: targetNode.height,
+      }
+    )
+  ) {
+    return null
+  }
 
   // Calculate dynamic edge positions if nodes are available with valid dimensions
   let sx = sourceX

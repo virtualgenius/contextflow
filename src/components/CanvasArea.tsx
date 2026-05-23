@@ -49,6 +49,7 @@ import {
   CanvasBoundary,
   YAxisLabels,
   DistillationRegions,
+  SharedKernelOverlay,
 } from './overlays'
 
 const nodeTypes = {
@@ -1053,6 +1054,15 @@ function CanvasContent() {
               <EvolutionBands />
               <YAxisLabels />
             </>
+          )}
+
+          {/* Shared Kernel overlay - renders SK as overlapping hatched regions */}
+          {project && viewMode !== 'distillation' && showRelationships && (
+            <SharedKernelOverlay
+              contexts={project.contexts}
+              relationships={project.relationships}
+              viewMode={viewMode}
+            />
           )}
 
           {/* Issue labels overlay - visible in all views when enabled */}
