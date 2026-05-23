@@ -424,6 +424,12 @@ function RelationshipEdge({
             selectedContextIds: [source, target],
           })
         }}
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          if (!isSymmetric) {
+            swapRelationshipDirection(id)
+          }
+        }}
         onContextMenu={(e) => {
           e.preventDefault()
           e.stopPropagation()

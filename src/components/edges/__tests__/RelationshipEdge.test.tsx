@@ -137,6 +137,111 @@ describe('RelationshipEdge label visibility', () => {
   })
 })
 
+describe('RelationshipEdge double-click to flip direction', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('calls swapRelationshipDirection on double-click for U/D relationships', () => {
+    const mockSwap = vi.fn()
+    setupMock({ swapRelationshipDirection: mockSwap })
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    expect(hitArea).not.toBeNull()
+    fireEvent.doubleClick(hitArea!)
+    expect(mockSwap).toHaveBeenCalledWith('rel-1')
+  })
+
+  it('does NOT call swapRelationshipDirection on double-click for partnership pattern', () => {
+    const mockSwap = vi.fn()
+    setupMock({ swapRelationshipDirection: mockSwap })
+    const partnershipProps = {
+      ...baseProps,
+      data: {
+        relationship: {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+          pattern: 'partnership',
+        },
+      },
+    }
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...partnershipProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.doubleClick(hitArea!)
+    expect(mockSwap).not.toHaveBeenCalled()
+  })
+
+  it('does NOT call swapRelationshipDirection on double-click for shared-kernel pattern', () => {
+    const mockSwap = vi.fn()
+    setupMock({ swapRelationshipDirection: mockSwap })
+    const skProps = {
+      ...baseProps,
+      data: {
+        relationship: {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+          pattern: 'shared-kernel',
+        },
+      },
+    }
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...skProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.doubleClick(hitArea!)
+    expect(mockSwap).not.toHaveBeenCalled()
+  })
+
+  it('does NOT call swapRelationshipDirection on double-click for separate-ways pattern', () => {
+    const mockSwap = vi.fn()
+    setupMock({ swapRelationshipDirection: mockSwap })
+    const swProps = {
+      ...baseProps,
+      data: {
+        relationship: {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+          pattern: 'separate-ways',
+        },
+      },
+    }
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...swProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.doubleClick(hitArea!)
+    expect(mockSwap).not.toHaveBeenCalled()
+  })
+
+  it('still fires single-click selection independently from double-click handler', () => {
+    const mockSwap = vi.fn()
+    setupMock({ swapRelationshipDirection: mockSwap })
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...baseProps} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.click(hitArea!)
+    expect(useEditorStore.setState).toHaveBeenCalled()
+  })
+})
+
 describe('RelationshipEdge tooltip layering', () => {
   beforeEach(() => {
     vi.clearAllMocks()
