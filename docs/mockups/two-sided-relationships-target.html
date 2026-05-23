@@ -407,8 +407,8 @@
         <p class="mb-3"><strong>Click Customer-Supplier pill</strong> → <code>pattern: 'customer-supplier'</code>, per-side roles cleared. Renders as a U/D arrow with the pattern label.</p>
         <p class="mb-3"><strong>Click a per-side role pill</strong> (OHS, Published Language, Conformist, ACL) → role set, any standalone pattern cleared. Role badge appears on the corresponding context end.</p>
         <p class="mb-3"><strong>Click the active pattern or role pill again</strong> → toggles it off.</p>
-        <p class="mb-3"><strong>Click the arrow in the picker mini-diagram (η)</strong> → swaps <code>fromContextId</code> ↔ <code>toContextId</code>; clears per-side roles (since OHS-on-Billing doesn't transfer to OHS-on-Orders).</p>
-        <p class="mb-3"><strong>Double-click the arrow on the canvas (ε)</strong> → same as above. Calls the existing <code>swapRelationshipDirection</code> store action.</p>
+        <p class="mb-3"><strong>Click the arrow in the picker mini-diagram (η)</strong> → swaps <code>fromContextId</code> ↔ <code>toContextId</code>; clears <code>upstreamRole</code> and <code>downstreamRole</code> (since OHS-on-Billing is a claim about Billing's design, not a slot label that should silently migrate to Orders); preserves <code>pattern</code>, including <code>'customer-supplier'</code> (Customer-Supplier is relationship-level, with supplier/customer labels defined by direction).</p>
+        <p class="mb-3"><strong>Double-click the arrow on the canvas (ε)</strong> → same as above. Calls the same <code>swapRelationshipDirection</code> store action, which is extended in Slice 4 to clear per-side roles while preserving <code>pattern</code>.</p>
         <p class="mb-3"><strong>Drag context body onto another</strong> → if no relationship exists between them, creates Shared Kernel. If a relationship exists, prompts to convert.</p>
         <p class="mb-3"><strong>Drag Shared Kernel contexts apart</strong> → <code>pattern</code> auto-switches to <code>'partnership'</code>. The Mutually Dependent influence is preserved; the user can still pick something else in the picker.</p>
         <p class="mb-0"><strong>Click Remove relationship</strong> → confirms then deletes the <code>Relationship</code> object. Free relationships have no object; documentation of intentional non-integration goes in context notes.</p>
@@ -936,12 +936,15 @@
     refresh();
   }
   function flipDirection() {
-    // Per-side roles stay attached to the upstream/downstream role, not to a specific context.
-    // After the swap, the upstream box follows to whichever context is now upstream;
-    // the downstream box follows to whichever context is now downstream.
-    // The rendering uses fromContextId/toContextId lookups, so the boxes reposition automatically.
+    // Flip swaps fromContextId and toContextId. Per-side roles are claims about a
+    // specific context (e.g. "Billing has built an OHS") and shouldn't silently
+    // migrate to the other context, so they're cleared. Customer-Supplier is a
+    // relationship-level pattern whose supplier/customer labels are defined by
+    // direction, so the pattern is preserved.
     const rel = state.rel;
     const tmp = rel.fromContextId; rel.fromContextId = rel.toContextId; rel.toContextId = tmp;
+    rel.upstreamRole = undefined;
+    rel.downstreamRole = undefined;
     refresh();
   }
   function onRemove() {

@@ -23,8 +23,14 @@ From the design discovery in `drag-direction-options-mockup.html`:
 6. **All pills toggle off** when the active one is clicked. No separate "clear" links.
 7. **Mutual exclusivity is auto-resolved**: picking a standalone pattern clears per-side roles, and vice versa. The mutation layer is permissive; the UI prevents invalid states.
 8. **Drag-stub gesture sets U/D direction**: drag-from is downstream, drag-to is upstream, arrow points to upstream. This preserves the P1 convention from `#22`.
-9. **Direction can be flipped two ways**: a clickable arrow in the picker's direction mini-diagram (η), and double-click on the canvas arrow (ε). Both call the existing `swapRelationshipDirection`.
-10. **`schemaVersion` field** (was Outstanding Question #2 in v1): still unresolved. Out of scope for this bead; flag if it blocks Phase 2 planning, do not add the field here.
+9. **Direction can be flipped two ways**: a clickable arrow in the picker's direction mini-diagram (η), and double-click on the canvas arrow (ε). Both call the existing `swapRelationshipDirection`, which is extended in Slice 4 (see decision 10).
+10. **Flip clears per-side roles; preserves Customer-Supplier.** When the user flips direction on a U/D relationship, `upstreamRole` and `downstreamRole` are cleared. `pattern` (including `'customer-supplier'`) is left untouched. Rationale: per-side roles are claims about a specific context (e.g., "Billing has built an Open Host Service"), not slot labels, and shouldn't silently migrate when direction changes. Customer-Supplier is a relationship-level pattern whose customer/supplier labels are defined by direction, so flipping just relabels who plays which role; no data is lost. All three flip surfaces (picker mini-diagram, canvas double-click, right-click context menu) inherit this behavior because they share the store action.
+
+    Worked examples:
+    - **Per-side roles cleared:** Billing (upstream) has OHS, Orders (downstream) has ACL. User flips. After: Orders is upstream, Billing is downstream, both role pills empty, indicator boxes gone. User re-asserts roles for the new direction.
+    - **Customer-Supplier preserved:** pattern = `'customer-supplier'`, no per-side roles. User flips. After: direction reversed, pattern still `'customer-supplier'`, the edge label still reads Customer-Supplier (the supplier and customer labels swap with direction, by definition of the pattern).
+    - **Blank flip:** U/D relationship with no pattern and no roles. User flips. After: same emptiness, opposite direction. Nothing to clear.
+11. **`schemaVersion` field** (was Outstanding Question #2 in v1): still unresolved. Out of scope for this bead; flag if it blocks Phase 2 planning, do not add the field here.
 
 ## Scope boundary
 
@@ -154,21 +160,23 @@ Each slice has:
 
 **Acceptance criteria**:
 - Given a U/D relationship, when the user opens the inspector, then a Direction section renders showing the two contexts in their canvas positions and an arrow indicating upstream.
-- Given the user clicks the arrow in the mini-diagram, then `fromContextId` and `toContextId` swap; the canvas arrow re-renders pointing the other way; per-side roles are preserved (they're attached to the upstream/downstream role, not to specific contexts, so the boxes follow to whichever context is now in that role).
+- Given the user clicks the arrow in the mini-diagram, then `fromContextId` and `toContextId` swap; the canvas arrow re-renders pointing the other way; if `upstreamRole` or `downstreamRole` were set, both are cleared and the corresponding indicator boxes disappear; if `pattern === 'customer-supplier'`, the pattern is preserved and the edge label still reads Customer-Supplier (the supplier/customer labels swap with direction by definition of the pattern); if the relationship was blank, the direction simply reverses.
 - The Direction section does NOT render when the influence is Mutually Dependent (Partnership has no direction).
 - Hover state on the arrow signals it's clickable (color change).
 
 **Files likely affected**:
 - `src/components/inspector/RelationshipInspector.tsx` (new Direction section)
-- `src/model/store.ts` (call existing `swapRelationshipDirection` action; no change to the action itself — per-side roles are preserved and the rendering naturally repositions them)
+- `src/model/store.ts` (extend the existing `swapRelationshipDirection` action so it also clears `upstreamRole` and `downstreamRole` in the same mutation; `pattern` is left untouched)
 
 **Reminders for the implementer**:
 - **Analytics**: direction flip (whether via picker or canvas) fires a tracked event per `docs/ANALYTICS_USAGE_GUIDE.md`.
 
 **What does NOT change in this slice**:
 - The canvas behavior (Slice 5 is the canvas counterpart)
-- Existing right-click → Swap Direction context menu (stays as a fallback; inherits the new behavior since it calls the same store action and per-side rendering follows the role)
-- The store action `swapRelationshipDirection` itself: no semantic change, since the per-side role rendering looks up upstream/downstream after the swap
+- The set of flip surfaces: still picker mini-diagram (this slice), canvas double-click (Slice 5), and right-click context menu (existing). All three call `swapRelationshipDirection` and therefore inherit the role-clearing behavior added in this slice.
+
+**What does change in this slice**:
+- The `swapRelationshipDirection` store action gains the role-clearing behavior described above. This is a semantic change to the action, not just a new caller. Existing callers (right-click context menu) get the new behavior for free, which is intended.
 
 **Dependencies**: Slice 3
 
@@ -179,7 +187,7 @@ Each slice has:
 **User behavior**: A user can double-click a relationship arrow on the canvas to flip its direction.
 
 **Acceptance criteria**:
-- Given a U/D relationship rendered as an arrow on the canvas, when the user double-clicks anywhere on the arrow's hit area, then `swapRelationshipDirection` is called and the arrow re-renders pointing the other way; per-side roles are preserved (their indicator boxes follow the upstream/downstream role to whichever context is now in that role).
+- Given a U/D relationship rendered as an arrow on the canvas, when the user double-clicks anywhere on the arrow's hit area, then `swapRelationshipDirection` is called and the arrow re-renders pointing the other way. Behavior matches Slice 4: per-side roles (if set) are cleared and their indicator boxes disappear; `pattern === 'customer-supplier'` is preserved; a blank U/D relationship simply reverses direction.
 - Double-click does nothing for symmetric relationships (Partnership: no arrow rendered, so the hit area's `cursor` is the default).
 - Double-click does nothing for Shared Kernel relationships (no arrow line exists; SK is overlap-only).
 - Single-click behavior is unchanged: still selects the relationship.
