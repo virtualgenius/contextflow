@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two-sided relationships: target implementation (contextflow-ki1)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .ctx {
+      position: absolute;
+      width: 160px;
+      height: 78px;
+      border-radius: 8px;
+      background: #d1fae5;
+      border: 2px solid #94a3b8;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      cursor: grab;
+      user-select: none;
+      transition: box-shadow 0.18s, border-color 0.18s;
+    }
+    .ctx.animating { transition: left 0.35s cubic-bezier(.4,.0,.2,1), top 0.35s cubic-bezier(.4,.0,.2,1), box-shadow 0.18s, border-color 0.18s; }
+    .ctx:active { cursor: grabbing; }
+    .ctx.would-overlap { box-shadow: 0 0 0 3px rgba(124,58,237,0.45), 0 4px 12px rgba(0,0,0,0.08); border-color: #7c3aed; }
+    .ctx.connect-target { box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 4px 12px rgba(0,0,0,0.08); border-color: #3b82f6; }
+    .ctx .name { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .ctx .purpose { font-size: 10.5px; color: #64748b; margin-top: 6px; line-height: 1.35; }
+    /* OHS/ACL indicator boxes — match src/lib/canvasConstants.ts PATTERN_EDGE_INDICATORS exactly.
+       OHS = green (upstream end); ACL = amber (downstream end). 28x18px, 3-char labels. */
+    .role-indicator {
+      position: absolute;
+      width: 28px;
+      height: 18px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    .role-indicator.ohs { background: #dcfce7; border: 1px solid #22c55e; color: #16a34a; }
+    .role-indicator.acl { background: #fef3c7; border: 1px solid #f59e0b; color: #d97706; }
+
+    /* PL and Conformist visual treatment: TBD in Slice 2.
+       Rendered here as a small dashed placeholder marker so the data is visible
+       on the canvas without committing to a visual design. */
+    .role-placeholder {
+      position: absolute;
+      padding: 2px 6px;
+      background: #f8fafc;
+      border: 1.5px dashed #94a3b8;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.02em;
+      font-style: italic;
+      z-index: 4;
+    }
+    .role-placeholder::after {
+      content: ' (visual TBD)';
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    /* Arrow stub affordance (from connection-ux-mockup.html / GH #22) */
+    .stubs { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+    .ctx.show-stubs .stubs { opacity: 1; }
+    .stub { position: absolute; pointer-events: auto; cursor: crosshair; display: flex; align-items: center; justify-content: center; }
+    .stub.arrow { width: 26px; height: 26px; position: absolute; }
+    .stub.arrow svg { width: 26px; height: 26px; transition: opacity 0.12s; opacity: 0.35; }
+    .stub.arrow svg path { fill: #475569; transition: fill 0.12s; }
+    .stub.arrow:hover svg { opacity: 1; }
+    .stub.arrow:hover svg path { fill: #2563eb; }
+    .stub.top    { left: 50%; top: -30px;    transform: translateX(-50%); }
+    .stub.right  { right: -30px; top: 50%;   transform: translateY(-50%); }
+    .stub.bottom { left: 50%; bottom: -30px; transform: translateX(-50%); }
+    .stub.left   { left: -30px; top: 50%;    transform: translateY(-50%); }
+
+    /* Shared Kernel rendering */
+    .kernel-region {
+      position: absolute;
+      background: repeating-linear-gradient(45deg, rgba(124,58,237,0.20), rgba(124,58,237,0.20) 5px, rgba(124,58,237,0.35) 5px, rgba(124,58,237,0.35) 10px);
+      border-top: 2px dashed #7c3aed;
+      border-bottom: 2px dashed #7c3aed;
+      z-index: 3;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .kernel-region .kernel-label {
+      background: #7c3aed; color: white; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.02em; white-space: nowrap;
+    }
+
+    /* Edges */
+    .edges-layer { position: absolute; inset: 0; pointer-events: none; }
+    .edge-ud { fill: none; stroke: #475569; stroke-width: 2; }
+    .edge-arrow { fill: #475569; }
+    .edge-ghost { stroke: #2563eb; stroke-width: 2; stroke-dasharray: 6 4; fill: none; }
+    .edge-mutual { stroke: #1e40af; stroke-width: 2.5; fill: none; }
+    .edge-label { font-size: 10.5px; fill: #334155; font-weight: 500; }
+    .edge-label-bg { fill: white; stroke: #e2e8f0; stroke-width: 1; }
+
+    /* InspectorPanel-style picker */
+    .picker {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      padding: 14px 16px;
+      width: 320px;
+      font-size: 12px;
+    }
+    .picker .section-header {
+      font-size: 10px; font-weight: 600; color: #64748b;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .picker-section { margin-bottom: 16px; }
+    .picker-section:last-child { margin-bottom: 0; }
+
+    .pattern-btn {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-align: left;
+      font-family: inherit;
+      width: 100%;
+    }
+    .pattern-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    .pattern-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+    .pattern-btn .pattern-name { font-size: 12.5px; font-weight: 600; }
+    .pattern-btn .pattern-influence { font-size: 10px; opacity: 0.65; white-space: nowrap; }
+    .pattern-btn.active .pattern-influence { opacity: 0.8; }
+
+    .gesture-hint {
+      font-size: 10.5px; color: #64748b; font-style: italic;
+      margin-top: 6px; padding-left: 12px;
+    }
+
+    .or-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 12px 0; color: #94a3b8; font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
+    }
+    .or-divider::before, .or-divider::after {
+      content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    }
+
+    .characterize-header {
+      font-size: 11px; font-weight: 500; color: #475569; margin-bottom: 8px;
+    }
+    .role-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .role-row:last-child { margin-bottom: 0; }
+    .role-label { font-size: 11px; color: #475569; }
+    .role-label .role-side { font-weight: 600; }
+    .role-label .ctx-name { color: #64748b; }
+    .role-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .pill {
+      display: inline-block; padding: 4px 9px; border: 1px solid #cbd5e1; border-radius: 999px;
+      color: #334155; background: white; cursor: pointer; font-size: 11px;
+      font-family: inherit; line-height: 1.2;
+      transition: all 0.1s;
+    }
+    button.pill { font: inherit; font-size: 11px; }
+    .pill:hover { background: #f1f5f9; border-color: #94a3b8; }
+    .pill.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+    .exclusivity-note {
+      font-size: 10.5px; color: #64748b; padding: 6px 10px;
+      background: #f8fafc; border-radius: 4px; line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    /* η: direction mini-diagram in picker */
+    .direction-mini {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      padding: 6px 0;
+    }
+    .direction-mini-ctx {
+      flex: 1; padding: 6px 8px; border-radius: 6px;
+      background: #dbeafe; border: 2px solid #94a3b8;
+      text-align: center; min-width: 0;
+    }
+    .direction-mini-ctx.up { background: #fde68a; }
+    .direction-mini-ctx .name { font-size: 11px; font-weight: 600; color: #0f172a; }
+    .direction-mini-ctx .role { font-size: 9px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .direction-arrow {
+      cursor: pointer;
+      padding: 6px 4px;
+      border-radius: 6px;
+      transition: background 0.12s;
+      flex-shrink: 0;
+    }
+    .direction-arrow:hover { background: #e0e7ff; }
+    .direction-arrow:hover svg path { stroke: #2563eb; }
+    .direction-arrow:hover svg marker path { fill: #2563eb; }
+    .direction-hint {
+      font-size: 10px; color: #94a3b8; text-align: center; margin-top: 4px;
+    }
+
+    /* Currently SK banner */
+    .sk-indicator {
+      padding: 10px 12px;
+      background: linear-gradient(to right, rgba(124,58,237,0.10), rgba(124,58,237,0.04));
+      border-left: 3px solid #7c3aed;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+    .sk-indicator .sk-title {
+      font-size: 11.5px; font-weight: 600; color: #6b21a8;
+      letter-spacing: 0.02em; margin-bottom: 2px;
+    }
+    .sk-indicator .sk-text {
+      font-size: 10.5px; color: #6b21a8; line-height: 1.4;
+    }
+
+    /* Remove */
+    .remove-section { padding-top: 12px; border-top: 1px solid #e2e8f0; }
+    .remove-btn {
+      width: 100%;
+      background: white; color: #b91c1c; border: 1px solid #fecaca;
+      padding: 8px 12px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; font-weight: 500;
+      transition: background 0.1s;
+    }
+    .remove-btn:hover { background: #fef2f2; }
+    .remove-hint {
+      font-size: 10.5px; color: #64748b; margin-top: 6px; text-align: center; line-height: 1.4;
+    }
+
+    /* Layout chrome */
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .panel-h { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; }
+    .panel-body { padding: 18px; }
+    .stage-wrap { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+    .stage { position: relative; width: 100%; height: 320px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .kicker { font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    .hint {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(15,23,42,0.85); color: white;
+      font-size: 10.5px; padding: 5px 9px; border-radius: 4px;
+      pointer-events: none;
+      max-width: 280px;
+      line-height: 1.45;
+    }
+
+    /* Slice badges (annotation overlay; not part of real UI) */
+    .slice-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px;
+      background: #2563eb; color: white;
+      border-radius: 4px;
+      font-size: 10px; font-weight: 700;
+      cursor: help;
+    }
+    .slice-badge.s1 { background: #16a34a; }
+    .slice-badge.s2 { background: #2563eb; }
+    .slice-badge.s3 { background: #9333ea; }
+    .slice-badge.s4 { background: #ea580c; }
+    .slice-badge.s5 { background: #0891b2; }
+    .slice-badge.s6 { background: #db2777; }
+    .slice-badge.s7 { background: #dc2626; }
+    .slice-badge.s8 { background: #64748b; }
+    .slice-canvas-badge {
+      position: absolute; z-index: 10;
+      width: 22px; height: 22px;
+      background: rgba(37, 99, 235, 0.95); color: white;
+      border-radius: 4px; border: 2px solid white;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+      cursor: help;
+    }
+    .slice-canvas-badge.s5 { background: rgba(8, 145, 178, 0.95); }
+    .slice-canvas-badge.s6 { background: rgba(219, 39, 119, 0.95); }
+    .slice-canvas-badge.s7 { background: rgba(220, 38, 38, 0.95); }
+
+    .legend-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px;
+      font-size: 12px;
+    }
+    .legend-row { display: flex; align-items: flex-start; gap: 8px; }
+    .legend-row .badge { flex-shrink: 0; margin-top: 1px; }
+    .legend-row .label { color: #334155; }
+    .legend-row .label .name { font-weight: 600; }
+    .legend-row .label .desc { color: #64748b; font-size: 11px; }
+
+    .confirm-modal {
+      position: absolute; inset: 0;
+      background: rgba(15,23,42,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 20;
+    }
+    .confirm-body {
+      background: white; border-radius: 8px; padding: 18px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      width: 360px;
+    }
+    .confirm-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .confirm-text { font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px; }
+    .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn { font-size: 11.5px; padding: 5px 10px; border-radius: 6px; background: white; border: 1px solid #cbd5e1; color: #334155; cursor: pointer; }
+    .btn:hover { background: #f1f5f9; }
+    .btn.primary { background: #0f172a; color: white; border-color: #0f172a; }
+    .btn.primary:hover { background: #1e293b; }
+    .btn.danger { color: #991b1b; border-color: #fecaca; background: #fef2f2; }
+    .btn.danger:hover { background: #fee2e2; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-6xl mx-auto p-8">
+    <header class="mb-6">
+      <div class="kicker">ContextFlow / contextflow-ki1 / GH #13</div>
+      <h1 class="text-2xl font-semibold mt-1">Two-sided relationships: target implementation</h1>
+      <p class="text-sm text-slate-600 mt-2 max-w-3xl">
+        Canonical reference for what the inspector picker and canvas gestures should do when this bead lands.
+        This is the implementation target. For the design rationale, alternatives explored, and Evans vocabulary background, see
+        <a href="./drag-direction-options-mockup.html" class="text-blue-600 underline">drag-direction-options-mockup.html</a>
+        (the design-discovery artifact).
+      </p>
+      <p class="text-xs text-slate-500 mt-2">
+        Background docs: <a href="../PLAN-two-sided-relationships.md" class="text-blue-600 underline">PLAN-two-sided-relationships.md</a>,
+        <a href="../DDD_RELATIONSHIP_PATTERNS.md" class="text-blue-600 underline">DDD_RELATIONSHIP_PATTERNS.md</a>.
+        Shared-Kernel overlap is tracked in bead <code>contextflow-cqi</code>.
+      </p>
+    </header>
+
+    <!-- Slice legend -->
+    <section class="panel mb-6">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Slice annotation legend</div>
+          <h2 class="text-base font-semibold mt-1">Numbered badges below mark which slice each piece of behavior belongs to</h2>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="legend-grid">
+          <div class="legend-row"><span class="badge slice-badge s1">1</span><span class="label"><span class="name">Per-side roles in inspector</span><br><span class="desc">Set OHS / Published Language / Conformist / ACL on each end</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s2">2</span><span class="label"><span class="name">Edge indicators for per-side roles</span><br><span class="desc">Role badges render on the corresponding context</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s3">3</span><span class="label"><span class="name">Picker structure</span><br><span class="desc">Partnership at top, C/S or per-side, Remove at bottom; toggle-off pills</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s4">4</span><span class="label"><span class="name">Direction swap via picker (η)</span><br><span class="desc">Click the arrow in the picker mini-diagram</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s5">5</span><span class="label"><span class="name">Direction swap via canvas (ε)</span><br><span class="desc">Double-click the arrow on the canvas</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s6">6</span><span class="label"><span class="name">Shared Kernel creation by overlap</span><br><span class="desc">Drag a context body onto another (depends on <code>contextflow-cqi</code>)</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s7">7</span><span class="label"><span class="name">Auto-Partnership on separation</span><br><span class="desc">Drag SK contexts apart → pattern becomes Partnership (depends on s6)</span></span></div>
+          <div class="legend-row"><span class="badge slice-badge s8">8</span><span class="label"><span class="name">Migrate old pattern values</span><br><span class="desc">Phase 2 cleanup: separate-ways → delete; shared-kernel → SK entity; narrow type</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Target -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Target behavior</div>
+          <h2 class="text-lg font-semibold mt-1">Inspector picker + canvas gestures</h2>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="stage-wrap">
+          <div>
+            <div class="stage canvas-bg" id="stage">
+              <div class="hint">
+                <strong>Canvas gestures:</strong><br>
+                · Hover a context for arrow stubs, drag a stub to create a U/D relationship<br>
+                · Drag a context body onto another to create Shared Kernel <span class="slice-badge s6">6</span><br>
+                · Double-click an arrow to flip its direction <span class="slice-badge s5">5</span><br>
+                · Drag SK contexts apart to auto-convert to Partnership <span class="slice-badge s7">7</span>
+              </div>
+            </div>
+            <div class="mt-3 text-xs text-slate-500">
+              The canvas renders the same way the real React Flow canvas does. Try the gestures.
+            </div>
+          </div>
+          <div class="picker" id="picker"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Behaviors summary -->
+    <section class="panel mb-12">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Behavior summary</div>
+          <h2 class="text-base font-semibold mt-1">What each gesture produces in the data model</h2>
+        </div>
+      </div>
+      <div class="panel-body text-sm text-slate-700 leading-relaxed">
+        <p class="mb-3"><strong>Drag arrow stub from A to B</strong> → creates a relationship with <code>fromContextId: A, toContextId: B</code>, no pattern, no roles. Renders as a U/D arrow pointing at B (the upstream).</p>
+        <p class="mb-3"><strong>Click Partnership pill</strong> → <code>pattern: 'partnership'</code>, per-side roles cleared. Renders as a mutual line, no arrow. Peer badges on both contexts.</p>
+        <p class="mb-3"><strong>Click Customer-Supplier pill</strong> → <code>pattern: 'customer-supplier'</code>, per-side roles cleared. Renders as a U/D arrow with the pattern label.</p>
+        <p class="mb-3"><strong>Click a per-side role pill</strong> (OHS, Published Language, Conformist, ACL) → role set, any standalone pattern cleared. Role badge appears on the corresponding context end.</p>
+        <p class="mb-3"><strong>Click the active pattern or role pill again</strong> → toggles it off.</p>
+        <p class="mb-3"><strong>Click the arrow in the picker mini-diagram (η)</strong> → swaps <code>fromContextId</code> ↔ <code>toContextId</code>; clears per-side roles (since OHS-on-Billing doesn't transfer to OHS-on-Orders).</p>
+        <p class="mb-3"><strong>Double-click the arrow on the canvas (ε)</strong> → same as above. Calls the existing <code>swapRelationshipDirection</code> store action.</p>
+        <p class="mb-3"><strong>Drag context body onto another</strong> → if no relationship exists between them, creates Shared Kernel. If a relationship exists, prompts to convert.</p>
+        <p class="mb-3"><strong>Drag Shared Kernel contexts apart</strong> → <code>pattern</code> auto-switches to <code>'partnership'</code>. The Mutually Dependent influence is preserved; the user can still pick something else in the picker.</p>
+        <p class="mb-0"><strong>Click Remove relationship</strong> → confirms then deletes the <code>Relationship</code> object. Free relationships have no object; documentation of intentional non-integration goes in context notes.</p>
+      </div>
+    </section>
+
+    <footer class="text-xs text-slate-500 mb-12">
+      Source bead: <code>contextflow-ki1</code>. Slice plan: <a href="../PLAN-two-sided-relationships-v2.md" class="text-blue-600 underline">PLAN-two-sided-relationships-v2.md</a>.
+    </footer>
+  </div>
+
+  <script>
+  // ============================================================
+  // Domain model
+  // ============================================================
+  const MUTUAL_PATTERNS = new Set(['partnership', 'shared-kernel']);
+
+  function patternLabel(p) {
+    return {
+      'customer-supplier': 'Customer-Supplier',
+      'partnership': 'Partnership',
+      'shared-kernel': 'Shared Kernel',
+      'conformist': 'Conformist',
+      'anti-corruption-layer': 'Anti-Corruption Layer',
+      'open-host-service': 'Open Host Service',
+      'published-language': 'Published Language'
+    }[p] || p;
+  }
+
+  function deriveInfluenceType(rel) {
+    if (!rel) return undefined;
+    if (rel.pattern === 'partnership' || rel.pattern === 'shared-kernel') return 'mutually-dependent';
+    return 'upstream-downstream';
+  }
+
+  // ============================================================
+  // State
+  // ============================================================
+  const CTX_W = 160, CTX_H = 78;
+  const DEFAULT_POS_A = { x: 50, y: 110 };
+  const DEFAULT_POS_B = { x: 360, y: 110 };
+  const OVERLAP_POS_A = { x: 100, y: 110 };
+  const OVERLAP_POS_B = { x: 200, y: 110 };
+
+  const state = {
+    ctxA: { id: 'a', name: 'Orders', purpose: 'consumer' },
+    ctxB: { id: 'b', name: 'Billing', purpose: 'service' },
+    positions: { a: { ...DEFAULT_POS_A }, b: { ...DEFAULT_POS_B } },
+    rel: null,
+    dragGhost: null,
+    dragMode: null,
+    animateNext: false
+  };
+
+  function boxFor(pos) { return { x: pos.x, y: pos.y, w: CTX_W, h: CTX_H }; }
+  function boxesOverlap(a, b) {
+    return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+  }
+  function snapToOverlap() {
+    state.positions = { a: { ...OVERLAP_POS_A }, b: { ...OVERLAP_POS_B } };
+    state.animateNext = true;
+  }
+  function snapToDefault() {
+    state.positions = { a: { ...DEFAULT_POS_A }, b: { ...DEFAULT_POS_B } };
+    state.animateNext = true;
+  }
+  function nameOf(id) { return id === state.ctxA.id ? state.ctxA.name : state.ctxB.name; }
+  function upstreamName() { return nameOf(state.rel.toContextId); }
+  function downstreamName() { return nameOf(state.rel.fromContextId); }
+
+  // ============================================================
+  // Stub arrows
+  // ============================================================
+  const STUB_SVG = {
+    top:    '<svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z"/></svg>',
+    right:  '<svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg>',
+    bottom: '<svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg>',
+    left:   '<svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg>'
+  };
+
+  function stubAnchorPoint(pos, side) {
+    if (side === 'top')    return { x: pos.x + CTX_W/2, y: pos.y };
+    if (side === 'right')  return { x: pos.x + CTX_W,   y: pos.y + CTX_H/2 };
+    if (side === 'bottom') return { x: pos.x + CTX_W/2, y: pos.y + CTX_H };
+    if (side === 'left')   return { x: pos.x,           y: pos.y + CTX_H/2 };
+    return { x: pos.x + CTX_W/2, y: pos.y + CTX_H/2 };
+  }
+
+  // ============================================================
+  // Canvas rendering
+  // ============================================================
+  function renderStage() {
+    const stage = document.getElementById('stage');
+    stage.querySelectorAll('.ctx, svg, .kernel-region, .slice-canvas-badge, .role-indicator, .role-placeholder').forEach(n => n.remove());
+
+    const posA = state.positions.a;
+    const posB = state.positions.b;
+    const ctxAMeta = { ...state.ctxA, ...posA };
+    const ctxBMeta = { ...state.ctxB, ...posB };
+
+    const overlapping = boxesOverlap(boxFor(posA), boxFor(posB));
+    const isSharedKernel = state.rel && state.rel.pattern === 'shared-kernel';
+    const aBehindB = posA.x <= posB.x;
+
+    const leftEl = mkCtx(ctxAMeta, '#dbeafe', aBehindB ? 1 : 2, state.animateNext);
+    const rightEl = mkCtx(ctxBMeta, '#fde68a', aBehindB ? 2 : 1, state.animateNext);
+    stage.appendChild(leftEl);
+    stage.appendChild(rightEl);
+
+    if (isSharedKernel && overlapping) drawKernelRegion(stage, posA, posB);
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'edges-layer');
+    svg.setAttribute('viewBox', `0 0 ${stage.clientWidth || 600} ${stage.clientHeight || 320}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.style.pointerEvents = 'auto';
+    stage.appendChild(svg);
+
+    if (state.rel && !(isSharedKernel && overlapping)) drawEdge(svg, ctxAMeta, ctxBMeta);
+    if (state.dragGhost) drawGhost(svg, state.dragGhost);
+    if (state.rel) drawRoleIndicators(stage);
+
+    if (state.dragMode === 'move' && overlapping) {
+      leftEl.classList.add('would-overlap');
+      rightEl.classList.add('would-overlap');
+    }
+
+    // Slice annotation on the active edge (S5: double-click)
+    if (state.rel && deriveInfluenceType(state.rel) === 'upstream-downstream') {
+      const badge = document.createElement('div');
+      badge.className = 'slice-canvas-badge s5';
+      badge.textContent = '5';
+      badge.title = 'Slice 5: double-click the arrow to flip direction';
+      const midX = (posA.x + posB.x + CTX_W) / 2;
+      badge.style.left = `${midX - 11}px`;
+      badge.style.top = `${posA.y - 28}px`;
+      stage.appendChild(badge);
+    }
+
+    state.animateNext = false;
+  }
+
+  function mkCtx(meta, color, z, animate) {
+    const el = document.createElement('div');
+    el.className = 'ctx' + (animate ? ' animating' : '');
+    el.style.left = meta.x + 'px';
+    el.style.top = meta.y + 'px';
+    el.style.background = color;
+    el.style.zIndex = z || 2;
+    el.dataset.ctxId = meta.id;
+    el.innerHTML = `
+      <div class="name">${meta.name}</div>
+      <div class="purpose">${meta.purpose}</div>
+      <div class="stubs">
+        <div class="stub arrow top"    data-stub="top">${STUB_SVG.top}</div>
+        <div class="stub arrow right"  data-stub="right">${STUB_SVG.right}</div>
+        <div class="stub arrow bottom" data-stub="bottom">${STUB_SVG.bottom}</div>
+        <div class="stub arrow left"   data-stub="left">${STUB_SVG.left}</div>
+      </div>`;
+    el.addEventListener('mouseenter', () => el.classList.add('show-stubs'));
+    el.addEventListener('mouseleave', () => el.classList.remove('show-stubs'));
+    return el;
+  }
+
+  function drawKernelRegion(stage, posA, posB) {
+    const a = boxFor(posA), b = boxFor(posB);
+    const overlapLeft = Math.max(a.x, b.x);
+    const overlapRight = Math.min(a.x + a.w, b.x + b.w);
+    const overlapTop = Math.max(a.y, b.y);
+    const overlapBottom = Math.min(a.y + a.h, b.y + b.h);
+    if (overlapRight <= overlapLeft || overlapBottom <= overlapTop) return;
+    const div = document.createElement('div');
+    div.className = 'kernel-region';
+    div.style.left = overlapLeft + 'px';
+    div.style.top = overlapTop + 'px';
+    div.style.width = (overlapRight - overlapLeft) + 'px';
+    div.style.height = (overlapBottom - overlapTop) + 'px';
+    div.innerHTML = `<div class="kernel-label">Shared Kernel</div>`;
+    stage.appendChild(div);
+  }
+
+  // OHS gets a green box at the upstream end; ACL gets an amber box at the downstream end.
+  // Published Language and Conformist visual treatment is a Slice 2 design decision —
+  // rendered here as a dashed placeholder so the data is visible without committing to a design.
+  // Partnership is rendered as an edge label only (the line + label IS the visual).
+  function drawRoleIndicators(stage) {
+    const rel = state.rel;
+    if (!rel) return;
+    if (deriveInfluenceType(rel) !== 'upstream-downstream') return;
+
+    const upPos = rel.toContextId === state.ctxA.id ? state.positions.a : state.positions.b;
+    const downPos = rel.fromContextId === state.ctxA.id ? state.positions.a : state.positions.b;
+
+    if (rel.upstreamRole === 'open-host-service') {
+      stage.appendChild(mkBox('OHS', 'ohs', upPos, downPos));
+    } else if (rel.upstreamRole === 'published-language') {
+      stage.appendChild(mkPlaceholder('Published Language', upPos, downPos));
+    }
+    if (rel.downstreamRole === 'anti-corruption-layer') {
+      stage.appendChild(mkBox('ACL', 'acl', downPos, upPos));
+    } else if (rel.downstreamRole === 'conformist') {
+      stage.appendChild(mkPlaceholder('Conformist', downPos, upPos));
+    }
+  }
+  function mkBox(label, kind, ownPos, otherPos) {
+    const d = document.createElement('div');
+    d.className = 'role-indicator ' + kind;
+    d.textContent = label;
+    const onLeft = ownPos.x < otherPos.x;
+    d.style.left = (onLeft ? ownPos.x + CTX_W - 1 : ownPos.x - 27) + 'px';
+    d.style.top = (ownPos.y + CTX_H/2 - 9) + 'px';
+    return d;
+  }
+  function mkPlaceholder(label, ownPos, otherPos) {
+    const d = document.createElement('div');
+    d.className = 'role-placeholder';
+    d.textContent = label;
+    const onLeft = ownPos.x < otherPos.x;
+    // Position roughly where a future visual treatment would go
+    document.body.appendChild(d);
+    const w = d.offsetWidth;
+    d.remove();
+    d.style.left = (onLeft ? ownPos.x + CTX_W + 2 : ownPos.x - w - 2) + 'px';
+    d.style.top = (ownPos.y + CTX_H/2 - 9) + 'px';
+    return d;
+  }
+
+  function ctxRightMid(meta) { return { x: meta.x + CTX_W, y: meta.y + CTX_H/2 }; }
+  function ctxLeftMid(meta)  { return { x: meta.x, y: meta.y + CTX_H/2 }; }
+  function ctxRectCenter(meta) { return { x: meta.x + CTX_W/2, y: meta.y + CTX_H/2 }; }
+
+  function drawEdge(svg, ctxAMeta, ctxBMeta) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const rel = state.rel;
+    const fromMeta = rel.fromContextId === state.ctxA.id ? ctxAMeta : ctxBMeta;
+    const toMeta = rel.toContextId === state.ctxA.id ? ctxAMeta : ctxBMeta;
+    const leftMeta = fromMeta.x < toMeta.x ? fromMeta : toMeta;
+    const rightMeta = fromMeta.x < toMeta.x ? toMeta : fromMeta;
+    const start = ctxRightMid(leftMeta);
+    const end = ctxLeftMid(rightMeta);
+    const arrowAtRight = (rel.toContextId === rightMeta.id);
+    const influence = deriveInfluenceType(rel);
+    const showArrow = influence === 'upstream-downstream';
+    const strokeClass = showArrow ? 'edge-ud' : 'edge-mutual';
+
+    const defs = document.createElementNS(svgNS, 'defs');
+    const marker = document.createElementNS(svgNS, 'marker');
+    marker.setAttribute('id', 'arr-target');
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '8');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '8');
+    marker.setAttribute('orient', 'auto-start-reverse');
+    const mp = document.createElementNS(svgNS, 'path');
+    mp.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    mp.setAttribute('class', 'edge-arrow');
+    marker.appendChild(mp);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    const cx = (start.x + end.x) / 2;
+    const d = `M ${start.x} ${start.y} C ${cx} ${start.y}, ${cx} ${end.y}, ${end.x} ${end.y}`;
+
+    // Wide invisible hit area for ε double-click (S5)
+    const hit = document.createElementNS(svgNS, 'path');
+    hit.setAttribute('d', d);
+    hit.setAttribute('stroke', 'transparent');
+    hit.setAttribute('stroke-width', '24');
+    hit.setAttribute('fill', 'none');
+    hit.style.pointerEvents = 'stroke';
+    hit.style.cursor = showArrow ? 'pointer' : 'default';
+    svg.appendChild(hit);
+
+    // Visible edge
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', strokeClass);
+    path.style.pointerEvents = 'none';
+    if (showArrow) {
+      if (arrowAtRight) path.setAttribute('marker-end', 'url(#arr-target)');
+      else path.setAttribute('marker-start', 'url(#arr-target)');
+    }
+    svg.appendChild(path);
+
+    if (showArrow) {
+      hit.addEventListener('dblclick', () => {
+        flipDirection();
+      });
+    }
+
+    // Edge label
+    const labelText = edgeLabel(rel);
+    if (labelText) {
+      const labelX = (start.x + end.x) / 2;
+      const labelY = (start.y + end.y) / 2 - 10;
+      const textNode = document.createElementNS(svgNS, 'text');
+      textNode.setAttribute('class', 'edge-label');
+      textNode.setAttribute('x', labelX);
+      textNode.setAttribute('y', labelY);
+      textNode.setAttribute('text-anchor', 'middle');
+      textNode.textContent = labelText;
+      svg.appendChild(textNode);
+      const bbox = textNode.getBBox();
+      const rect = document.createElementNS(svgNS, 'rect');
+      rect.setAttribute('x', bbox.x - 4);
+      rect.setAttribute('y', bbox.y - 2);
+      rect.setAttribute('width', bbox.width + 8);
+      rect.setAttribute('height', bbox.height + 4);
+      rect.setAttribute('rx', '3');
+      rect.setAttribute('class', 'edge-label-bg');
+      svg.insertBefore(rect, textNode);
+    }
+  }
+
+  // Edge label: standalone pattern name renders centered on the bezier.
+  // Per-side roles use indicator boxes (drawRoleIndicators) instead of a centered label.
+  function edgeLabel(rel) {
+    if (rel.pattern) return patternLabel(rel.pattern);
+    return '';
+  }
+
+  function drawGhost(svg, ghost) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const path = document.createElementNS(svgNS, 'path');
+    const { from, to } = ghost;
+    const cx = (from.x + to.x) / 2;
+    path.setAttribute('d', `M ${from.x} ${from.y} C ${cx} ${from.y}, ${cx} ${to.y}, ${to.x} ${to.y}`);
+    path.setAttribute('class', 'edge-ghost');
+    svg.appendChild(path);
+  }
+
+  // ============================================================
+  // Picker
+  // ============================================================
+  function renderPicker() {
+    const el = document.getElementById('picker');
+    el.innerHTML = '';
+    if (!state.rel) {
+      el.innerHTML = `<div class="text-slate-400 text-xs italic">Create a relationship (drag an arrow stub between contexts, or drag one context onto the other) to see the picker.</div>`;
+      return;
+    }
+    const rel = state.rel;
+    const influence = deriveInfluenceType(rel);
+
+    if (rel.pattern === 'shared-kernel') {
+      const ind = document.createElement('div');
+      ind.className = 'sk-indicator';
+      ind.innerHTML = `
+        <div class="sk-title">Currently: Shared Kernel</div>
+        <div class="sk-text">These contexts share part of their model and code. Drag them apart to change this relationship, or pick a different pattern below.</div>`;
+      el.appendChild(ind);
+    }
+
+    // PATTERN section
+    const sec = document.createElement('div');
+    sec.className = 'picker-section';
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `Pattern <span class="slice-badge s3" title="Slice 3: picker structure">3</span>`;
+    sec.appendChild(header);
+
+    // Partnership
+    const partnershipBtn = mkPatternBtn('partnership', 'Mutually Dependent', rel.pattern === 'partnership');
+    sec.appendChild(partnershipBtn);
+    const skHint = document.createElement('div');
+    skHint.className = 'gesture-hint';
+    skHint.innerHTML = `For a Shared Kernel, drag the contexts to overlap. <span class="slice-badge s6" title="Slice 6: SK overlap gesture">6</span>`;
+    sec.appendChild(skHint);
+
+    // or
+    const div1 = document.createElement('div');
+    div1.className = 'or-divider';
+    div1.textContent = 'or';
+    sec.appendChild(div1);
+
+    // Customer-Supplier
+    sec.appendChild(mkPatternBtn('customer-supplier', 'Upstream/Downstream', rel.pattern === 'customer-supplier'));
+    const csHint = document.createElement('div');
+    csHint.className = 'gesture-hint';
+    csHint.textContent = 'The upstream accommodates the downstream.';
+    sec.appendChild(csHint);
+
+    // or
+    const div2 = document.createElement('div');
+    div2.className = 'or-divider';
+    div2.textContent = 'or';
+    sec.appendChild(div2);
+
+    // Per-side
+    const charHeader = document.createElement('div');
+    charHeader.className = 'characterize-header';
+    charHeader.innerHTML = `Characterize each side <span style="color:#94a3b8;font-weight:400">(Upstream/Downstream)</span> <span class="slice-badge s1" title="Slice 1: per-side roles">1</span>`;
+    sec.appendChild(charHeader);
+
+    sec.appendChild(mkRoleRow('Upstream', upstreamName(), ['open-host-service', 'published-language'], rel.upstreamRole, onPickUpstream));
+    sec.appendChild(mkRoleRow('Downstream', downstreamName(), ['conformist', 'anti-corruption-layer'], rel.downstreamRole, onPickDownstream));
+
+    if (rel.pattern === 'partnership' || rel.pattern === 'customer-supplier') {
+      const note = document.createElement('div');
+      note.className = 'exclusivity-note';
+      note.innerHTML = `Picking a per-side role above will clear the <strong>${patternLabel(rel.pattern)}</strong> pattern (they're mutually exclusive).`;
+      sec.appendChild(note);
+    }
+
+    el.appendChild(sec);
+
+    // DIRECTION section (η) — only when U/D
+    if (influence === 'upstream-downstream') {
+      const dsec = document.createElement('div');
+      dsec.className = 'picker-section';
+      const dh = document.createElement('div');
+      dh.className = 'section-header';
+      dh.innerHTML = `Direction <span class="slice-badge s4" title="Slice 4: η direction control">4</span>`;
+      dsec.appendChild(dh);
+
+      const ordersIsUpstream = rel.toContextId === state.ctxA.id;
+      const arrowPath = ordersIsUpstream ? 'M 56 16 L 4 16' : 'M 4 16 L 56 16';
+      const mini = document.createElement('div');
+      mini.className = 'direction-mini';
+      mini.innerHTML = `
+        <div class="direction-mini-ctx ${ordersIsUpstream ? 'up' : ''}">
+          <div class="name">${state.ctxA.name}</div>
+          <div class="role">${ordersIsUpstream ? 'upstream' : 'downstream'}</div>
+        </div>
+        <div class="direction-arrow" title="Click to flip direction">
+          <svg width="60" height="32" viewBox="0 0 60 32">
+            <defs>
+              <marker id="dir-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+              </marker>
+            </defs>
+            <path d="${arrowPath}" stroke="#475569" stroke-width="2" fill="none" marker-end="url(#dir-arr)"/>
+          </svg>
+        </div>
+        <div class="direction-mini-ctx ${!ordersIsUpstream ? 'up' : ''}">
+          <div class="name">${state.ctxB.name}</div>
+          <div class="role">${!ordersIsUpstream ? 'upstream' : 'downstream'}</div>
+        </div>`;
+      mini.querySelector('.direction-arrow').onclick = flipDirection;
+      dsec.appendChild(mini);
+      const dhint = document.createElement('div');
+      dhint.className = 'direction-hint';
+      dhint.textContent = 'Click the arrow to flip. Or double-click the arrow on the canvas.';
+      dsec.appendChild(dhint);
+      el.appendChild(dsec);
+    }
+
+    // REMOVE
+    const rsec = document.createElement('div');
+    rsec.className = 'picker-section remove-section';
+    const btn = document.createElement('button');
+    btn.className = 'remove-btn';
+    btn.textContent = 'Remove relationship';
+    btn.onclick = onRemove;
+    rsec.appendChild(btn);
+    const rhint = document.createElement('div');
+    rhint.className = 'remove-hint';
+    rhint.textContent = 'Removing = Free / no integration. Document non-integration in context notes if needed.';
+    rsec.appendChild(rhint);
+    el.appendChild(rsec);
+  }
+
+  function mkPatternBtn(p, influenceText, active) {
+    const btn = document.createElement('button');
+    btn.className = 'pattern-btn' + (active ? ' active' : '');
+    btn.innerHTML = `<span class="pattern-name">${patternLabel(p)}</span>
+                     <span class="pattern-influence">${influenceText}</span>`;
+    btn.onclick = () => onPickPattern(p);
+    return btn;
+  }
+  function mkRoleRow(side, ctxName, roles, currentRole, onPick) {
+    const row = document.createElement('div');
+    row.className = 'role-row';
+    row.innerHTML = `<div class="role-label"><span class="role-side">${side}</span> <span class="ctx-name">(${ctxName})</span></div>`;
+    const pills = document.createElement('div');
+    pills.className = 'role-pills';
+    roles.forEach(r => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'pill' + (currentRole === r ? ' active' : '');
+      pill.textContent = patternLabel(r);
+      pill.addEventListener('click', () => onPick(r));
+      pills.appendChild(pill);
+    });
+    row.appendChild(pills);
+    return row;
+  }
+
+  // ============================================================
+  // Behaviors
+  // ============================================================
+  function onPickPattern(p) {
+    const rel = state.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    if (rel.pattern === p) {
+      rel.pattern = undefined;
+      if (wasSharedKernel) snapToDefault();
+      refresh();
+      return;
+    }
+    rel.pattern = p;
+    rel.upstreamRole = undefined; rel.downstreamRole = undefined;
+    if (p === 'shared-kernel') snapToOverlap();
+    else if (wasSharedKernel) snapToDefault();
+    refresh();
+  }
+  function onPickUpstream(r) {
+    const rel = state.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    if (rel.upstreamRole === r) { rel.upstreamRole = undefined; refresh(); return; }
+    rel.upstreamRole = r;
+    rel.pattern = undefined;
+    if (wasSharedKernel) snapToDefault();
+    refresh();
+  }
+  function onPickDownstream(r) {
+    const rel = state.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    if (rel.downstreamRole === r) { rel.downstreamRole = undefined; refresh(); return; }
+    rel.downstreamRole = r;
+    rel.pattern = undefined;
+    if (wasSharedKernel) snapToDefault();
+    refresh();
+  }
+  function flipDirection() {
+    // Per-side roles stay attached to the upstream/downstream role, not to a specific context.
+    // After the swap, the upstream box follows to whichever context is now upstream;
+    // the downstream box follows to whichever context is now downstream.
+    // The rendering uses fromContextId/toContextId lookups, so the boxes reposition automatically.
+    const rel = state.rel;
+    const tmp = rel.fromContextId; rel.fromContextId = rel.toContextId; rel.toContextId = tmp;
+    refresh();
+  }
+  function onRemove() {
+    showConfirm({
+      title: 'Remove this relationship?',
+      text: 'A removed relationship is Free by definition: no line, no overlap. To document non-integration, add a note to a context.',
+      confirmLabel: 'Remove', danger: true,
+      onConfirm: () => {
+        const wasSK = state.rel.pattern === 'shared-kernel';
+        state.rel = null;
+        if (wasSK) snapToDefault();
+        refresh();
+      }
+    });
+  }
+
+  function onConnectDrop(fromId, toId) {
+    state.rel = { fromContextId: fromId, toContextId: toId };
+    refresh();
+  }
+  function onOverlapGesture() {
+    if (!state.rel) {
+      state.rel = { fromContextId: state.ctxA.id, toContextId: state.ctxB.id, pattern: 'shared-kernel' };
+      refresh();
+      return;
+    }
+    if (state.rel.pattern === 'shared-kernel') return;
+    showConfirm({
+      title: 'Change relationship to Shared Kernel?',
+      text: 'These contexts now overlap. Shared Kernel is how DDD models contexts that share part of their model and code.',
+      onConfirm: () => {
+        state.rel.pattern = 'shared-kernel';
+        state.rel.upstreamRole = undefined;
+        state.rel.downstreamRole = undefined;
+        refresh();
+      },
+      onCancel: () => { snapToDefault(); refresh(); }
+    });
+  }
+  function onSeparationGesture() {
+    state.rel.pattern = 'partnership';
+    refresh();
+  }
+
+  // ============================================================
+  // Confirm modal
+  // ============================================================
+  function showConfirm({ title, text, onConfirm, onCancel, confirmLabel, danger }) {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-modal';
+    overlay.innerHTML = `
+      <div class="confirm-body">
+        <div class="confirm-title">${title}</div>
+        <div class="confirm-text">${text}</div>
+        <div class="confirm-actions">
+          <button class="btn" data-cancel>Cancel</button>
+          <button class="btn ${danger ? 'danger' : 'primary'}" data-ok>${confirmLabel || 'Switch'}</button>
+        </div>
+      </div>`;
+    document.getElementById('stage').appendChild(overlay);
+    overlay.querySelector('[data-cancel]').onclick = () => { overlay.remove(); if (onCancel) onCancel(); };
+    overlay.querySelector('[data-ok]').onclick = () => { overlay.remove(); onConfirm(); };
+  }
+
+  // ============================================================
+  // Drag handlers
+  // ============================================================
+  function attachDrag() {
+    const stage = document.getElementById('stage');
+    let mode = null;
+    let dragFromId = null;
+    let connectStart = null;
+    let moveOffset = null;
+
+    stage.addEventListener('mousedown', (e) => {
+      const stub = e.target.closest('.stub.arrow');
+      if (stub) {
+        const ctx = stub.closest('.ctx');
+        mode = 'connect';
+        dragFromId = ctx.dataset.ctxId;
+        const pos = state.positions[dragFromId];
+        connectStart = stubAnchorPoint(pos, stub.dataset.stub);
+        e.preventDefault(); e.stopPropagation();
+        return;
+      }
+      const ctx = e.target.closest('.ctx');
+      if (ctx) {
+        mode = 'move';
+        dragFromId = ctx.dataset.ctxId;
+        const rect = stage.getBoundingClientRect();
+        const cursorPt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const pos = state.positions[dragFromId];
+        moveOffset = { x: cursorPt.x - pos.x, y: cursorPt.y - pos.y };
+        state.dragMode = 'move';
+        e.preventDefault();
+      }
+    });
+
+    stage.addEventListener('mousemove', (e) => {
+      if (!mode) return;
+      const rect = stage.getBoundingClientRect();
+      const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      if (mode === 'connect') {
+        state.dragGhost = { from: connectStart, to: pt };
+        stage.querySelectorAll('.ctx').forEach(el => {
+          if (el.dataset.ctxId !== dragFromId && el.contains(e.target)) el.classList.add('connect-target');
+          else el.classList.remove('connect-target');
+        });
+        renderStage();
+      } else if (mode === 'move') {
+        const newPos = { x: pt.x - moveOffset.x, y: pt.y - moveOffset.y };
+        const stageW = stage.clientWidth, stageH = stage.clientHeight;
+        newPos.x = Math.max(0, Math.min(stageW - CTX_W, newPos.x));
+        newPos.y = Math.max(0, Math.min(stageH - CTX_H, newPos.y));
+        state.positions[dragFromId] = newPos;
+        renderStage();
+      }
+    });
+
+    stage.addEventListener('mouseup', (e) => {
+      if (!mode) return;
+      if (mode === 'connect') {
+        const overEl = document.elementFromPoint(e.clientX, e.clientY);
+        const targetCtx = overEl && overEl.closest('.ctx');
+        const targetId = targetCtx && targetCtx.dataset.ctxId;
+        if (targetId && targetId !== dragFromId) {
+          if (state.rel) state.rel = null;
+          onConnectDrop(dragFromId, targetId);
+        }
+      } else if (mode === 'move') {
+        const a = boxFor(state.positions.a);
+        const b = boxFor(state.positions.b);
+        const overlapping = boxesOverlap(a, b);
+        if (overlapping) {
+          onOverlapGesture();
+        } else if (state.rel && state.rel.pattern === 'shared-kernel') {
+          onSeparationGesture();
+        }
+      }
+      mode = null; dragFromId = null; connectStart = null; moveOffset = null;
+      state.dragGhost = null; state.dragMode = null;
+      stage.querySelectorAll('.ctx.connect-target, .ctx.would-overlap').forEach(el => {
+        el.classList.remove('connect-target'); el.classList.remove('would-overlap');
+      });
+      refresh();
+    });
+
+    stage.addEventListener('mouseleave', () => {
+      mode = null; dragFromId = null;
+      state.dragGhost = null; state.dragMode = null;
+      refresh();
+    });
+  }
+
+  // ============================================================
+  // Wiring
+  // ============================================================
+  function refresh() {
+    renderStage();
+    renderPicker();
+  }
+  attachDrag();
+  refresh();
+  </script>
+</body>
+</html>

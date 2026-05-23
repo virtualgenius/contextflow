@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drag-direction options mockup - ContextFlow (contextflow-ki1)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .ctx {
+      position: absolute;
+      width: 160px;
+      height: 78px;
+      border-radius: 8px;
+      background: #d1fae5;
+      border: 2px solid #94a3b8;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      cursor: grab;
+      user-select: none;
+      transition: box-shadow 0.18s, border-color 0.18s;
+    }
+    .ctx.animating { transition: left 0.35s cubic-bezier(.4,.0,.2,1), top 0.35s cubic-bezier(.4,.0,.2,1), box-shadow 0.18s, border-color 0.18s; }
+    .ctx:active { cursor: grabbing; }
+    .ctx.would-overlap { box-shadow: 0 0 0 3px rgba(124,58,237,0.45), 0 4px 12px rgba(0,0,0,0.08); border-color: #7c3aed; }
+    .ctx.connect-target { box-shadow: 0 0 0 3px rgba(59,130,246,0.35), 0 4px 12px rgba(0,0,0,0.08); border-color: #3b82f6; }
+    .ctx .name { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .ctx .purpose { font-size: 10.5px; color: #64748b; margin-top: 6px; line-height: 1.35; }
+    .ctx .role-badge { position: absolute; top: -10px; right: -8px; font-size: 9.5px; padding: 2px 6px; border-radius: 999px; background: #0f172a; color: white; font-weight: 600; letter-spacing: 0.02em; z-index: 5; }
+    .ctx .role-badge.down { background: #b45309; }
+    .ctx .role-badge.peer { background: #1e40af; }
+
+    /* Arrow stub affordance, matching docs/mockups/connection-ux-mockup.html (GH #22) */
+    .stubs { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+    .ctx.show-stubs .stubs { opacity: 1; }
+    .stub { position: absolute; pointer-events: auto; cursor: crosshair; display: flex; align-items: center; justify-content: center; }
+    .stub.arrow { width: 26px; height: 26px; position: absolute; }
+    .stub.arrow svg { width: 26px; height: 26px; transition: opacity 0.12s; opacity: 0.35; }
+    .stub.arrow svg path { fill: #475569; transition: fill 0.12s; }
+    .stub.arrow:hover svg { opacity: 1; }
+    .stub.arrow:hover svg path { fill: #2563eb; }
+    .stub.top    { left: 50%; top: -30px;    transform: translateX(-50%); }
+    .stub.right  { right: -30px; top: 50%;   transform: translateY(-50%); }
+    .stub.bottom { left: 50%; bottom: -30px; transform: translateX(-50%); }
+    .stub.left   { left: -30px; top: 50%;    transform: translateY(-50%); }
+
+    .kernel-region {
+      position: absolute;
+      background: repeating-linear-gradient(45deg, rgba(124,58,237,0.20), rgba(124,58,237,0.20) 5px, rgba(124,58,237,0.35) 5px, rgba(124,58,237,0.35) 10px);
+      border-top: 2px dashed #7c3aed;
+      border-bottom: 2px dashed #7c3aed;
+      z-index: 3;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .kernel-region .kernel-label {
+      background: #7c3aed; color: white; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.02em; white-space: nowrap;
+    }
+
+    .edges-layer { position: absolute; inset: 0; pointer-events: none; }
+    .edge-ud { fill: none; stroke: #475569; stroke-width: 2; }
+    .edge-arrow { fill: #475569; }
+    .edge-ghost { stroke: #2563eb; stroke-width: 2; stroke-dasharray: 6 4; fill: none; }
+    .edge-mutual { stroke: #1e40af; stroke-width: 2.5; fill: none; }
+    .edge-unconfigured { stroke: #cbd5e1; stroke-width: 1.5; stroke-dasharray: 4 4; fill: none; }
+    .edge-broken-free { stroke: #cbd5e1; stroke-width: 2; stroke-dasharray: 2 4; fill: none; }
+    .edge-label { font-size: 10.5px; fill: #334155; font-weight: 500; }
+    .edge-label-bg { fill: white; stroke: #e2e8f0; stroke-width: 1; }
+    .edge-label-faint { font-size: 10px; fill: #94a3b8; font-style: italic; }
+
+    .picker {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      padding: 12px 14px;
+      width: 300px;
+      font-size: 12px;
+    }
+    .picker .picker-section { margin-bottom: 12px; }
+    .picker .picker-section:last-child { margin-bottom: 0; }
+    .picker .row-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+    .picker .pill {
+      display: inline-block; padding: 4px 9px; border: 1px solid #cbd5e1; border-radius: 999px;
+      margin: 2px 4px 2px 0; color: #334155; background: white; cursor: pointer; font-size: 11px;
+      transition: all 0.1s;
+    }
+    .picker .pill:hover:not(.disabled) { background: #f1f5f9; border-color: #94a3b8; }
+    .picker .pill.active { background: #0f172a; color: white; border-color: #0f172a; }
+    .picker .pill.danger.active { background: #b91c1c; border-color: #b91c1c; }
+    .picker .pill.disabled { color: #cbd5e1; cursor: not-allowed; background: #f8fafc; }
+    .picker .clear-btn { font-size: 10.5px; color: #64748b; background: none; border: none; cursor: pointer; padding: 2px 4px; text-decoration: underline; }
+    .picker .clear-btn:hover { color: #0f172a; }
+    .picker .render-hint { font-size: 10.5px; color: #64748b; margin-top: 4px; font-style: italic; }
+
+    /* Polished picker style for Option D (mirrors how the real InspectorPanel would render) */
+    .picker-d .section-header {
+      font-size: 10px; font-weight: 600; color: #64748b;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .picker-d .picker-section { margin-bottom: 16px; }
+    .picker-d .picker-section:last-child { margin-bottom: 0; }
+    .pattern-buttons { display: flex; flex-direction: column; gap: 6px; }
+    .pattern-btn {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-align: left;
+      font-family: inherit;
+    }
+    .pattern-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    .pattern-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+    .pattern-btn .pattern-name { font-size: 12.5px; font-weight: 600; }
+    .pattern-btn .pattern-influence { font-size: 10px; opacity: 0.65; white-space: nowrap; }
+    .pattern-btn.active .pattern-influence { opacity: 0.8; }
+
+    .role-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .role-row:last-child { margin-bottom: 0; }
+    .role-label { font-size: 11px; color: #475569; }
+    .role-label .role-side { font-weight: 600; }
+    .role-label .ctx-name { color: #64748b; }
+    .role-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .direction-display {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .direction-display .ctx-name { font-weight: 600; color: #0f172a; }
+    .direction-display .arrow { color: #475569; font-size: 14px; }
+    .direction-display .flip-btn {
+      margin-left: auto;
+      background: white; border: 1px solid #cbd5e1;
+      border-radius: 4px; padding: 3px 8px;
+      cursor: pointer; font-size: 11px; color: #475569;
+    }
+    .direction-display .flip-btn:hover { background: #e2e8f0; }
+
+    .remove-section { padding-top: 12px; border-top: 1px solid #e2e8f0; }
+    .remove-btn {
+      width: 100%;
+      background: white; color: #b91c1c; border: 1px solid #fecaca;
+      padding: 8px 12px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; font-weight: 500;
+      transition: background 0.1s;
+    }
+    .remove-btn:hover { background: #fef2f2; }
+    .picker-d .helper-note {
+      font-size: 10.5px; color: #64748b; margin-top: 6px; line-height: 1.4;
+    }
+    .picker-d .exclusivity-note {
+      font-size: 10.5px; color: #64748b; padding: 6px 10px;
+      background: #f8fafc; border-radius: 4px; line-height: 1.4;
+      margin-top: 8px;
+    }
+    .picker-d .or-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 12px 0; color: #94a3b8; font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
+    }
+    .picker-d .or-divider::before,
+    .picker-d .or-divider::after {
+      content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    }
+    .picker-d .sk-gesture-hint {
+      font-size: 10.5px; color: #64748b; font-style: italic;
+      margin-top: 6px; padding-left: 12px;
+    }
+    .picker-d .sk-indicator {
+      padding: 10px 12px;
+      background: linear-gradient(to right, rgba(124,58,237,0.10), rgba(124,58,237,0.04));
+      border-left: 3px solid #7c3aed;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+    .picker-d .sk-indicator .sk-title {
+      font-size: 11.5px; font-weight: 600; color: #6b21a8;
+      letter-spacing: 0.02em; margin-bottom: 2px;
+    }
+    .picker-d .sk-indicator .sk-text {
+      font-size: 10.5px; color: #6b21a8; line-height: 1.4;
+    }
+    .characterize-header {
+      font-size: 11px; font-weight: 500; color: #475569;
+      margin-bottom: 8px;
+    }
+
+    /* Direction-mockups comparison */
+    .direction-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .dmockup {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      background: #fafbfc;
+      display: flex;
+      flex-direction: column;
+    }
+    .dmockup-header {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .dmockup-title {
+      font-size: 13px; font-weight: 600; color: #0f172a; margin-bottom: 12px;
+    }
+    .dmockup-body {
+      background: white; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 14px; min-height: 110px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .dmockup-note {
+      font-size: 10.5px; color: #64748b; margin-top: 10px; line-height: 1.5;
+    }
+    .dmockup-note strong { color: #334155; }
+
+    /* α: pill + flip button */
+    .dir-alpha { display: flex; align-items: center; gap: 8px; }
+    .dir-alpha-pill {
+      padding: 6px 12px; background: #f1f5f9; border-radius: 999px;
+      font-size: 12px; font-weight: 600; color: #0f172a;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .dir-alpha-pill .arr { color: #475569; }
+    .dir-flip-btn {
+      background: white; border: 1px solid #cbd5e1; border-radius: 4px;
+      padding: 4px 9px; font-size: 11px; cursor: pointer; color: #475569;
+    }
+    .dir-flip-btn:hover { background: #f1f5f9; }
+    .dir-alpha-help { font-size: 10.5px; color: #64748b; margin-top: 8px; }
+
+    /* β: whole pill toggle */
+    .dir-beta-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; background: #f1f5f9; border: 1px solid transparent;
+      border-radius: 999px; font-size: 12px; font-weight: 600; color: #0f172a;
+      cursor: pointer; transition: all 0.12s;
+    }
+    .dir-beta-pill:hover {
+      background: #e0e7ff; border-color: #6366f1; color: #1e1b4b;
+    }
+    .dir-beta-pill .arr { color: #475569; }
+    .dir-beta-hover { font-size: 10px; color: #6366f1; margin-left: 4px; opacity: 0; transition: opacity 0.12s; }
+    .dir-beta-pill:hover .dir-beta-hover { opacity: 1; }
+
+    /* γ: mini-diagram */
+    .dir-gamma-canvas {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      padding: 4px 0;
+    }
+    .dir-gamma-ctx {
+      width: 90px; padding: 8px 10px; border-radius: 6px;
+      background: #dbeafe; border: 2px solid #94a3b8;
+      text-align: center;
+    }
+    .dir-gamma-ctx.up { background: #fde68a; }
+    .dir-gamma-ctx .name { font-size: 11px; font-weight: 600; color: #0f172a; }
+    .dir-gamma-ctx .role { font-size: 9px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .dir-gamma-swap {
+      display: flex; justify-content: center; margin-top: 10px;
+    }
+    .dir-gamma-swap button {
+      background: white; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 5px 12px; font-size: 11px; color: #475569; cursor: pointer;
+    }
+    .dir-gamma-swap button:hover { background: #f1f5f9; }
+
+    /* δ: integrated into per-side */
+    .dir-delta-rows .role-row-mini { margin-bottom: 6px; }
+    .dir-delta-rows .role-row-mini:last-child { margin-bottom: 0; }
+    .dir-delta-rows .label-mini { font-size: 10.5px; color: #475569; margin-bottom: 2px; }
+    .dir-delta-rows .label-mini .side { font-weight: 600; }
+    .dir-delta-rows .label-mini .ctx { color: #64748b; }
+    .dir-delta-rows .pills-mini {
+      display: flex; gap: 4px;
+    }
+    .dir-delta-rows .pill-mini {
+      padding: 3px 8px; border: 1px solid #cbd5e1; border-radius: 999px;
+      font-size: 10.5px; color: #334155; background: white;
+    }
+    .dir-delta-swap-row {
+      margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0;
+      display: flex; justify-content: flex-end;
+    }
+    .dir-delta-swap-row button {
+      background: white; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 4px 10px; font-size: 11px; color: #475569; cursor: pointer;
+    }
+    .dir-delta-swap-row button:hover { background: #f1f5f9; }
+
+    /* η: mini-diagram, arrow itself is the swap control */
+    .dir-eta-canvas {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      padding: 4px 0;
+    }
+    .dir-eta-ctx {
+      width: 90px; padding: 8px 10px; border-radius: 6px;
+      background: #dbeafe; border: 2px solid #94a3b8;
+      text-align: center;
+    }
+    .dir-eta-ctx.up { background: #fde68a; }
+    .dir-eta-ctx .name { font-size: 11px; font-weight: 600; color: #0f172a; }
+    .dir-eta-ctx .role { font-size: 9px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .dir-eta-arrow {
+      cursor: pointer;
+      padding: 6px 4px;
+      border-radius: 6px;
+      transition: background 0.12s;
+    }
+    .dir-eta-arrow:hover { background: #e0e7ff; }
+    .dir-eta-arrow:hover svg path { stroke: #2563eb; }
+    .dir-eta-arrow:hover svg marker path { fill: #2563eb; }
+    .dir-eta-hint {
+      font-size: 10px; color: #94a3b8; text-align: center; margin-top: 6px;
+    }
+
+    /* ε: on-canvas only */
+    .dir-epsilon-readout { font-size: 12px; color: #334155; margin-bottom: 10px; }
+    .dir-epsilon-readout .label { font-size: 10.5px; color: #64748b; }
+    .dir-epsilon-readout .name { font-weight: 600; color: #0f172a; }
+    .dir-epsilon-canvas {
+      position: relative;
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 12px 12px;
+      border: 1px solid #e2e8f0; border-radius: 4px;
+      height: 100px;
+    }
+    .dir-epsilon-canvas .mini-ctx {
+      position: absolute;
+      width: 80px; height: 36px; padding: 6px 8px;
+      border-radius: 6px; border: 2px solid #94a3b8;
+      font-size: 11px; font-weight: 600; color: #0f172a;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dir-epsilon-canvas .mini-svg { position: absolute; inset: 0; pointer-events: none; }
+    .dir-epsilon-canvas .mini-svg path { pointer-events: auto; cursor: pointer; }
+
+    /* ζ: radio */
+    .dir-zeta-row {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 10px; margin-bottom: 6px;
+      border-radius: 6px; cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .dir-zeta-row:hover { background: #f8fafc; }
+    .dir-zeta-row.active { background: #f1f5f9; border-color: #cbd5e1; }
+    .dir-zeta-radio {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1.5px solid #94a3b8; flex-shrink: 0; margin-top: 1px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dir-zeta-row.active .dir-zeta-radio { border-color: #0f172a; }
+    .dir-zeta-row.active .dir-zeta-radio::after {
+      content: ''; width: 7px; height: 7px; border-radius: 50%; background: #0f172a;
+    }
+    .dir-zeta-text { font-size: 11.5px; color: #334155; line-height: 1.4; }
+    .dir-zeta-text .name { font-weight: 600; color: #0f172a; }
+    .dir-zeta-text .sub { display: block; font-size: 10.5px; color: #64748b; margin-top: 2px; }
+
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .panel-h { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .panel-body { padding: 18px; }
+    .stage-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+    .stage { position: relative; width: 100%; height: 280px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .stage.dropping { cursor: crosshair; }
+    .kicker { font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 0.04em; text-transform: uppercase; }
+    .legend { font-size: 11px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+
+    .tag { display: inline-block; font-size: 10.5px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+    .tag-pro { background: #dcfce7; color: #166534; }
+    .tag-con { background: #fee2e2; color: #991b1b; }
+    .tag-neutral { background: #f1f5f9; color: #475569; }
+
+    .ctrl-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    .btn { font-size: 11.5px; padding: 5px 10px; border-radius: 6px; background: white; border: 1px solid #cbd5e1; color: #334155; cursor: pointer; transition: all 0.1s; }
+    .btn:hover { background: #f1f5f9; }
+    .btn.primary { background: #0f172a; color: white; border-color: #0f172a; }
+    .btn.primary:hover { background: #1e293b; }
+    .btn.danger { color: #991b1b; border-color: #fecaca; background: #fef2f2; }
+    .btn.danger:hover { background: #fee2e2; }
+
+    .state-readout {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10.5px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 8px 10px;
+      border-radius: 6px;
+      line-height: 1.5;
+      white-space: pre;
+      margin-top: 10px;
+    }
+    .state-readout .k { color: #93c5fd; }
+    .state-readout .v { color: #fcd34d; }
+    .state-readout .undef { color: #64748b; font-style: italic; }
+    .state-readout .deleted { color: #fca5a5; font-style: italic; }
+
+    .hint {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(15,23,42,0.85); color: white;
+      font-size: 10.5px; padding: 4px 8px; border-radius: 4px;
+      pointer-events: none;
+      max-width: 260px;
+      line-height: 1.4;
+    }
+    .hint .kbd { background: #334155; border-radius: 3px; padding: 1px 5px; font-family: ui-monospace, monospace; font-size: 10px; }
+
+    .confirm-modal {
+      position: absolute; inset: 0;
+      background: rgba(15,23,42,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 20;
+    }
+    .confirm-body {
+      background: white; border-radius: 8px; padding: 18px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      width: 360px;
+    }
+    .confirm-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .confirm-text { font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px; }
+    .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    .evans-callout {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: #075985;
+      line-height: 1.55;
+    }
+    .evans-callout strong { color: #0c4a6e; }
+    .evans-callout .render-row { display: grid; grid-template-columns: 200px 1fr; gap: 8px 14px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #bae6fd; font-size: 11.5px; }
+    .evans-callout .render-row .k { font-weight: 600; color: #0c4a6e; }
+
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-6xl mx-auto p-8">
+    <header class="mb-6">
+      <div class="kicker">ContextFlow / contextflow-ki1 / GH #13</div>
+      <h1 class="text-2xl font-semibold mt-1">Drag-direction options (interactive)</h1>
+      <p class="text-sm text-slate-600 mt-2 max-w-3xl">
+        Two gestures in each panel.
+        Hover a context to reveal <strong>arrow stubs</strong> on its four sides; drag any stub to another context to draw a relationship line (same affordance as <a href="./connection-ux-mockup.html" class="text-blue-600 underline">connection-ux-mockup.html</a>).
+        Drag a context's <strong>body</strong> to move it (and in Options B and C, dropping one context overlapping the other creates or switches to Shared Kernel).
+      </p>
+      <p class="text-xs text-slate-500 mt-3">
+        Background: <a href="../PLAN-two-sided-relationships.md" class="text-blue-600 underline">PLAN-two-sided-relationships.md</a>,
+        <a href="../DDD_RELATIONSHIP_PATTERNS.md" class="text-blue-600 underline">DDD_RELATIONSHIP_PATTERNS.md</a>.
+        P1 was set in <a href="./connection-ux-mockup.html" class="text-blue-600 underline">connection-ux-mockup.html</a> (GH #22).
+        Shared-Kernel overlap is tracked in bead <code>contextflow-cqi</code>.
+      </p>
+    </header>
+
+    <div class="evans-callout mb-8">
+      <div><strong>Vocabulary (Evans, DDD Reference pp. 37-38).</strong>
+        Contexts have three levels of influence on each other.
+        <strong>Upstream/Downstream</strong>: asymmetric, the upstream's decisions propagate to the downstream.
+        <strong>Mutually Dependent</strong>: bidirectional, success or failure of one affects the other (Partnership, Shared Kernel).
+        <strong>Free</strong>: "direction, success or failure of development work in other contexts has little affect on delivery."
+      </div>
+      <div class="mt-3 text-[12px]">
+        <strong>Influence type is internal vocabulary, not a picker control.</strong>
+        The app's domain model knows which patterns belong to which influence type (Customer-Supplier → U/D; Partnership, Shared Kernel → Mutually Dependent) and uses that for rendering, validation, and grouping.
+        Users pick a <em>concrete pattern</em> (or per-side roles), not an influence type. Free isn't a pickable value either, since it means "no relationship exists" — to express Free, the user removes the relationship.
+      </div>
+      <div class="render-row">
+        <div class="k">Upstream/Downstream</div><div>Connecting line with an arrow head pointing at upstream. Per-side roles (OHS/PL, Conformist/ACL) optionally characterize each end.</div>
+        <div class="k">Mutually Dependent → Partnership</div><div>Connecting line, no arrow head.</div>
+        <div class="k">Mutually Dependent → Shared Kernel</div><div><strong>Contexts overlap.</strong> The shared kernel renders in the intersection (hatched). <strong>No connecting line.</strong> Created by dragging contexts to overlap, or by picking it from the picker (which snaps them to overlap). (Bead <code>contextflow-cqi</code>.)</div>
+        <div class="k">Free</div><div><strong>No connecting line.</strong> Free means "deliberately not integrating" or "not related." Document on the context itself if needed, not as a relationship. Separate Ways is one named instance of Free.</div>
+      </div>
+    </div>
+
+    <!-- PANEL A -->
+    <section class="panel mb-8" data-panel="A">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Option A / P1 (current, broken)</div>
+          <h2 class="text-lg font-semibold mt-1">Drag bakes in Upstream/Downstream</h2>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="tag tag-pro">Fast: U/D on first frame</span>
+          <span class="tag tag-con">Separate Ways drawn as a line</span>
+          <span class="tag tag-con">Shared Kernel drawn as a line</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="stage-wrap">
+          <div>
+            <div class="stage canvas-bg" data-stage>
+              <div class="hint">Today's model. Hover a context, drag an arrow stub to connect. Body drag just moves; overlap does nothing.</div>
+            </div>
+            <div class="ctrl-row">
+              <button class="btn" data-preset="shared-kernel-line">Try: pick Shared Kernel</button>
+              <button class="btn" data-preset="separate-ways-line">Try: pick Separate Ways</button>
+              <button class="btn danger" data-reset>Reset</button>
+            </div>
+            <div class="state-readout" data-readout>(no relationship yet)</div>
+          </div>
+          <div class="picker" data-picker></div>
+        </div>
+        <div class="legend mt-4">
+          Single 8-value pattern field on a relationship line. Separate Ways and Shared Kernel render as labels on a line, both wrong: Separate Ways means no integration; Shared Kernel means joint ownership of a shared model region. Kept as the contrast baseline.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL B -->
+    <section class="panel mb-8" data-panel="B">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Option B / P3</div>
+          <h2 class="text-lg font-semibold mt-1">Drag = topology only, influence type chosen in picker</h2>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="tag tag-pro">Honest: nothing asserted until user picks</span>
+          <span class="tag tag-pro">Overlap-creates-Shared-Kernel works</span>
+          <span class="tag tag-con">Extra step on every relationship</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="stage-wrap">
+          <div>
+            <div class="stage canvas-bg" data-stage>
+              <div class="hint">Hover for arrow stubs, drag a stub to connect. Drag body onto the other = Shared Kernel.</div>
+            </div>
+            <div class="ctrl-row">
+              <button class="btn" data-preset="partnership">Try: pick Partnership</button>
+              <button class="btn" data-preset="shared-kernel">Try: pick Shared Kernel (snaps to overlap)</button>
+              <button class="btn" data-preset="free">Try: pick Free (deletes line)</button>
+              <button class="btn danger" data-reset>Reset</button>
+            </div>
+            <div class="state-readout" data-readout>(no relationship yet)</div>
+          </div>
+          <div class="picker" data-picker></div>
+        </div>
+        <div class="legend mt-4">
+          On line-drop, the line is unconfigured (light dashed). On body-overlap (with no existing relationship), Shared Kernel is created. On body-overlap with an existing relationship, you're prompted to switch.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL C -->
+    <section class="panel mb-8" data-panel="C">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Option C / middle</div>
+          <h2 class="text-lg font-semibold mt-1">Drag defaults to Upstream/Downstream, picker can change influence type</h2>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="tag tag-pro">Preserves workshop fast path</span>
+          <span class="tag tag-pro">Overlap-creates-Shared-Kernel works</span>
+          <span class="tag tag-neutral">Two ways to set direction (gesture and picker)</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="stage-wrap">
+          <div>
+            <div class="stage canvas-bg" data-stage>
+              <div class="hint">Hover for arrow stubs, drag a stub to connect (U/D default). Drag body onto the other = Shared Kernel (confirms if relationship exists).</div>
+            </div>
+            <div class="ctrl-row">
+              <button class="btn" data-preset="partnership">Try: pick Partnership (confirms)</button>
+              <button class="btn" data-preset="shared-kernel">Try: pick Shared Kernel (snaps to overlap)</button>
+              <button class="btn" data-preset="free">Try: pick Free (deletes line)</button>
+              <button class="btn danger" data-reset>Reset</button>
+            </div>
+            <div class="state-readout" data-readout>(no relationship yet)</div>
+          </div>
+          <div class="picker" data-picker></div>
+        </div>
+        <div class="legend mt-4">
+          Line drop creates U/D with direction from the gesture (same speed as today). Body-overlap creates or switches to Shared Kernel. Switches that would discard data prompt first.
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL D -->
+    <section class="panel mb-8" data-panel="D">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Option D / recommended</div>
+          <h2 class="text-lg font-semibold mt-1">User picks concrete patterns; influence type is internal; Free = remove relationship</h2>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="tag tag-pro">Picker shows only patterns user can pick</span>
+          <span class="tag tag-pro">Drag-apart from Shared Kernel auto-switches to Partnership</span>
+          <span class="tag tag-pro">No "Free" pill: remove the relationship instead</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="stage-wrap">
+          <div>
+            <div class="stage canvas-bg" data-stage>
+              <div class="hint">Drag arrow stub = U/D arrow (drag-from = downstream). Drag body onto other = Shared Kernel. Drag SK apart = auto Partnership.</div>
+            </div>
+            <div class="ctrl-row">
+              <button class="btn" data-preset="customer-supplier">Try: pick Customer-Supplier</button>
+              <button class="btn" data-preset="per-side">Try: set OHS + ACL per-side</button>
+              <button class="btn" data-preset="shared-kernel">Try: pick Shared Kernel (snaps to overlap)</button>
+              <button class="btn danger" data-preset="remove">Try: remove relationship</button>
+              <button class="btn danger" data-reset>Reset</button>
+            </div>
+            <div class="state-readout" data-readout>(no relationship yet)</div>
+          </div>
+          <div class="picker" data-picker></div>
+        </div>
+        <div class="legend mt-4">
+          Drag stub creates a U/D directed line (drag-from = downstream, drag-to = upstream, arrow points to upstream). The picker offers Customer-Supplier, per-side roles to characterize each end, or a switch to Partnership / Shared Kernel. The app derives influence type from what's picked. There is no Free pill: a relationship that doesn't exist is Free; remove it to express that. Drag-apart from Shared Kernel auto-switches to Partnership (the other Mutually Dependent pattern) since position can't represent overlap any more.
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="panel mb-8">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Side by side</div>
+          <h2 class="text-lg font-semibold mt-1">Behavior comparison</h2>
+        </div>
+      </div>
+      <div class="panel-body overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-slate-500 border-b border-slate-200">
+              <th class="py-2 pr-4 font-medium">Question</th>
+              <th class="py-2 pr-4 font-medium">A / P1 (broken)</th>
+              <th class="py-2 pr-4 font-medium">B / P3</th>
+              <th class="py-2 pr-4 font-medium">C / middle</th>
+              <th class="py-2 pr-4 font-medium">D / recommended</th>
+            </tr>
+          </thead>
+          <tbody class="align-top">
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Drag arrow stub to other context</td>
+              <td class="py-2 pr-4">U/D, default <code class="px-1 bg-slate-100 rounded">customer-supplier</code></td>
+              <td class="py-2 pr-4">Unconfigured (faint line)</td>
+              <td class="py-2 pr-4">U/D, no pattern</td>
+              <td class="py-2 pr-4">U/D arrow, direction from gesture (drag-from = downstream); picker offers Customer-Supplier, per-side roles, or switch to Partnership/Shared Kernel</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Drag body to overlap (no rel)</td>
+              <td class="py-2 pr-4">Just moves; no SK gesture</td>
+              <td class="py-2 pr-4">Creates Shared Kernel</td>
+              <td class="py-2 pr-4">Creates Shared Kernel</td>
+              <td class="py-2 pr-4">Creates Shared Kernel</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Drag body to overlap (existing rel)</td>
+              <td class="py-2 pr-4">Just moves</td>
+              <td class="py-2 pr-4">Prompts: switch to Shared Kernel?</td>
+              <td class="py-2 pr-4">Prompts: switch to Shared Kernel?</td>
+              <td class="py-2 pr-4">Prompts: switch to Shared Kernel?</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Drag SK contexts apart</td>
+              <td class="py-2 pr-4">N/A</td>
+              <td class="py-2 pr-4">Prompts: remove SK?</td>
+              <td class="py-2 pr-4">Prompts: remove SK?</td>
+              <td class="py-2 pr-4"><strong>Auto-switches to Partnership</strong> (the other Mutually Dependent pattern, no prompt)</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Pick Shared Kernel in picker</td>
+              <td class="py-2 pr-4">Label on a line (wrong)</td>
+              <td class="py-2 pr-4">Snaps to overlap, removes line</td>
+              <td class="py-2 pr-4">Confirms, snaps to overlap</td>
+              <td class="py-2 pr-4">Snaps to overlap, removes line</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Express Free</td>
+              <td class="py-2 pr-4">Pick "Separate Ways" (label on line, wrong)</td>
+              <td class="py-2 pr-4">Pick Free pill → confirms → deletes rel</td>
+              <td class="py-2 pr-4">Pick Free pill → confirms → deletes rel</td>
+              <td class="py-2 pr-4"><strong>Remove relationship button</strong> (no Free pill exists)</td>
+            </tr>
+            <tr class="border-b border-slate-100">
+              <td class="py-2 pr-4 text-slate-600">Influence type as a picker control</td>
+              <td class="py-2 pr-4">No (no influence-type concept)</td>
+              <td class="py-2 pr-4">Yes, three pills at top</td>
+              <td class="py-2 pr-4">Yes, three pills at top</td>
+              <td class="py-2 pr-4"><strong>No</strong> (derived from pattern; shown as informational label only)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- DIRECTION-CONTROL ALTERNATIVES -->
+    <section class="panel mb-8" id="direction-alternatives">
+      <div class="panel-h">
+        <div>
+          <div class="kicker">Direction control alternatives</div>
+          <h2 class="text-lg font-semibold mt-1">Six ways to display and flip direction in the picker</h2>
+        </div>
+        <div class="text-xs text-slate-500 max-w-md text-right">
+          Click any swap/flip control to flip direction. All six mockups share state so the comparison stays apples-to-apples.
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="direction-grid">
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option α (current)</div>
+            <div class="dmockup-title">Pill + flip button</div>
+            <div class="dmockup-body">
+              <div class="dir-alpha" data-dir-alpha></div>
+            </div>
+            <div class="dmockup-note">
+              Compact and explicit. Two things to read (the display and the button). Helper text needed to explain what "→" means.
+            </div>
+          </div>
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option β</div>
+            <div class="dmockup-title">Whole pill is the toggle</div>
+            <div class="dmockup-body">
+              <div data-dir-beta></div>
+            </div>
+            <div class="dmockup-note">
+              Single click target. Hover reveals "click to flip." Discoverability concern: users may not know the pill is clickable.
+            </div>
+          </div>
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option γ</div>
+            <div class="dmockup-title">Mini-diagram with swap icon</div>
+            <div class="dmockup-body">
+              <div data-dir-gamma></div>
+            </div>
+            <div class="dmockup-note">
+              Most legible at a glance; arrow direction (and yellow "upstream" highlight) reflect the relationship. Contexts stay in their positions; the swap button flips the arrow.
+            </div>
+          </div>
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option η</div>
+            <div class="dmockup-title">Mini-diagram, arrow is the swap control</div>
+            <div class="dmockup-body">
+              <div data-dir-eta></div>
+            </div>
+            <div class="dmockup-note">
+              Like γ but no separate swap button. Single-click the arrow to flip its direction (contexts stay in their positions). Hover state on the arrow signals it's clickable.
+            </div>
+          </div>
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option δ (recommended)</div>
+            <div class="dmockup-title">Integrated into per-side rows</div>
+            <div class="dmockup-body">
+              <div class="dir-delta-rows" data-dir-delta></div>
+            </div>
+            <div class="dmockup-note">
+              Per-side rows already name upstream and downstream contexts; the swap button goes where the user's eyes already are. <strong>No separate Direction section needed.</strong>
+            </div>
+          </div>
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option ε</div>
+            <div class="dmockup-title">On-canvas only (no picker control)</div>
+            <div class="dmockup-body">
+              <div data-dir-epsilon></div>
+            </div>
+            <div class="dmockup-note">
+              Picker just reports the direction. To flip, double-click the arrow line in the mini-canvas — the arrow direction reverses, contexts stay in their positions. Keeps picker focused on patterns; canvas gesture is hidden.
+            </div>
+          </div>
+
+          <div class="dmockup">
+            <div class="dmockup-header">Option ζ</div>
+            <div class="dmockup-title">Two-option radio</div>
+            <div class="dmockup-body">
+              <div data-dir-zeta></div>
+            </div>
+            <div class="dmockup-note">
+              Reads like prose, zero ambiguity. Takes more vertical space; verbose if both context names are long.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="evans-callout mb-12">
+      <div>
+        <strong>Implications for the data model and gestures.</strong>
+        Two patterns leave <code>Relationship</code> entirely:
+      </div>
+      <div class="render-row">
+        <div class="k">Separate Ways / Free</div>
+        <div>No <code>Relationship</code> object exists for the pair. The existing <code>pattern: 'separate-ways'</code> migration becomes a <strong>deletion</strong>.</div>
+        <div class="k">Shared Kernel</div>
+        <div>Modeled as a separate entity (per bead <code>contextflow-cqi</code>). Two creation gestures: drag a context onto the other, or pick Shared Kernel in the picker (which snaps them to overlap). The existing <code>pattern: 'shared-kernel'</code> migration becomes "create a SharedKernel; delete the relationship."</div>
+        <div class="k">Partnership</div>
+        <div>Stays as a standalone <code>Relationship.pattern</code> value (Mutually Dependent, no arrow head).</div>
+        <div class="k">Customer-Supplier</div>
+        <div>Stays as a standalone <code>Relationship.pattern</code> value (Upstream/Downstream).</div>
+        <div class="k">Per-side roles</div>
+        <div>OHS, Published Language, Conformist, ACL, applicable only when influence is Upstream/Downstream.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+  // ============================================================
+  // Helpers
+  // ============================================================
+  const MUTUAL_PATTERNS = new Set(['partnership', 'shared-kernel']);
+  const UD_STANDALONE = new Set(['customer-supplier']);
+  const FREE_PATTERNS = new Set(['separate-ways']);
+
+  function patternLabel(p) {
+    const labels = {
+      'customer-supplier': 'Customer-Supplier',
+      'partnership': 'Partnership',
+      'shared-kernel': 'Shared Kernel',
+      'conformist': 'Conformist',
+      'anti-corruption-layer': 'ACL',
+      'open-host-service': 'OHS',
+      'published-language': 'Published Language',
+      'separate-ways': 'Separate Ways'
+    };
+    return labels[p] || p;
+  }
+  function influenceLabel(t) {
+    return { 'upstream-downstream': 'Upstream/Downstream', 'mutually-dependent': 'Mutually Dependent', 'free': 'Free' }[t] || t;
+  }
+
+  // Domain model: derive influence type from the concrete pattern / per-side roles.
+  // Used by Option D (which doesn't store influenceType separately).
+  // A relationship that exists without a Mutually Dependent pattern is Upstream/Downstream by default —
+  // the drag-stub gesture itself asserts direction (drag-from = downstream, drag-to = upstream).
+  function deriveInfluenceType(rel) {
+    if (!rel) return undefined;
+    if (rel.pattern === 'partnership' || rel.pattern === 'shared-kernel') return 'mutually-dependent';
+    return 'upstream-downstream';
+  }
+  function influenceTypeForPattern(p) {
+    if (p === 'partnership' || p === 'shared-kernel') return 'mutually-dependent';
+    if (p === 'customer-supplier') return 'upstream-downstream';
+    return undefined;
+  }
+
+  const CTX_W = 160, CTX_H = 78;
+  const DEFAULT_POS_A = { x: 50, y: 100 };
+  const DEFAULT_POS_B = { x: 340, y: 100 };
+  // Real overlap (not just touching): ctxA right = 240, ctxB left = 170 -> 70px overlap
+  const OVERLAP_POS_A = { x: 90, y: 100 };
+  const OVERLAP_POS_B = { x: 180, y: 100 };
+
+  function boxFor(pos) { return { x: pos.x, y: pos.y, w: CTX_W, h: CTX_H }; }
+  function boxesOverlap(a, b) {
+    return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y);
+  }
+
+  // ============================================================
+  // Rendering
+  // ============================================================
+  function renderStage(panel) {
+    const stage = panel.stageEl;
+    stage.querySelectorAll('.ctx, svg, .kernel-region').forEach(n => n.remove());
+
+    const posA = panel.positions[panel.ctxA.id];
+    const posB = panel.positions[panel.ctxB.id];
+    const ctxAMeta = { ...panel.ctxA, ...posA };
+    const ctxBMeta = { ...panel.ctxB, ...posB };
+
+    const overlapping = boxesOverlap(boxFor(posA), boxFor(posB));
+    const isSharedKernel = panel.rel && panel.rel.pattern === 'shared-kernel' && panel.option !== 'A';
+
+    const aBehindB = posA.x <= posB.x;
+    const leftEl = mkCtx(ctxAMeta, '#dbeafe', aBehindB ? 1 : 2, panel.animateNext);
+    const rightEl = mkCtx(ctxBMeta, '#fde68a', aBehindB ? 2 : 1, panel.animateNext);
+    stage.appendChild(leftEl);
+    stage.appendChild(rightEl);
+
+    if (isSharedKernel && overlapping) drawKernelRegion(stage, posA, posB);
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'edges-layer');
+    svg.setAttribute('viewBox', `0 0 ${stage.clientWidth || 600} ${stage.clientHeight || 280}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    stage.appendChild(svg);
+
+    if (panel.rel) drawEdge(svg, panel, ctxAMeta, ctxBMeta, overlapping);
+    if (panel.dragGhost) drawGhost(svg, panel.dragGhost);
+
+    if (panel.rel) drawRoleBadges(leftEl, rightEl, panel);
+
+    // Hover indicators during drag
+    if (panel.dragMode === 'move' && overlapping && panel.option !== 'A') {
+      leftEl.classList.add('would-overlap');
+      rightEl.classList.add('would-overlap');
+    }
+
+    panel.svgEl = svg;
+    panel.animateNext = false;
+  }
+
+  // Arrow SVGs match docs/mockups/connection-ux-mockup.html
+  const STUB_SVG = {
+    top:    '<svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z"/></svg>',
+    right:  '<svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg>',
+    bottom: '<svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg>',
+    left:   '<svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg>'
+  };
+
+  function mkCtx(meta, color, z, animate) {
+    const el = document.createElement('div');
+    el.className = 'ctx' + (animate ? ' animating' : '');
+    el.style.left = meta.x + 'px';
+    el.style.top = meta.y + 'px';
+    el.style.background = color;
+    el.style.zIndex = z || 2;
+    el.dataset.ctxId = meta.id;
+    el.innerHTML = `
+      <div class="name">${meta.name}</div>
+      <div class="purpose">${meta.purpose}</div>
+      <div class="stubs">
+        <div class="stub arrow top"    data-stub="top">${STUB_SVG.top}</div>
+        <div class="stub arrow right"  data-stub="right">${STUB_SVG.right}</div>
+        <div class="stub arrow bottom" data-stub="bottom">${STUB_SVG.bottom}</div>
+        <div class="stub arrow left"   data-stub="left">${STUB_SVG.left}</div>
+      </div>`;
+    el.addEventListener('mouseenter', () => el.classList.add('show-stubs'));
+    el.addEventListener('mouseleave', () => el.classList.remove('show-stubs'));
+    return el;
+  }
+
+  function stubAnchorPoint(pos, side) {
+    if (side === 'top')    return { x: pos.x + CTX_W/2, y: pos.y };
+    if (side === 'right')  return { x: pos.x + CTX_W,   y: pos.y + CTX_H/2 };
+    if (side === 'bottom') return { x: pos.x + CTX_W/2, y: pos.y + CTX_H };
+    if (side === 'left')   return { x: pos.x,           y: pos.y + CTX_H/2 };
+    return { x: pos.x + CTX_W/2, y: pos.y + CTX_H/2 };
+  }
+
+  function drawKernelRegion(stage, posA, posB) {
+    const a = boxFor(posA), b = boxFor(posB);
+    const overlapLeft = Math.max(a.x, b.x);
+    const overlapRight = Math.min(a.x + a.w, b.x + b.w);
+    const overlapTop = Math.max(a.y, b.y);
+    const overlapBottom = Math.min(a.y + a.h, b.y + b.h);
+    if (overlapRight <= overlapLeft || overlapBottom <= overlapTop) return;
+    const div = document.createElement('div');
+    div.className = 'kernel-region';
+    div.style.left = overlapLeft + 'px';
+    div.style.top = overlapTop + 'px';
+    div.style.width = (overlapRight - overlapLeft) + 'px';
+    div.style.height = (overlapBottom - overlapTop) + 'px';
+    div.innerHTML = `<div class="kernel-label">Shared Kernel</div>`;
+    stage.appendChild(div);
+  }
+
+  function drawRoleBadges(leftEl, rightEl, panel) {
+    const rel = panel.rel;
+    const ctxIdToEl = { [panel.ctxA.id]: leftEl, [panel.ctxB.id]: rightEl };
+    const influence = panel.option === 'D' ? deriveInfluenceType(rel) : rel.influenceType;
+
+    if (influence === 'mutually-dependent' && rel.pattern === 'partnership') {
+      addBadge(leftEl, 'Partnership', 'peer');
+      addBadge(rightEl, 'Partnership', 'peer');
+      return;
+    }
+    if (influence !== 'upstream-downstream') return;
+    const downEl = ctxIdToEl[rel.fromContextId];
+    const upEl = ctxIdToEl[rel.toContextId];
+    if (rel.upstreamRole && upEl) addBadge(upEl, 'UP: ' + patternLabel(rel.upstreamRole), 'up');
+    if (rel.downstreamRole && downEl) addBadge(downEl, 'DOWN: ' + patternLabel(rel.downstreamRole), 'down');
+  }
+
+  function addBadge(el, text, variant) {
+    const b = document.createElement('div');
+    b.className = 'role-badge' + (variant === 'down' ? ' down' : variant === 'peer' ? ' peer' : '');
+    b.textContent = text;
+    el.appendChild(b);
+  }
+
+  function ctxRightMid(meta) { return { x: meta.x + CTX_W, y: meta.y + CTX_H/2 }; }
+  function ctxLeftMid(meta)  { return { x: meta.x, y: meta.y + CTX_H/2 }; }
+  function ctxRectCenter(meta) { return { x: meta.x + CTX_W/2, y: meta.y + CTX_H/2 }; }
+
+  function drawEdge(svg, panel, ctxAMeta, ctxBMeta, overlapping) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const rel = panel.rel;
+
+    if (panel.option !== 'A') {
+      if (rel.pattern === 'shared-kernel') return;
+      if (rel.influenceType === 'free') return;
+    }
+    if (overlapping && panel.option !== 'A') return; // don't draw lines through overlapping contexts
+
+    const fromMeta = rel.fromContextId === panel.ctxA.id ? ctxAMeta : ctxBMeta;
+    const toMeta = rel.toContextId === panel.ctxA.id ? ctxAMeta : ctxBMeta;
+    const leftMeta = fromMeta.x < toMeta.x ? fromMeta : toMeta;
+    const rightMeta = fromMeta.x < toMeta.x ? toMeta : fromMeta;
+    const start = ctxRightMid(leftMeta);
+    const end = ctxLeftMid(rightMeta);
+    const arrowAtRight = (rel.toContextId === rightMeta.id);
+
+    let strokeClass = 'edge-ud';
+    let showArrow = false;
+    if (panel.option === 'A') {
+      if (rel.pattern === 'separate-ways') { strokeClass = 'edge-broken-free'; }
+      else if (rel.pattern === 'shared-kernel' || rel.pattern === 'partnership') { strokeClass = 'edge-mutual'; }
+      else { strokeClass = 'edge-ud'; showArrow = true; }
+    } else {
+      const influence = panel.option === 'D' ? deriveInfluenceType(rel) : rel.influenceType;
+      if (!influence) { strokeClass = 'edge-unconfigured'; }
+      else if (influence === 'mutually-dependent') { strokeClass = 'edge-mutual'; }
+      else if (influence === 'upstream-downstream') { strokeClass = 'edge-ud'; showArrow = true; }
+    }
+
+    const defs = document.createElementNS(svgNS, 'defs');
+    const markerId = 'arr-' + panel.id;
+    const marker = document.createElementNS(svgNS, 'marker');
+    marker.setAttribute('id', markerId);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '8');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '8');
+    marker.setAttribute('orient', 'auto-start-reverse');
+    const markerPath = document.createElementNS(svgNS, 'path');
+    markerPath.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    markerPath.setAttribute('class', 'edge-arrow');
+    marker.appendChild(markerPath);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    const path = document.createElementNS(svgNS, 'path');
+    const cx = (start.x + end.x) / 2;
+    const d = `M ${start.x} ${start.y} C ${cx} ${start.y}, ${cx} ${end.y}, ${end.x} ${end.y}`;
+    path.setAttribute('d', d);
+    path.setAttribute('class', strokeClass);
+    if (showArrow) {
+      if (arrowAtRight) path.setAttribute('marker-end', `url(#${markerId})`);
+      else path.setAttribute('marker-start', `url(#${markerId})`);
+    }
+    svg.appendChild(path);
+
+    const labelText = edgeLabel(rel, panel.option);
+    if (labelText) {
+      const labelX = (start.x + end.x) / 2;
+      const labelY = (start.y + end.y) / 2 - 10;
+      const textNode = document.createElementNS(svgNS, 'text');
+      const influenceForLabel = panel.option === 'A' ? null
+        : (panel.option === 'D' ? deriveInfluenceType(rel) : rel.influenceType);
+      const labelClass = (panel.option !== 'A' && !influenceForLabel) ? 'edge-label-faint' : 'edge-label';
+      textNode.setAttribute('class', labelClass);
+      textNode.setAttribute('x', labelX);
+      textNode.setAttribute('y', labelY);
+      textNode.setAttribute('text-anchor', 'middle');
+      textNode.textContent = labelText;
+      svg.appendChild(textNode);
+      const bbox = textNode.getBBox();
+      const rect = document.createElementNS(svgNS, 'rect');
+      rect.setAttribute('x', bbox.x - 4);
+      rect.setAttribute('y', bbox.y - 2);
+      rect.setAttribute('width', bbox.width + 8);
+      rect.setAttribute('height', bbox.height + 4);
+      rect.setAttribute('rx', '3');
+      rect.setAttribute('class', 'edge-label-bg');
+      svg.insertBefore(rect, textNode);
+    }
+  }
+
+  function edgeLabel(rel, option) {
+    if (option === 'A') return rel.pattern ? patternLabel(rel.pattern) : '';
+    const influence = option === 'D' ? deriveInfluenceType(rel) : rel.influenceType;
+    if (!influence) return '(pick a pattern)';
+    if (rel.pattern) return patternLabel(rel.pattern);
+    if (influence === 'upstream-downstream') {
+      if (rel.upstreamRole && rel.downstreamRole) return `${patternLabel(rel.upstreamRole)} → ${patternLabel(rel.downstreamRole)}`;
+      if (rel.upstreamRole) return patternLabel(rel.upstreamRole);
+      if (rel.downstreamRole) return patternLabel(rel.downstreamRole);
+    }
+    if (influence === 'mutually-dependent') return 'Mutually Dependent';
+    return '';
+  }
+
+  function drawGhost(svg, ghost) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const path = document.createElementNS(svgNS, 'path');
+    const { from, to } = ghost;
+    const cx = (from.x + to.x) / 2;
+    const d = `M ${from.x} ${from.y} C ${cx} ${from.y}, ${cx} ${to.y}, ${to.x} ${to.y}`;
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'edge-ghost');
+    svg.appendChild(path);
+  }
+
+  // ============================================================
+  // Picker (unchanged behaviorally from prior version)
+  // ============================================================
+  function renderPicker(panel) {
+    const el = panel.pickerEl;
+    el.innerHTML = '';
+    if (!panel.rel) {
+      let msg = `<div class="text-slate-400 text-xs italic">Create a relationship (drag <strong>+</strong> handle, or drag body to overlap in B/C) to see the picker.</div>`;
+      if (panel.lastDeleteReason) {
+        msg = `<div class="text-slate-600 text-xs"><strong>${panel.lastDeleteReason}</strong></div>`;
+      }
+      el.innerHTML = msg;
+      return;
+    }
+    const rel = panel.rel;
+
+    if (panel.option === 'A') {
+      const sec = mkSection('Pattern');
+      const opts = ['customer-supplier', 'partnership', 'shared-kernel', 'conformist', 'anti-corruption-layer', 'open-host-service', 'published-language', 'separate-ways'];
+      opts.forEach(p => sec.appendChild(mkPill(patternLabel(p), rel.pattern === p, () => onPickPattern(panel, p))));
+      if (rel.pattern) sec.appendChild(mkClearBtn(() => { rel.pattern = undefined; refresh(panel); }));
+      el.appendChild(sec);
+      return;
+    }
+
+    if (panel.option === 'D') {
+      el.classList.add('picker-d');
+      const influence = deriveInfluenceType(rel);
+
+      // Top indicator when the relationship is currently Shared Kernel
+      if (rel.pattern === 'shared-kernel') {
+        const ind = document.createElement('div');
+        ind.className = 'sk-indicator';
+        ind.innerHTML = `
+          <div class="sk-title">Currently: Shared Kernel</div>
+          <div class="sk-text">The contexts share part of their model and code. Drag them apart to change this relationship, or pick a different pattern below.</div>`;
+        el.appendChild(ind);
+      }
+
+      // PATTERN section — three alternatives at the same level, separated by "or"
+      const sec = document.createElement('div');
+      sec.className = 'picker-section';
+      const header = document.createElement('div');
+      header.className = 'section-header';
+      header.textContent = 'Pattern';
+      sec.appendChild(header);
+
+      // Alternative 1: Partnership (Mutually Dependent)
+      const partnershipBtn = document.createElement('button');
+      partnershipBtn.className = 'pattern-btn' + (rel.pattern === 'partnership' ? ' active' : '');
+      partnershipBtn.innerHTML = `<span class="pattern-name">Partnership</span>
+                                  <span class="pattern-influence">Mutually Dependent</span>`;
+      partnershipBtn.onclick = () => onPickPatternD(panel, 'partnership');
+      sec.appendChild(partnershipBtn);
+
+      // Gesture hint for Shared Kernel — not a picker option, only via overlap
+      const skHint = document.createElement('div');
+      skHint.className = 'sk-gesture-hint';
+      skHint.textContent = rel.pattern === 'shared-kernel'
+        ? 'Currently a Shared Kernel (see above). Drag apart to change.'
+        : 'For a Shared Kernel, drag the contexts to overlap.';
+      sec.appendChild(skHint);
+
+      // — or —
+      const div1 = document.createElement('div');
+      div1.className = 'or-divider';
+      div1.textContent = 'or';
+      sec.appendChild(div1);
+
+      // Alternative 2: Customer-Supplier (Upstream/Downstream, standalone)
+      const csBtn = document.createElement('button');
+      csBtn.className = 'pattern-btn' + (rel.pattern === 'customer-supplier' ? ' active' : '');
+      csBtn.innerHTML = `<span class="pattern-name">Customer-Supplier</span>
+                         <span class="pattern-influence">Upstream/Downstream</span>`;
+      csBtn.onclick = () => onPickPatternD(panel, 'customer-supplier');
+      sec.appendChild(csBtn);
+
+      const csHint = document.createElement('div');
+      csHint.className = 'sk-gesture-hint';
+      csHint.textContent = 'The upstream accommodates the downstream.';
+      sec.appendChild(csHint);
+
+      // — or —
+      const div2 = document.createElement('div');
+      div2.className = 'or-divider';
+      div2.textContent = 'or';
+      sec.appendChild(div2);
+
+      // Alternative 3: Characterize each side (Upstream/Downstream, per-side)
+      const charHeader = document.createElement('div');
+      charHeader.className = 'characterize-header';
+      charHeader.innerHTML = `Characterize each side <span style="color:#94a3b8;font-weight:400">(Upstream/Downstream)</span>`;
+      sec.appendChild(charHeader);
+
+      const upRow = document.createElement('div');
+      upRow.className = 'role-row';
+      upRow.innerHTML = `<div class="role-label"><span class="role-side">Upstream</span> <span class="ctx-name">(${upstreamName(panel)})</span></div>`;
+      const upPills = document.createElement('div');
+      upPills.className = 'role-pills';
+      ['open-host-service', 'published-language'].forEach(r => {
+        upPills.appendChild(mkPill(patternLabel(r), rel.upstreamRole === r, () => onPickUpstreamD(panel, r)));
+      });
+      upRow.appendChild(upPills);
+      sec.appendChild(upRow);
+
+      const downRow = document.createElement('div');
+      downRow.className = 'role-row';
+      downRow.innerHTML = `<div class="role-label"><span class="role-side">Downstream</span> <span class="ctx-name">(${downstreamName(panel)})</span></div>`;
+      const downPills = document.createElement('div');
+      downPills.className = 'role-pills';
+      ['conformist', 'anti-corruption-layer'].forEach(r => {
+        downPills.appendChild(mkPill(patternLabel(r), rel.downstreamRole === r, () => onPickDownstreamD(panel, r)));
+      });
+      downRow.appendChild(downPills);
+      sec.appendChild(downRow);
+
+      // Informational note when a standalone pattern is active — explains what picking a per-side role will do.
+      if (rel.pattern === 'partnership' || rel.pattern === 'customer-supplier') {
+        const note = document.createElement('div');
+        note.className = 'exclusivity-note';
+        note.innerHTML = `Picking a per-side role above will clear the <strong>${patternLabel(rel.pattern)}</strong> pattern (they're mutually exclusive).`;
+        sec.appendChild(note);
+      }
+
+      el.appendChild(sec);
+
+      // DIRECTION — only when influence is U/D
+      if (influence === 'upstream-downstream') {
+        const sec = document.createElement('div');
+        sec.className = 'picker-section';
+        const header = document.createElement('div');
+        header.className = 'section-header';
+        header.textContent = 'Direction';
+        sec.appendChild(header);
+
+        const disp = document.createElement('div');
+        disp.className = 'direction-display';
+        disp.innerHTML = `<span class="ctx-name">${nameOf(panel, rel.fromContextId)}</span>
+                          <span class="arrow">→</span>
+                          <span class="ctx-name">${nameOf(panel, rel.toContextId)}</span>
+                          <button class="flip-btn" title="Swap upstream and downstream">↔ flip</button>`;
+        disp.querySelector('.flip-btn').onclick = () => {
+          const tmp = rel.fromContextId; rel.fromContextId = rel.toContextId; rel.toContextId = tmp;
+          rel.upstreamRole = undefined; rel.downstreamRole = undefined;
+          refresh(panel);
+        };
+        sec.appendChild(disp);
+
+        const note = document.createElement('div');
+        note.className = 'helper-note';
+        note.textContent = 'Arrow points to the upstream context (the defining authority).';
+        sec.appendChild(note);
+        el.appendChild(sec);
+      }
+
+      // REMOVE
+      {
+        const sec = document.createElement('div');
+        sec.className = 'picker-section remove-section';
+        const btn = document.createElement('button');
+        btn.className = 'remove-btn';
+        btn.textContent = 'Remove relationship';
+        btn.onclick = () => onRemoveD(panel);
+        sec.appendChild(btn);
+        const note = document.createElement('div');
+        note.className = 'helper-note';
+        note.style.textAlign = 'center';
+        note.textContent = 'Removing = Free / no integration. To document non-integration, add a note to a context.';
+        sec.appendChild(note);
+        el.appendChild(sec);
+      }
+      return;
+    }
+
+    {
+      const sec = mkSection('Influence type (Evans, DDD Ref p. 37-38)');
+      ['upstream-downstream', 'mutually-dependent', 'free'].forEach(t => {
+        const pill = mkPill(influenceLabel(t), rel.influenceType === t, () => onPickInfluence(panel, t));
+        if (t === 'free') pill.classList.add('danger');
+        sec.appendChild(pill);
+      });
+      const hint = document.createElement('div');
+      hint.className = 'render-hint';
+      hint.textContent = 'Free removes the relationship. Shared Kernel uses overlap, not a line.';
+      sec.appendChild(hint);
+      el.appendChild(sec);
+    }
+
+    if (rel.influenceType === 'upstream-downstream') {
+      const sec = mkSection('Standalone pattern (optional)');
+      ['customer-supplier'].forEach(p => sec.appendChild(mkPill(patternLabel(p), rel.pattern === p, () => onPickPattern(panel, p))));
+      if (rel.pattern) sec.appendChild(mkClearBtn(() => { rel.pattern = undefined; refresh(panel); }));
+      el.appendChild(sec);
+
+      const ps = mkSection('Per-side roles');
+      const upRow = document.createElement('div');
+      upRow.className = 'mb-2';
+      upRow.innerHTML = `<span class="row-label">Upstream (${upstreamName(panel)}):</span> `;
+      ['open-host-service', 'published-language'].forEach(r => {
+        upRow.appendChild(mkPill(patternLabel(r), rel.upstreamRole === r, () => onPickUpstream(panel, r)));
+      });
+      if (rel.upstreamRole) upRow.appendChild(mkClearBtn(() => { rel.upstreamRole = undefined; refresh(panel); }));
+      ps.appendChild(upRow);
+
+      const downRow = document.createElement('div');
+      downRow.innerHTML = `<span class="row-label">Downstream (${downstreamName(panel)}):</span> `;
+      ['conformist', 'anti-corruption-layer'].forEach(r => {
+        downRow.appendChild(mkPill(patternLabel(r), rel.downstreamRole === r, () => onPickDownstream(panel, r)));
+      });
+      if (rel.downstreamRole) downRow.appendChild(mkClearBtn(() => { rel.downstreamRole = undefined; refresh(panel); }));
+      ps.appendChild(downRow);
+      el.appendChild(ps);
+
+      const fs = mkSection('Direction');
+      const flipBtn = document.createElement('button');
+      flipBtn.className = 'btn';
+      flipBtn.textContent = `${nameOf(panel, rel.fromContextId)} → ${nameOf(panel, rel.toContextId)}  (flip)`;
+      flipBtn.onclick = () => {
+        const tmp = rel.fromContextId; rel.fromContextId = rel.toContextId; rel.toContextId = tmp;
+        rel.upstreamRole = undefined; rel.downstreamRole = undefined;
+        refresh(panel);
+      };
+      fs.appendChild(flipBtn);
+      el.appendChild(fs);
+    }
+
+    if (rel.influenceType === 'mutually-dependent') {
+      const sec = mkSection('Standalone pattern');
+      [['partnership', 'line, no arrow'], ['shared-kernel', 'overlap, no line']].forEach(([p, hint]) => {
+        const pill = mkPill(patternLabel(p), rel.pattern === p, () => onPickPattern(panel, p));
+        sec.appendChild(pill);
+        if (rel.pattern === p) {
+          const note = document.createElement('span');
+          note.className = 'render-hint';
+          note.style.marginLeft = '6px';
+          note.textContent = `(${hint})`;
+          sec.appendChild(note);
+        }
+      });
+      if (rel.pattern) sec.appendChild(mkClearBtn(() => { rel.pattern = undefined; refresh(panel); }));
+      el.appendChild(sec);
+    }
+  }
+
+  function upstreamName(panel) { return nameOf(panel, panel.rel.toContextId); }
+  function downstreamName(panel) { return nameOf(panel, panel.rel.fromContextId); }
+  function nameOf(panel, id) { return id === panel.ctxA.id ? panel.ctxA.name : panel.ctxB.name; }
+
+  function mkSection(title) {
+    const sec = document.createElement('div');
+    sec.className = 'picker-section';
+    sec.innerHTML = `<div class="row-label">${title}</div>`;
+    return sec;
+  }
+  function mkPill(label, active, onClick, disabled) {
+    const p = document.createElement('label');
+    p.className = 'pill' + (active ? ' active' : '') + (disabled ? ' disabled' : '');
+    p.textContent = label;
+    if (!disabled) p.addEventListener('click', onClick);
+    return p;
+  }
+  function mkClearBtn(onClick) {
+    const b = document.createElement('button');
+    b.className = 'clear-btn';
+    b.textContent = 'clear';
+    b.onclick = onClick;
+    return b;
+  }
+
+  // ============================================================
+  // Behaviors
+  // ============================================================
+  function snapToOverlap(panel) {
+    panel.positions = {
+      [panel.ctxA.id]: { ...OVERLAP_POS_A },
+      [panel.ctxB.id]: { ...OVERLAP_POS_B }
+    };
+    panel.animateNext = true;
+  }
+  function snapToDefault(panel) {
+    panel.positions = {
+      [panel.ctxA.id]: { ...DEFAULT_POS_A },
+      [panel.ctxB.id]: { ...DEFAULT_POS_B }
+    };
+    panel.animateNext = true;
+  }
+
+  function onConnectDrop(panel, fromId, toId) {
+    panel.lastDeleteReason = null;
+    if (panel.option === 'A') {
+      panel.rel = { fromContextId: fromId, toContextId: toId, pattern: 'customer-supplier' };
+    } else if (panel.option === 'B') {
+      panel.rel = { fromContextId: fromId, toContextId: toId, influenceType: undefined };
+    } else if (panel.option === 'C') {
+      panel.rel = { fromContextId: fromId, toContextId: toId, influenceType: 'upstream-downstream' };
+    } else if (panel.option === 'D') {
+      // No stored influenceType; derived from pattern + roles. Direction implied by gesture.
+      panel.rel = { fromContextId: fromId, toContextId: toId };
+    }
+    refresh(panel);
+  }
+
+  // Option D pattern/role pickers: no stored influenceType field, no influence-type confirms.
+  function onPickPatternD(panel, p) {
+    const rel = panel.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    // Clicking the currently-active standalone pattern toggles it off.
+    if (rel.pattern === p) {
+      rel.pattern = undefined;
+      if (wasSharedKernel) snapToDefault(panel);
+      refresh(panel);
+      return;
+    }
+    rel.pattern = p;
+    // Any standalone pattern clears per-side roles (DDD validity matrix).
+    rel.upstreamRole = undefined; rel.downstreamRole = undefined;
+    if (p === 'shared-kernel') snapToOverlap(panel);
+    else if (wasSharedKernel) snapToDefault(panel);
+    refresh(panel);
+  }
+  function onPickUpstreamD(panel, r) {
+    const rel = panel.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    // Toggle off when clicking the currently-active role.
+    if (rel.upstreamRole === r) {
+      rel.upstreamRole = undefined;
+      refresh(panel);
+      return;
+    }
+    rel.upstreamRole = r;
+    // Per-side roles are mutually exclusive with any standalone pattern (DDD validity matrix).
+    rel.pattern = undefined;
+    if (wasSharedKernel) snapToDefault(panel);
+    refresh(panel);
+  }
+  function onPickDownstreamD(panel, r) {
+    const rel = panel.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    if (rel.downstreamRole === r) {
+      rel.downstreamRole = undefined;
+      refresh(panel);
+      return;
+    }
+    rel.downstreamRole = r;
+    rel.pattern = undefined;
+    if (wasSharedKernel) snapToDefault(panel);
+    refresh(panel);
+  }
+  function onRemoveD(panel) {
+    showConfirm(panel, {
+      title: 'Remove this relationship?',
+      text: 'A removed relationship is Free by definition: no line, no overlap. To document a deliberate non-integration decision, add a note to a context.',
+      confirmLabel: 'Remove',
+      danger: true,
+      onConfirm: () => {
+        const wasSharedKernel = panel.rel && panel.rel.pattern === 'shared-kernel';
+        panel.rel = null;
+        panel.lastDeleteReason = 'Relationship removed (Free = no relationship object).';
+        if (wasSharedKernel) snapToDefault(panel);
+        refresh(panel);
+      }
+    });
+  }
+
+  function onSeparationGesture(panel) {
+    const rel = panel.rel;
+    // Option D: auto-switch to Partnership (the other Mutually Dependent pattern), no prompt.
+    if (panel.option === 'D') {
+      rel.pattern = 'partnership';
+      refresh(panel);
+      return;
+    }
+    // Options B and C: confirm and clear pattern, leave Mutually Dependent
+    showConfirm(panel, {
+      title: 'These contexts no longer overlap.',
+      text: 'Shared Kernel is rendered as overlapping contexts. Remove Shared Kernel? The contexts will stay where you dropped them, and the relationship will become Mutually Dependent with no pattern set, so you can pick Partnership in the picker.',
+      confirmLabel: 'Remove Shared Kernel',
+      onConfirm: () => {
+        rel.pattern = undefined;
+        rel.influenceType = 'mutually-dependent';
+        refresh(panel);
+      },
+      onCancel: () => {
+        snapToOverlap(panel);
+        refresh(panel);
+      }
+    });
+  }
+
+  function onOverlapGesture(panel) {
+    if (panel.option === 'A') return; // A's model has no overlap concept
+    const rel = panel.rel;
+    if (!rel) {
+      if (panel.option === 'D') {
+        panel.rel = {
+          fromContextId: panel.ctxA.id,
+          toContextId: panel.ctxB.id,
+          pattern: 'shared-kernel'
+        };
+      } else {
+        panel.rel = {
+          fromContextId: panel.ctxA.id,
+          toContextId: panel.ctxB.id,
+          influenceType: 'mutually-dependent',
+          pattern: 'shared-kernel'
+        };
+      }
+      refresh(panel);
+      return;
+    }
+    if (rel.pattern === 'shared-kernel') return; // already SK
+    showConfirm(panel, {
+      title: 'Change relationship to Shared Kernel?',
+      text: 'These contexts now overlap. Shared Kernel is how DDD models contexts that share part of their model and code. The existing relationship will be replaced.',
+      onConfirm: () => {
+        rel.pattern = 'shared-kernel';
+        if (panel.option !== 'D') rel.influenceType = 'mutually-dependent';
+        rel.upstreamRole = undefined;
+        rel.downstreamRole = undefined;
+        refresh(panel);
+      },
+      onCancel: () => {
+        snapToDefault(panel);
+        refresh(panel);
+      }
+    });
+  }
+
+  function onPickPattern(panel, p) {
+    const rel = panel.rel;
+    if (panel.option === 'A') {
+      rel.pattern = p;
+      refresh(panel);
+      return;
+    }
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    const needsConfirm = panel.option === 'C' && p === 'shared-kernel' && !wasSharedKernel;
+    const apply = () => {
+      rel.pattern = p;
+      if (MUTUAL_PATTERNS.has(p)) {
+        rel.influenceType = 'mutually-dependent';
+        rel.upstreamRole = undefined; rel.downstreamRole = undefined;
+      } else if (FREE_PATTERNS.has(p)) {
+        rel.influenceType = 'free';
+      } else {
+        rel.influenceType = 'upstream-downstream';
+      }
+      if (p === 'shared-kernel') snapToOverlap(panel);
+      else if (wasSharedKernel) snapToDefault(panel);
+      refresh(panel);
+    };
+    if (needsConfirm) {
+      showConfirm(panel, {
+        title: 'Switch to Shared Kernel?',
+        text: 'Shared Kernel is rendered as overlapping contexts with the shared model in the intersection, not a connecting line. The relationship line will be removed and the contexts will snap to overlap.',
+        onConfirm: apply
+      });
+      return;
+    }
+    apply();
+  }
+
+  function onPickUpstream(panel, r) {
+    const rel = panel.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    rel.upstreamRole = r;
+    rel.pattern = undefined;
+    rel.influenceType = 'upstream-downstream';
+    if (wasSharedKernel) snapToDefault(panel);
+    refresh(panel);
+  }
+  function onPickDownstream(panel, r) {
+    const rel = panel.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    rel.downstreamRole = r;
+    rel.pattern = undefined;
+    rel.influenceType = 'upstream-downstream';
+    if (wasSharedKernel) snapToDefault(panel);
+    refresh(panel);
+  }
+
+  function onPickInfluence(panel, t) {
+    const rel = panel.rel;
+    const wasSharedKernel = rel.pattern === 'shared-kernel';
+    if (t === 'free') {
+      showConfirm(panel, {
+        title: 'Delete this relationship?',
+        text: 'Free means no integration between these contexts. There is no line to draw. If you want to document a deliberate non-integration decision, add it as a note on a context.',
+        confirmLabel: 'Delete relationship',
+        danger: true,
+        onConfirm: () => {
+          panel.rel = null;
+          panel.lastDeleteReason = 'Relationship removed (Free / Separate Ways has no line).';
+          if (wasSharedKernel) snapToDefault(panel);
+          refresh(panel);
+        }
+      });
+      return;
+    }
+    if (panel.option === 'C' && rel.influenceType === 'upstream-downstream' && t === 'mutually-dependent'
+        && (rel.upstreamRole || rel.downstreamRole || rel.pattern)) {
+      showConfirm(panel, {
+        title: 'Switch to Mutually Dependent?',
+        text: 'Mutually Dependent has no upstream or downstream. The per-side roles and pattern you set will be cleared.',
+        onConfirm: () => {
+          rel.influenceType = t;
+          rel.upstreamRole = undefined; rel.downstreamRole = undefined; rel.pattern = undefined;
+          refresh(panel);
+        }
+      });
+      return;
+    }
+    rel.influenceType = t;
+    if (t !== 'upstream-downstream') { rel.upstreamRole = undefined; rel.downstreamRole = undefined; }
+    if (t === 'mutually-dependent' && rel.pattern && !MUTUAL_PATTERNS.has(rel.pattern)) rel.pattern = undefined;
+    if (t === 'upstream-downstream' && rel.pattern && !UD_STANDALONE.has(rel.pattern)) rel.pattern = undefined;
+    if (wasSharedKernel && t !== 'mutually-dependent') snapToDefault(panel);
+    refresh(panel);
+  }
+
+  // ============================================================
+  // Confirm modal
+  // ============================================================
+  function showConfirm(panel, { title, text, onConfirm, onCancel, confirmLabel, danger }) {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-modal';
+    overlay.innerHTML = `
+      <div class="confirm-body">
+        <div class="confirm-title">${title}</div>
+        <div class="confirm-text">${text}</div>
+        <div class="confirm-actions">
+          <button class="btn" data-cancel>Cancel</button>
+          <button class="btn ${danger ? 'danger' : 'primary'}" data-ok>${confirmLabel || 'Switch'}</button>
+        </div>
+      </div>`;
+    panel.stageEl.appendChild(overlay);
+    overlay.querySelector('[data-cancel]').onclick = () => { overlay.remove(); if (onCancel) onCancel(); };
+    overlay.querySelector('[data-ok]').onclick = () => { overlay.remove(); onConfirm(); };
+  }
+
+  // ============================================================
+  // Gestures: connect (from + handle) and move (from body)
+  // ============================================================
+  function attachDrag(panel) {
+    const stage = panel.stageEl;
+    let mode = null;
+    let dragFromId = null;
+    let connectStart = null;
+    let moveOffset = null;
+
+    stage.addEventListener('mousedown', (e) => {
+      const stub = e.target.closest('.stub.arrow');
+      if (stub) {
+        const ctx = stub.closest('.ctx');
+        mode = 'connect';
+        dragFromId = ctx.dataset.ctxId;
+        const pos = panel.positions[dragFromId];
+        connectStart = stubAnchorPoint(pos, stub.dataset.stub);
+        e.preventDefault(); e.stopPropagation();
+        return;
+      }
+      const ctx = e.target.closest('.ctx');
+      if (ctx) {
+        mode = 'move';
+        dragFromId = ctx.dataset.ctxId;
+        const rect = stage.getBoundingClientRect();
+        const cursorPt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const pos = panel.positions[dragFromId];
+        moveOffset = { x: cursorPt.x - pos.x, y: cursorPt.y - pos.y };
+        panel.dragMode = 'move';
+        e.preventDefault();
+      }
+    });
+
+    stage.addEventListener('mousemove', (e) => {
+      if (!mode) return;
+      const rect = stage.getBoundingClientRect();
+      const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      if (mode === 'connect') {
+        panel.dragGhost = { from: connectStart, to: pt };
+        stage.querySelectorAll('.ctx').forEach(el => {
+          if (el.dataset.ctxId !== dragFromId && el.contains(e.target)) el.classList.add('connect-target');
+          else el.classList.remove('connect-target');
+        });
+        renderStage(panel);
+      } else if (mode === 'move') {
+        const newPos = { x: pt.x - moveOffset.x, y: pt.y - moveOffset.y };
+        const stageW = stage.clientWidth, stageH = stage.clientHeight;
+        newPos.x = Math.max(0, Math.min(stageW - CTX_W, newPos.x));
+        newPos.y = Math.max(0, Math.min(stageH - CTX_H, newPos.y));
+        panel.positions[dragFromId] = newPos;
+        renderStage(panel);
+      }
+    });
+
+    stage.addEventListener('mouseup', (e) => {
+      if (!mode) return;
+      if (mode === 'connect') {
+        const overEl = document.elementFromPoint(e.clientX, e.clientY);
+        const targetCtx = overEl && overEl.closest('.ctx');
+        const targetId = targetCtx && targetCtx.dataset.ctxId;
+        if (targetId && targetId !== dragFromId) {
+          if (panel.rel) { panel.rel = null; panel.lastDeleteReason = null; }
+          onConnectDrop(panel, dragFromId, targetId);
+        }
+      } else if (mode === 'move') {
+        const a = boxFor(panel.positions[panel.ctxA.id]);
+        const b = boxFor(panel.positions[panel.ctxB.id]);
+        const overlapping = boxesOverlap(a, b);
+        if (overlapping) {
+          onOverlapGesture(panel);
+        } else if (panel.rel && panel.rel.pattern === 'shared-kernel' && panel.option !== 'A') {
+          onSeparationGesture(panel);
+        }
+      }
+      mode = null; dragFromId = null; connectStart = null; moveOffset = null;
+      panel.dragGhost = null;
+      panel.dragMode = null;
+      stage.querySelectorAll('.ctx.connect-target, .ctx.would-overlap').forEach(el => {
+        el.classList.remove('connect-target'); el.classList.remove('would-overlap');
+      });
+      refresh(panel);
+    });
+
+    stage.addEventListener('mouseleave', () => {
+      mode = null; dragFromId = null; panel.dragGhost = null; panel.dragMode = null;
+      refresh(panel);
+    });
+  }
+
+  // ============================================================
+  // Readout
+  // ============================================================
+  function renderReadout(panel) {
+    const el = panel.readoutEl;
+    if (!panel.rel) {
+      const msg = panel.lastDeleteReason
+        ? `<span class="deleted">${panel.lastDeleteReason}</span>\n(no Relationship object)`
+        : '(no relationship yet — drag + handle or overlap to create)';
+      el.innerHTML = msg;
+      return;
+    }
+    const r = panel.rel;
+    let fields;
+    if (panel.option === 'A') {
+      fields = [
+        ['fromContextId', nameOf(panel, r.fromContextId)],
+        ['toContextId',   nameOf(panel, r.toContextId)],
+        ['pattern',       r.pattern]
+      ];
+    } else if (panel.option === 'D') {
+      fields = [
+        ['fromContextId (downstream when U/D)', nameOf(panel, r.fromContextId)],
+        ['toContextId (upstream when U/D)',     nameOf(panel, r.toContextId)],
+        ['pattern',                             r.pattern],
+        ['upstreamRole',                        r.upstreamRole],
+        ['downstreamRole',                      r.downstreamRole],
+        ['→ derived influenceType',             deriveInfluenceType(r)]
+      ];
+    } else {
+      fields = [
+        ['fromContextId (downstream when U/D)', nameOf(panel, r.fromContextId)],
+        ['toContextId (upstream when U/D)',     nameOf(panel, r.toContextId)],
+        ['influenceType',                       r.influenceType],
+        ['pattern',                             r.pattern],
+        ['upstreamRole',                        r.upstreamRole],
+        ['downstreamRole',                      r.downstreamRole]
+      ];
+    }
+    el.innerHTML = 'Relationship {\n' + fields.map(([k, v]) =>
+      `  <span class="k">${k}</span>: ` + (v === undefined || v === null
+        ? `<span class="undef">undefined</span>`
+        : `<span class="v">${v}</span>`)
+    ).join('\n') + '\n}';
+  }
+
+  // ============================================================
+  // Presets
+  // ============================================================
+  function applyPreset(panel, preset) {
+    const pick = panel.option === 'D' ? onPickPatternD : onPickPattern;
+    if (preset === 'partnership') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      pick(panel, 'partnership');
+    }
+    if (preset === 'shared-kernel' || preset === 'shared-kernel-line') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      pick(panel, 'shared-kernel');
+    }
+    if (preset === 'separate-ways-line') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      onPickPattern(panel, 'separate-ways');
+    }
+    if (preset === 'free') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      onPickInfluence(panel, 'free');
+    }
+    if (preset === 'customer-supplier') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      pick(panel, 'customer-supplier');
+    }
+    if (preset === 'per-side') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      onPickUpstreamD(panel, 'open-host-service');
+      onPickDownstreamD(panel, 'anti-corruption-layer');
+    }
+    if (preset === 'remove') {
+      if (!panel.rel) onConnectDrop(panel, panel.ctxA.id, panel.ctxB.id);
+      onRemoveD(panel);
+    }
+  }
+
+  // ============================================================
+  // Wiring
+  // ============================================================
+  function refresh(panel) {
+    renderStage(panel);
+    renderPicker(panel);
+    renderReadout(panel);
+  }
+
+  function initPanel(panelEl) {
+    const panel = {
+      id: panelEl.dataset.panel,
+      option: panelEl.dataset.panel,
+      stageEl: panelEl.querySelector('[data-stage]'),
+      pickerEl: panelEl.querySelector('[data-picker]'),
+      readoutEl: panelEl.querySelector('[data-readout]'),
+      ctxA: { id: 'a', name: 'Orders', purpose: 'consumer' },
+      ctxB: { id: 'b', name: 'Billing', purpose: 'service' },
+      positions: {
+        a: { ...DEFAULT_POS_A },
+        b: { ...DEFAULT_POS_B }
+      },
+      rel: null,
+      dragGhost: null,
+      dragMode: null,
+      animateNext: false,
+      lastDeleteReason: null
+    };
+    attachDrag(panel);
+    panelEl.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => applyPreset(panel, btn.dataset.preset));
+    });
+    panelEl.querySelector('[data-reset]').addEventListener('click', () => {
+      panel.rel = null; panel.lastDeleteReason = null;
+      snapToDefault(panel);
+      refresh(panel);
+    });
+    refresh(panel);
+  }
+
+  document.querySelectorAll('[data-panel]').forEach(initPanel);
+
+  // ============================================================
+  // Direction-mockups: shared state across all six options
+  // ============================================================
+  const dirState = { downstream: 'Orders', upstream: 'Billing' };
+  function dirSwap() {
+    const tmp = dirState.downstream;
+    dirState.downstream = dirState.upstream;
+    dirState.upstream = tmp;
+    renderAllDirMockups();
+  }
+
+  function renderDirAlpha() {
+    const el = document.querySelector('[data-dir-alpha]');
+    el.innerHTML = `
+      <div class="dir-alpha-pill">
+        <span>${dirState.downstream}</span>
+        <span class="arr">→</span>
+        <span>${dirState.upstream}</span>
+      </div>
+      <button class="dir-flip-btn" type="button">↔ flip</button>`;
+    el.parentElement.insertAdjacentHTML('beforeend',
+      el.parentElement.querySelector('.dir-alpha-help') ? '' :
+      `<div class="dir-alpha-help">Arrow points to the upstream context.</div>`);
+    el.querySelector('button').onclick = dirSwap;
+  }
+
+  function renderDirBeta() {
+    const el = document.querySelector('[data-dir-beta]');
+    el.innerHTML = `
+      <button class="dir-beta-pill" type="button" title="Click to flip direction">
+        <span>${dirState.downstream}</span>
+        <span class="arr">→</span>
+        <span>${dirState.upstream}</span>
+        <span class="dir-beta-hover">↔ flip</span>
+      </button>`;
+    el.querySelector('button').onclick = dirSwap;
+  }
+
+  function renderDirGamma() {
+    const el = document.querySelector('[data-dir-gamma]');
+    // Orders is always on the left, Billing always on the right.
+    // Arrow direction (and the "upstream" highlight) reflects which is upstream.
+    const ordersIsUpstream = dirState.upstream === 'Orders';
+    const arrowPath = ordersIsUpstream
+      ? 'M 56 16 L 4 16'   // points left, toward Orders
+      : 'M 4 16 L 56 16';  // points right, toward Billing
+    el.innerHTML = `
+      <div class="dir-gamma-canvas">
+        <div class="dir-gamma-ctx ${ordersIsUpstream ? 'up' : ''}">
+          <div class="name">Orders</div>
+          <div class="role">${ordersIsUpstream ? 'upstream' : 'downstream'}</div>
+        </div>
+        <svg width="60" height="32" viewBox="0 0 60 32">
+          <defs>
+            <marker id="gamma-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+            </marker>
+          </defs>
+          <path d="${arrowPath}" stroke="#475569" stroke-width="2" fill="none" marker-end="url(#gamma-arr)"/>
+        </svg>
+        <div class="dir-gamma-ctx ${!ordersIsUpstream ? 'up' : ''}">
+          <div class="name">Billing</div>
+          <div class="role">${!ordersIsUpstream ? 'upstream' : 'downstream'}</div>
+        </div>
+      </div>
+      <div class="dir-gamma-swap"><button type="button">⇄ swap</button></div>`;
+    el.querySelector('button').onclick = dirSwap;
+  }
+
+  function renderDirDelta() {
+    const el = document.querySelector('[data-dir-delta]');
+    el.innerHTML = `
+      <div class="role-row-mini">
+        <div class="label-mini"><span class="side">Upstream</span> <span class="ctx">(${dirState.upstream})</span></div>
+        <div class="pills-mini">
+          <span class="pill-mini">Open Host Service</span>
+          <span class="pill-mini">Published Language</span>
+        </div>
+      </div>
+      <div class="role-row-mini">
+        <div class="label-mini"><span class="side">Downstream</span> <span class="ctx">(${dirState.downstream})</span></div>
+        <div class="pills-mini">
+          <span class="pill-mini">Conformist</span>
+          <span class="pill-mini">Anti-Corruption Layer</span>
+        </div>
+      </div>
+      <div class="dir-delta-swap-row">
+        <button type="button" title="Swap upstream and downstream">↔ swap upstream/downstream</button>
+      </div>`;
+    el.querySelector('button').onclick = dirSwap;
+  }
+
+  function renderDirEpsilon() {
+    const el = document.querySelector('[data-dir-epsilon]');
+    // Contexts stay in their positions; only the arrow direction flips.
+    const ordersIsUpstream = dirState.upstream === 'Orders';
+    const arrowPath = ordersIsUpstream
+      ? 'M 192 50 C 140 50, 140 50, 90 50'   // right -> left, marker-end on left, points at Orders
+      : 'M 90 50 C 140 50, 140 50, 192 50';  // left -> right, marker-end on right, points at Billing
+    el.innerHTML = `
+      <div class="dir-epsilon-readout">
+        <span class="label">Upstream:</span> <span class="name">${dirState.upstream}</span>
+        &nbsp;·&nbsp;
+        <span class="label">Downstream:</span> <span class="name">${dirState.downstream}</span>
+      </div>
+      <div class="dir-epsilon-canvas">
+        <div class="mini-ctx" style="left:8px; top:32px; background:#dbeafe;">Orders</div>
+        <div class="mini-ctx" style="right:8px; top:32px; background:#fde68a;">Billing</div>
+        <svg class="mini-svg" viewBox="0 0 280 100" preserveAspectRatio="none" style="pointer-events: auto;">
+          <defs>
+            <marker id="eps-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+            </marker>
+          </defs>
+          <path d="${arrowPath}" stroke="transparent" stroke-width="24" fill="none"
+                style="pointer-events: stroke; cursor: pointer;" class="eps-hit" />
+          <path d="${arrowPath}" stroke="#475569" stroke-width="2" fill="none" marker-end="url(#eps-arr)"
+                style="pointer-events: none;" class="eps-visible" />
+        </svg>
+      </div>
+      <div style="font-size:10px; color:#94a3b8; text-align:center; margin-top:4px;">Double-click the arrow to flip its direction.</div>`;
+    const hit = el.querySelector('.eps-hit');
+    hit.addEventListener('dblclick', dirSwap);
+    // Visual feedback on hover
+    hit.addEventListener('mouseenter', () => {
+      el.querySelector('.eps-visible').setAttribute('stroke', '#2563eb');
+    });
+    hit.addEventListener('mouseleave', () => {
+      el.querySelector('.eps-visible').setAttribute('stroke', '#475569');
+    });
+  }
+
+  function renderDirEta() {
+    const el = document.querySelector('[data-dir-eta]');
+    // Same convention as γ: contexts stay in their positions; arrow direction flips.
+    const ordersIsUpstream = dirState.upstream === 'Orders';
+    const arrowPath = ordersIsUpstream
+      ? 'M 56 16 L 4 16'
+      : 'M 4 16 L 56 16';
+    el.innerHTML = `
+      <div class="dir-eta-canvas">
+        <div class="dir-eta-ctx ${ordersIsUpstream ? 'up' : ''}">
+          <div class="name">Orders</div>
+          <div class="role">${ordersIsUpstream ? 'upstream' : 'downstream'}</div>
+        </div>
+        <div class="dir-eta-arrow" title="Click to flip direction">
+          <svg width="60" height="32" viewBox="0 0 60 32">
+            <defs>
+              <marker id="eta-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+              </marker>
+            </defs>
+            <path d="${arrowPath}" stroke="#475569" stroke-width="2" fill="none" marker-end="url(#eta-arr)"/>
+          </svg>
+        </div>
+        <div class="dir-eta-ctx ${!ordersIsUpstream ? 'up' : ''}">
+          <div class="name">Billing</div>
+          <div class="role">${!ordersIsUpstream ? 'upstream' : 'downstream'}</div>
+        </div>
+      </div>
+      <div class="dir-eta-hint">Click the arrow to flip.</div>`;
+    el.querySelector('.dir-eta-arrow').onclick = dirSwap;
+  }
+
+  function renderDirZeta() {
+    const el = document.querySelector('[data-dir-zeta]');
+    const billingUp = dirState.upstream === 'Billing';
+    el.innerHTML = `
+      <div class="dir-zeta-row ${billingUp ? 'active' : ''}" data-zeta="billing-up">
+        <div class="dir-zeta-radio"></div>
+        <div class="dir-zeta-text">
+          <span class="name">Billing</span> is upstream
+          <span class="sub">Orders depends on Billing</span>
+        </div>
+      </div>
+      <div class="dir-zeta-row ${!billingUp ? 'active' : ''}" data-zeta="orders-up">
+        <div class="dir-zeta-radio"></div>
+        <div class="dir-zeta-text">
+          <span class="name">Orders</span> is upstream
+          <span class="sub">Billing depends on Orders</span>
+        </div>
+      </div>`;
+    el.querySelectorAll('[data-zeta]').forEach(row => {
+      row.onclick = () => {
+        const wantBillingUp = row.dataset.zeta === 'billing-up';
+        if (wantBillingUp !== billingUp) dirSwap();
+      };
+    });
+  }
+
+  function renderAllDirMockups() {
+    renderDirAlpha();
+    renderDirBeta();
+    renderDirGamma();
+    renderDirEta();
+    renderDirDelta();
+    renderDirEpsilon();
+    renderDirZeta();
+  }
+  renderAllDirMockups();
+  </script>
+</body>
+</html>
