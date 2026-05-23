@@ -24,6 +24,8 @@ import {
 import { EDGE_INDICATORS, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
 import { createSelectionState } from '../../model/validation'
 
+type SideIndicatorKey = 'open-host-service' | 'anti-corruption-layer'
+
 function RelationshipEdge({
   id,
   source,
@@ -37,7 +39,7 @@ function RelationshipEdge({
   data,
 }: EdgeProps) {
   const [isHovered, setIsHovered] = React.useState(false)
-  const [isIndicatorHovered, setIsIndicatorHovered] = React.useState(false)
+  const [hoveredIndicator, setHoveredIndicator] = React.useState<SideIndicatorKey | null>(null)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
   const deleteRelationship = useEditorStore((s) => s.deleteRelationship)
@@ -129,62 +131,102 @@ function RelationshipEdge({
       ? 'arrow-hover'
       : 'arrow-default'
 
-  const indicatorConfig = PATTERN_EDGE_INDICATORS[pattern as Relationship['pattern']]
-  const isACL = pattern === 'anti-corruption-layer'
-  const isOHS = pattern === 'open-host-service'
+  // Per-side roles (Slice 2 of two-sided relationships, contextflow-h82) take
+  // precedence over the legacy single `pattern` field. PL upstream and
+  // Conformist downstream are intentionally not surfaced on the canvas
+  // (design_pl_conformist_no_canvas_visual); only OHS and ACL get boxes.
+  const hasPerSideRoles =
+    relationship?.upstreamRole !== undefined || relationship?.downstreamRole !== undefined
 
-  const indicatorNode = indicatorConfig?.position === 'source' ? sourceNode : targetNode
-  const indicatorEdgePos = indicatorConfig?.position === 'source' ? sourcePos : targetPos
+  const upstreamIndicatorKey: SideIndicatorKey | null =
+    relationship?.upstreamRole === 'open-host-service'
+      ? 'open-host-service'
+      : !hasPerSideRoles && pattern === 'open-host-service'
+        ? 'open-host-service'
+        : null
 
-  const boxPos = indicatorConfig
+  const downstreamIndicatorKey: SideIndicatorKey | null =
+    relationship?.downstreamRole === 'anti-corruption-layer'
+      ? 'anti-corruption-layer'
+      : !hasPerSideRoles && pattern === 'anti-corruption-layer'
+        ? 'anti-corruption-layer'
+        : null
+
+  const upstreamConfig = upstreamIndicatorKey ? PATTERN_EDGE_INDICATORS[upstreamIndicatorKey] : null
+  const downstreamConfig = downstreamIndicatorKey
+    ? PATTERN_EDGE_INDICATORS[downstreamIndicatorKey]
+    : null
+
+  const upstreamBoxPos = upstreamConfig
     ? getIndicatorBoxPosition(
-        indicatorNode,
-        indicatorEdgePos,
-        indicatorConfig.boxWidth,
-        indicatorConfig.boxHeight
+        targetNode,
+        targetPos,
+        upstreamConfig.boxWidth,
+        upstreamConfig.boxHeight
+      )
+    : null
+  const downstreamBoxPos = downstreamConfig
+    ? getIndicatorBoxPosition(
+        sourceNode,
+        sourcePos,
+        downstreamConfig.boxWidth,
+        downstreamConfig.boxHeight
       )
     : null
 
-  // ACL/OHS edge geometry (contextflow-if3):
-  // - Indicator box hugs its parent context; line attaches to the box's outer
-  //   edge midpoint (the side facing AWAY from the parent), with the same
-  //   EDGE_ENDPOINT_GAP used at context attachments.
-  // - Path is a tangent-aware bezier so it leaves the box perpendicular to the
-  //   outer edge and enters the other context perpendicular to that edge.
-  // - Arrow always points to the upstream (target) end of the relationship.
-  const boxAttachment =
-    boxPos && indicatorConfig
+  const upstreamBoxAttachment =
+    upstreamBoxPos && upstreamConfig
       ? getIndicatorBoxAttachment(
-          boxPos,
-          indicatorConfig.boxWidth,
-          indicatorConfig.boxHeight,
-          indicatorEdgePos
+          upstreamBoxPos,
+          upstreamConfig.boxWidth,
+          upstreamConfig.boxHeight,
+          targetPos
+        )
+      : null
+  const downstreamBoxAttachment =
+    downstreamBoxPos && downstreamConfig
+      ? getIndicatorBoxAttachment(
+          downstreamBoxPos,
+          downstreamConfig.boxWidth,
+          downstreamConfig.boxHeight,
+          sourcePos
         )
       : null
 
-  const aclOhsPath = (() => {
-    if (!boxAttachment) return null
-    // Pull the path back from the box border by EDGE_ENDPOINT_GAP on the
-    // non-arrow side (ACL: box is the source end, no arrow) or
-    // ARROW_MARKER_LENGTH on the arrow side (OHS: box is the target end with
-    // arrow), so the arrow tip lands in the same gap before the box border
-    // that it does before the context border.
-    const boxPullback = isACL ? EDGE_ENDPOINT_GAP : ARROW_MARKER_LENGTH
-    const boxEndpoint = {
-      x: boxAttachment.point.x + boxAttachment.normal.x * boxPullback,
-      y: boxAttachment.point.y + boxAttachment.normal.y * boxPullback,
-    }
-    if (isACL) {
-      // Path: box (no arrow) -> target context (arrow). Source = box outer edge.
-      const targetEndpoint = visibleTarget
-      const targetNormal = SIDE_NORMALS[targetPos]
-      return tangentBezierPath(boxEndpoint, targetEndpoint, boxAttachment.normal, targetNormal)
-    }
-    // OHS: source context (no arrow) -> box (arrow at box).
-    const sourceEndpoint = visibleSource
-    const sourceNormal = SIDE_NORMALS[sourcePos]
-    return tangentBezierPath(sourceEndpoint, boxEndpoint, sourceNormal, boxAttachment.normal)
-  })()
+  // ACL/OHS edge geometry (contextflow-if3): box hugs its parent context;
+  // line attaches to the box's outer-edge midpoint with EDGE_ENDPOINT_GAP.
+  // Path is tangent-aware so it leaves/enters perpendicular to attachment
+  // edges. Arrow always points to the upstream (target) end.
+  const useBoxPath = upstreamBoxAttachment !== null || downstreamBoxAttachment !== null
+
+  const sourceEndpoint = downstreamBoxAttachment
+    ? {
+        point: {
+          x: downstreamBoxAttachment.point.x + downstreamBoxAttachment.normal.x * EDGE_ENDPOINT_GAP,
+          y: downstreamBoxAttachment.point.y + downstreamBoxAttachment.normal.y * EDGE_ENDPOINT_GAP,
+        },
+        tangent: downstreamBoxAttachment.normal,
+      }
+    : { point: visibleSource, tangent: SIDE_NORMALS[sourcePos] }
+
+  const targetEndpoint = upstreamBoxAttachment
+    ? {
+        point: {
+          x: upstreamBoxAttachment.point.x + upstreamBoxAttachment.normal.x * ARROW_MARKER_LENGTH,
+          y: upstreamBoxAttachment.point.y + upstreamBoxAttachment.normal.y * ARROW_MARKER_LENGTH,
+        },
+        tangent: upstreamBoxAttachment.normal,
+      }
+    : { point: visibleTarget, tangent: SIDE_NORMALS[targetPos] }
+
+  const aclOhsPath = useBoxPath
+    ? tangentBezierPath(
+        sourceEndpoint.point,
+        targetEndpoint.point,
+        sourceEndpoint.tangent,
+        targetEndpoint.tangent
+      )
+    : null
 
   // Edge color based on state
   const isEmphasized = isSelected || isHovered || isHighlightedByHover
@@ -197,10 +239,90 @@ function RelationshipEdge({
         : '#cbd5e1'
   const strokeWidth = isEmphasized ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default
 
+  const renderIndicatorBox = (
+    key: SideIndicatorKey,
+    config: NonNullable<typeof upstreamConfig>,
+    boxPos: { x: number; y: number }
+  ) => (
+    <g key={key}>
+      {/* Invisible hit area for easier hovering */}
+      <rect
+        x={boxPos.x - config.boxWidth / 2 - 4}
+        y={boxPos.y - config.boxHeight / 2 - 4}
+        width={config.boxWidth + 8}
+        height={config.boxHeight + 8}
+        fill="transparent"
+        style={{ cursor: 'help' }}
+        onMouseEnter={() => setHoveredIndicator(key)}
+        onMouseLeave={() => setHoveredIndicator(null)}
+      />
+      {/* Visible box */}
+      <rect
+        x={boxPos.x - config.boxWidth / 2}
+        y={boxPos.y - config.boxHeight / 2}
+        width={config.boxWidth}
+        height={config.boxHeight}
+        rx={3}
+        fill={config.colors.bg}
+        stroke={config.colors.border}
+        strokeWidth={1.5}
+        style={{ transition: EDGE_TRANSITION, pointerEvents: 'none' }}
+      />
+      <text
+        x={boxPos.x}
+        y={boxPos.y + 4}
+        textAnchor="middle"
+        fontSize={9}
+        fontWeight="bold"
+        fill={config.colors.text}
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
+      >
+        {config.label}
+      </text>
+    </g>
+  )
+
+  const renderIndicatorTooltip = (key: SideIndicatorKey, boxPos: { x: number; y: number }) => {
+    const indicatorContent =
+      key === 'anti-corruption-layer' ? EDGE_INDICATORS.acl : EDGE_INDICATORS.ohs
+    const screenX = boxPos.x * zoom + vpX
+    const screenY = boxPos.y * zoom + vpY
+    const tooltipWidth = 256
+    const tooltipX = Math.max(
+      8,
+      Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8)
+    )
+    const tooltipY = Math.max(8, screenY - 8)
+
+    return createPortal(
+      <div
+        className="fixed z-[9999] pointer-events-none"
+        style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
+      >
+        <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+          <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
+          <div className="text-xs text-slate-300 mb-2">{indicatorContent.description}</div>
+          {indicatorContent.characteristics && indicatorContent.characteristics.length > 0 && (
+            <ul className="text-xs text-slate-300 space-y-0.5">
+              {indicatorContent.characteristics.map((item, index) => (
+                <li key={index} className="flex items-start gap-1.5">
+                  <span className="text-slate-500 mt-0.5">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>,
+      document.body
+    )
+  }
+
   return (
     <>
-      {/* ACL: curved line from box edge to target (upstream) with arrow */}
-      {isACL && aclOhsPath && (
+      {/* Box-attached path: used whenever an ACL or OHS indicator is present
+          (per-side roles or legacy pattern). Arrow always points to upstream. */}
+      {useBoxPath && aclOhsPath && (
         <path
           id={id}
           className="react-flow__edge-path"
@@ -215,23 +337,8 @@ function RelationshipEdge({
         />
       )}
 
-      {isOHS && aclOhsPath && (
-        <path
-          id={id}
-          className="react-flow__edge-path"
-          d={aclOhsPath}
-          style={{
-            stroke: edgeColor,
-            strokeWidth: strokeWidth,
-            fill: 'none',
-            transition: EDGE_TRANSITION,
-          }}
-          markerEnd={`url(#${markerId})`}
-        />
-      )}
-
-      {/* Default: normal bezier path for other patterns */}
-      {!isACL && !isOHS && (
+      {/* Default: normal bezier path for relationships without ACL/OHS boxes */}
+      {!useBoxPath && (
         <path
           id={id}
           className="react-flow__edge-path"
@@ -246,87 +353,21 @@ function RelationshipEdge({
         />
       )}
 
-      {/* Pattern indicator box (ACL/OHS) */}
-      {indicatorConfig && boxPos && (
-        <g>
-          {/* Invisible hit area for easier hovering */}
-          <rect
-            x={boxPos.x - indicatorConfig.boxWidth / 2 - 4}
-            y={boxPos.y - indicatorConfig.boxHeight / 2 - 4}
-            width={indicatorConfig.boxWidth + 8}
-            height={indicatorConfig.boxHeight + 8}
-            fill="transparent"
-            style={{ cursor: 'help' }}
-            onMouseEnter={() => setIsIndicatorHovered(true)}
-            onMouseLeave={() => setIsIndicatorHovered(false)}
-          />
-          {/* Visible box */}
-          <rect
-            x={boxPos.x - indicatorConfig.boxWidth / 2}
-            y={boxPos.y - indicatorConfig.boxHeight / 2}
-            width={indicatorConfig.boxWidth}
-            height={indicatorConfig.boxHeight}
-            rx={3}
-            fill={indicatorConfig.colors.bg}
-            stroke={indicatorConfig.colors.border}
-            strokeWidth={1.5}
-            style={{ transition: EDGE_TRANSITION, pointerEvents: 'none' }}
-          />
-          <text
-            x={boxPos.x}
-            y={boxPos.y + 4}
-            textAnchor="middle"
-            fontSize={9}
-            fontWeight="bold"
-            fill={indicatorConfig.colors.text}
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {indicatorConfig.label}
-          </text>
-        </g>
-      )}
-      {/* Indicator box tooltip */}
+      {downstreamConfig &&
+        downstreamBoxPos &&
+        renderIndicatorBox('anti-corruption-layer', downstreamConfig, downstreamBoxPos)}
+      {upstreamConfig &&
+        upstreamBoxPos &&
+        renderIndicatorBox('open-host-service', upstreamConfig, upstreamBoxPos)}
+
       {showHelpTooltips &&
-        isIndicatorHovered &&
-        indicatorConfig &&
-        boxPos &&
-        (() => {
-          const indicatorContent = isACL ? EDGE_INDICATORS.acl : EDGE_INDICATORS.ohs
-          // Convert canvas coordinates to screen coordinates
-          const screenX = boxPos.x * zoom + vpX
-          const screenY = boxPos.y * zoom + vpY
-
-          const tooltipWidth = 256
-          const tooltipX = Math.max(
-            8,
-            Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8)
-          )
-          const tooltipY = Math.max(8, screenY - 8)
-
-          return createPortal(
-            <div
-              className="fixed z-[9999] pointer-events-none"
-              style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
-            >
-              <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
-                <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
-                <div className="text-xs text-slate-300 mb-2">{indicatorContent.description}</div>
-                {indicatorContent.characteristics &&
-                  indicatorContent.characteristics.length > 0 && (
-                    <ul className="text-xs text-slate-300 space-y-0.5">
-                      {indicatorContent.characteristics.map((item, index) => (
-                        <li key={index} className="flex items-start gap-1.5">
-                          <span className="text-slate-500 mt-0.5">•</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-              </div>
-            </div>,
-            document.body
-          )
-        })()}
+        hoveredIndicator === 'anti-corruption-layer' &&
+        downstreamBoxPos &&
+        renderIndicatorTooltip('anti-corruption-layer', downstreamBoxPos)}
+      {showHelpTooltips &&
+        hoveredIndicator === 'open-host-service' &&
+        upstreamBoxPos &&
+        renderIndicatorTooltip('open-host-service', upstreamBoxPos)}
       {/* Invisible wider path for easier hovering and clicking */}
       <path
         d={edgePath}
