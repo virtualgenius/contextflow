@@ -215,6 +215,7 @@ Each slice has:
 - Given a relationship is already Shared Kernel, when the user moves a context while preserving overlap, then nothing changes (no prompt, no re-creation).
 - Picking Shared Kernel in some other way (e.g., from a future SK-specific control) snaps the contexts to overlap, consistent with this gesture.
 - Given a Shared Kernel relationship, when the user picks a different pattern from the picker (Customer-Supplier, Partnership, or a per-side role), then `pattern` updates accordingly and the contexts auto-reposition to no longer overlap (the inverse of the drag-overlap gesture). This criterion lives in Slice 6 rather than `contextflow-cqi` because it requires the overlap-detection geometry introduced here.
+- Given a context that already has a Shared Kernel relationship with another context (e.g., Orders has SK with Billing), when the user drags it to also overlap a third context (e.g., Purchasing) that has no existing relationship with it, then a second independent Shared Kernel relationship is created without disturbing the first. The two SKs coexist; the shared context participates in both.
 
 **Files likely affected**:
 - `src/components/canvas/*` (body-drag detection, overlap detection, gesture wiring)
