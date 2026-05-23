@@ -415,6 +415,45 @@ describe('Store Collab Integration', () => {
       expect(project.relationships[0].toContextId).toBe('ctx-1')
     })
 
+    it('swapRelationshipDirection clears per-side roles and preserves pattern (Yjs round-trip)', () => {
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier', undefined, {
+        upstreamRole: 'open-host-service',
+        downstreamRole: 'anti-corruption-layer',
+      })
+
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
+
+      useEditorStore.getState().swapRelationshipDirection(relId)
+
+      const state2 = useEditorStore.getState()
+      const rel = state2.projects[testProject.id].relationships[0]
+
+      expect(rel.fromContextId).toBe('ctx-2')
+      expect(rel.toContextId).toBe('ctx-1')
+      expect(rel.pattern).toBe('customer-supplier')
+      expect(rel.upstreamRole).toBeUndefined()
+      expect(rel.downstreamRole).toBeUndefined()
+    })
+
+    it('swapRelationshipDirection on a blank U/D relationship just reverses direction', () => {
+      useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', undefined)
+
+      const state1 = useEditorStore.getState()
+      const relId = state1.projects[testProject.id].relationships[0].id
+
+      useEditorStore.getState().swapRelationshipDirection(relId)
+
+      const state2 = useEditorStore.getState()
+      const rel = state2.projects[testProject.id].relationships[0]
+
+      expect(rel.fromContextId).toBe('ctx-2')
+      expect(rel.toContextId).toBe('ctx-1')
+      expect(rel.pattern).toBeUndefined()
+      expect(rel.upstreamRole).toBeUndefined()
+      expect(rel.downstreamRole).toBeUndefined()
+    })
+
     it('undo reverts relationship addition via CollabUndoManager', () => {
       useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')
 

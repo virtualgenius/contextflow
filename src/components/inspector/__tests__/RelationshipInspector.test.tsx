@@ -269,4 +269,57 @@ describe('RelationshipInspector', () => {
       })
     })
   })
+
+  describe('direction mini-diagram (Slice 4)', () => {
+    it('renders mini-diagram with upstream and downstream sublabels for U/D relationships', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      const flipBtn = screen.getByRole('button', { name: /flip direction/i })
+      expect(flipBtn).toBeInTheDocument()
+      const upstreamLabels = screen.getAllByText(/^upstream$/i)
+      const downstreamLabels = screen.getAllByText(/^downstream$/i)
+      expect(upstreamLabels.length).toBeGreaterThan(0)
+      expect(downstreamLabels.length).toBeGreaterThan(0)
+    })
+
+    it('calls swapRelationshipDirection when the mini-diagram arrow is clicked', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /flip direction/i }))
+      expect(mockSwapRelationshipDirection).toHaveBeenCalledWith('rel-1')
+    })
+
+    it('does NOT render the mini-diagram when pattern is partnership', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'partnership',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      expect(screen.queryByRole('button', { name: /flip direction/i })).not.toBeInTheDocument()
+    })
+
+    it('does NOT render the mini-diagram when pattern is shared-kernel', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'shared-kernel',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      expect(screen.queryByRole('button', { name: /flip direction/i })).not.toBeInTheDocument()
+    })
+
+    it('shows the hint text near the mini-diagram', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      expect(screen.getByText(/click the arrow to flip.*double-click.*canvas/i)).toBeInTheDocument()
+    })
+  })
 })

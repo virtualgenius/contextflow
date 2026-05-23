@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowRight, ArrowLeftRight, HelpCircle, BookOpen } from 'lucide-react'
+import { ArrowLeftRight, HelpCircle, BookOpen } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import type { Project, UpstreamRole, DownstreamRole, Relationship } from '../../model/types'
 import { getPatternDefinition } from '../../model/patternDefinitions'
@@ -114,46 +114,45 @@ export function RelationshipInspector({
       )}
 
       <Section label={showDirectionArrow ? 'Direction' : 'Contexts'}>
-        <div className="flex items-center gap-2 text-sm">
-          <button
-            onClick={() =>
-              useEditorStore.setState({
-                selectedContextId: fromContext?.id,
-                selectedRelationshipId: null,
-              })
-            }
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {fromContext?.name || 'Unknown'}
-          </button>
-          {showDirectionArrow ? (
-            <ArrowRight size={14} className="text-slate-400" />
-          ) : patternDef?.powerDynamics === 'mutual' ? (
-            <ArrowLeftRight size={14} className="text-slate-400" />
-          ) : (
-            <span className="text-slate-400 text-sm">·</span>
-          )}
-          <button
-            onClick={() =>
-              useEditorStore.setState({
-                selectedContextId: toContext?.id,
-                selectedRelationshipId: null,
-              })
-            }
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {toContext?.name || 'Unknown'}
-          </button>
-          {showDirectionArrow && (
+        {showDirectionArrow ? (
+          <DirectionMiniDiagram
+            downstreamContextName={fromContext?.name || 'Unknown'}
+            upstreamContextName={toContext?.name || 'Unknown'}
+            downstreamContextId={fromContext?.id}
+            upstreamContextId={toContext?.id}
+            onFlip={() => swapRelationshipDirection(relationship.id)}
+          />
+        ) : (
+          <div className="flex items-center gap-2 text-sm">
             <button
-              onClick={() => swapRelationshipDirection(relationship.id)}
-              className="ml-auto p-1.5 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-              title="Swap direction"
+              onClick={() =>
+                useEditorStore.setState({
+                  selectedContextId: fromContext?.id,
+                  selectedRelationshipId: null,
+                })
+              }
+              className="text-blue-600 dark:text-blue-400 hover:underline"
             >
-              <ArrowLeftRight size={14} />
+              {fromContext?.name || 'Unknown'}
             </button>
-          )}
-        </div>
+            {patternDef?.powerDynamics === 'mutual' ? (
+              <ArrowLeftRight size={14} className="text-slate-400" />
+            ) : (
+              <span className="text-slate-400 text-sm">·</span>
+            )}
+            <button
+              onClick={() =>
+                useEditorStore.setState({
+                  selectedContextId: toContext?.id,
+                  selectedRelationshipId: null,
+                })
+              }
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {toContext?.name || 'Unknown'}
+            </button>
+          </div>
+        )}
       </Section>
 
       <Section label="Pattern">
@@ -253,6 +252,92 @@ export function RelationshipInspector({
       </div>
 
       {showPatternsGuide && <PatternsGuideModal onClose={() => setShowPatternsGuide(false)} />}
+    </div>
+  )
+}
+
+function DirectionMiniDiagram({
+  downstreamContextName,
+  upstreamContextName,
+  downstreamContextId,
+  upstreamContextId,
+  onFlip,
+}: {
+  downstreamContextName: string
+  upstreamContextName: string
+  downstreamContextId: string | undefined
+  upstreamContextId: string | undefined
+  onFlip: () => void
+}) {
+  const selectContext = (contextId: string | undefined) => {
+    if (!contextId) return
+    useEditorStore.setState({
+      selectedContextId: contextId,
+      selectedRelationshipId: null,
+    })
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => selectContext(downstreamContextId)}
+          className="flex-1 min-w-0 px-2 py-1.5 rounded-md border border-slate-300 dark:border-neutral-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-center"
+        >
+          <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+            {downstreamContextName}
+          </div>
+          <div className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">
+            downstream
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={onFlip}
+          aria-label="Flip direction"
+          title="Flip direction"
+          className="flex-shrink-0 p-1.5 rounded-md text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+        >
+          <svg width="44" height="20" viewBox="0 0 44 20" aria-hidden="true">
+            <defs>
+              <marker
+                id="inspector-dir-arr"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+              </marker>
+            </defs>
+            <path
+              d="M 2 10 L 38 10"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+              markerEnd="url(#inspector-dir-arr)"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => selectContext(upstreamContextId)}
+          className="flex-1 min-w-0 px-2 py-1.5 rounded-md border border-slate-300 dark:border-neutral-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors text-center"
+        >
+          <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+            {upstreamContextName}
+          </div>
+          <div className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">
+            upstream
+          </div>
+        </button>
+      </div>
+      <div className="text-[10px] text-slate-500 dark:text-slate-400 text-center leading-snug">
+        Click the arrow to flip. Or double-click the arrow on the canvas.
+      </div>
     </div>
   )
 }

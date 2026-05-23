@@ -715,13 +715,21 @@ export const useEditorStore = create<EditorState>((set) => ({
       if (!project) return {}
       const rel = project.relationships.find((r) => r.id === relationshipId)
       if (!rel) return {}
+
+      const clearedRoleFields: string[] = []
+      if (rel.upstreamRole !== undefined) clearedRoleFields.push('upstreamRole')
+      if (rel.downstreamRole !== undefined) clearedRoleFields.push('downstreamRole')
+
       getCollabMutations().updateRelationship(relationshipId, {
         fromContextId: rel.toContextId,
         toContextId: rel.fromContextId,
+        upstreamRole: undefined,
+        downstreamRole: undefined,
       })
       trackEvent('relationship_direction_swapped', project, {
         entity_type: 'relationship',
         entity_id: relationshipId,
+        ...(clearedRoleFields.length > 0 && { properties_changed: clearedRoleFields }),
       })
       return {}
     }),
