@@ -358,6 +358,14 @@ describe('Store Collab Integration', () => {
       expect(project.relationships[0].pattern).toBe('customer-supplier')
     })
 
+    it('addRelationship returns the new relationship id (for canvas drop selection)', () => {
+      const returnedId = useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', undefined)
+
+      const project = useEditorStore.getState().projects[testProject.id]
+      expect(project.relationships[0].id).toBe(returnedId)
+      expect(project.relationships[0].pattern).toBeUndefined()
+    })
+
     it('updateRelationship routes through Yjs and updates Zustand state', () => {
       // First add a relationship
       useEditorStore.getState().addRelationship('ctx-1', 'ctx-2', 'customer-supplier')

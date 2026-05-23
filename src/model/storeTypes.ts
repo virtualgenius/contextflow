@@ -214,7 +214,7 @@ export interface EditorState {
       upstreamRole?: Relationship['upstreamRole']
       downstreamRole?: Relationship['downstreamRole']
     }
-  ) => void
+  ) => string
   deleteRelationship: (relationshipId: string) => void
   updateRelationship: (
     relationshipId: string,

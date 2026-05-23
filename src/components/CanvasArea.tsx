@@ -15,8 +15,6 @@ import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
-import { X, ArrowRight } from 'lucide-react'
-import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 import { getHoverConnectedContextIds } from '../lib/canvasHelpers'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
@@ -123,12 +121,6 @@ function CanvasContent() {
 
   const isDragging = useEditorStore((s) => s.isDragging)
   const setDragging = useEditorStore((s) => s.setDragging)
-
-  // Pending connection state for context→context relationships (needs pattern selection)
-  const [pendingConnection, setPendingConnection] = React.useState<{
-    sourceId: string
-    targetId: string
-  } | null>(null)
 
   // Tracks whether a connection drag is currently in flight. Toggled by
   // ReactFlow's onConnectStart and onConnectEnd. Drives CSS that lifts the
@@ -593,10 +585,15 @@ function CanvasContent() {
         return
       }
 
-      // Context → Context (relationship - needs pattern selection)
+      // Context → Context: create a no-pattern relationship and open the
+      // inspector picker for configuration. The picker (Partnership /
+      // Customer-Supplier / per-side roles) is the single source of truth
+      // for pattern selection across creation and editing.
       if (sourceNode.type === 'context' && targetNode.type === 'context') {
-        // Store pending connection, show pattern picker dialog
-        setPendingConnection({ sourceId: source, targetId: target })
+        const newId = useEditorStore.getState().addRelationship(source, target, undefined)
+        useEditorStore.setState({
+          ...createSelectionState(newId, 'relationship'),
+        })
         return
       }
 
@@ -1146,87 +1143,6 @@ function CanvasContent() {
           </svg>
         </ReactFlow>
       </div>
-
-      {/* Pattern Picker Dialog for context→context relationships */}
-      {pendingConnection &&
-        project &&
-        (() => {
-          const sourceContext = project.contexts.find((c) => c.id === pendingConnection.sourceId)
-          const targetContext = project.contexts.find((c) => c.id === pendingConnection.targetId)
-          if (!sourceContext || !targetContext) return null
-
-          return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-              <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[400px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-neutral-700">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-                    Create Relationship
-                  </h2>
-                  <button
-                    onClick={() => setPendingConnection(null)}
-                    className="p-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                {/* Context Preview */}
-                <div className="px-4 pt-4 pb-2">
-                  <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {sourceContext.name}
-                    </span>
-                    <ArrowRight size={14} />
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
-                      {targetContext.name}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Pattern Selection */}
-                <div className="px-4 py-3 space-y-2 max-h-[400px] overflow-y-auto">
-                  {PATTERN_DEFINITIONS.map((p) => (
-                    <button
-                      key={p.value}
-                      onClick={() => {
-                        useEditorStore
-                          .getState()
-                          .addRelationship(
-                            pendingConnection.sourceId,
-                            pendingConnection.targetId,
-                            p.value
-                          )
-                        setPendingConnection(null)
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-md border border-slate-200 dark:border-neutral-600 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
-                    >
-                      <div className="font-medium text-sm text-slate-900 dark:text-slate-100">
-                        <span className="mr-1.5 text-slate-400">
-                          {POWER_DYNAMICS_ICONS[p.powerDynamics]}
-                        </span>
-                        {p.label}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {p.shortDescription}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Cancel button */}
-                <div className="px-4 py-3 border-t border-slate-200 dark:border-neutral-700">
-                  <button
-                    onClick={() => setPendingConnection(null)}
-                    className="w-full px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )
-        })()}
 
       {/* Connection Guidance Tooltip for invalid connections */}
       {invalidConnectionAttempt && (
