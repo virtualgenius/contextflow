@@ -148,7 +148,7 @@ Each slice has:
 - Edge rendering geometry (still uses indicator boxes from Slice 2)
 - Direction controls (Slices 4-5)
 - Migration of old data (Slice 8)
-- Shared Kernel as an entity (`contextflow-cqi`)
+- Shared Kernel rendering and picker treatment (`contextflow-cqi`)
 
 **Dependencies**: Slices 1, 2
 
@@ -218,7 +218,7 @@ Each slice has:
 **Files likely affected**:
 - `src/components/canvas/*` (body-drag detection, overlap detection, gesture wiring)
 - `src/model/store.ts` (creation/update actions for SK)
-- `src/model/sync/*` (SK as an entity per `contextflow-cqi`'s decisions)
+- `src/model/sync/*` (creation path uses the existing relationship sync; SK is just a `pattern` value, not a new entity)
 
 **Reminders for the implementer**:
 - **Analytics**: Shared Kernel creation by overlap, and conversion from existing relationship to SK (with the confirm), each fire tracked events per `docs/ANALYTICS_USAGE_GUIDE.md`.
@@ -227,7 +227,7 @@ Each slice has:
 - Non-SK relationships are unaffected by body-drag
 - Existing relationship-creation gesture (drag from stub) is unchanged
 
-**Dependencies**: `contextflow-cqi` (Shared Kernel as an entity, with overlap rendering) must land first. The gesture in this slice produces the entity that `cqi` introduces.
+**Dependencies**: `contextflow-cqi` (Shared Kernel overlap rendering, picker banner) must land first. This slice produces the relationships that `cqi` knows how to render.
 
 ---
 
@@ -261,13 +261,14 @@ Each slice has:
 
 **Acceptance criteria**:
 - Given a project loaded from IndexedDB with a relationship that has `pattern: 'open-host-service'`, when the project is opened, then the relationship is migrated to have `upstreamRole: 'open-host-service'` and `pattern: undefined`; the migration is persisted on next save.
+- Same as above for `'published-language'` → `upstreamRole: 'published-language'`, `'conformist'` → `downstreamRole: 'conformist'`, and `'anti-corruption-layer'` → `downstreamRole: 'anti-corruption-layer'`.
 - Given a project loaded from Yjs with a relationship that has `pattern: 'separate-ways'`, then the relationship is removed (deletion, not conversion).
-- Given a project loaded with `pattern: 'shared-kernel'`, then a Shared Kernel entity is created between the two contexts and the relationship is removed.
+- Given a project loaded with `pattern: 'shared-kernel'`, then no migration is performed; `'shared-kernel'` stays as a valid `pattern` value and is rendered per `contextflow-cqi`.
 - Given the built-in example projects (`cbioportal`, `elan-warranty`), they load with the new model and render correctly without any runtime migration prompts.
 - Multiplayer version-skew: an old client and new client editing the same project do not corrupt each other's data.
 
 **Files likely affected**:
-- `src/model/types.ts` (narrow `pattern` type to `'customer-supplier' | 'partnership'` — Shared Kernel becomes its own entity per `cqi`)
+- `src/model/types.ts` (narrow `pattern` type to `'customer-supplier' | 'partnership' | 'shared-kernel'` — removes the five per-side/separate-ways values that are migrated away)
 - `src/model/sync/relationshipMigration.ts` (new; pure migration function)
 - `src/model/sync/relationshipSync.ts` (apply migration on read with write-back inside transaction)
 - `src/model/persistence.ts` (apply migration in `migrateProject` for IndexedDB)
@@ -288,7 +289,7 @@ Each slice has:
 
 Slices 1-5 are **independent** of `contextflow-cqi` and can ship sequentially. Slice 5 is the last slice that delivers user-visible value without requiring `cqi`.
 
-Slices 6-7 require `contextflow-cqi` to have landed (Shared Kernel as an entity with overlap rendering). They should be picked up after `cqi` ships.
+Slices 6-7 require `contextflow-cqi` to have landed (Shared Kernel overlap rendering and picker treatment; SK remains a `pattern` value on `Relationship`, not a separate entity). They should be picked up after `cqi` ships.
 
 Slice 8 is migration cleanup; it ships under no pressure once everything else works.
 
