@@ -94,14 +94,10 @@ Each slice has:
 - Given a relationship with `upstreamRole: 'open-host-service'`, when the user views the canvas, then a green "OHS" indicator box renders adjacent to the upstream context's edge of the relationship (matching the existing `PATTERN_EDGE_INDICATORS` config in `src/lib/canvasConstants.ts`: 28×18px, green-100 fill, green-500 border).
 - Given a relationship with `downstreamRole: 'anti-corruption-layer'`, then an amber "ACL" indicator box renders adjacent to the downstream context's edge (matching existing config: amber-100 fill, amber-500 border).
 - Given a relationship with both `upstreamRole: 'open-host-service'` and `downstreamRole: 'anti-corruption-layer'`, then both indicator boxes render simultaneously, one near each end.
-- Given a relationship with `upstreamRole: 'published-language'`, then the upstream role renders using whatever visual treatment is decided in this slice (see open design decision below).
-- Given a relationship with `downstreamRole: 'conformist'`, then the downstream role renders using whatever visual treatment is decided in this slice (see open design decision below).
+- Given a relationship with `upstreamRole: 'published-language'`, then NO on-canvas indicator renders for the upstream side; the role is visible only in the inspector and via the relationship-name label.
+- Given a relationship with `downstreamRole: 'conformist'`, then NO on-canvas indicator renders for the downstream side; the role is visible only in the inspector and via the relationship-name label.
 
-**Open design decision in this slice**: how do Published Language (upstream) and Conformist (downstream) render on the canvas? The existing app only has the OHS and ACL box visuals. Options for PL and Conformist include:
-- New indicator boxes matching the OHS/ACL pattern but with different colors
-- A smaller / lighter visual (text label, badge, icon) since these are characterizations rather than code artifacts
-- No on-canvas visual; role visible only in the inspector
-This decision belongs to the implementer of Slice 2 with sign-off from Paul. The target mockup renders these as dashed placeholders labeled "(visual TBD)" to make the decision visible.
+**Design decision (resolved 2026-05-23)**: Published Language (upstream) and Conformist (downstream) render NO on-canvas visual. Only OHS and ACL get indicator boxes. Reason: OHS and ACL are concrete code artifacts (a service, a translation layer) that deserve a visible badge; PL and Conformist are characterizations of how a side relates to the other, not code artifacts. Keeps signal-to-noise high at workshop zoom levels. The target mockup's dashed-placeholder treatment for PL/Conformist is superseded by this decision; render nothing on canvas for those roles. See contextflow-h82 NOTES and the `design_pl_conformist_no_canvas_visual` memory.
 
 **Files likely affected**:
 - `src/lib/canvasConstants.ts` (indicator configs; extend `PATTERN_EDGE_INDICATORS` or introduce a per-role variant)
