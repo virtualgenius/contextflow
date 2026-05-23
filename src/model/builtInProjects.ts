@@ -4,6 +4,7 @@ import cbioportalProject from '../../examples/cbioportal.project.json'
 import elanWarrantyProject from '../../examples/elan-warranty.project.json'
 import { saveProject, loadProject, loadAllProjects, migrateProject } from './persistence'
 import { classifyFromStrategicPosition } from './classification'
+import { migrateLegacyPerSidePattern } from './migrations/migrateLegacyPerSidePattern'
 
 const TEMPLATE_PROJECTS = [
   demoProject as Project,
@@ -28,6 +29,12 @@ BUILT_IN_PROJECTS.forEach((project) => {
     project.viewConfig = { flowStages: [] }
   } else if (!project.viewConfig.flowStages) {
     project.viewConfig.flowStages = []
+  }
+})
+
+BUILT_IN_PROJECTS.forEach((project) => {
+  if (project.relationships) {
+    project.relationships = project.relationships.map(migrateLegacyPerSidePattern)
   }
 })
 

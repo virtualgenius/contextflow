@@ -2,6 +2,7 @@
 import type { Project, ContextOwnership } from './types'
 import { classifyFromStrategicPosition } from './classification'
 import { migrateActorToUser } from './migrations/migrateActorToUser'
+import { migrateLegacyPerSidePattern } from './migrations/migrateLegacyPerSidePattern'
 
 const DB_NAME = 'contextflow'
 const DB_VERSION = 1
@@ -132,6 +133,10 @@ export function migrateProject(project: Project): Project {
     }
     return context
   })
+
+  if (project.relationships) {
+    project.relationships = project.relationships.map(migrateLegacyPerSidePattern)
+  }
 
   return project
 }
