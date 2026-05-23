@@ -1,4 +1,4 @@
-import type { Relationship } from '../model/types'
+import type { Relationship, UpstreamRole, DownstreamRole } from '../model/types'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 
 /**
@@ -25,16 +25,43 @@ export interface EdgeLabelInfo {
 }
 
 /**
- * Get the display label and optional direction icon for an edge's pattern.
- * Returns null if the pattern is not found.
+ * Get the display label and optional direction icon for an edge.
+ *
+ * Resolution order:
+ * 1. If `pattern` is a known value, use the pattern's label and dynamics icon.
+ * 2. Otherwise, derive a label from the per-side roles (upstream and/or downstream).
+ * 3. If nothing is set, return null.
  */
-export function getEdgeLabelInfo(pattern: string): EdgeLabelInfo | null {
-  const patternDef = PATTERN_DEFINITIONS.find((p) => p.value === pattern)
-  if (!patternDef) return null
-
-  const icon = POWER_DYNAMICS_ICONS[patternDef.powerDynamics]
-  return {
-    label: patternDef.label,
-    directionIcon: icon !== '○' ? icon : null,
+export function getEdgeLabelInfo(
+  pattern: string | undefined,
+  upstreamRole?: UpstreamRole,
+  downstreamRole?: DownstreamRole
+): EdgeLabelInfo | null {
+  const patternDef = pattern ? PATTERN_DEFINITIONS.find((p) => p.value === pattern) : undefined
+  if (patternDef) {
+    const icon = POWER_DYNAMICS_ICONS[patternDef.powerDynamics]
+    return {
+      label: patternDef.label,
+      directionIcon: icon !== '○' ? icon : null,
+    }
   }
+
+  if (upstreamRole || downstreamRole) {
+    const parts: string[] = []
+    if (upstreamRole) {
+      const def = PATTERN_DEFINITIONS.find((p) => p.value === upstreamRole)
+      if (def) parts.push(def.label)
+    }
+    if (downstreamRole) {
+      const def = PATTERN_DEFINITIONS.find((p) => p.value === downstreamRole)
+      if (def) parts.push(def.label)
+    }
+    if (parts.length === 0) return null
+    return {
+      label: parts.join(' · '),
+      directionIcon: POWER_DYNAMICS_ICONS.upstream,
+    }
+  }
+
+  return null
 }

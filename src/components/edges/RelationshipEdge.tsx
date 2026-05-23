@@ -483,7 +483,11 @@ function RelationshipEdge({
       {/* Edge label showing pattern name and direction */}
       {(showRelationshipLabels || isEmphasized || isHighlightedByHover) &&
         (() => {
-          const labelInfo = getEdgeLabelInfo(pattern)
+          const labelInfo = getEdgeLabelInfo(
+            pattern || undefined,
+            relationship?.upstreamRole,
+            relationship?.downstreamRole
+          )
           if (!labelInfo) return null
           return (
             <EdgeLabelRenderer>

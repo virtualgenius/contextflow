@@ -108,4 +108,38 @@ describe('getEdgeLabelInfo', () => {
   it('returns null for unknown pattern', () => {
     expect(getEdgeLabelInfo('nonexistent-pattern')).toBeNull()
   })
+
+  describe('per-side role fallback (Slice 3)', () => {
+    it('returns null when pattern, upstreamRole, and downstreamRole are all undefined', () => {
+      expect(getEdgeLabelInfo(undefined)).toBeNull()
+    })
+
+    it('falls back to upstream role label when pattern is undefined', () => {
+      const info = getEdgeLabelInfo(undefined, 'open-host-service')
+      expect(info).not.toBeNull()
+      expect(info!.label).toBe('Open Host Service')
+      expect(info!.directionIcon).toBe('↑')
+    })
+
+    it('falls back to downstream role label when pattern is undefined', () => {
+      const info = getEdgeLabelInfo(undefined, undefined, 'anti-corruption-layer')
+      expect(info).not.toBeNull()
+      expect(info!.label).toBe('Anti-Corruption Layer')
+      expect(info!.directionIcon).toBe('↑')
+    })
+
+    it('combines both role labels with a separator when both are set', () => {
+      const info = getEdgeLabelInfo(undefined, 'open-host-service', 'anti-corruption-layer')
+      expect(info).not.toBeNull()
+      expect(info!.label).toBe('Open Host Service · Anti-Corruption Layer')
+      expect(info!.directionIcon).toBe('↑')
+    })
+
+    it('prefers the pattern label over per-side roles when both are present', () => {
+      const info = getEdgeLabelInfo('partnership', 'open-host-service', 'anti-corruption-layer')
+      expect(info).not.toBeNull()
+      expect(info!.label).toBe('Partnership')
+      expect(info!.directionIcon).toBe('↔')
+    })
+  })
 })
