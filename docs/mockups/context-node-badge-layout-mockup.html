@@ -9,21 +9,15 @@
   <style>
     body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #0f172a; }
     h1 { font-size: 22px; font-weight: 700; margin: 0 0 6px 0; }
-    h2 { font-size: 16px; font-weight: 600; margin: 24px 0 8px 0; color: #0f172a; }
+    h2 { font-size: 16px; font-weight: 600; margin: 28px 0 8px 0; color: #0f172a; }
     h3 { font-size: 13px; font-weight: 600; color: #334155; margin: 0 0 6px 0; }
-    .intro { font-size: 13px; color: #475569; max-width: 720px; line-height: 1.5; }
-    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; }
-    .pair-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .intro { font-size: 13px; color: #475569; max-width: 760px; line-height: 1.55; }
     .triple-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .pair-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .caption { font-size: 12px; color: #475569; margin-top: 8px; line-height: 1.4; }
-    .badge-pill { display: inline-flex; align-items: center; font-size: 9px; font-weight: 600; padding: 3px 7px; border-radius: 6px; background: #f1f5f9; color: #64748b; letter-spacing: 0.03em; text-transform: uppercase; }
     .icon-slot { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; }
     .icon-slot.legacy { color: #d97706; }
     .icon-slot.bbom { color: #78350f; }
-    .icon-slot.issue-warn { color: #d97706; }
-    .icon-slot.issue-critical { color: #dc2626; }
-    .icon-slot.issue-info { color: #3b82f6; }
 
     /* Card chrome */
     .card {
@@ -36,195 +30,237 @@
       display: flex;
       flex-direction: column;
     }
-    .card.external { background: #fed7aa; border-style: dashed; }
+    /* External: dashed border + distinct fill (slate/cool grey). Border alone
+       carries the signal; the EXTERNAL pill is gone. */
+    .card.external {
+      background: #e2e8f0;
+      border-style: dashed;
+      border-color: #64748b;
+    }
     .card.medium { height: 120px; }
-    .card.tiny { height: 80px; }
+    .card.tiny { height: 80px; width: 140px; }
 
-    /* CURRENT (broken) layout: badges absolutely positioned over content area */
+    /* CURRENT (broken) layout */
     .current-name { font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; }
     .current-purpose { font-size: 10.5px; color: #64748b; margin-top: 6px; line-height: 1.4; }
-    .badge-tl { position: absolute; top: 6px; left: 6px; }
-    .badge-tr { position: absolute; top: 4px; right: 4px; display: inline-flex; gap: 2px; }
-    .issues-tl { position: absolute; top: 4px; left: 4px; display: inline-flex; gap: 2px; }
+    .ext-pill-abs { position: absolute; top: 6px; left: 6px; font-size: 9px; font-weight: 600; padding: 3px 7px; border-radius: 6px; background: #f1f5f9; color: #64748b; letter-spacing: 0.03em; text-transform: uppercase; }
     .badge-tr-stack-1 { position: absolute; top: 4px; right: 4px; }
     .badge-tr-stack-2 { position: absolute; top: 4px; right: 26px; }
-    .badge-tr-stack-3 { position: absolute; top: 4px; right: 48px; }
+    .issues-tl-abs { position: absolute; top: 4px; left: 4px; display: inline-flex; gap: 2px; }
 
-    /* PROPOSED layout: explicit header row, then name, then purpose */
-    .card.proposed { padding: 6px 8px 8px 8px; }
-    .header-row {
-      display: flex;
+    /* PROPOSED layout. Name sits at the top-left of the card. Identity icons
+       (Legacy, BBoM) sit absolutely positioned at the top-right corner; the
+       name gets paddingRight to clear them. Issue counters live at the bottom
+       right and never affect the top. */
+    .card.proposed { padding: 8px; }
+    .identity-icons {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
       gap: 4px;
-      min-height: 18px;
-      margin-bottom: 4px;
     }
-    .header-left { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
-    .header-right { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
     .proposed-name { font-size: 13px; font-weight: 600; color: #0f172a; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .proposed-name.has-identity { padding-right: 44px; }
+    .proposed-name.has-one-identity { padding-right: 24px; }
     .proposed-purpose { font-size: 10.5px; color: #64748b; margin-top: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .external-pill-inline { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1; flex-shrink: 0; }
-    .issue-row { display: inline-flex; align-items: center; gap: 2px; }
 
-    .group { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+    /* Per-severity issue counters (bottom-right). VS Code / Sentry pattern.
+       Only non-zero severities render. Order: critical, warning, info. */
+    .issue-counters {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 999px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      backdrop-filter: blur(2px);
+    }
+    .issue-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .issue-counter svg { width: 11px; height: 11px; }
+    .issue-counter.critical { color: #dc2626; }
+    .issue-counter.warning { color: #d97706; }
+    .issue-counter.info { color: #2563eb; }
+
+    .group { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
     .scenario-label { font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; }
-    .scenario-meta { font-size: 11px; color: #64748b; margin-bottom: 10px; line-height: 1.4; }
+    .scenario-meta { font-size: 11px; color: #64748b; margin-bottom: 10px; line-height: 1.4; min-height: 32px; }
     .canvas { padding: 18px; background: #f1f5f9; border-radius: 8px; display: flex; justify-content: center; }
     .note { font-size: 12px; color: #92400e; background: #fef9c3; border-left: 3px solid #eab308; padding: 8px 12px; border-radius: 4px; margin-top: 12px; line-height: 1.5; }
     .ok { font-size: 12px; color: #047857; background: #ecfdf5; border-left: 3px solid #10b981; padding: 8px 12px; border-radius: 4px; margin-top: 12px; line-height: 1.5; }
-    .legend-bullet { display: inline-block; width: 8px; height: 8px; border-radius: 999px; vertical-align: middle; margin-right: 6px; }
     table.rules { font-size: 12px; border-collapse: collapse; width: 100%; margin-top: 8px; }
     table.rules th, table.rules td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
     table.rules th { background: #f8fafc; color: #475569; font-weight: 600; }
+
+    .principle-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+    .principle-card .ptag { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }
+    .ptag.identity { background: #f1f5f9; color: #475569; }
+    .ptag.attention { background: #fef2f2; color: #991b1b; }
+    .principle-card .meaning { font-size: 13px; color: #334155; line-height: 1.5; }
+    .principle-card .examples { font-size: 12px; color: #64748b; margin-top: 8px; line-height: 1.4; }
   </style>
 </head>
 <body class="p-8">
   <div class="max-w-6xl mx-auto">
     <h1>Context node badge layout</h1>
     <p class="intro">
-      Six things can render in the header area of a context card: the <strong>External</strong> pill (ownership badge), the <strong>Legacy</strong> icon, the <strong>Big Ball of Mud</strong> icon, and one or more <strong>Issue</strong> icons (info, warning, critical). Today they are absolutely positioned with overlapping anchor rules. When more than two appear at once, they collide. This mockup proposes a single explicit header row that lays them out predictably.
+      The header chrome of a context card carries two kinds of information that look the same today but mean very different things. Identity markers (External via dashed border, Legacy, Big Ball of Mud) describe <em>what the context is</em>. Issue markers (info, warning, critical) describe <em>what needs attention</em>. Mixing them in one row reads as a sea of icons. This mockup separates them: identity stays in the header row, attention moves to a per-severity counter at the bottom-right.
     </p>
 
-    <h2>Current behavior (broken combinations)</h2>
-    <p class="caption">Each card is rendered with the live anchor rules from <code>ContextNode.tsx</code>. The labels below each card describe the overlap.</p>
-
-    <div class="triple-row mt-3">
-      <div class="group">
-        <div class="scenario-label">External + long name</div>
-        <div class="scenario-meta">External pill is absolutely positioned at top-left with no horizontal reservation on the name. Long names slide under it.</div>
-        <div class="canvas">
-          <div class="card external medium">
-            <div class="badge-pill badge-tl">EXTERNAL</div>
-            <div class="current-name" style="margin-top:0;">Detection Service</div>
-            <div class="current-purpose">Detects fraud signals on incoming transactions.</div>
-          </div>
-        </div>
-        <div class="note"><strong>Bug:</strong> "EXTERNAL" overlaps "Detection".</div>
+    <div class="pair-row mt-4">
+      <div class="principle-card">
+        <span class="ptag identity">Identity</span>
+        <div class="meaning">Static facts about the context. Set once during modeling, rarely changes. Reading it does not imply you need to do anything.</div>
+        <div class="examples"><strong>Examples:</strong> External (dashed border + slate fill), Legacy, Big Ball of Mud.</div>
       </div>
-
-      <div class="group">
-        <div class="scenario-label">External + BBoM + issue</div>
-        <div class="scenario-meta">When BBoM and issues are both present on an external context, both right-anchor to <code>right: 4px</code> with no Legacy to push them apart, and stack on top of each other.</div>
-        <div class="canvas">
-          <div class="card external medium">
-            <div class="badge-pill badge-tl">EXTERNAL</div>
-            <div class="badge-tr-stack-1"><span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span></div>
-            <div class="badge-tr-stack-1" style="z-index:1; transform: translateX(-2px);"><span class="icon-slot issue-warn"><i data-lucide="triangle-alert"></i></span></div>
-            <div class="current-name" style="margin-top:0;">Payment</div>
-            <div class="current-purpose">Legacy payment gateway with fraud heuristics.</div>
-          </div>
-        </div>
-        <div class="note"><strong>Bug:</strong> Issue and BBoM icons render at the same anchor.</div>
-      </div>
-
-      <div class="group">
-        <div class="scenario-label">Internal + Legacy + BBoM + 2 issues</div>
-        <div class="scenario-meta">Issues live top-left for internal contexts; Legacy and BBoM live top-right with a single 24px nudge. There is no logic for "many badges on the same side."</div>
-        <div class="canvas">
-          <div class="card medium">
-            <div class="issues-tl">
-              <span class="icon-slot issue-warn"><i data-lucide="triangle-alert"></i></span>
-              <span class="icon-slot issue-critical"><i data-lucide="octagon-alert"></i></span>
-            </div>
-            <div class="badge-tr-stack-1"><span class="icon-slot legacy"><i data-lucide="archive"></i></span></div>
-            <div class="badge-tr-stack-2"><span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span></div>
-            <div class="current-name" style="margin-top:14px; padding-right:44px;">Order Routing</div>
-            <div class="current-purpose">Picks the warehouse and carrier for each line item.</div>
-          </div>
-        </div>
-        <div class="note">Today this case works only because we hard-coded a 44px reserve for "Legacy AND BBoM" specifically. Adding a third right-side element (e.g. external + issues + BBoM) immediately collides again.</div>
+      <div class="principle-card">
+        <span class="ptag attention">Attention</span>
+        <div class="meaning">Things workshop participants or engineers should look at. The whole point is that they should pull the eye.</div>
+        <div class="examples"><strong>Examples:</strong> Issue annotations (critical, warning, info). Per-severity counters in the bottom-right.</div>
       </div>
     </div>
 
-    <h2>Proposed layout</h2>
-    <p class="intro">
-      Replace the absolute-positioning rules with a real <strong>header row</strong> that sits above the name. The row has two zones:
-    </p>
+    <h2>External: drop the pill, lean on the border</h2>
+    <p class="intro">Today external contexts carry both a dashed border <em>and</em> an "EXTERNAL" text pill. The pill overlaps the name on long titles and reads as redundant chrome. The dashed border plus a cool slate fill (distinct from the green/orange ownership colors) is enough to read as "not ours" at any zoom level.</p>
 
-    <table class="rules">
-      <thead>
-        <tr><th>Zone</th><th>Contents</th><th>Sizing</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Left</strong></td>
-          <td>External pill (only present when <code>ownership === 'external'</code>)</td>
-          <td>Auto-width, ellipsises if needed</td>
-        </tr>
-        <tr>
-          <td><strong>Right</strong></td>
-          <td>Issue icons (in severity order: critical, warning, info), then Legacy, then Big Ball of Mud</td>
-          <td>Flex row with 2px gap; never wraps; if width is tight, hide overflow icons behind a <code>+N</code> chip</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="pair-row mt-3">
+      <div class="group">
+        <div class="scenario-label">Today</div>
+        <div class="canvas">
+          <div class="card medium" style="background:#fed7aa; border-style:dashed;">
+            <div class="ext-pill-abs">EXTERNAL</div>
+            <div class="current-name" style="margin-top:0;">Detection Service</div>
+            <div class="current-purpose">Wraps third-party fraud API for transaction screening.</div>
+          </div>
+        </div>
+        <div class="note">Border + pill double-encode, and the pill bleeds into the name.</div>
+      </div>
+      <div class="group">
+        <div class="scenario-label">Proposed</div>
+        <div class="canvas">
+          <div class="card proposed external medium">
+            <div class="proposed-name">Detection Service</div>
+            <div class="proposed-purpose">Wraps third-party fraud API for transaction screening.</div>
+          </div>
+        </div>
+        <div class="ok">One signal: dashed border + slate fill. Hover tooltip still says "External" for newcomers.</div>
+      </div>
+    </div>
 
-    <p class="caption mt-3">
-      The header row reserves vertical space whether anything renders or not. Empty rows collapse via a fixed <code>min-height</code>. The name and purpose flow naturally below the row with no <code>margin-top</code> overrides anywhere. Name is full-width; ellipsis still applies for very long names.
-    </p>
-
-    <h2>Proposed behavior — same scenarios</h2>
+    <h2>Issues: per-severity counters at the bottom-right</h2>
+    <p class="intro">Issues move out of the header entirely and into the bottom-right corner as small counters in the VS Code / Sentry style. Only non-zero severities render; order is critical → warning → info. Each counter keeps its severity color so urgency reads at a glance without flattening the breakdown into a single number.</p>
 
     <div class="triple-row mt-3">
       <div class="group">
-        <div class="scenario-label">External + long name</div>
-        <div class="scenario-meta">External pill sits in the header-left zone. Name flows below at full width.</div>
-        <div class="canvas">
-          <div class="card proposed external medium">
-            <div class="header-row">
-              <div class="header-left">
-                <span class="external-pill-inline">External</span>
-              </div>
-              <div class="header-right"></div>
-            </div>
-            <div class="proposed-name">Detection Service</div>
-            <div class="proposed-purpose">Detects fraud signals on incoming transactions.</div>
-          </div>
-        </div>
-        <div class="ok"><strong>Fixed:</strong> name no longer overlaps the External pill.</div>
-      </div>
-
-      <div class="group">
-        <div class="scenario-label">External + BBoM + issue</div>
-        <div class="scenario-meta">External on left, ordered badge cluster on right (issue → BBoM).</div>
-        <div class="canvas">
-          <div class="card proposed external medium">
-            <div class="header-row">
-              <div class="header-left">
-                <span class="external-pill-inline">External</span>
-              </div>
-              <div class="header-right">
-                <span class="icon-slot issue-warn"><i data-lucide="triangle-alert"></i></span>
-                <span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span>
-              </div>
-            </div>
-            <div class="proposed-name">Payment</div>
-            <div class="proposed-purpose">Legacy payment gateway with fraud heuristics.</div>
-          </div>
-        </div>
-        <div class="ok"><strong>Fixed:</strong> issue and BBoM no longer overlap.</div>
-      </div>
-
-      <div class="group">
-        <div class="scenario-label">Internal + Legacy + BBoM + 2 issues</div>
-        <div class="scenario-meta">Right cluster: issues first, then Legacy, then BBoM. Left zone empty for non-external.</div>
+        <div class="scenario-label">Single warning</div>
+        <div class="scenario-meta">One severity, one counter.</div>
         <div class="canvas">
           <div class="card proposed medium">
-            <div class="header-row">
-              <div class="header-left"></div>
-              <div class="header-right">
-                <span class="icon-slot issue-critical"><i data-lucide="octagon-alert"></i></span>
-                <span class="icon-slot issue-warn"><i data-lucide="triangle-alert"></i></span>
-                <span class="icon-slot legacy"><i data-lucide="archive"></i></span>
-                <span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span>
-              </div>
+            <div class="proposed-name">Inventory Mgmt</div>
+            <div class="proposed-purpose">Tracks product availability and warehouse stock.</div>
+            <div class="issue-counters">
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>1</span>
             </div>
-            <div class="proposed-name">Order Routing</div>
-            <div class="proposed-purpose">Picks the warehouse and carrier for each line item.</div>
           </div>
         </div>
-        <div class="ok"><strong>Fixed:</strong> single ordering rule, no special cases.</div>
+      </div>
+
+      <div class="group">
+        <div class="scenario-label">Critical + warnings</div>
+        <div class="scenario-meta">Two severities, two counters. Breakdown is visible without a tooltip.</div>
+        <div class="canvas">
+          <div class="card proposed medium">
+            <div class="proposed-name">Order Routing</div>
+            <div class="proposed-purpose">Picks the warehouse and carrier for each line item.</div>
+            <div class="issue-counters">
+              <span class="issue-counter critical"><i data-lucide="octagon-alert"></i>1</span>
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="scenario-label">All three severities</div>
+        <div class="scenario-meta">Up to three small counters. Still reads as a tidy cluster, not a sea.</div>
+        <div class="canvas">
+          <div class="card proposed medium">
+            <div class="proposed-name">Warehouse Mgmt</div>
+            <div class="proposed-purpose">On-prem system managing physical warehouse operations.</div>
+            <div class="issue-counters">
+              <span class="issue-counter critical"><i data-lucide="octagon-alert"></i>2</span>
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>6</span>
+              <span class="issue-counter info"><i data-lucide="info"></i>3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Combinations</h2>
+
+    <div class="triple-row mt-3">
+      <div class="group">
+        <div class="scenario-label">External + warnings</div>
+        <div class="scenario-meta">Dashed border carries "external". Counter at the bottom carries attention.</div>
+        <div class="canvas">
+          <div class="card proposed external medium">
+            <div class="proposed-name">Carrier Hub (UPS/FedEx)</div>
+            <div class="proposed-purpose">Third-party shipping APIs for rates and tracking.</div>
+            <div class="issue-counters">
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="scenario-label">Legacy + BBoM + critical issue</div>
+        <div class="scenario-meta">Identity icons in the header. Attention counter at the bottom. Spatially and visually separate.</div>
+        <div class="canvas">
+          <div class="card proposed medium">
+            <div class="identity-icons">
+              <span class="icon-slot legacy"><i data-lucide="archive"></i></span>
+              <span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span>
+            </div>
+            <div class="proposed-name has-identity">WMS (Legacy)</div>
+            <div class="proposed-purpose">Legacy on-prem warehouse management system.</div>
+            <div class="issue-counters">
+              <span class="issue-counter critical"><i data-lucide="octagon-alert"></i>1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="scenario-label">External + Legacy + mixed issues</div>
+        <div class="scenario-meta">Dashed border + slate fill + Legacy icon in header + counters at bottom. Five pieces of info, no overlap.</div>
+        <div class="canvas">
+          <div class="card proposed external medium">
+            <div class="identity-icons">
+              <span class="icon-slot legacy"><i data-lucide="archive"></i></span>
+            </div>
+            <div class="proposed-name has-one-identity">Mainframe Billing</div>
+            <div class="proposed-purpose">Vendor-hosted COBOL billing system.</div>
+            <div class="issue-counters">
+              <span class="issue-counter critical"><i data-lucide="octagon-alert"></i>1</span>
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>3</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -232,59 +268,94 @@
 
     <div class="triple-row mt-3">
       <div class="group">
-        <div class="scenario-label">No badges (the common case)</div>
-        <div class="scenario-meta">Header row is empty but still reserves <code>min-height: 18px</code> so cards have a consistent header band. Looks the same as today minus a few pixels at the top.</div>
+        <div class="scenario-label">No badges, no issues</div>
+        <div class="scenario-meta">Name sits at the top of the card. Nothing else competes for that space.</div>
         <div class="canvas">
           <div class="card proposed medium">
-            <div class="header-row">
-              <div class="header-left"></div>
-              <div class="header-right"></div>
-            </div>
             <div class="proposed-name">Shopping Cart</div>
-            <div class="proposed-purpose">Manages ephemeral and persistent shopping carts across devices.</div>
+            <div class="proposed-purpose">Manages ephemeral and persistent shopping carts.</div>
           </div>
         </div>
-        <div class="caption">An empty header is intentional. Cards with and without badges line up vertically when placed side-by-side.</div>
       </div>
 
       <div class="group">
-        <div class="scenario-label">Tiny card, many badges</div>
-        <div class="scenario-meta">If the badge cluster cannot fit, overflow collapses into a <code>+N</code> chip. Click the chip to reveal the full list in the inspector.</div>
+        <div class="scenario-label">Tiny card with issues</div>
+        <div class="scenario-meta">Same per-severity counters as the regular format. There is enough room at the bottom-right; no special collapse needed.</div>
         <div class="canvas">
-          <div class="card proposed tiny" style="width:120px;">
-            <div class="header-row">
-              <div class="header-left">
-                <span class="external-pill-inline">External</span>
-              </div>
-              <div class="header-right">
-                <span class="icon-slot issue-critical"><i data-lucide="octagon-alert"></i></span>
-                <span class="external-pill-inline" style="background:#fee2e2; color:#991b1b;">+3</span>
-              </div>
+          <div class="card proposed external tiny">
+            <div class="identity-icons">
+              <span class="icon-slot legacy" style="width:14px; height:14px;"><i data-lucide="archive"></i></span>
             </div>
-            <div class="proposed-name" style="font-size:11.5px;">Detection</div>
+            <div class="proposed-name has-one-identity" style="font-size:11.5px;">Detection</div>
+            <div class="issue-counters">
+              <span class="issue-counter critical"><i data-lucide="octagon-alert"></i>1</span>
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>2</span>
+            </div>
           </div>
         </div>
-        <div class="caption">Severity wins the visible slot: critical > warning > info. Then Legacy, then BBoM if room remains.</div>
       </div>
 
       <div class="group">
-        <div class="scenario-label">Long external name</div>
-        <div class="scenario-meta">External pill stays visible; name truncates with ellipsis. Pill never disappears, since "external" is an ownership signal that must always read.</div>
+        <div class="scenario-label">Long name + counters</div>
+        <div class="scenario-meta">Name truncates with ellipsis. Counters sit at the bottom-right and never collide with the name.</div>
+        <div class="canvas">
+          <div class="card proposed medium">
+            <div class="proposed-name">Customer Identity &amp; Access Management</div>
+            <div class="proposed-purpose">Authenticates and authorizes customer accounts.</div>
+            <div class="issue-counters">
+              <span class="issue-counter warning"><i data-lucide="triangle-alert"></i>2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="triple-row mt-3">
+      <div class="group">
+        <div class="scenario-label">Long name + Legacy + BBoM</div>
+        <div class="scenario-meta">Name gets 44px <code>padding-right</code> to reserve space for two identity icons and truncates with ellipsis. The icons stay readable in the corner.</div>
+        <div class="canvas">
+          <div class="card proposed medium">
+            <div class="identity-icons">
+              <span class="icon-slot legacy"><i data-lucide="archive"></i></span>
+              <span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span>
+            </div>
+            <div class="proposed-name has-identity">Customer Identity &amp; Access Management</div>
+            <div class="proposed-purpose">Authenticates and authorizes customer accounts.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="scenario-label">Long name + Legacy + BBoM + critical issue</div>
+        <div class="scenario-meta">Everything together: identity at top-right, counter at bottom-right, name truncates between them.</div>
+        <div class="canvas">
+          <div class="card proposed medium">
+            <div class="identity-icons">
+              <span class="icon-slot legacy"><i data-lucide="archive"></i></span>
+              <span class="icon-slot bbom"><i data-lucide="cloud-fog"></i></span>
+            </div>
+            <div class="proposed-name has-identity">Customer Identity &amp; Access Management</div>
+            <div class="proposed-purpose">Authenticates and authorizes customer accounts.</div>
+            <div class="issue-counters">
+              <span class="issue-counter critical"><i data-lucide="octagon-alert"></i>1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="scenario-label">External + long name + Legacy</div>
+        <div class="scenario-meta">Dashed border carries external. One identity icon at the top-right, name gets 24px <code>padding-right</code>, truncates with ellipsis.</div>
         <div class="canvas">
           <div class="card proposed external medium">
-            <div class="header-row">
-              <div class="header-left">
-                <span class="external-pill-inline">External</span>
-              </div>
-              <div class="header-right">
-                <span class="icon-slot issue-warn"><i data-lucide="triangle-alert"></i></span>
-              </div>
+            <div class="identity-icons">
+              <span class="icon-slot legacy"><i data-lucide="archive"></i></span>
             </div>
-            <div class="proposed-name">Carrier Integration Hub (UPS/FedEx/USPS)</div>
-            <div class="proposed-purpose">Wraps third-party shipping APIs for tracking and rates.</div>
+            <div class="proposed-name has-one-identity">Vendor Tax Service (Avalara)</div>
+            <div class="proposed-purpose">Third-party tax calculation for cross-border orders.</div>
           </div>
         </div>
-        <div class="caption">Name truncates instead of overlapping. Tooltip on hover still reveals the full name.</div>
       </div>
     </div>
 
@@ -294,14 +365,19 @@
         <tr><th>Rule</th><th>Behavior</th></tr>
       </thead>
       <tbody>
-        <tr><td>Header row is always present</td><td><code>min-height: 18px</code>, even when empty, so card vertical rhythm stays consistent.</td></tr>
-        <tr><td>Left zone</td><td>External pill only. Never icons. Empty for non-external contexts.</td></tr>
-        <tr><td>Right zone — ordering</td><td>Issues (critical → warning → info) → Legacy → Big Ball of Mud.</td></tr>
-        <tr><td>Right zone — overflow</td><td>If cluster exceeds available width, collapse trailing items into a <code>+N</code> chip. Keep highest-severity issue visible.</td></tr>
-        <tr><td>Name</td><td>Flows naturally below the header row. No <code>margin-top</code>, no <code>padding-right</code>. Full card width minus card padding. Single line, ellipsis on overflow, tooltip on hover.</td></tr>
-        <tr><td>Tooltips</td><td>Each badge keeps its current tooltip behavior. The <code>+N</code> chip opens the inspector for full context.</td></tr>
+        <tr><td>External signal</td><td>Dashed border + slate fill. No "EXTERNAL" text pill. Hover tooltip still names the ownership.</td></tr>
+        <tr><td>Identity icons — position</td><td>Top-right corner, absolutely positioned at <code>top: 4px; right: 4px;</code>. Legacy first, then BBoM with a 4px gap.</td></tr>
+        <tr><td>Name</td><td>Sits at the top of the card. Gets <code>padding-right</code> only when identity icons are present: 24px for one icon, 44px for two. No <code>margin-top</code>, ever.</td></tr>
+        <tr><td>Issues — position</td><td>Bottom-right of the card, absolutely positioned at <code>right: 6px; bottom: 6px;</code>.</td></tr>
+        <tr><td>Issues — format</td><td>Per-severity counters in a single pill: <code>⊗ N</code>, <code>△ N</code>, <code>ⓘ N</code>. Only non-zero severities render. Order: critical, warning, info.</td></tr>
+        <tr><td>Tooltips</td><td>Each counter has a per-severity tooltip ("3 warnings"). Identity icons keep their existing tooltips.</td></tr>
       </tbody>
     </table>
+
+    <h2>Why per-severity counters</h2>
+    <p class="intro">
+      VS Code's Problems tab, Sentry, Datadog, browser dev tools all show separate counts per severity rather than rolling up to a single number. The breakdown matters: "1 critical, 5 warnings" tells a different story from "6 issues, severity unknown." The cost is a few more pixels at the bottom-right; the gain is that workshop facilitators can scan a map and immediately see which contexts have <em>critical</em> issues vs. which just have noise.
+    </p>
   </div>
 
   <script>lucide.createIcons();</script>
