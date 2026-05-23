@@ -77,6 +77,9 @@ export interface BoundedContext {
   teamId?: string // direct team assignment (orthogonal to repo ownership)
 }
 
+export type UpstreamRole = 'open-host-service' | 'published-language'
+export type DownstreamRole = 'conformist' | 'anti-corruption-layer'
+
 export interface Relationship {
   id: string
 
@@ -93,6 +96,9 @@ export interface Relationship {
     | 'shared-kernel'
     | 'partnership'
     | 'separate-ways'
+
+  upstreamRole?: UpstreamRole
+  downstreamRole?: DownstreamRole
 
   communicationMode?: string
   description?: string

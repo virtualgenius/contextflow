@@ -143,5 +143,38 @@ describe('relationshipSync', () => {
 
       expect(result).toEqual(original)
     })
+
+    it('round-trips upstreamRole and downstreamRole', () => {
+      const original: Relationship = {
+        id: 'rel-roles',
+        fromContextId: 'ctx-billing',
+        toContextId: 'ctx-orders',
+        pattern: 'customer-supplier',
+        upstreamRole: 'open-host-service',
+        downstreamRole: 'anti-corruption-layer',
+      }
+
+      const yMap = relationshipToYMap(original)
+      const result = yMapToRelationship(yMap)
+
+      expect(result).toEqual(original)
+    })
+
+    it('treats absent per-side roles as null in Yjs and undefined on read', () => {
+      const relationship: Relationship = {
+        id: 'rel-bare',
+        fromContextId: 'ctx-1',
+        toContextId: 'ctx-2',
+        pattern: 'customer-supplier',
+      }
+
+      const yMap = relationshipToYMap(relationship)
+      expect(yMap.get('upstreamRole')).toBeNull()
+      expect(yMap.get('downstreamRole')).toBeNull()
+
+      const result = yMapToRelationship(yMap)
+      expect(result.upstreamRole).toBeUndefined()
+      expect(result.downstreamRole).toBeUndefined()
+    })
   })
 })

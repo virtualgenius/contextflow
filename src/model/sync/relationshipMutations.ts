@@ -65,6 +65,8 @@ function applyRelationshipUpdates(
     'fromContextId',
     'toContextId',
     'pattern',
+    'upstreamRole',
+    'downstreamRole',
     'communicationMode',
     'description',
   ]

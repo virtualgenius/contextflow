@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { RelationshipInspector } from '../RelationshipInspector'
 import { useEditorStore } from '../../../model/store'
 import type { Project } from '../../../model/types'
@@ -93,5 +93,96 @@ describe('RelationshipInspector', () => {
       target: { value: 'conformist' },
     })
     expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', { pattern: 'conformist' })
+  })
+
+  describe('per-side roles', () => {
+    it('sets upstreamRole when user clicks Open Host Service pill on Upstream side', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      const upstreamGroup = screen.getByRole('radiogroup', { name: /upstream role/i })
+      fireEvent.click(within(upstreamGroup).getByRole('radio', { name: /open host service/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        upstreamRole: 'open-host-service',
+      })
+    })
+
+    it('sets downstreamRole independently of upstreamRole', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'customer-supplier',
+            upstreamRole: 'open-host-service',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      const downstreamGroup = screen.getByRole('radiogroup', { name: /downstream role/i })
+      fireEvent.click(within(downstreamGroup).getByRole('radio', { name: /conformist/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        downstreamRole: 'conformist',
+      })
+    })
+
+    it('toggles upstreamRole off when the active pill is clicked again', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'customer-supplier',
+            upstreamRole: 'open-host-service',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      const upstreamGroup = screen.getByRole('radiogroup', { name: /upstream role/i })
+      fireEvent.click(within(upstreamGroup).getByRole('radio', { name: /open host service/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        upstreamRole: undefined,
+      })
+    })
+
+    it('shows the active upstream pill as checked', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'customer-supplier',
+            upstreamRole: 'published-language',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      const upstreamGroup = screen.getByRole('radiogroup', { name: /upstream role/i })
+      const pl = within(upstreamGroup).getByRole('radio', { name: /published language/i })
+      expect(pl).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('toggles downstreamRole off when the active pill is clicked again', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'customer-supplier',
+            downstreamRole: 'anti-corruption-layer',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      const downstreamGroup = screen.getByRole('radiogroup', { name: /downstream role/i })
+      fireEvent.click(
+        within(downstreamGroup).getByRole('radio', { name: /anti-corruption layer/i })
+      )
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        downstreamRole: undefined,
+      })
+    })
   })
 })

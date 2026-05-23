@@ -237,6 +237,64 @@ describe('relationshipMutations', () => {
       expect(result.relationships[0].communicationMode).toBeUndefined()
       expect(result.relationships[0].description).toBeUndefined()
     })
+
+    it('should set upstreamRole', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', { upstreamRole: 'open-host-service' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].upstreamRole).toBe('open-host-service')
+    })
+
+    it('should set downstreamRole independently and preserve upstreamRole', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', { upstreamRole: 'open-host-service' })
+      updateRelationshipMutation(ydoc, 'rel-1', { downstreamRole: 'conformist' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].upstreamRole).toBe('open-host-service')
+      expect(result.relationships[0].downstreamRole).toBe('conformist')
+    })
+
+    it('should clear upstreamRole when set to undefined', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', { upstreamRole: 'open-host-service' })
+      updateRelationshipMutation(ydoc, 'rel-1', { upstreamRole: undefined })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].upstreamRole).toBeUndefined()
+    })
+
+    it('should not clobber per-side roles when updating other fields', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', {
+        upstreamRole: 'published-language',
+        downstreamRole: 'anti-corruption-layer',
+      })
+
+      updateRelationshipMutation(ydoc, 'rel-1', { description: 'just a description' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].upstreamRole).toBe('published-language')
+      expect(result.relationships[0].downstreamRole).toBe('anti-corruption-layer')
+    })
+  })
+
+  describe('multiplayer sync', () => {
+    it('propagates upstreamRole and downstreamRole through Yjs update payload', () => {
+      // Initialize remote as an empty doc and sync the initial state from ydoc,
+      // so both docs share the same Y.Array entries (rather than independent rels).
+      const remoteDoc = new Y.Doc()
+      Y.applyUpdate(remoteDoc, Y.encodeStateAsUpdate(ydoc))
+
+      updateRelationshipMutation(ydoc, 'rel-1', {
+        upstreamRole: 'open-host-service',
+        downstreamRole: 'anti-corruption-layer',
+      })
+
+      const update = Y.encodeStateAsUpdate(ydoc, Y.encodeStateVector(remoteDoc))
+      Y.applyUpdate(remoteDoc, update)
+
+      const remoteProject = yDocToProject(remoteDoc)
+      expect(remoteProject.relationships[0].upstreamRole).toBe('open-host-service')
+      expect(remoteProject.relationships[0].downstreamRole).toBe('anti-corruption-layer')
+    })
   })
 
   describe('deleteRelationshipMutation', () => {

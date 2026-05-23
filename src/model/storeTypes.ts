@@ -214,7 +214,12 @@ export interface EditorState {
   deleteRelationship: (relationshipId: string) => void
   updateRelationship: (
     relationshipId: string,
-    updates: Partial<Pick<Relationship, 'pattern' | 'communicationMode' | 'description'>>
+    updates: Partial<
+      Pick<
+        Relationship,
+        'pattern' | 'upstreamRole' | 'downstreamRole' | 'communicationMode' | 'description'
+      >
+    >
   ) => void
   swapRelationshipDirection: (relationshipId: string) => void
   setSelectedRelationship: (relationshipId: string | null) => void

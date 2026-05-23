@@ -9,7 +9,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
-import type { Project } from '../../model/types'
+import type { Project, UpstreamRole, DownstreamRole } from '../../model/types'
 import {
   PATTERN_DEFINITIONS,
   POWER_DYNAMICS_ICONS,
@@ -17,8 +17,25 @@ import {
 } from '../../model/patternDefinitions'
 import { InfoTooltip } from '../InfoTooltip'
 import { PatternsGuideModal } from '../PatternsGuideModal'
-import { COMMUNICATION_MODE } from '../../model/conceptDefinitions'
-import { INPUT_TEXT_CLASS, TEXTAREA_CLASS, InspectorHeader, Section } from './inspectorShared'
+import { COMMUNICATION_MODE, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
+import {
+  INPUT_TEXT_CLASS,
+  TEXTAREA_CLASS,
+  InspectorHeader,
+  PillGroup,
+  Section,
+  type PillOption,
+} from './inspectorShared'
+
+const UPSTREAM_ROLE_OPTIONS: ReadonlyArray<PillOption<UpstreamRole>> = [
+  { value: 'open-host-service', label: 'Open Host Service' },
+  { value: 'published-language', label: 'Published Language' },
+]
+
+const DOWNSTREAM_ROLE_OPTIONS: ReadonlyArray<PillOption<DownstreamRole>> = [
+  { value: 'conformist', label: 'Conformist' },
+  { value: 'anti-corruption-layer', label: 'Anti-Corruption Layer' },
+]
 
 export function RelationshipInspector({
   project,
@@ -69,6 +86,14 @@ export function RelationshipInspector({
     if (newValue !== relationship.description) {
       updateRelationship(relationship.id, { description: newValue || undefined })
     }
+  }
+
+  const handleUpstreamRoleChange = (next: UpstreamRole | undefined) => {
+    updateRelationship(relationship.id, { upstreamRole: next })
+  }
+
+  const handleDownstreamRoleChange = (next: DownstreamRole | undefined) => {
+    updateRelationship(relationship.id, { downstreamRole: next })
   }
 
   return (
@@ -228,6 +253,70 @@ export function RelationshipInspector({
           <BookOpen size={12} />
           <span>View all patterns</span>
         </button>
+      </Section>
+
+      {/* Per-Side Roles */}
+      <Section
+        label={
+          <div className="flex items-center gap-1.5">
+            <span>Characterize Each Side</span>
+            <InfoTooltip
+              content={{
+                title: 'Per-Side Roles',
+                description:
+                  'Describe how each context plays its part. The upstream side can act as an Open Host Service or define a Published Language. The downstream side can be a Conformist or build an Anti-Corruption Layer.',
+              }}
+              position="bottom"
+            >
+              <HelpCircle size={12} className="text-slate-400 dark:text-slate-500 cursor-help" />
+            </InfoTooltip>
+          </div>
+        }
+      >
+        <div className="space-y-2.5">
+          <div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
+              <span className="font-medium text-slate-600 dark:text-slate-300">Upstream</span>
+              <span className="text-slate-400 dark:text-slate-500">
+                ({toContext?.name || 'Unknown'})
+              </span>
+              <InfoTooltip content={RELATIONSHIP_PATTERNS['open-host-service']} position="bottom">
+                <HelpCircle size={11} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            </div>
+            <PillGroup<UpstreamRole>
+              options={UPSTREAM_ROLE_OPTIONS}
+              value={relationship.upstreamRole}
+              onChange={handleUpstreamRoleChange}
+              layout="horizontal"
+              variant="green"
+              ariaLabel="Upstream role"
+            />
+          </div>
+
+          <div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
+              <span className="font-medium text-slate-600 dark:text-slate-300">Downstream</span>
+              <span className="text-slate-400 dark:text-slate-500">
+                ({fromContext?.name || 'Unknown'})
+              </span>
+              <InfoTooltip
+                content={RELATIONSHIP_PATTERNS['anti-corruption-layer']}
+                position="bottom"
+              >
+                <HelpCircle size={11} className="text-slate-400 dark:text-slate-500 cursor-help" />
+              </InfoTooltip>
+            </div>
+            <PillGroup<DownstreamRole>
+              options={DOWNSTREAM_ROLE_OPTIONS}
+              value={relationship.downstreamRole}
+              onChange={handleDownstreamRoleChange}
+              layout="horizontal"
+              variant="green"
+              ariaLabel="Downstream role"
+            />
+          </div>
+        </div>
       </Section>
 
       {/* Communication Mode (autosaves) */}
