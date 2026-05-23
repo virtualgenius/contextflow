@@ -4,7 +4,7 @@ export type PowerDynamics = 'upstream' | 'downstream' | 'mutual' | 'none'
 export type PatternCategory = 'upstream-downstream' | 'mutual' | 'autonomous'
 
 export interface PatternDefinition {
-  value: Relationship['pattern']
+  value: NonNullable<Relationship['pattern']>
   label: string
   powerDynamics: PowerDynamics
   category: PatternCategory

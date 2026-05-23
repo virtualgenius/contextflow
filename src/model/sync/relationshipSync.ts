@@ -5,7 +5,7 @@ export function populateRelationshipYMap(yMap: Y.Map<unknown>, relationship: Rel
   yMap.set('id', relationship.id)
   yMap.set('fromContextId', relationship.fromContextId)
   yMap.set('toContextId', relationship.toContextId)
-  yMap.set('pattern', relationship.pattern)
+  yMap.set('pattern', relationship.pattern ?? null)
   yMap.set('upstreamRole', relationship.upstreamRole ?? null)
   yMap.set('downstreamRole', relationship.downstreamRole ?? null)
   yMap.set('communicationMode', relationship.communicationMode ?? null)
@@ -24,7 +24,11 @@ export function yMapToRelationship(yMap: Y.Map<unknown>): Relationship {
     id: yMap.get('id') as string,
     fromContextId: yMap.get('fromContextId') as string,
     toContextId: yMap.get('toContextId') as string,
-    pattern: yMap.get('pattern') as Relationship['pattern'],
+  }
+
+  const pattern = yMap.get('pattern')
+  if (pattern != null) {
+    relationship.pattern = pattern as Relationship['pattern']
   }
 
   const upstreamRole = yMap.get('upstreamRole')

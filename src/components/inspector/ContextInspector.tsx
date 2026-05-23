@@ -674,8 +674,8 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         <RelationshipCreateDialog
           fromContext={context}
           availableContexts={project.contexts.filter((c) => c.id !== context.id)}
-          onConfirm={(toContextId, pattern, description) => {
-            addRelationship(context.id, toContextId, pattern, description)
+          onConfirm={(toContextId, pattern, description, extras) => {
+            addRelationship(context.id, toContextId, pattern, description, extras)
             setShowRelationshipDialog(false)
           }}
           onCancel={() => setShowRelationshipDialog(false)}

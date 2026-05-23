@@ -71,10 +71,10 @@ describe('RelationshipInspector', () => {
     expect(screen.getByText('Billing')).toBeInTheDocument()
   })
 
-  it('calls deleteRelationship on confirmed delete', () => {
+  it('calls deleteRelationship on confirmed remove', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
-    fireEvent.click(screen.getByText('Delete Relationship'))
+    fireEvent.click(screen.getByRole('button', { name: /remove relationship/i }))
     expect(mockDeleteRelationship).toHaveBeenCalledWith('rel-1')
   })
 
@@ -87,12 +87,96 @@ describe('RelationshipInspector', () => {
     })
   })
 
-  it('calls updateRelationship when pattern changes', () => {
-    render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
-    fireEvent.change(screen.getByDisplayValue(/Customer-Supplier/i), {
-      target: { value: 'conformist' },
+  describe('picker structure (Slice 3)', () => {
+    it('shows Partnership and Customer-Supplier as pickable patterns', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      expect(screen.getByRole('button', { name: /partnership/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /customer-supplier/i })).toBeInTheDocument()
     })
-    expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', { pattern: 'conformist' })
+
+    it('does NOT show Shared Kernel as a pickable pattern; surfaces the gesture hint instead', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      expect(screen.queryByRole('button', { name: /^shared kernel$/i })).not.toBeInTheDocument()
+      expect(
+        screen.getByText(/for a shared kernel, drag the contexts to overlap/i)
+      ).toBeInTheDocument()
+    })
+
+    it('does NOT show Separate Ways as a pickable pattern; surfaces a Remove button instead', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      expect(screen.queryByRole('button', { name: /separate ways/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /remove relationship/i })).toBeInTheDocument()
+    })
+
+    it('marks the active pattern as pressed', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'partnership',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      const btn = screen.getByRole('button', { name: /partnership/i })
+      expect(btn).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('toggles Partnership off when the active Partnership button is clicked again', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'partnership',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /partnership/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', { pattern: undefined })
+    })
+
+    it('sets pattern to customer-supplier when an inactive Customer-Supplier button is clicked', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'partnership',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /customer-supplier/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        pattern: 'customer-supplier',
+      })
+    })
+
+    it('renders the "Currently: Shared Kernel" banner when pattern is shared-kernel', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'shared-kernel',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      expect(screen.getByText(/currently:\s*shared kernel/i)).toBeInTheDocument()
+    })
+
+    it('does NOT render the Shared Kernel banner for other patterns', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      expect(screen.queryByText(/currently:\s*shared kernel/i)).not.toBeInTheDocument()
+    })
   })
 
   describe('per-side roles', () => {

@@ -49,7 +49,7 @@ type PatternIndicatorConfig = {
 }
 
 export const PATTERN_EDGE_INDICATORS: Partial<
-  Record<Relationship['pattern'], PatternIndicatorConfig>
+  Record<NonNullable<Relationship['pattern']>, PatternIndicatorConfig>
 > = {
   'anti-corruption-layer': {
     label: 'ACL',

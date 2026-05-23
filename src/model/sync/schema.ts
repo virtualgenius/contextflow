@@ -151,6 +151,7 @@ export interface YjsRelationship {
     | 'shared-kernel'
     | 'partnership'
     | 'separate-ways'
+    | null
   upstreamRole?: 'open-host-service' | 'published-language' | null
   downstreamRole?: 'conformist' | 'anti-corruption-layer' | null
   communicationMode?: string | null

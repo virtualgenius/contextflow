@@ -262,6 +262,72 @@ describe('relationshipMutations', () => {
       expect(result.relationships[0].upstreamRole).toBeUndefined()
     })
 
+    it('clears per-side roles when pattern is set to partnership', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', {
+        upstreamRole: 'open-host-service',
+        downstreamRole: 'anti-corruption-layer',
+      })
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBe('partnership')
+      expect(result.relationships[0].upstreamRole).toBeUndefined()
+      expect(result.relationships[0].downstreamRole).toBeUndefined()
+    })
+
+    it('clears per-side roles when pattern is set to customer-supplier', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', {
+        upstreamRole: 'published-language',
+        downstreamRole: 'conformist',
+      })
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'customer-supplier' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBe('customer-supplier')
+      expect(result.relationships[0].upstreamRole).toBeUndefined()
+      expect(result.relationships[0].downstreamRole).toBeUndefined()
+    })
+
+    it('clears standalone pattern when an upstream role is set', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'customer-supplier' })
+      updateRelationshipMutation(ydoc, 'rel-1', { upstreamRole: 'open-host-service' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBeUndefined()
+      expect(result.relationships[0].upstreamRole).toBe('open-host-service')
+    })
+
+    it('clears standalone pattern when a downstream role is set', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' })
+      updateRelationshipMutation(ydoc, 'rel-1', { downstreamRole: 'anti-corruption-layer' })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBeUndefined()
+      expect(result.relationships[0].downstreamRole).toBe('anti-corruption-layer')
+    })
+
+    it('toggling pattern off (set undefined) does NOT clear per-side roles', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', {
+        upstreamRole: 'open-host-service',
+      })
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: undefined })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBeUndefined()
+      expect(result.relationships[0].upstreamRole).toBe('open-host-service')
+    })
+
+    it('toggling an upstream role off (set undefined) does NOT clear pattern', () => {
+      updateRelationshipMutation(ydoc, 'rel-1', {
+        pattern: 'customer-supplier',
+      })
+      updateRelationshipMutation(ydoc, 'rel-1', { upstreamRole: undefined })
+
+      const result = yDocToProject(ydoc)
+      expect(result.relationships[0].pattern).toBe('customer-supplier')
+      expect(result.relationships[0].upstreamRole).toBeUndefined()
+    })
+
     it('should not clobber per-side roles when updating other fields', () => {
       updateRelationshipMutation(ydoc, 'rel-1', {
         upstreamRole: 'published-language',

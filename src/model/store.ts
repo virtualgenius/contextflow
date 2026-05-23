@@ -655,7 +655,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       return {}
     }),
 
-  addRelationship: (fromContextId, toContextId, pattern, description) =>
+  addRelationship: (fromContextId, toContextId, pattern, description, extras) =>
     set(() => {
       const newRelationship = {
         id: `rel-${Date.now()}`,
@@ -663,6 +663,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         toContextId,
         pattern,
         description,
+        upstreamRole: extras?.upstreamRole,
+        downstreamRole: extras?.downstreamRole,
       }
       getCollabMutations().addRelationship(newRelationship)
 
@@ -670,6 +672,8 @@ export const useEditorStore = create<EditorState>((set) => ({
         entity_type: 'relationship',
         entity_id: newRelationship.id,
         pattern,
+        upstream_role: extras?.upstreamRole,
+        downstream_role: extras?.downstreamRole,
       })
       trackFTUEMilestone('first_relationship_added', null)
 

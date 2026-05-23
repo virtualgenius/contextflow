@@ -217,7 +217,7 @@ describe('Yjs Schema Type Definitions', () => {
         id: relationship.id,
         fromContextId: relationship.fromContextId,
         toContextId: relationship.toContextId,
-        pattern: relationship.pattern,
+        pattern: relationship.pattern ?? null,
         communicationMode: relationship.communicationMode ?? null,
         description: relationship.description ?? null,
       }

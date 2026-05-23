@@ -208,8 +208,12 @@ export interface EditorState {
   addRelationship: (
     fromContextId: string,
     toContextId: string,
-    pattern: Relationship['pattern'],
-    description?: string
+    pattern: Relationship['pattern'] | undefined,
+    description?: string,
+    extras?: {
+      upstreamRole?: Relationship['upstreamRole']
+      downstreamRole?: Relationship['downstreamRole']
+    }
   ) => void
   deleteRelationship: (relationshipId: string) => void
   updateRelationship: (

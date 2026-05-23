@@ -71,10 +71,36 @@ function applyRelationshipUpdates(
     'description',
   ]
 
+  const effectiveUpdates = applyMutualExclusion(updates)
+
   for (const field of fields) {
-    if (field in updates) {
-      const value = updates[field]
+    if (field in effectiveUpdates) {
+      const value = effectiveUpdates[field]
       yRelationship.set(field, value ?? null)
     }
   }
+}
+
+// Pattern (Partnership / Customer-Supplier / Shared Kernel) and per-side roles
+// (Open Host Service / Published Language / Conformist / Anti-Corruption Layer)
+// are mutually exclusive ways to characterize a relationship. Setting one to a
+// defined value clears the other side so the data never holds contradictory
+// state. Toggling off (setting to undefined) does NOT cascade.
+function applyMutualExclusion(updates: Partial<Relationship>): Partial<Relationship> {
+  const result: Partial<Relationship> = { ...updates }
+
+  const settingPattern = 'pattern' in updates && updates.pattern != null
+  const settingUpstreamRole = 'upstreamRole' in updates && updates.upstreamRole != null
+  const settingDownstreamRole = 'downstreamRole' in updates && updates.downstreamRole != null
+
+  if (settingPattern) {
+    if (!('upstreamRole' in result)) result.upstreamRole = undefined
+    if (!('downstreamRole' in result)) result.downstreamRole = undefined
+  }
+
+  if (settingUpstreamRole || settingDownstreamRole) {
+    if (!('pattern' in result)) result.pattern = undefined
+  }
+
+  return result
 }

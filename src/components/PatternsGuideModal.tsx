@@ -2,31 +2,43 @@ import React from 'react'
 import { X } from 'lucide-react'
 import {
   POWER_DYNAMICS_ICONS,
-  getPatternsByCategory,
+  PATTERN_DEFINITIONS,
   type PatternDefinition,
-  type PatternCategory,
 } from '../model/patternDefinitions'
 
 interface PatternsGuideModalProps {
   onClose: () => void
 }
 
-const CATEGORY_LABELS: Record<
-  PatternCategory,
-  { title: string; description: string; note?: string }
+type InfluenceGroupKey = 'mutually-dependent' | 'upstream-downstream'
+
+const INFLUENCE_GROUPS: Record<
+  InfluenceGroupKey,
+  {
+    title: string
+    description: string
+    note?: string
+    patterns: PatternDefinition['value'][]
+  }
 > = {
+  'mutually-dependent': {
+    title: 'Mutually Dependent',
+    description: 'Both contexts depend on each other; neither is upstream or downstream.',
+    patterns: ['partnership', 'shared-kernel'],
+    note: 'Shared Kernel is created by dragging the contexts to overlap on the canvas.',
+  },
   'upstream-downstream': {
-    title: 'Upstream/Downstream Patterns',
-    description: 'One team has more control or influence over the integration.',
-    note: '"Upstream/downstream" refers to control, not data flow direction.',
-  },
-  mutual: {
-    title: 'Mutual Patterns',
-    description: 'Teams share control and must coordinate closely.',
-  },
-  autonomous: {
-    title: 'Autonomous Patterns',
-    description: 'Teams operate independently without integration.',
+    title: 'Upstream / Downstream',
+    description:
+      'One context has more influence over the relationship. The upstream provides; the downstream consumes.',
+    note: '"Upstream/downstream" refers to influence over the relationship, not data flow direction.',
+    patterns: [
+      'customer-supplier',
+      'open-host-service',
+      'published-language',
+      'conformist',
+      'anti-corruption-layer',
+    ],
   },
 }
 
@@ -415,7 +427,8 @@ function PatternCard({ pattern }: { pattern: PatternDefinition }) {
 }
 
 export function PatternsGuideModal({ onClose }: PatternsGuideModalProps) {
-  const patternsByCategory = getPatternsByCategory()
+  const patternByValue = new Map(PATTERN_DEFINITIONS.map((p) => [p.value, p]))
+  const groupOrder: InfluenceGroupKey[] = ['mutually-dependent', 'upstream-downstream']
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -461,28 +474,34 @@ export function PatternsGuideModal({ onClose }: PatternsGuideModalProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
-          {(Object.keys(patternsByCategory) as PatternCategory[]).map((category) => (
-            <div key={category}>
-              <div className="mb-3">
-                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  {CATEGORY_LABELS[category].title}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {CATEGORY_LABELS[category].description}
-                </p>
-                {CATEGORY_LABELS[category].note && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">
-                    ⚠️ {CATEGORY_LABELS[category].note}
+          {groupOrder.map((groupKey) => {
+            const group = INFLUENCE_GROUPS[groupKey]
+            const patterns = group.patterns
+              .map((value) => patternByValue.get(value))
+              .filter((p): p is PatternDefinition => p != null)
+            return (
+              <div key={groupKey}>
+                <div className="mb-3">
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {group.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {group.description}
                   </p>
-                )}
+                  {group.note && (
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 italic">
+                      {group.note}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {patterns.map((pattern) => (
+                    <PatternCard key={pattern.value} pattern={pattern} />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2">
-                {patternsByCategory[category].map((pattern) => (
-                  <PatternCard key={pattern.value} pattern={pattern} />
-                ))}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Footer */}

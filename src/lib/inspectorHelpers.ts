@@ -20,7 +20,7 @@ export interface CategorizedRelationships {
   mutual: Relationship[]
 }
 
-function isSymmetricPattern(pattern: string): boolean {
+function isSymmetricPattern(pattern: string | undefined): boolean {
   return pattern === 'shared-kernel' || pattern === 'partnership'
 }
 
