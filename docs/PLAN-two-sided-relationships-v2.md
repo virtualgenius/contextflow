@@ -130,7 +130,7 @@ Each slice has:
 
 **Files likely affected**:
 - `src/components/inspector/RelationshipInspector.tsx` (full restructure)
-- `src/components/inspector/RelationshipCreateDialog.tsx` (matching restructure for creation)
+- `src/components/RelationshipCreateDialog.tsx` (matching restructure for creation)
 - `src/components/PatternsGuideModal.tsx` (regroup by influence type for teaching, drop separate-ways)
 - `src/model/sync/relationshipMutations.ts` (auto-resolve cross-clears already enforced; extend to cover all pattern transitions)
 

@@ -176,7 +176,7 @@ Two-sided pattern selection. This is where Tom's workshop value lands.
 
 **Files:**
 - `src/components/inspector/RelationshipInspector.tsx` - Replace single 8-option dropdown with: (1) standalone pattern selector (C/S, Partnership, Shared Kernel), (2) upstream role selector (OHS, PL, or none), (3) downstream role selector (Conformist, ACL, or none). Switching to standalone clears roles; setting a role clears standalone pattern. Show both selectors simultaneously for per-side mode.
-- `src/components/inspector/RelationshipCreateDialog.tsx` - Same two-sided UI for creation
+- `src/components/RelationshipCreateDialog.tsx` - Same two-sided UI for creation
 - `src/components/PatternsGuideModal.tsx` - Restructure to show standalone patterns, upstream roles, and downstream roles as separate sections
 
 ### Slice 5: Edge Rendering
