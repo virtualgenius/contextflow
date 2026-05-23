@@ -210,16 +210,16 @@ describe('ContextNode badge layout (contextflow-s0x)', () => {
       expect(screen.getByTestId('issue-counter-info').textContent).toContain('1')
     })
 
-    it('renders counters in order critical, warning, info', () => {
-      renderNode(makeContext({ issues: [info1, warning1, critical] }))
+    it('renders counters in order info, warning, critical (matches inspector panel)', () => {
+      renderNode(makeContext({ issues: [critical, warning1, info1] }))
       const pill = screen.getByTestId('issue-counter-pill')
       const counterIds = Array.from(pill.querySelectorAll('[data-testid^="issue-counter-"]')).map(
         (el) => el.getAttribute('data-testid')
       )
       expect(counterIds).toEqual([
-        'issue-counter-critical',
-        'issue-counter-warning',
         'issue-counter-info',
+        'issue-counter-warning',
+        'issue-counter-critical',
       ])
     })
 

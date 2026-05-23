@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import type { Issue, IssueSeverity } from '../../model/types'
 
-const SEVERITY_ORDER: IssueSeverity[] = ['critical', 'warning', 'info']
+const SEVERITY_ORDER: IssueSeverity[] = ['info', 'warning', 'critical']
 
 const SEVERITY_COLORS: Record<IssueSeverity, string> = {
   critical: '#dc2626',
