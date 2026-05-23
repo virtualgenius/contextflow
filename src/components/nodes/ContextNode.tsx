@@ -127,7 +127,7 @@ export function ContextNode({ data }: NodeProps) {
   const OWNERSHIP_COLORS = {
     ours: '#d1fae5', // green-100
     internal: '#dbeafe', // blue-100
-    external: '#e2e8f0', // slate-200
+    external: '#fed7aa', // orange-200
   }
   const STRATEGIC_COLORS = {
     core: '#f8e7a1', // yellow

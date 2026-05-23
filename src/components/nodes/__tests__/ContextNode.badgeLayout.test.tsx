@@ -94,10 +94,10 @@ describe('ContextNode badge layout (contextflow-s0x)', () => {
       expect(screen.queryByText(/external/i)).toBeNull()
     })
 
-    it('uses slate fill (not orange) for external contexts', () => {
+    it('keeps the orange ownership fill for external contexts', () => {
       renderNode(makeContext({ ownership: 'external' }))
       const card = screen.getByTestId('context-name').parentElement!
-      expect(card.style.backgroundColor).toBe('rgb(226, 232, 240)')
+      expect(card.style.backgroundColor).toBe('rgb(254, 215, 170)')
     })
 
     it('uses dashed border for external contexts', () => {
