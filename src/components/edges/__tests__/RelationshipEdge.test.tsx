@@ -204,30 +204,6 @@ describe('RelationshipEdge double-click to flip direction', () => {
     expect(mockSwap).not.toHaveBeenCalled()
   })
 
-  it('does NOT call swapRelationshipDirection on double-click for separate-ways pattern', () => {
-    const mockSwap = vi.fn()
-    setupMock({ swapRelationshipDirection: mockSwap })
-    const swProps = {
-      ...baseProps,
-      data: {
-        relationship: {
-          id: 'rel-1',
-          fromContextId: 'ctx-1',
-          toContextId: 'ctx-2',
-          pattern: 'separate-ways',
-        },
-      },
-    }
-    const { container } = render(
-      <svg>
-        <RelationshipEdge {...swProps} />
-      </svg>
-    )
-    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
-    fireEvent.doubleClick(hitArea!)
-    expect(mockSwap).not.toHaveBeenCalled()
-  })
-
   it('still fires single-click selection independently from double-click handler', () => {
     const mockSwap = vi.fn()
     setupMock({ swapRelationshipDirection: mockSwap })

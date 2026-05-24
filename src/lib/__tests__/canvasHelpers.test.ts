@@ -62,7 +62,7 @@ describe('getHoverConnectedContextIds', () => {
   it('deduplicates when context appears in multiple relationships', () => {
     const rels = [
       makeRelationship('a', 'b', 'customer-supplier'),
-      makeRelationship('b', 'a', 'conformist'),
+      makeRelationship('b', 'a', 'partnership'),
     ]
     const result = getHoverConnectedContextIds('a', rels)
     expect(result).toEqual(new Set(['b']))
@@ -96,13 +96,6 @@ describe('getEdgeLabelInfo', () => {
     expect(info).not.toBeNull()
     expect(info!.label).toBe('Shared Kernel')
     expect(info!.directionIcon).toBe('↔')
-  })
-
-  it('returns null direction icon for separate-ways (none)', () => {
-    const info = getEdgeLabelInfo('separate-ways')
-    expect(info).not.toBeNull()
-    expect(info!.label).toBe('Separate Ways')
-    expect(info!.directionIcon).toBeNull()
   })
 
   it('returns null for unknown pattern', () => {

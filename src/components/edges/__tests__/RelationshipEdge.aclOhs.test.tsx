@@ -50,7 +50,20 @@ function setupMock(overrides: Record<string, unknown> = {}) {
   })
 }
 
-function baseProps(pattern: 'anti-corruption-layer' | 'open-host-service') {
+function baseProps(role: 'anti-corruption-layer' | 'open-host-service') {
+  const relationship: {
+    id: string
+    fromContextId: string
+    toContextId: string
+    upstreamRole?: 'open-host-service'
+    downstreamRole?: 'anti-corruption-layer'
+  } = {
+    id: 'rel-1',
+    fromContextId: 'ctx-1',
+    toContextId: 'ctx-2',
+  }
+  if (role === 'anti-corruption-layer') relationship.downstreamRole = role
+  else relationship.upstreamRole = role
   return {
     id: 'rel-1',
     source: 'ctx-1',
@@ -61,14 +74,7 @@ function baseProps(pattern: 'anti-corruption-layer' | 'open-host-service') {
     targetY: 0,
     sourcePosition: 'right' as never,
     targetPosition: 'left' as never,
-    data: {
-      relationship: {
-        id: 'rel-1',
-        fromContextId: 'ctx-1',
-        toContextId: 'ctx-2',
-        pattern,
-      },
-    },
+    data: { relationship },
   }
 }
 

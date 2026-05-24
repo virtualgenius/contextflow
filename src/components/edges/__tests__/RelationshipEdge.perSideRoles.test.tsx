@@ -172,39 +172,6 @@ describe('RelationshipEdge per-side role indicators (contextflow-h82, Slice 2)',
     expect(getVisibleBoxes(container)).toHaveLength(0)
   })
 
-  it('per-side roles take precedence over legacy pattern (PL upstream + legacy OHS pattern shows no box)', () => {
-    const { container } = render(
-      <svg>
-        <RelationshipEdge
-          {...relProps({ pattern: 'open-host-service', upstreamRole: 'published-language' })}
-        />
-      </svg>
-    )
-    expect(getVisibleBoxes(container)).toHaveLength(0)
-  })
-
-  it('backward compat: pattern=open-host-service still renders an OHS box when no roles are set', () => {
-    const { container } = render(
-      <svg>
-        <RelationshipEdge {...relProps({ pattern: 'open-host-service' })} />
-      </svg>
-    )
-    const boxes = getVisibleBoxes(container)
-    expect(boxes).toHaveLength(1)
-    expect(boxes[0].getAttribute('stroke')).toBe('#22c55e')
-  })
-
-  it('backward compat: pattern=anti-corruption-layer still renders an ACL box when no roles are set', () => {
-    const { container } = render(
-      <svg>
-        <RelationshipEdge {...relProps({ pattern: 'anti-corruption-layer' })} />
-      </svg>
-    )
-    const boxes = getVisibleBoxes(container)
-    expect(boxes).toHaveLength(1)
-    expect(boxes[0].getAttribute('stroke')).toBe('#f59e0b')
-  })
-
   it('two-box geometry: path runs from the ACL box outer edge to the OHS box outer edge', () => {
     const { container } = render(
       <svg>

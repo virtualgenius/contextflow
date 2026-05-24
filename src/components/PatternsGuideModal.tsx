@@ -321,31 +321,6 @@ function PatternDiagram({ pattern }: { pattern: PatternDefinition['value'] }) {
         </text>
       </svg>
     ),
-    'separate-ways': (
-      <svg viewBox="0 0 200 60" className="w-full h-14">
-        <rect x={20} y={15} width={60} height={30} rx={3} className={boxStyle} strokeWidth={1.5} />
-        <rect x={120} y={15} width={60} height={30} rx={3} className={boxStyle} strokeWidth={1.5} />
-        <text x={50} y={33} textAnchor="middle" className={textStyle}>
-          Context A
-        </text>
-        <text x={150} y={33} textAnchor="middle" className={textStyle}>
-          Context B
-        </text>
-        {/* X mark indicating no connection */}
-        <g className="stroke-red-400 dark:stroke-red-500" strokeWidth={2}>
-          <line x1={92} y1={24} x2={108} y2={36} />
-          <line x1={108} y1={24} x2={92} y2={36} />
-        </g>
-        <text
-          x={100}
-          y={52}
-          textAnchor="middle"
-          className="fill-slate-500 dark:fill-slate-400 text-[8px]"
-        >
-          no integration
-        </text>
-      </svg>
-    ),
   }
 
   return diagrams[pattern] || null

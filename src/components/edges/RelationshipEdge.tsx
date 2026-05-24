@@ -133,8 +133,7 @@ function RelationshipEdge({
   })
 
   // Non-directional patterns (no arrow)
-  const isSymmetric =
-    pattern === 'shared-kernel' || pattern === 'partnership' || pattern === 'separate-ways'
+  const isSymmetric = pattern === 'shared-kernel' || pattern === 'partnership'
 
   // Visible path: pulled back from both context borders so the line floats
   // BETWEEN contexts rather than tied flush to their edges. Source side gets
@@ -162,26 +161,14 @@ function RelationshipEdge({
       ? 'arrow-hover'
       : 'arrow-default'
 
-  // Per-side roles (Slice 2 of two-sided relationships, contextflow-h82) take
-  // precedence over the legacy single `pattern` field. PL upstream and
-  // Conformist downstream are intentionally not surfaced on the canvas
+  // Per-side roles drive on-canvas indicator boxes. PL upstream and Conformist
+  // downstream are intentionally not surfaced on the canvas
   // (design_pl_conformist_no_canvas_visual); only OHS and ACL get boxes.
-  const hasPerSideRoles =
-    relationship?.upstreamRole !== undefined || relationship?.downstreamRole !== undefined
-
   const upstreamIndicatorKey: SideIndicatorKey | null =
-    relationship?.upstreamRole === 'open-host-service'
-      ? 'open-host-service'
-      : !hasPerSideRoles && pattern === 'open-host-service'
-        ? 'open-host-service'
-        : null
+    relationship?.upstreamRole === 'open-host-service' ? 'open-host-service' : null
 
   const downstreamIndicatorKey: SideIndicatorKey | null =
-    relationship?.downstreamRole === 'anti-corruption-layer'
-      ? 'anti-corruption-layer'
-      : !hasPerSideRoles && pattern === 'anti-corruption-layer'
-        ? 'anti-corruption-layer'
-        : null
+    relationship?.downstreamRole === 'anti-corruption-layer' ? 'anti-corruption-layer' : null
 
   const upstreamConfig = upstreamIndicatorKey ? PATTERN_EDGE_INDICATORS[upstreamIndicatorKey] : null
   const downstreamConfig = downstreamIndicatorKey

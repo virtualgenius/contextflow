@@ -679,14 +679,4 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
       'Features often span both contexts',
     ],
   },
-  'separate-ways': {
-    title: 'Separate Ways',
-    description:
-      'A deliberate decision not to integrate. Each context solves its own problems independently.',
-    characteristics: [
-      '○ No integration',
-      'Eliminates integration complexity',
-      'Allows full team autonomy',
-    ],
-  },
 }

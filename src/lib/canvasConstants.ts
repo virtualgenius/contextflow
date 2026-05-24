@@ -1,4 +1,4 @@
-import type { Relationship } from '../model/types'
+import type { UpstreamRole, DownstreamRole } from '../model/types'
 
 // Node size mapping
 export const NODE_SIZES = {
@@ -49,7 +49,7 @@ type PatternIndicatorConfig = {
 }
 
 export const PATTERN_EDGE_INDICATORS: Partial<
-  Record<NonNullable<Relationship['pattern']>, PatternIndicatorConfig>
+  Record<UpstreamRole | DownstreamRole, PatternIndicatorConfig>
 > = {
   'anti-corruption-layer': {
     label: 'ACL',
