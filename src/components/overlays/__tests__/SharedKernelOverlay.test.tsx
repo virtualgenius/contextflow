@@ -112,7 +112,38 @@ describe('SharedKernelOverlay', () => {
     expect(container.querySelector('[data-shared-kernel-id="rel-1"]')).toBeNull()
   })
 
-  it('clicking the hatched region selects the SK relationship with both contexts', () => {
+  it('clicking the label selects the SK relationship with both contexts', () => {
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label).not.toBeNull()
+    fireEvent.click(label)
+
+    expect(useEditorStore.setState).toHaveBeenCalledTimes(1)
+    const callArg = vi.mocked(useEditorStore.setState).mock.calls[0][0] as Record<string, unknown>
+    expect(callArg.selectedRelationshipId).toBe('rel-1')
+    expect(callArg.selectedContextIds).toEqual(['ctx-a', 'ctx-b'])
+  })
+
+  it('always shows the "Shared Kernel" label so it can serve as the click target', () => {
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    expect(container.textContent).toContain('Shared Kernel')
+  })
+
+  it('makes the hatched fill pointer-events: none so drag can pass through to contexts beneath', () => {
     const a = makeContext('ctx-a', 0, 0)
     const b = makeContext('ctx-b', 5, 5)
     const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
@@ -122,16 +153,10 @@ describe('SharedKernelOverlay', () => {
     )
 
     const region = container.querySelector('[data-shared-kernel-id="rel-1"]') as HTMLElement
-    expect(region).not.toBeNull()
-    fireEvent.click(region)
-
-    expect(useEditorStore.setState).toHaveBeenCalledTimes(1)
-    const callArg = vi.mocked(useEditorStore.setState).mock.calls[0][0] as Record<string, unknown>
-    expect(callArg.selectedRelationshipId).toBe('rel-1')
-    expect(callArg.selectedContextIds).toEqual(['ctx-a', 'ctx-b'])
+    expect(region.style.pointerEvents).toBe('none')
   })
 
-  it('hides the "Shared Kernel" label by default (matches showRelationshipLabels toggle)', () => {
+  it('makes the label button interactive (pointer-events: auto) so users can click to select', () => {
     const a = makeContext('ctx-a', 0, 0)
     const b = makeContext('ctx-b', 5, 5)
     const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
@@ -140,33 +165,9 @@ describe('SharedKernelOverlay', () => {
       <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
     )
 
-    expect(container.textContent).not.toContain('Shared Kernel')
-  })
-
-  it('shows the "Shared Kernel" label when showRelationshipLabels is on', () => {
-    setupStoreMock({ showRelationshipLabels: true })
-    const a = makeContext('ctx-a', 0, 0)
-    const b = makeContext('ctx-b', 5, 5)
-    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
-
-    const { container } = render(
-      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
-    )
-
-    expect(container.textContent).toContain('Shared Kernel')
-  })
-
-  it('shows the label when the relationship is selected even with the toggle off', () => {
-    setupStoreMock({ selectedRelationshipId: 'rel-1' })
-    const a = makeContext('ctx-a', 0, 0)
-    const b = makeContext('ctx-b', 5, 5)
-    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
-
-    const { container } = render(
-      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
-    )
-
-    expect(container.textContent).toContain('Shared Kernel')
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label).not.toBeNull()
+    expect(label.style.pointerEvents).toBe('auto')
   })
 
   it('returns null when no SK relationships are present', () => {

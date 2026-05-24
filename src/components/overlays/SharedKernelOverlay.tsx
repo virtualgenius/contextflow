@@ -44,7 +44,6 @@ export function SharedKernelOverlay({
   const { x: vpX, y: vpY, zoom } = useViewport()
   const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
   const hoveredRelationshipId = useEditorStore((s) => s.hoveredRelationshipId)
-  const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
   const setHoveredRelationship = useEditorStore((s) => s.setHoveredRelationship)
   const [hoveredOverlayId, setHoveredOverlayId] = useState<string | null>(null)
 
@@ -89,27 +88,16 @@ export function SharedKernelOverlay({
         const hatchDarkAlpha = isEmphasized ? 0.5 : 0.35
         const borderColor = '#7c3aed'
         const borderWidth = isSelected ? 3 : 2
-        const showLabel = (showRelationshipLabels || isEmphasized) && zoom >= ZOOM_LABEL_CUTOFF
+        const showLabel = zoom >= ZOOM_LABEL_CUTOFF
 
+        // The hatched fill is purely visual and must not intercept pointer
+        // events: otherwise users can't drag contexts apart when an SK
+        // covers them entirely. The label pill is the SK's interactive
+        // surface (click to select, hover to emphasize).
         return (
           <div
             key={`shared-kernel-${rel.id}`}
             data-shared-kernel-id={rel.id}
-            onClick={(e) => {
-              e.stopPropagation()
-              useEditorStore.setState({
-                ...createSelectionState(rel.id, 'relationship'),
-                selectedContextIds: [rel.fromContextId, rel.toContextId],
-              })
-            }}
-            onMouseEnter={() => {
-              setHoveredOverlayId(rel.id)
-              setHoveredRelationship(rel.id)
-            }}
-            onMouseLeave={() => {
-              setHoveredOverlayId(null)
-              setHoveredRelationship(null)
-            }}
             style={{
               position: 'absolute',
               left: screenX,
@@ -123,14 +111,33 @@ export function SharedKernelOverlay({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              pointerEvents: 'auto',
-              cursor: 'pointer',
+              pointerEvents: 'none',
             }}
           >
             {showLabel && (
-              <div className={SK_LABEL_CLASSES} style={{ pointerEvents: 'none' }}>
+              <button
+                type="button"
+                data-shared-kernel-label={rel.id}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  useEditorStore.setState({
+                    ...createSelectionState(rel.id, 'relationship'),
+                    selectedContextIds: [rel.fromContextId, rel.toContextId],
+                  })
+                }}
+                onMouseEnter={() => {
+                  setHoveredOverlayId(rel.id)
+                  setHoveredRelationship(rel.id)
+                }}
+                onMouseLeave={() => {
+                  setHoveredOverlayId(null)
+                  setHoveredRelationship(null)
+                }}
+                className={`${SK_LABEL_CLASSES} cursor-pointer`}
+                style={{ pointerEvents: 'auto' }}
+              >
                 Shared Kernel
-              </div>
+              </button>
             )}
           </div>
         )
