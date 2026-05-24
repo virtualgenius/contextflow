@@ -12,6 +12,7 @@ import type { ViewMode } from '../../model/storeTypes'
 import { InfoTooltip } from '../InfoTooltip'
 import { PatternsGuideModal } from '../PatternsGuideModal'
 import { COMMUNICATION_MODE, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
+import { computeSeparatedPositions } from '../../lib/sharedKernelSeparation'
 import {
   INPUT_TEXT_CLASS,
   TEXTAREA_CLASS,
@@ -49,6 +50,7 @@ export function RelationshipInspector({
   const updateRelationship = useEditorStore((s) => s.updateRelationship)
   const swapRelationshipDirection = useEditorStore((s) => s.swapRelationshipDirection)
   const activeViewMode = useEditorStore((s) => s.activeViewMode)
+  const updateMultipleContextPositions = useEditorStore((s) => s.updateMultipleContextPositions)
 
   const [showPatternsGuide, setShowPatternsGuide] = React.useState(false)
 
@@ -72,17 +74,37 @@ export function RelationshipInspector({
     }
   }
 
+  // When the user replaces an active Shared Kernel via the picker, the two
+  // contexts need to stop overlapping so the canvas reflects the new pattern.
+  // See contextflow-bvu: separation happens only on the SK -> non-SK transition,
+  // only in flow or strategic view (distillation has its own coordinate space),
+  // and only when the contexts currently overlap.
+  const applySKSeparationIfLeavingSK = () => {
+    if (!isSharedKernel) return
+    if (activeViewMode === 'distillation') return
+    if (!fromContext || !toContext) return
+    const separated = computeSeparatedPositions(fromContext, toContext, activeViewMode)
+    if (!separated) return
+    updateMultipleContextPositions({
+      [fromContext.id]: separated.fromPositions,
+      [toContext.id]: separated.toPositions,
+    })
+  }
+
   const handlePickPattern = (next: PickerPattern) => {
     const toggleOff = relationship.pattern === next
     updateRelationship(relationship.id, { pattern: toggleOff ? undefined : next })
+    applySKSeparationIfLeavingSK()
   }
 
   const handleUpstreamRoleChange = (next: UpstreamRole | undefined) => {
     updateRelationship(relationship.id, { upstreamRole: next })
+    if (next !== undefined) applySKSeparationIfLeavingSK()
   }
 
   const handleDownstreamRoleChange = (next: DownstreamRole | undefined) => {
     updateRelationship(relationship.id, { downstreamRole: next })
+    if (next !== undefined) applySKSeparationIfLeavingSK()
   }
 
   const handleCommunicationModeChange = (e: React.FocusEvent<HTMLInputElement>) => {

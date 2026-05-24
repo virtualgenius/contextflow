@@ -19,6 +19,7 @@ vi.mock('../../PatternsGuideModal', () => ({
 const mockDeleteRelationship = vi.fn()
 const mockUpdateRelationship = vi.fn()
 const mockSwapRelationshipDirection = vi.fn()
+const mockUpdateMultipleContextPositions = vi.fn()
 
 function makeProject(overrides: Partial<Project> = {}): Project {
   return {
@@ -47,18 +48,23 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   } as unknown as Project
 }
 
+function setupStore(viewMode: 'flow' | 'strategic' | 'distillation' = 'flow') {
+  vi.mocked(useEditorStore).mockImplementation((selector) => {
+    const state = {
+      deleteRelationship: mockDeleteRelationship,
+      updateRelationship: mockUpdateRelationship,
+      swapRelationshipDirection: mockSwapRelationshipDirection,
+      updateMultipleContextPositions: mockUpdateMultipleContextPositions,
+      activeViewMode: viewMode,
+    }
+    return selector(state as never)
+  })
+}
+
 describe('RelationshipInspector', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(useEditorStore).mockImplementation((selector) => {
-      const state = {
-        deleteRelationship: mockDeleteRelationship,
-        updateRelationship: mockUpdateRelationship,
-        swapRelationshipDirection: mockSwapRelationshipDirection,
-        activeViewMode: 'flow',
-      }
-      return selector(state as never)
-    })
+    setupStore()
   })
 
   it('renders not-found when relationshipId is invalid', () => {
@@ -387,6 +393,174 @@ describe('RelationshipInspector', () => {
       expect(slotButtons[1]?.textContent).toContain('Orders')
       expect(slotButtons[0]?.textContent?.toLowerCase()).toContain('upstream')
       expect(slotButtons[1]?.textContent?.toLowerCase()).toContain('downstream')
+    })
+  })
+
+  describe('Shared Kernel auto-separation when picker changes pattern (contextflow-bvu)', () => {
+    function makeOverlappingSKProject(): Project {
+      return makeProject({
+        contexts: [
+          {
+            id: 'ctx-1',
+            name: 'Orders',
+            positions: {
+              flow: { x: 40 },
+              strategic: { x: 40 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 40 },
+            },
+            codeSize: { bucket: 'medium' },
+          },
+          {
+            id: 'ctx-2',
+            name: 'Billing',
+            positions: {
+              flow: { x: 42 },
+              strategic: { x: 42 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 42 },
+            },
+            codeSize: { bucket: 'medium' },
+          },
+        ] as unknown as Project['contexts'],
+        relationships: [
+          { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'shared-kernel' },
+        ],
+      })
+    }
+
+    it('moves both contexts apart when SK is replaced with Partnership', () => {
+      render(<RelationshipInspector project={makeOverlappingSKProject()} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /partnership/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', { pattern: 'partnership' })
+      expect(mockUpdateMultipleContextPositions).toHaveBeenCalledTimes(1)
+      const positionsArg = mockUpdateMultipleContextPositions.mock.calls[0][0]
+      expect(Object.keys(positionsArg).sort()).toEqual(['ctx-1', 'ctx-2'])
+    })
+
+    it('moves both contexts apart when SK is replaced with Customer-Supplier', () => {
+      render(<RelationshipInspector project={makeOverlappingSKProject()} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /customer-supplier/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        pattern: 'customer-supplier',
+      })
+      expect(mockUpdateMultipleContextPositions).toHaveBeenCalledTimes(1)
+    })
+
+    it('moves both contexts apart when SK is replaced with an upstream role', () => {
+      render(<RelationshipInspector project={makeOverlappingSKProject()} relationshipId="rel-1" />)
+      const upstreamGroup = screen.getByRole('radiogroup', { name: /upstream role/i })
+      fireEvent.click(within(upstreamGroup).getByRole('radio', { name: /open host service/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        upstreamRole: 'open-host-service',
+      })
+      expect(mockUpdateMultipleContextPositions).toHaveBeenCalledTimes(1)
+    })
+
+    it('moves both contexts apart when SK is replaced with a downstream role', () => {
+      render(<RelationshipInspector project={makeOverlappingSKProject()} relationshipId="rel-1" />)
+      const downstreamGroup = screen.getByRole('radiogroup', { name: /downstream role/i })
+      fireEvent.click(
+        within(downstreamGroup).getByRole('radio', { name: /anti-corruption layer/i })
+      )
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
+        downstreamRole: 'anti-corruption-layer',
+      })
+      expect(mockUpdateMultipleContextPositions).toHaveBeenCalledTimes(1)
+    })
+
+    it('does NOT reposition when the active pattern is not SK', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /partnership/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalled()
+      expect(mockUpdateMultipleContextPositions).not.toHaveBeenCalled()
+    })
+
+    it('does NOT reposition when toggling a role pill OFF (no SK→non-SK transition)', () => {
+      const skWithOhsProject = makeProject({
+        contexts: [
+          {
+            id: 'ctx-1',
+            name: 'Orders',
+            positions: {
+              flow: { x: 40 },
+              strategic: { x: 40 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 40 },
+            },
+            codeSize: { bucket: 'medium' },
+          },
+          {
+            id: 'ctx-2',
+            name: 'Billing',
+            positions: {
+              flow: { x: 42 },
+              strategic: { x: 42 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 42 },
+            },
+            codeSize: { bucket: 'medium' },
+          },
+        ] as unknown as Project['contexts'],
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'shared-kernel',
+            upstreamRole: 'open-host-service',
+          },
+        ],
+      })
+      render(<RelationshipInspector project={skWithOhsProject} relationshipId="rel-1" />)
+      const upstreamGroup = screen.getByRole('radiogroup', { name: /upstream role/i })
+      fireEvent.click(within(upstreamGroup).getByRole('radio', { name: /open host service/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', { upstreamRole: undefined })
+      expect(mockUpdateMultipleContextPositions).not.toHaveBeenCalled()
+    })
+
+    it('does NOT reposition when the contexts do not overlap (degenerate SK)', () => {
+      const nonOverlappingSK = makeProject({
+        contexts: [
+          {
+            id: 'ctx-1',
+            name: 'Orders',
+            positions: {
+              flow: { x: 5 },
+              strategic: { x: 5 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 30 },
+            },
+            codeSize: { bucket: 'medium' },
+          },
+          {
+            id: 'ctx-2',
+            name: 'Billing',
+            positions: {
+              flow: { x: 80 },
+              strategic: { x: 80 },
+              distillation: { x: 50, y: 50 },
+              shared: { y: 80 },
+            },
+            codeSize: { bucket: 'medium' },
+          },
+        ] as unknown as Project['contexts'],
+        relationships: [
+          { id: 'rel-1', fromContextId: 'ctx-1', toContextId: 'ctx-2', pattern: 'shared-kernel' },
+        ],
+      })
+      render(<RelationshipInspector project={nonOverlappingSK} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /partnership/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalled()
+      expect(mockUpdateMultipleContextPositions).not.toHaveBeenCalled()
+    })
+
+    it('does NOT reposition when active view is distillation', () => {
+      setupStore('distillation')
+      render(<RelationshipInspector project={makeOverlappingSKProject()} relationshipId="rel-1" />)
+      fireEvent.click(screen.getByRole('button', { name: /partnership/i }))
+      expect(mockUpdateRelationship).toHaveBeenCalled()
+      expect(mockUpdateMultipleContextPositions).not.toHaveBeenCalled()
     })
   })
 })
