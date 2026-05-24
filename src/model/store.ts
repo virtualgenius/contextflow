@@ -31,6 +31,7 @@ import {
   destroyCollabMode,
 } from './sync/useCollabMode'
 import { populateYDocWithProject, yDocToProject } from './sync/projectSync'
+import { migrateYjsRelationships } from './sync/migrateYjsRelationships'
 import { useCollabStore as useNetworkCollabStore } from './collabStore'
 import { calculateNextStagePosition, calculateNextPosition } from './stagePosition'
 import {
@@ -85,6 +86,7 @@ function loadExistingProjectFromYDoc(
 ): void {
   const yProject = ydoc.getMap('project')
   if (yProject.has('id')) {
+    migrateYjsRelationships(yProject)
     onProjectLoaded(yDocToProject(ydoc))
   }
 }
