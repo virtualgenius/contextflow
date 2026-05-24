@@ -1,8 +1,11 @@
 // IndexedDB persistence for ContextFlow projects
-import type { Project, ContextOwnership } from './types'
+import type { Project, Relationship, ContextOwnership } from './types'
 import { classifyFromStrategicPosition } from './classification'
 import { migrateActorToUser } from './migrations/migrateActorToUser'
-import { migrateLegacyPerSidePattern } from './migrations/migrateLegacyPerSidePattern'
+import {
+  migrateLegacyPerSidePattern,
+  type LegacyRelationship,
+} from './migrations/migrateLegacyPerSidePattern'
 
 const DB_NAME = 'contextflow'
 const DB_VERSION = 1
@@ -135,7 +138,9 @@ export function migrateProject(project: Project): Project {
   })
 
   if (project.relationships) {
-    project.relationships = project.relationships.map(migrateLegacyPerSidePattern)
+    project.relationships = (project.relationships as LegacyRelationship[])
+      .map(migrateLegacyPerSidePattern)
+      .filter((r): r is Relationship => r !== null)
   }
 
   return project

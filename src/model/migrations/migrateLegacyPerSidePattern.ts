@@ -18,25 +18,49 @@ function isDownstreamRolePattern(pattern: string): pattern is DownstreamRole {
 }
 
 /**
- * Phase-1 migration: move legacy per-side pattern values into the per-side role fields.
+ * Legacy relationship shape with the pre-Slice-8 wider pattern union.
+ *
+ * On-disk data may carry deprecated pattern values (the four per-side roles plus
+ * `separate-ways`). The migration accepts this wider input so tests and the
+ * persistence load path can still describe legacy data without fighting the
+ * narrowed runtime `Relationship.pattern` union.
+ */
+export type LegacyRelationship = Omit<Relationship, 'pattern'> & {
+  pattern?:
+    | NonNullable<Relationship['pattern']>
+    | 'conformist'
+    | 'anti-corruption-layer'
+    | 'open-host-service'
+    | 'published-language'
+    | 'separate-ways'
+}
+
+/**
+ * Phase-1 + Slice 8 migration: move legacy per-side pattern values into the per-side
+ * role fields, and drop relationships that carried the deprecated `separate-ways`
+ * pattern.
  *
  * Before the two-sided relationship model (contextflow-ki1), the four per-side roles
  * (Open Host Service, Published Language, Conformist, Anti-Corruption Layer) were stored
  * on `Relationship.pattern`. The new picker only surfaces Partnership and Customer-Supplier
- * as pickable patterns, so legacy values become unreachable from the UI and the Slice 2
- * fallback continues to render their indicator boxes even after the user clears the
- * corresponding role pill.
+ * as pickable patterns, so legacy values become unreachable from the UI.
  *
- * Move the value to the matching role field and clear `pattern`. Preserve any user-set
- * role; never overwrite. Idempotent. Leaves `shared-kernel` and `separate-ways` alone
- * (those belong to the full Slice 8 migration in `contextflow-jf0`).
+ * Returns `null` when the input relationship should be removed entirely (currently only
+ * `separate-ways`, which is no longer a representable pattern).
+ *
+ * Preserves any user-set role; never overwrites. Idempotent. Leaves `shared-kernel`,
+ * `customer-supplier`, and `partnership` alone.
  */
-export function migrateLegacyPerSidePattern(relationship: Relationship): Relationship {
+export function migrateLegacyPerSidePattern(relationship: LegacyRelationship): Relationship | null {
   const pattern = relationship.pattern
-  if (!pattern) return relationship
+  if (!pattern) return relationship as Relationship
+
+  if (pattern === 'separate-ways') {
+    return null
+  }
 
   if (isUpstreamRolePattern(pattern)) {
-    const next: Relationship = { ...relationship, pattern: undefined }
+    const next: Relationship = { ...(relationship as Relationship), pattern: undefined }
     if (!relationship.upstreamRole) {
       next.upstreamRole = pattern
     }
@@ -44,12 +68,12 @@ export function migrateLegacyPerSidePattern(relationship: Relationship): Relatio
   }
 
   if (isDownstreamRolePattern(pattern)) {
-    const next: Relationship = { ...relationship, pattern: undefined }
+    const next: Relationship = { ...(relationship as Relationship), pattern: undefined }
     if (!relationship.downstreamRole) {
       next.downstreamRole = pattern
     }
     return next
   }
 
-  return relationship
+  return relationship as Relationship
 }

@@ -34,7 +34,9 @@ BUILT_IN_PROJECTS.forEach((project) => {
 
 BUILT_IN_PROJECTS.forEach((project) => {
   if (project.relationships) {
-    project.relationships = project.relationships.map(migrateLegacyPerSidePattern)
+    project.relationships = project.relationships
+      .map(migrateLegacyPerSidePattern)
+      .filter((r): r is NonNullable<typeof r> => r !== null)
   }
 })
 
