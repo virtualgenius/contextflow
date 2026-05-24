@@ -278,25 +278,25 @@
       "id": "rel.portal_to_query",
       "fromContextId": "ctx.portalExperience",
       "toContextId": "ctx.queryEngine",
-      "pattern": "conformist",
       "communicationMode": "internal service API / query endpoints",
-      "description": "Portal adopts query engine's domain language and result shapes without an anti-corruption layer."
+      "description": "Portal adopts query engine's domain language and result shapes without an anti-corruption layer.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.portal_to_publicApi",
       "fromContextId": "ctx.portalExperience",
       "toContextId": "ctx.publicApi",
-      "pattern": "conformist",
       "communicationMode": "REST API (OpenAPI)",
-      "description": "UI and programmatic API share exposed terminology for mutations, studies, cohorts."
+      "description": "UI and programmatic API share exposed terminology for mutations, studies, cohorts.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.publicApi_to_externalConsumers",
       "fromContextId": "ctx.externalConsumers",
       "toContextId": "ctx.publicApi",
-      "pattern": "open-host-service",
       "communicationMode": "Published REST API / documented schema",
-      "description": "External research consumers must integrate via the published API contract; we promise stability."
+      "description": "External research consumers must integrate via the published API contract; we promise stability.",
+      "upstreamRole": "open-host-service"
     },
     {
       "id": "rel.query_to_storage",
@@ -326,17 +326,17 @@
       "id": "rel.query_to_oncokb",
       "fromContextId": "ctx.queryEngine",
       "toContextId": "ctx.oncokb",
-      "pattern": "conformist",
       "communicationMode": "Variant interpretation API",
-      "description": "We adopt OncoKB's oncology significance classifications."
+      "description": "We adopt OncoKB's oncology significance classifications.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.query_to_genomenexus",
       "fromContextId": "ctx.queryEngine",
       "toContextId": "ctx.genomeNexus",
-      "pattern": "conformist",
       "communicationMode": "Variant annotation API",
-      "description": "We consume Genome Nexus annotations as-is and treat them as authoritative enrichment."
+      "description": "We consume Genome Nexus annotations as-is and treat them as authoritative enrichment.",
+      "downstreamRole": "conformist"
     }
   ],
   "repos": [

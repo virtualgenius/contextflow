@@ -64,8 +64,16 @@
       "ownership": "internal",
       "notes": "Authoritative source for product information. Publishes domain events consumed by search, analytics, and storefront cache.",
       "issues": [
-        { "id": "issue-catalog-1", "title": "Upstream changes breaking Search integration", "severity": "warning" },
-        { "id": "issue-catalog-2", "title": "Consider Published Language for product events", "severity": "info" }
+        {
+          "id": "issue-catalog-1",
+          "title": "Upstream changes breaking Search integration",
+          "severity": "warning"
+        },
+        {
+          "id": "issue-catalog-2",
+          "title": "Consider Published Language for product events",
+          "severity": "info"
+        }
       ],
       "teamId": "team.customer-experience"
     },
@@ -99,7 +107,11 @@
       "ownership": "internal",
       "notes": "Uses Elasticsearch. Consumes catalog change events to keep search index up to date.",
       "issues": [
-        { "id": "issue-search-1", "title": "Conformist to Catalog - struggling with frequent schema changes", "severity": "warning" }
+        {
+          "id": "issue-search-1",
+          "title": "Conformist to Catalog - struggling with frequent schema changes",
+          "severity": "warning"
+        }
       ],
       "teamId": "team.customer-experience"
     },
@@ -164,8 +176,16 @@
       "ownership": "ours",
       "notes": "Complex orchestration logic. Critical path for revenue. Integrates with payment gateway, inventory, and order management.",
       "issues": [
-        { "id": "issue-checkout-1", "title": "Partnership with Payment needs formal contract", "severity": "warning" },
-        { "id": "issue-checkout-2", "title": "Consider Open Host Service for downstream consumers", "severity": "info" }
+        {
+          "id": "issue-checkout-1",
+          "title": "Partnership with Payment needs formal contract",
+          "severity": "warning"
+        },
+        {
+          "id": "issue-checkout-2",
+          "title": "Consider Open Host Service for downstream consumers",
+          "severity": "info"
+        }
       ],
       "teamId": "team.checkout"
     },
@@ -199,9 +219,21 @@
       "ownership": "internal",
       "notes": "PCI-compliant. Uses tokenization to avoid storing card data. Publishes payment events for downstream systems.",
       "issues": [
-        { "id": "issue-payment-1", "title": "PCI compliance audit findings need remediation", "severity": "critical" },
-        { "id": "issue-payment-2", "title": "Checkout partnership contract undefined - causing integration bugs", "severity": "warning" },
-        { "id": "issue-payment-3", "title": "Add support for Apple Pay", "severity": "info" }
+        {
+          "id": "issue-payment-1",
+          "title": "PCI compliance audit findings need remediation",
+          "severity": "critical"
+        },
+        {
+          "id": "issue-payment-2",
+          "title": "Checkout partnership contract undefined - causing integration bugs",
+          "severity": "warning"
+        },
+        {
+          "id": "issue-payment-3",
+          "title": "Add support for Apple Pay",
+          "severity": "info"
+        }
       ],
       "teamId": "team.payments"
     },
@@ -296,8 +328,16 @@
       "ownership": "internal",
       "notes": "Eventually consistent with warehouse systems. Critical for preventing overselling. Some technical debt around reservation expiry.",
       "issues": [
-        { "id": "issue-inventory-1", "title": "ACL to Warehouse incomplete - missing stock reservation events", "severity": "warning" },
-        { "id": "issue-inventory-2", "title": "Evaluate Conformist vs ACL trade-off with Warehouse", "severity": "info" }
+        {
+          "id": "issue-inventory-1",
+          "title": "ACL to Warehouse incomplete - missing stock reservation events",
+          "severity": "warning"
+        },
+        {
+          "id": "issue-inventory-2",
+          "title": "Evaluate Conformist vs ACL trade-off with Warehouse",
+          "severity": "info"
+        }
       ],
       "teamId": "team.fulfillment"
     },
@@ -331,8 +371,16 @@
       "ownership": "internal",
       "notes": "Built in-house 15 years ago. Java monolith. Poor API documentation. Scheduled for replacement but still mission-critical.",
       "issues": [
-        { "id": "issue-warehouse-1", "title": "ACL in Inventory not translating all required fields", "severity": "critical" },
-        { "id": "issue-warehouse-2", "title": "API deprecation deadline Q2 2025", "severity": "warning" }
+        {
+          "id": "issue-warehouse-1",
+          "title": "ACL in Inventory not translating all required fields",
+          "severity": "critical"
+        },
+        {
+          "id": "issue-warehouse-2",
+          "title": "API deprecation deadline Q2 2025",
+          "severity": "warning"
+        }
       ],
       "teamId": "team.operations"
     },
@@ -642,9 +690,9 @@
       "id": "rel.storefront-identity",
       "fromContextId": "ctx.storefront",
       "toContextId": "ctx.identity",
-      "pattern": "conformist",
       "communicationMode": "OAuth 2.0 / JWT tokens",
-      "description": "Storefront conforms to identity service's authentication model."
+      "description": "Storefront conforms to identity service's authentication model.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.storefront-recommendations",
@@ -658,9 +706,9 @@
       "id": "rel.search-catalog",
       "fromContextId": "ctx.search",
       "toContextId": "ctx.catalog",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Search consumes catalog change events to update Elasticsearch indices."
+      "description": "Search consumes catalog change events to update Elasticsearch indices.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.cart-catalog",
@@ -714,9 +762,9 @@
       "id": "rel.payment-stripe",
       "fromContextId": "ctx.payment",
       "toContextId": "ctx.stripe",
-      "pattern": "anti-corruption-layer",
       "communicationMode": "Stripe REST API",
-      "description": "Payment service wraps Stripe with domain-specific abstractions."
+      "description": "Payment service wraps Stripe with domain-specific abstractions.",
+      "downstreamRole": "anti-corruption-layer"
     },
     {
       "id": "rel.orders-inventory",
@@ -738,33 +786,33 @@
       "id": "rel.inventory-warehouse",
       "fromContextId": "ctx.inventory",
       "toContextId": "ctx.warehouse",
-      "pattern": "anti-corruption-layer",
       "communicationMode": "SOAP API + Database replication",
-      "description": "Inventory wraps legacy warehouse system with modern API."
+      "description": "Inventory wraps legacy warehouse system with modern API.",
+      "downstreamRole": "anti-corruption-layer"
     },
     {
       "id": "rel.shipping-carriers",
       "fromContextId": "ctx.shipping",
       "toContextId": "ctx.carriers",
-      "pattern": "anti-corruption-layer",
       "communicationMode": "Carrier-specific APIs",
-      "description": "Shipping normalizes different carrier APIs into unified interface."
+      "description": "Shipping normalizes different carrier APIs into unified interface.",
+      "downstreamRole": "anti-corruption-layer"
     },
     {
       "id": "rel.notifications-orders",
       "fromContextId": "ctx.notifications",
       "toContextId": "ctx.orders",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Notifications consumes order events to send customer updates."
+      "description": "Notifications consumes order events to send customer updates.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.notifications-shipping",
       "fromContextId": "ctx.notifications",
       "toContextId": "ctx.shipping",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Notifications consumes shipping events for tracking updates."
+      "description": "Notifications consumes shipping events for tracking updates.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.customerService-orders",
@@ -778,41 +826,41 @@
       "id": "rel.analytics-catalog",
       "fromContextId": "ctx.analytics",
       "toContextId": "ctx.catalog",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Analytics consumes catalog events for product performance analysis."
+      "description": "Analytics consumes catalog events for product performance analysis.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.analytics-orders",
       "fromContextId": "ctx.analytics",
       "toContextId": "ctx.orders",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Analytics consumes order events for sales reporting."
+      "description": "Analytics consumes order events for sales reporting.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.analytics-warehouse",
       "fromContextId": "ctx.analytics",
       "toContextId": "ctx.warehouse",
-      "pattern": "conformist",
       "communicationMode": "Database replication",
-      "description": "Analytics replicates warehouse data for operational reporting."
+      "description": "Analytics replicates warehouse data for operational reporting.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.recommendations-catalog",
       "fromContextId": "ctx.recommendations",
       "toContextId": "ctx.catalog",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Recommendations consumes catalog events for ML model training."
+      "description": "Recommendations consumes catalog events for ML model training.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.recommendations-orders",
       "fromContextId": "ctx.recommendations",
       "toContextId": "ctx.orders",
-      "pattern": "conformist",
       "communicationMode": "Event stream (Kafka)",
-      "description": "Recommendations uses purchase history for collaborative filtering."
+      "description": "Recommendations uses purchase history for collaborative filtering.",
+      "downstreamRole": "conformist"
     },
     {
       "id": "rel.checkout-orders-partnership",
@@ -826,17 +874,17 @@
       "id": "rel.checkout-taxCalculation",
       "fromContextId": "ctx.checkout",
       "toContextId": "ctx.taxCalculation",
-      "pattern": "anti-corruption-layer",
       "communicationMode": "REST API",
-      "description": "Checkout wraps external tax service with domain-specific abstractions for order tax calculation."
+      "description": "Checkout wraps external tax service with domain-specific abstractions for order tax calculation.",
+      "downstreamRole": "anti-corruption-layer"
     },
     {
       "id": "rel.payment-fraudDetection",
       "fromContextId": "ctx.payment",
       "toContextId": "ctx.fraudDetection",
-      "pattern": "conformist",
       "communicationMode": "REST API",
-      "description": "Payment service consumes fraud scoring for risk assessment during payment authorization."
+      "description": "Payment service consumes fraud scoring for risk assessment during payment authorization.",
+      "downstreamRole": "conformist"
     }
   ],
   "repos": [
