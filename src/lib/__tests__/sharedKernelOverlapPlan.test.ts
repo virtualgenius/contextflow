@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   computeSharedKernelPlan,
+  computeSharedKernelSeparations,
   describeRelationshipForConversionPrompt,
   findOverlappingContextIds,
   type ContextBox,
@@ -132,6 +133,118 @@ describe('computeSharedKernelPlan', () => {
 
     expect(plan.toCreate).toEqual(['ctx-c'])
     expect(plan.toConvert).toEqual([])
+  })
+})
+
+describe('computeSharedKernelSeparations', () => {
+  it('returns a separation when SK contexts no longer overlap after drag', () => {
+    const others: ContextBox[] = [{ id: 'ctx-b', box: box(500, 500) }]
+    const relationships = [makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')]
+
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      others,
+      relationships,
+      new Set(['ctx-b'])
+    )
+
+    expect(result).toEqual([{ otherContextId: 'ctx-b', relationshipId: 'rel-1' }])
+  })
+
+  it('returns nothing when SK contexts still overlap after drag', () => {
+    const others: ContextBox[] = [{ id: 'ctx-b', box: box(50, 50) }]
+    const relationships = [makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')]
+
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      others,
+      relationships,
+      new Set(['ctx-b'])
+    )
+
+    expect(result).toEqual([])
+  })
+
+  it('returns nothing when the previously overlapping context has no SK relationship with the dragged one', () => {
+    const others: ContextBox[] = [{ id: 'ctx-b', box: box(500, 500) }]
+    const relationships = [makeRel('rel-1', 'ctx-a', 'ctx-b', 'customer-supplier')]
+
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      others,
+      relationships,
+      new Set(['ctx-b'])
+    )
+
+    expect(result).toEqual([])
+  })
+
+  it('returns nothing when the previously overlapping context had no relationship at all', () => {
+    const others: ContextBox[] = [{ id: 'ctx-b', box: box(500, 500) }]
+
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      others,
+      [],
+      new Set(['ctx-b'])
+    )
+
+    expect(result).toEqual([])
+  })
+
+  it('detects SK in either direction (from/to symmetric)', () => {
+    const others: ContextBox[] = [{ id: 'ctx-b', box: box(500, 500) }]
+    const relationships = [makeRel('rel-1', 'ctx-b', 'ctx-a', 'shared-kernel')]
+
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      others,
+      relationships,
+      new Set(['ctx-b'])
+    )
+
+    expect(result).toEqual([{ otherContextId: 'ctx-b', relationshipId: 'rel-1' }])
+  })
+
+  it('handles multiple SK separations from a single drag', () => {
+    const others: ContextBox[] = [
+      { id: 'ctx-b', box: box(500, 500) },
+      { id: 'ctx-c', box: box(800, 800) },
+    ]
+    const relationships = [
+      makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel'),
+      makeRel('rel-2', 'ctx-a', 'ctx-c', 'shared-kernel'),
+    ]
+
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      others,
+      relationships,
+      new Set(['ctx-b', 'ctx-c'])
+    )
+
+    expect(result).toEqual([
+      { otherContextId: 'ctx-b', relationshipId: 'rel-1' },
+      { otherContextId: 'ctx-c', relationshipId: 'rel-2' },
+    ])
+  })
+
+  it('ignores previously overlapping contexts that no longer exist in others list', () => {
+    const result = computeSharedKernelSeparations(
+      'ctx-a',
+      box(0, 0),
+      [],
+      [makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')],
+      new Set(['ctx-b'])
+    )
+
+    expect(result).toEqual([])
   })
 })
 

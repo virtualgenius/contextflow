@@ -56,6 +56,36 @@ function findRelationshipBetween(
   )
 }
 
+export interface SharedKernelSeparation {
+  otherContextId: string
+  relationshipId: string
+}
+
+export function computeSharedKernelSeparations(
+  draggedId: string,
+  draggedBox: Box,
+  others: ContextBox[],
+  relationships: Relationship[],
+  previouslyOverlappingIds: ReadonlySet<string>
+): SharedKernelSeparation[] {
+  const otherById = new Map(others.map((o) => [o.id, o]))
+  const result: SharedKernelSeparation[] = []
+
+  for (const otherId of previouslyOverlappingIds) {
+    if (otherId === draggedId) continue
+    const other = otherById.get(otherId)
+    if (!other) continue
+    if (boxesOverlap(draggedBox, other.box)) continue
+
+    const existing = findRelationshipBetween(draggedId, otherId, relationships)
+    if (!existing || existing.pattern !== 'shared-kernel') continue
+
+    result.push({ otherContextId: otherId, relationshipId: existing.id })
+  }
+
+  return result
+}
+
 export function describeRelationshipForConversionPrompt(rel: Relationship): string {
   if (rel.pattern) {
     const def = PATTERN_DEFINITIONS.find((p) => p.value === rel.pattern)

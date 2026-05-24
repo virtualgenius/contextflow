@@ -396,7 +396,7 @@ describe('RelationshipInspector', () => {
     })
   })
 
-  describe('Shared Kernel auto-separation when picker changes pattern (contextflow-bvu)', () => {
+  describe('Shared Kernel auto-separation when picker changes pattern', () => {
     function makeOverlappingSKProject(): Project {
       return makeProject({
         contexts: [

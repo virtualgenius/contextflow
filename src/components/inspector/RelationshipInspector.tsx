@@ -76,9 +76,9 @@ export function RelationshipInspector({
 
   // When the user replaces an active Shared Kernel via the picker, the two
   // contexts need to stop overlapping so the canvas reflects the new pattern.
-  // See contextflow-bvu: separation happens only on the SK -> non-SK transition,
-  // only in flow or strategic view (distillation has its own coordinate space),
-  // and only when the contexts currently overlap.
+  // Only triggers on the SK → non-SK transition, only in flow or strategic
+  // view (distillation has its own coordinate space), and only when the
+  // contexts currently overlap.
   const applySKSeparationIfLeavingSK = () => {
     if (!isSharedKernel) return
     if (activeViewMode === 'distillation') return

@@ -29,6 +29,7 @@ import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import {
   computeSharedKernelPlan,
+  computeSharedKernelSeparations,
   describeRelationshipForConversionPrompt,
   findOverlappingContextIds,
   type ContextBox,
@@ -999,9 +1000,9 @@ function CanvasContent() {
           }
         }
 
-        // Single-context body drag in flow or strategic view: detect new
-        // Shared Kernel overlap-pairings (contextflow-384, Slice 6). The
-        // distillation view has its own coordinate space and is excluded.
+        // Detect Shared Kernel overlap changes after a single-context drag.
+        // Distillation view has its own coordinate space; SK overlap is
+        // meaningless there.
         const snapshot = sharedKernelDragSnapshotRef.current
         if (viewMode !== 'distillation' && snapshot.draggedId === node.id && !isEditingKeyframe) {
           const otherBoxes = getContextBoxesForOverlap(nodes, node).filter((c) => c.id !== node.id)
@@ -1056,6 +1057,25 @@ function CanvasContent() {
             if (queued.length > 0) {
               setPendingSKConversions((prev) => [...prev, ...queued])
             }
+          }
+
+          // Drag-apart of a Shared Kernel pair silently converts to
+          // Partnership. No confirm: the drag itself is the user's intent.
+          const separations = computeSharedKernelSeparations(
+            node.id,
+            draggedBox,
+            otherBoxes,
+            project.relationships,
+            snapshot.previousOverlaps
+          )
+          for (const separation of separations) {
+            updateRelationship(separation.relationshipId, { pattern: 'partnership' })
+            trackEvent('shared_kernel_separated_to_partnership', project, {
+              entity_type: 'relationship',
+              entity_id: separation.relationshipId,
+              from_context_id: node.id,
+              to_context_id: separation.otherContextId,
+            })
           }
         }
         sharedKernelDragSnapshotRef.current = { draggedId: null, previousOverlaps: new Set() }
