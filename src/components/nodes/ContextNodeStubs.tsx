@@ -65,6 +65,10 @@ function getHandleEdgeStyle(side: Side): React.CSSProperties {
 // elementFromPoint hit-test identifies a mousedown on the nub as a source
 // handle (its parent Handle has the same class but is 1px and hidden).
 function getNubStyle(side: Side, visible: boolean): React.CSSProperties {
+  // pointer-events follows visibility: invisible stubs must not intercept
+  // hover for edges or other elements behind them. The brief hover-leave
+  // delay on the parent node keeps visibility alive long enough for the
+  // cursor to traverse the air gap from the node body to the stub.
   const base: React.CSSProperties = {
     position: 'absolute',
     width: STUB_SIZE,
@@ -73,7 +77,7 @@ function getNubStyle(side: Side, visible: boolean): React.CSSProperties {
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'crosshair',
-    pointerEvents: 'auto',
+    pointerEvents: visible ? 'auto' : 'none',
     opacity: visible ? 1 : 0,
     transition: 'opacity 0.15s',
   }

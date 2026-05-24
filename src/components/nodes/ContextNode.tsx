@@ -35,6 +35,10 @@ export function ContextNode({ data }: NodeProps) {
   const setSelectedContext = useEditorStore((s) => s.setSelectedContext)
   const isHoveredByRelationship = data.isHoveredByRelationship as boolean
   const nodeRef = React.useRef<HTMLDivElement>(null)
+  // Tiny grace period before clearing hover lets the cursor traverse the air
+  // gap between the node body and the directional stubs, which sit 16px outside.
+  const hoverLeaveTimeoutRef = React.useRef<number | undefined>(undefined)
+  const HOVER_LEAVE_DELAY_MS = 120
 
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
   const hideDescription =
@@ -158,6 +162,10 @@ export function ContextNode({ data }: NodeProps) {
     <div
       ref={nodeRef}
       onMouseEnter={() => {
+        if (hoverLeaveTimeoutRef.current !== undefined) {
+          window.clearTimeout(hoverLeaveTimeoutRef.current)
+          hoverLeaveTimeoutRef.current = undefined
+        }
         setIsHovered(true)
         setHoveredContext(context.id)
         if (showHelpTooltips) {
@@ -165,9 +173,16 @@ export function ContextNode({ data }: NodeProps) {
         }
       }}
       onMouseLeave={() => {
-        setIsHovered(false)
-        setHoveredContext(null)
+        // Hide the rich tooltip immediately; users expect instant feedback.
         setShowTooltip(false)
+        if (hoverLeaveTimeoutRef.current !== undefined) {
+          window.clearTimeout(hoverLeaveTimeoutRef.current)
+        }
+        hoverLeaveTimeoutRef.current = window.setTimeout(() => {
+          setIsHovered(false)
+          setHoveredContext(null)
+          hoverLeaveTimeoutRef.current = undefined
+        }, HOVER_LEAVE_DELAY_MS)
       }}
       onMouseDown={() => {
         setShowTooltip(false)
