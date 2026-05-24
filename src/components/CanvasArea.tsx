@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect, useState } from 'react'
+import React, { useMemo, useCallback, useEffect, useRef, useState } from 'react'
 import ReactFlow, {
   Node,
   Edge,
@@ -27,6 +27,14 @@ import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions
 import { createSelectionState } from '../model/validation'
 import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
+import {
+  computeSharedKernelPlan,
+  describeRelationshipForConversionPrompt,
+  findOverlappingContextIds,
+  type ContextBox,
+} from '../lib/sharedKernelOverlapPlan'
+import { trackEvent } from '../utils/analytics'
+import { SharedKernelConfirmDialog } from './SharedKernelConfirmDialog'
 import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
@@ -122,6 +130,28 @@ function CanvasContent() {
 
   const isDragging = useEditorStore((s) => s.isDragging)
   const setDragging = useEditorStore((s) => s.setDragging)
+  const addRelationship = useEditorStore((s) => s.addRelationship)
+  const updateRelationship = useEditorStore((s) => s.updateRelationship)
+
+  // Snapshot of which contexts the actively-dragged context already overlapped
+  // when the drag started. Used by the post-drag plan so that only NEWLY created
+  // overlaps trigger Shared Kernel creation/conversion prompts.
+  const sharedKernelDragSnapshotRef = useRef<{
+    draggedId: string | null
+    previousOverlaps: Set<string>
+  }>({ draggedId: null, previousOverlaps: new Set() })
+
+  // Queue of pending SK conversions awaiting user confirmation (existing non-SK
+  // relationship that the drag-overlap gesture wants to convert). Processed
+  // one at a time via the SharedKernelConfirmDialog.
+  const [pendingSKConversions, setPendingSKConversions] = useState<
+    Array<{
+      draggedContextName: string
+      otherContextName: string
+      existingPatternLabel: string
+      relationshipId: string
+    }>
+  >([])
 
   // Tracks whether a connection drag is currently in flight. Toggled by
   // ReactFlow's onConnectStart and onConnectEnd. Drives CSS that lifts the
@@ -762,6 +792,51 @@ function CanvasContent() {
     ]
   )
 
+  const getContextBoxesForOverlap = useCallback(
+    (currentNodes: Node[], overrideNode?: Node): ContextBox[] => {
+      return currentNodes
+        .filter((n) => n.type === 'context')
+        .map((n) => {
+          const source = overrideNode && overrideNode.id === n.id ? overrideNode : n
+          return {
+            id: n.id,
+            box: {
+              x: source.position.x,
+              y: source.position.y,
+              width: source.width ?? n.width ?? 170,
+              height: source.height ?? n.height ?? 100,
+            },
+          }
+        })
+    },
+    []
+  )
+
+  const onNodeDragStart: NodeDragHandler = useCallback(
+    (_event, node) => {
+      setDragging(true)
+      if (node.type !== 'context') {
+        sharedKernelDragSnapshotRef.current = { draggedId: null, previousOverlaps: new Set() }
+        return
+      }
+      if (viewMode === 'distillation') {
+        sharedKernelDragSnapshotRef.current = { draggedId: null, previousOverlaps: new Set() }
+        return
+      }
+      const contextBoxes = getContextBoxesForOverlap(nodes)
+      const draggedBox = contextBoxes.find((c) => c.id === node.id)?.box
+      if (!draggedBox) {
+        sharedKernelDragSnapshotRef.current = { draggedId: null, previousOverlaps: new Set() }
+        return
+      }
+      sharedKernelDragSnapshotRef.current = {
+        draggedId: node.id,
+        previousOverlaps: findOverlappingContextIds(node.id, draggedBox, contextBoxes),
+      }
+    },
+    [nodes, viewMode, getContextBoxesForOverlap, setDragging]
+  )
+
   const constrainNodePosition: NodeDragHandler = useCallback((event, node) => {
     if (node.type === 'user') {
       node.position.y = 10
@@ -923,6 +998,67 @@ function CanvasContent() {
             })
           }
         }
+
+        // Single-context body drag in flow or strategic view: detect new
+        // Shared Kernel overlap-pairings (contextflow-384, Slice 6). The
+        // distillation view has its own coordinate space and is excluded.
+        const snapshot = sharedKernelDragSnapshotRef.current
+        if (viewMode !== 'distillation' && snapshot.draggedId === node.id && !isEditingKeyframe) {
+          const otherBoxes = getContextBoxesForOverlap(nodes, node).filter((c) => c.id !== node.id)
+          const draggedBox = {
+            x: node.position.x,
+            y: node.position.y,
+            width: node.width ?? 170,
+            height: node.height ?? 100,
+          }
+          const plan = computeSharedKernelPlan(
+            node.id,
+            draggedBox,
+            otherBoxes,
+            project.relationships,
+            snapshot.previousOverlaps
+          )
+
+          for (const otherContextId of plan.toCreate) {
+            const newId = addRelationship(node.id, otherContextId, 'shared-kernel')
+            trackEvent('shared_kernel_created_by_overlap', project, {
+              entity_type: 'relationship',
+              entity_id: newId,
+              from_context_id: node.id,
+              to_context_id: otherContextId,
+            })
+          }
+
+          if (plan.toConvert.length > 0) {
+            const draggedContext = project.contexts.find((c) => c.id === node.id)
+            const queued = plan.toConvert
+              .map((conv) => {
+                const other = project.contexts.find((c) => c.id === conv.otherContextId)
+                const existing = project.relationships.find((r) => r.id === conv.relationshipId)
+                if (!draggedContext || !other || !existing) return null
+                return {
+                  draggedContextName: draggedContext.name,
+                  otherContextName: other.name,
+                  existingPatternLabel: describeRelationshipForConversionPrompt(existing),
+                  relationshipId: conv.relationshipId,
+                }
+              })
+              .filter(
+                (
+                  q
+                ): q is {
+                  draggedContextName: string
+                  otherContextName: string
+                  existingPatternLabel: string
+                  relationshipId: string
+                } => q !== null
+              )
+            if (queued.length > 0) {
+              setPendingSKConversions((prev) => [...prev, ...queued])
+            }
+          }
+        }
+        sharedKernelDragSnapshotRef.current = { draggedId: null, previousOverlaps: new Set() }
       }
     },
     [
@@ -932,6 +1068,8 @@ function CanvasContent() {
       updateUserPosition,
       updateUserNeedPosition,
       updateKeyframeContextPosition,
+      addRelationship,
+      getContextBoxesForOverlap,
       project,
       selectedContextIds,
       nodes,
@@ -939,6 +1077,26 @@ function CanvasContent() {
       setDragging,
     ]
   )
+
+  const handleConfirmSKConversion = useCallback(() => {
+    const conversion = pendingSKConversions[0]
+    if (conversion && project) {
+      updateRelationship(conversion.relationshipId, {
+        pattern: 'shared-kernel',
+        upstreamRole: undefined,
+        downstreamRole: undefined,
+      })
+      trackEvent('relationship_converted_to_shared_kernel', project, {
+        entity_type: 'relationship',
+        entity_id: conversion.relationshipId,
+      })
+    }
+    setPendingSKConversions((prev) => prev.slice(1))
+  }, [pendingSKConversions, project, updateRelationship])
+
+  const handleCancelSKConversion = useCallback(() => {
+    setPendingSKConversions((prev) => prev.slice(1))
+  }, [])
 
   // Handle node deletion via keyboard (Delete/Backspace key)
   const onNodesDelete = useCallback(
@@ -1021,7 +1179,7 @@ function CanvasContent() {
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
-          onNodeDragStart={() => setDragging(true)}
+          onNodeDragStart={onNodeDragStart}
           onNodeDrag={constrainNodePosition}
           onNodeDragStop={onNodeDragStop}
           onInit={onInit}
@@ -1204,6 +1362,16 @@ function CanvasContent() {
       {/* Value Chain Guide Modal */}
       {showValueChainGuide && (
         <ValueChainGuideModal onClose={() => setShowValueChainGuide(false)} />
+      )}
+
+      {pendingSKConversions.length > 0 && (
+        <SharedKernelConfirmDialog
+          draggedContextName={pendingSKConversions[0].draggedContextName}
+          otherContextName={pendingSKConversions[0].otherContextName}
+          existingPatternLabel={pendingSKConversions[0].existingPatternLabel}
+          onConfirm={handleConfirmSKConversion}
+          onCancel={handleCancelSKConversion}
+        />
       )}
 
       {project &&
