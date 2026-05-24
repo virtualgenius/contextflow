@@ -357,7 +357,12 @@ describe('contextMutations', () => {
             toContextId: 'ctx-2',
             pattern: 'customer-supplier',
           },
-          { id: 'rel-2', fromContextId: 'ctx-2', toContextId: 'ctx-1', pattern: 'conformist' },
+          {
+            id: 'rel-2',
+            fromContextId: 'ctx-2',
+            toContextId: 'ctx-1',
+            downstreamRole: 'conformist',
+          },
           { id: 'rel-3', fromContextId: 'ctx-2', toContextId: 'ctx-3', pattern: 'shared-kernel' },
         ],
       }

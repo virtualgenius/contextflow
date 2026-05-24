@@ -78,7 +78,7 @@ describe('relationshipMutations', () => {
         id: 'rel-2',
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
-        pattern: 'conformist',
+        pattern: 'partnership',
       }
 
       addRelationshipMutation(ydoc, newRelationship)
@@ -88,7 +88,7 @@ describe('relationshipMutations', () => {
       expect(result.relationships[1].id).toBe('rel-2')
       expect(result.relationships[1].fromContextId).toBe('ctx-2')
       expect(result.relationships[1].toContextId).toBe('ctx-1')
-      expect(result.relationships[1].pattern).toBe('conformist')
+      expect(result.relationships[1].pattern).toBe('partnership')
     })
 
     it('should add a relationship with optional fields', () => {
@@ -96,7 +96,7 @@ describe('relationshipMutations', () => {
         id: 'rel-3',
         fromContextId: 'ctx-1',
         toContextId: 'ctx-2',
-        pattern: 'anti-corruption-layer',
+        downstreamRole: 'anti-corruption-layer',
         communicationMode: 'async',
         description: 'ACL protects downstream from upstream changes',
       }
@@ -111,12 +111,10 @@ describe('relationshipMutations', () => {
     })
 
     it('should add a relationship with all pattern types', () => {
-      const patterns: Relationship['pattern'][] = [
+      const patterns: NonNullable<Relationship['pattern']>[] = [
         'shared-kernel',
         'partnership',
-        'open-host-service',
-        'published-language',
-        'separate-ways',
+        'customer-supplier',
       ]
 
       for (const pattern of patterns) {
@@ -130,16 +128,16 @@ describe('relationshipMutations', () => {
       }
 
       const result = yDocToProject(ydoc)
-      expect(result.relationships).toHaveLength(6) // 1 original + 5 new
+      expect(result.relationships).toHaveLength(4) // 1 original + 3 new
     })
   })
 
   describe('updateRelationshipMutation', () => {
     it('should update the pattern of an existing relationship', () => {
-      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'conformist' })
+      updateRelationshipMutation(ydoc, 'rel-1', { pattern: 'partnership' })
 
       const result = yDocToProject(ydoc)
-      expect(result.relationships[0].pattern).toBe('conformist')
+      expect(result.relationships[0].pattern).toBe('partnership')
     })
 
     it('should update fromContextId and toContextId', () => {
@@ -200,7 +198,7 @@ describe('relationshipMutations', () => {
         id: 'rel-2',
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
-        pattern: 'conformist',
+        pattern: 'shared-kernel',
       }
       addRelationshipMutation(ydoc, secondRel)
 
@@ -209,11 +207,11 @@ describe('relationshipMutations', () => {
 
       const result = yDocToProject(ydoc)
       expect(result.relationships[0].pattern).toBe('partnership')
-      expect(result.relationships[1].pattern).toBe('conformist')
+      expect(result.relationships[1].pattern).toBe('shared-kernel')
     })
 
     it('should do nothing for non-existent relationship', () => {
-      updateRelationshipMutation(ydoc, 'non-existent', { pattern: 'conformist' })
+      updateRelationshipMutation(ydoc, 'non-existent', { pattern: 'partnership' })
 
       const result = yDocToProject(ydoc)
       expect(result.relationships).toHaveLength(1)
@@ -377,7 +375,7 @@ describe('relationshipMutations', () => {
         id: 'rel-2',
         fromContextId: 'ctx-2',
         toContextId: 'ctx-1',
-        pattern: 'conformist',
+        pattern: 'shared-kernel',
       }
       addRelationshipMutation(ydoc, secondRel)
 
@@ -387,7 +385,7 @@ describe('relationshipMutations', () => {
       const result = yDocToProject(ydoc)
       expect(result.relationships).toHaveLength(1)
       expect(result.relationships[0].id).toBe('rel-2')
-      expect(result.relationships[0].pattern).toBe('conformist')
+      expect(result.relationships[0].pattern).toBe('shared-kernel')
     })
 
     it('should do nothing for non-existent relationship', () => {

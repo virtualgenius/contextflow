@@ -96,15 +96,10 @@ function generateLargeProject(): Project {
   }
 
   // Generate relationships (each context connects to multiple others)
-  const patterns: Relationship['pattern'][] = [
+  const patterns: NonNullable<Relationship['pattern']>[] = [
     'customer-supplier',
-    'conformist',
-    'anti-corruption-layer',
-    'open-host-service',
-    'published-language',
     'shared-kernel',
     'partnership',
-    'separate-ways',
   ]
 
   for (let i = 0; i < LARGE_PROJECT_CONTEXTS; i++) {

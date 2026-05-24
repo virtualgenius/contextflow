@@ -28,7 +28,8 @@ describe('relationshipSync', () => {
         id: 'rel-2',
         fromContextId: 'ctx-a',
         toContextId: 'ctx-b',
-        pattern: 'anti-corruption-layer',
+        pattern: 'customer-supplier',
+        downstreamRole: 'anti-corruption-layer',
         communicationMode: 'REST API',
         description: 'Orders service consumes inventory data',
       }
@@ -38,21 +39,17 @@ describe('relationshipSync', () => {
       expect(yMap.get('id')).toBe('rel-2')
       expect(yMap.get('fromContextId')).toBe('ctx-a')
       expect(yMap.get('toContextId')).toBe('ctx-b')
-      expect(yMap.get('pattern')).toBe('anti-corruption-layer')
+      expect(yMap.get('pattern')).toBe('customer-supplier')
+      expect(yMap.get('downstreamRole')).toBe('anti-corruption-layer')
       expect(yMap.get('communicationMode')).toBe('REST API')
       expect(yMap.get('description')).toBe('Orders service consumes inventory data')
     })
 
     it('handles all DDD relationship patterns', () => {
-      const patterns: Relationship['pattern'][] = [
+      const patterns: NonNullable<Relationship['pattern']>[] = [
         'customer-supplier',
-        'conformist',
-        'anti-corruption-layer',
-        'open-host-service',
-        'published-language',
         'shared-kernel',
         'partnership',
-        'separate-ways',
       ]
 
       for (const pattern of patterns) {
@@ -77,7 +74,7 @@ describe('relationshipSync', () => {
       yMap.set('id', 'rel-1')
       yMap.set('fromContextId', 'ctx-1')
       yMap.set('toContextId', 'ctx-2')
-      yMap.set('pattern', 'conformist')
+      yMap.set('pattern', 'partnership')
       yMap.set('communicationMode', null)
       yMap.set('description', null)
 
@@ -86,7 +83,7 @@ describe('relationshipSync', () => {
       expect(relationship.id).toBe('rel-1')
       expect(relationship.fromContextId).toBe('ctx-1')
       expect(relationship.toContextId).toBe('ctx-2')
-      expect(relationship.pattern).toBe('conformist')
+      expect(relationship.pattern).toBe('partnership')
       expect(relationship.communicationMode).toBeUndefined()
       expect(relationship.description).toBeUndefined()
     })
@@ -133,7 +130,7 @@ describe('relationshipSync', () => {
         id: 'rel-full',
         fromContextId: 'ctx-orders',
         toContextId: 'ctx-inventory',
-        pattern: 'open-host-service',
+        upstreamRole: 'open-host-service',
         communicationMode: 'GraphQL',
         description: 'Inventory exposes product availability',
       }

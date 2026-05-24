@@ -168,7 +168,12 @@ describe('categorizeRelationships', () => {
 
   it('categorizes relationship as downstream when context is toContextId (upstream/authority)', () => {
     const rels = [
-      makeRel({ id: 'r1', fromContextId: 'ctx-2', toContextId: 'ctx-1', pattern: 'conformist' }),
+      makeRel({
+        id: 'r1',
+        fromContextId: 'ctx-2',
+        toContextId: 'ctx-1',
+        downstreamRole: 'conformist',
+      }),
     ]
     const result = categorizeRelationships(rels, 'ctx-1')
     expect(result.downstream).toHaveLength(1)
@@ -203,7 +208,12 @@ describe('categorizeRelationships', () => {
         toContextId: 'ctx-2',
         pattern: 'customer-supplier',
       }),
-      makeRel({ id: 'r2', fromContextId: 'ctx-3', toContextId: 'ctx-1', pattern: 'conformist' }),
+      makeRel({
+        id: 'r2',
+        fromContextId: 'ctx-3',
+        toContextId: 'ctx-1',
+        downstreamRole: 'conformist',
+      }),
       makeRel({ id: 'r3', fromContextId: 'ctx-1', toContextId: 'ctx-4', pattern: 'shared-kernel' }),
       makeRel({ id: 'r4', fromContextId: 'ctx-5', toContextId: 'ctx-1', pattern: 'partnership' }),
     ]

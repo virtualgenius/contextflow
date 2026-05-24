@@ -439,7 +439,7 @@ describe('applyUndo', () => {
         id: 'rel1',
         toContextId: 'ctx1',
         fromContextId: 'ctx2',
-        pattern: 'conformist',
+        pattern: 'partnership',
       }
       const oldRel: Relationship = {
         id: 'rel1',
@@ -1193,7 +1193,7 @@ describe('applyRedo', () => {
         id: 'rel1',
         toContextId: 'ctx1',
         fromContextId: 'ctx2',
-        pattern: 'conformist',
+        pattern: 'partnership',
       }
       const project = createTestProject({ relationships: [oldRel] })
       const command: EditorCommand = {
@@ -1207,7 +1207,7 @@ describe('applyRedo', () => {
 
       const result = applyRedo(project, command)
 
-      expect(result.relationships[0].pattern).toBe('conformist')
+      expect(result.relationships[0].pattern).toBe('partnership')
     })
   })
 
