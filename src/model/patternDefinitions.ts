@@ -1,10 +1,10 @@
-import type { Relationship } from './types'
+import type { Relationship, UpstreamRole, DownstreamRole } from './types'
 
 export type PowerDynamics = 'upstream' | 'downstream' | 'mutual' | 'none'
 export type PatternCategory = 'upstream-downstream' | 'mutual' | 'autonomous'
 
 export interface PatternDefinition {
-  value: NonNullable<Relationship['pattern']>
+  value: NonNullable<Relationship['pattern']> | UpstreamRole | DownstreamRole
   label: string
   powerDynamics: PowerDynamics
   category: PatternCategory
@@ -142,23 +142,6 @@ export const PATTERN_DEFINITIONS: PatternDefinition[] = [
     ],
     example:
       'Checkout and Payment contexts are in partnership—new payment methods require coordinated changes in both contexts, and they release together.',
-  },
-  {
-    value: 'separate-ways',
-    label: 'Separate Ways',
-    powerDynamics: 'none',
-    category: 'autonomous',
-    shortDescription: 'No integration between contexts',
-    detailedDescription:
-      'A deliberate decision not to integrate two contexts. Each context solves its own problems independently, even if this means some duplication. This eliminates integration complexity and allows full autonomy.',
-    whenToUse: [
-      'Integration cost exceeds the benefit',
-      'Contexts have very different lifecycles or priorities',
-      'Duplication is acceptable for the use case',
-      'Teams need maximum autonomy',
-    ],
-    example:
-      'Marketing and Warehouse contexts both maintain their own product descriptions rather than integrating, because their needs are different enough that integration adds more complexity than value.',
   },
 ]
 

@@ -87,15 +87,7 @@ export interface Relationship {
   fromContextId: string // downstream / dependent
   toContextId: string // upstream / defining authority
 
-  pattern?:
-    | 'customer-supplier'
-    | 'conformist'
-    | 'anti-corruption-layer'
-    | 'open-host-service'
-    | 'published-language'
-    | 'shared-kernel'
-    | 'partnership'
-    | 'separate-ways'
+  pattern?: 'customer-supplier' | 'partnership' | 'shared-kernel'
 
   upstreamRole?: UpstreamRole
   downstreamRole?: DownstreamRole

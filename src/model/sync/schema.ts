@@ -142,16 +142,7 @@ export interface YjsRelationship {
   id: string
   fromContextId: string
   toContextId: string
-  pattern:
-    | 'customer-supplier'
-    | 'conformist'
-    | 'anti-corruption-layer'
-    | 'open-host-service'
-    | 'published-language'
-    | 'shared-kernel'
-    | 'partnership'
-    | 'separate-ways'
-    | null
+  pattern: 'customer-supplier' | 'partnership' | 'shared-kernel' | null
   upstreamRole?: 'open-host-service' | 'published-language' | null
   downstreamRole?: 'conformist' | 'anti-corruption-layer' | null
   communicationMode?: string | null
