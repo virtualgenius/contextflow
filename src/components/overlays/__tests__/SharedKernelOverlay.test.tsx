@@ -131,7 +131,7 @@ describe('SharedKernelOverlay', () => {
     expect(callArg.selectedContextIds).toEqual(['ctx-a', 'ctx-b'])
   })
 
-  it('always shows the "Shared Kernel" label so it can serve as the click target', () => {
+  it('hides the "Shared Kernel" label visually by default (opacity 0)', () => {
     const a = makeContext('ctx-a', 0, 0)
     const b = makeContext('ctx-b', 5, 5)
     const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
@@ -140,7 +140,65 @@ describe('SharedKernelOverlay', () => {
       <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
     )
 
-    expect(container.textContent).toContain('Shared Kernel')
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label).not.toBeNull()
+    expect(label.style.opacity).toBe('0')
+  })
+
+  it('shows the label when showRelationshipLabels is on', () => {
+    setupStoreMock({ showRelationshipLabels: true })
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label.style.opacity).toBe('1')
+  })
+
+  it('shows the label when the relationship is selected even with the toggle off', () => {
+    setupStoreMock({ selectedRelationshipId: 'rel-1' })
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label.style.opacity).toBe('1')
+  })
+
+  it('shows the label when the relationship is hovered (via store hover id)', () => {
+    setupStoreMock({ hoveredRelationshipId: 'rel-1' })
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label.style.opacity).toBe('1')
+  })
+
+  it('keeps the label pointer-target alive while hidden so it can be hovered to reveal', () => {
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
+    expect(label.style.opacity).toBe('0')
+    expect(label.style.pointerEvents).toBe('auto')
   })
 
   it('makes the hatched fill pointer-events: none so drag can pass through to contexts beneath', () => {

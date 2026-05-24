@@ -44,6 +44,7 @@ export function SharedKernelOverlay({
   const { x: vpX, y: vpY, zoom } = useViewport()
   const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
   const hoveredRelationshipId = useEditorStore((s) => s.hoveredRelationshipId)
+  const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
   const setHoveredRelationship = useEditorStore((s) => s.setHoveredRelationship)
   const [hoveredOverlayId, setHoveredOverlayId] = useState<string | null>(null)
 
@@ -88,12 +89,15 @@ export function SharedKernelOverlay({
         const hatchDarkAlpha = isEmphasized ? 0.5 : 0.35
         const borderColor = '#7c3aed'
         const borderWidth = isSelected ? 3 : 2
-        const showLabel = zoom >= ZOOM_LABEL_CUTOFF
+        // Label follows the same visibility rules as RelationshipEdge labels:
+        // shown when the global toggle is on, or when the SK is selected/hovered.
+        // It's always rendered (transparent when hidden) so it can still receive
+        // hover/click and act as the SK's interactive surface.
+        const labelVisible = (showRelationshipLabels || isEmphasized) && zoom >= ZOOM_LABEL_CUTOFF
 
         // The hatched fill is purely visual and must not intercept pointer
         // events: otherwise users can't drag contexts apart when an SK
-        // covers them entirely. The label pill is the SK's interactive
-        // surface (click to select, hover to emphasize).
+        // covers them entirely.
         return (
           <div
             key={`shared-kernel-${rel.id}`}
@@ -114,10 +118,11 @@ export function SharedKernelOverlay({
               pointerEvents: 'none',
             }}
           >
-            {showLabel && (
+            {zoom >= ZOOM_LABEL_CUTOFF && (
               <button
                 type="button"
                 data-shared-kernel-label={rel.id}
+                aria-label="Shared Kernel"
                 onClick={(e) => {
                   e.stopPropagation()
                   useEditorStore.setState({
@@ -133,8 +138,13 @@ export function SharedKernelOverlay({
                   setHoveredOverlayId(null)
                   setHoveredRelationship(null)
                 }}
-                className={`${SK_LABEL_CLASSES} cursor-pointer`}
-                style={{ pointerEvents: 'auto' }}
+                className={`${SK_LABEL_CLASSES} cursor-pointer transition-opacity`}
+                style={{
+                  pointerEvents: 'auto',
+                  opacity: labelVisible ? 1 : 0,
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'center center',
+                }}
               >
                 Shared Kernel
               </button>
