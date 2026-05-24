@@ -65,7 +65,7 @@ export function SharedKernelOverlay({
         top: 0,
         left: 0,
         pointerEvents: 'none',
-        zIndex: 6,
+        zIndex: 12,
       }}
     >
       {regions.map(({ rel, overlap }) => {
