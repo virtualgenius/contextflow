@@ -1089,6 +1089,7 @@ function CanvasContent() {
       updateUserNeedPosition,
       updateKeyframeContextPosition,
       addRelationship,
+      updateRelationship,
       getContextBoxesForOverlap,
       project,
       selectedContextIds,

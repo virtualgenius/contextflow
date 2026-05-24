@@ -16,6 +16,9 @@ function setupStoreMock(overrides: Record<string, unknown> = {}) {
   vi.mocked(useEditorStore).mockImplementation((selector) => {
     const state = {
       selectedRelationshipId: null,
+      hoveredRelationshipId: null,
+      showRelationshipLabels: false,
+      setHoveredRelationship: vi.fn(),
       ...overrides,
     }
     return selector(state as never)
@@ -128,7 +131,33 @@ describe('SharedKernelOverlay', () => {
     expect(callArg.selectedContextIds).toEqual(['ctx-a', 'ctx-b'])
   })
 
-  it('shows the "Shared Kernel" label by default', () => {
+  it('hides the "Shared Kernel" label by default (matches showRelationshipLabels toggle)', () => {
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    expect(container.textContent).not.toContain('Shared Kernel')
+  })
+
+  it('shows the "Shared Kernel" label when showRelationshipLabels is on', () => {
+    setupStoreMock({ showRelationshipLabels: true })
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    expect(container.textContent).toContain('Shared Kernel')
+  })
+
+  it('shows the label when the relationship is selected even with the toggle off', () => {
+    setupStoreMock({ selectedRelationshipId: 'rel-1' })
     const a = makeContext('ctx-a', 0, 0)
     const b = makeContext('ctx-b', 5, 5)
     const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
