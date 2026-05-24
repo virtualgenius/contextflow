@@ -1,8 +1,14 @@
 import React from 'react'
-import { ArrowLeftRight, HelpCircle, BookOpen } from 'lucide-react'
+import { HelpCircle, BookOpen } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
-import type { Project, UpstreamRole, DownstreamRole, Relationship } from '../../model/types'
-import { getPatternDefinition } from '../../model/patternDefinitions'
+import type {
+  Project,
+  UpstreamRole,
+  DownstreamRole,
+  Relationship,
+  BoundedContext,
+} from '../../model/types'
+import type { ViewMode } from '../../model/storeTypes'
 import { InfoTooltip } from '../InfoTooltip'
 import { PatternsGuideModal } from '../PatternsGuideModal'
 import { COMMUNICATION_MODE, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
@@ -42,6 +48,7 @@ export function RelationshipInspector({
   const deleteRelationship = useEditorStore((s) => s.deleteRelationship)
   const updateRelationship = useEditorStore((s) => s.updateRelationship)
   const swapRelationshipDirection = useEditorStore((s) => s.swapRelationshipDirection)
+  const activeViewMode = useEditorStore((s) => s.activeViewMode)
 
   const [showPatternsGuide, setShowPatternsGuide] = React.useState(false)
 
@@ -52,7 +59,6 @@ export function RelationshipInspector({
 
   const fromContext = project.contexts.find((c) => c.id === relationship.fromContextId)
   const toContext = project.contexts.find((c) => c.id === relationship.toContextId)
-  const patternDef = getPatternDefinition(relationship.pattern)
   const isSharedKernel = relationship.pattern === 'shared-kernel'
   const showDirectionArrow = !isSharedKernel && relationship.pattern !== 'partnership'
 
@@ -113,48 +119,6 @@ export function RelationshipInspector({
         </div>
       )}
 
-      <Section label={showDirectionArrow ? 'Direction' : 'Contexts'}>
-        {showDirectionArrow ? (
-          <DirectionMiniDiagram
-            downstreamContextName={fromContext?.name || 'Unknown'}
-            upstreamContextName={toContext?.name || 'Unknown'}
-            downstreamContextId={fromContext?.id}
-            upstreamContextId={toContext?.id}
-            onFlip={() => swapRelationshipDirection(relationship.id)}
-          />
-        ) : (
-          <div className="flex items-center gap-2 text-sm">
-            <button
-              onClick={() =>
-                useEditorStore.setState({
-                  selectedContextId: fromContext?.id,
-                  selectedRelationshipId: null,
-                })
-              }
-              className="text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              {fromContext?.name || 'Unknown'}
-            </button>
-            {patternDef?.powerDynamics === 'mutual' ? (
-              <ArrowLeftRight size={14} className="text-slate-400" />
-            ) : (
-              <span className="text-slate-400 text-sm">·</span>
-            )}
-            <button
-              onClick={() =>
-                useEditorStore.setState({
-                  selectedContextId: toContext?.id,
-                  selectedRelationshipId: null,
-                })
-              }
-              className="text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              {toContext?.name || 'Unknown'}
-            </button>
-          </div>
-        )}
-      </Section>
-
       <Section label="Pattern">
         <div className="space-y-2">
           <PatternChoiceButton
@@ -210,6 +174,17 @@ export function RelationshipInspector({
         </button>
       </Section>
 
+      {showDirectionArrow && fromContext && toContext && (
+        <Section label="Direction">
+          <DirectionMiniDiagram
+            fromContext={fromContext}
+            toContext={toContext}
+            viewMode={activeViewMode}
+            onFlip={() => swapRelationshipDirection(relationship.id)}
+          />
+        </Section>
+      )}
+
       <Section
         label={
           <div className="flex items-center gap-1.5">
@@ -256,47 +231,46 @@ export function RelationshipInspector({
   )
 }
 
+function getSpatialX(ctx: BoundedContext, viewMode: ViewMode): number {
+  if (viewMode === 'distillation') return ctx.positions.distillation.x
+  if (viewMode === 'strategic') return ctx.positions.strategic.x
+  return ctx.positions.flow.x
+}
+
 function DirectionMiniDiagram({
-  downstreamContextName,
-  upstreamContextName,
-  downstreamContextId,
-  upstreamContextId,
+  fromContext,
+  toContext,
+  viewMode,
   onFlip,
 }: {
-  downstreamContextName: string
-  upstreamContextName: string
-  downstreamContextId: string | undefined
-  upstreamContextId: string | undefined
+  fromContext: BoundedContext
+  toContext: BoundedContext
+  viewMode: ViewMode
   onFlip: () => void
 }) {
-  const selectContext = (contextId: string | undefined) => {
-    if (!contextId) return
+  const selectContext = (contextId: string) => {
     useEditorStore.setState({
       selectedContextId: contextId,
       selectedRelationshipId: null,
     })
   }
 
+  const fromX = getSpatialX(fromContext, viewMode)
+  const toX = getSpatialX(toContext, viewMode)
+  const [leftContext, rightContext] =
+    fromX <= toX ? [fromContext, toContext] : [toContext, fromContext]
+  const leftIsUpstream = leftContext.id === toContext.id
+  const arrowPath = leftIsUpstream ? 'M 38 10 L 2 10' : 'M 2 10 L 38 10'
+
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => selectContext(downstreamContextId)}
-          className="flex-1 min-w-0 px-2 py-1.5 rounded-md border border-slate-300 dark:border-neutral-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-center"
-        >
-          <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
-            {downstreamContextName}
-          </div>
-          <div className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">
-            downstream
-          </div>
-        </button>
+        <ContextSlot context={leftContext} isUpstream={leftIsUpstream} onSelect={selectContext} />
         <button
           type="button"
           onClick={onFlip}
           aria-label="Flip direction"
-          title="Flip direction"
+          title="Click to flip direction"
           className="flex-shrink-0 p-1.5 rounded-md text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
         >
           <svg width="44" height="20" viewBox="0 0 44 20" aria-hidden="true">
@@ -314,7 +288,7 @@ function DirectionMiniDiagram({
               </marker>
             </defs>
             <path
-              d="M 2 10 L 38 10"
+              d={arrowPath}
               stroke="currentColor"
               strokeWidth="2"
               fill="none"
@@ -322,23 +296,40 @@ function DirectionMiniDiagram({
             />
           </svg>
         </button>
-        <button
-          type="button"
-          onClick={() => selectContext(upstreamContextId)}
-          className="flex-1 min-w-0 px-2 py-1.5 rounded-md border border-slate-300 dark:border-neutral-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors text-center"
-        >
-          <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
-            {upstreamContextName}
-          </div>
-          <div className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">
-            upstream
-          </div>
-        </button>
+        <ContextSlot context={rightContext} isUpstream={!leftIsUpstream} onSelect={selectContext} />
       </div>
       <div className="text-[10px] text-slate-500 dark:text-slate-400 text-center leading-snug">
         Click the arrow to flip. Or double-click the arrow on the canvas.
       </div>
     </div>
+  )
+}
+
+function ContextSlot({
+  context,
+  isUpstream,
+  onSelect,
+}: {
+  context: BoundedContext
+  isUpstream: boolean
+  onSelect: (contextId: string) => void
+}) {
+  const bg = isUpstream
+    ? 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30'
+    : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(context.id)}
+      className={`flex-1 min-w-0 px-2 py-1.5 rounded-md border border-slate-300 dark:border-neutral-600 ${bg} transition-colors text-center`}
+    >
+      <div className="text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+        {context.name}
+      </div>
+      <div className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-0.5">
+        {isUpstream ? 'upstream' : 'downstream'}
+      </div>
+    </button>
   )
 }
 

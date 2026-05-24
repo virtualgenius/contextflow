@@ -55,6 +55,7 @@ describe('RelationshipInspector', () => {
         deleteRelationship: mockDeleteRelationship,
         updateRelationship: mockUpdateRelationship,
         swapRelationshipDirection: mockSwapRelationshipDirection,
+        activeViewMode: 'flow',
       }
       return selector(state as never)
     })
@@ -320,6 +321,72 @@ describe('RelationshipInspector', () => {
     it('shows the hint text near the mini-diagram', () => {
       render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
       expect(screen.getByText(/click the arrow to flip.*double-click.*canvas/i)).toBeInTheDocument()
+    })
+
+    it('renders Direction section AFTER Pattern section', () => {
+      const { container } = render(
+        <RelationshipInspector project={makeProject()} relationshipId="rel-1" />
+      )
+      const sectionLabels = Array.from(container.querySelectorAll('label, div'))
+        .map((el) => el.textContent?.trim())
+        .filter((t): t is string => !!t)
+      const patternIdx = sectionLabels.findIndex((t) => t === 'Pattern')
+      const directionIdx = sectionLabels.findIndex((t) => t === 'Direction')
+      expect(patternIdx).toBeGreaterThan(-1)
+      expect(directionIdx).toBeGreaterThan(-1)
+      expect(directionIdx).toBeGreaterThan(patternIdx)
+    })
+
+    it('does NOT render a separate Contexts header for Partnership relationships', () => {
+      const project = makeProject({
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'partnership',
+          },
+        ],
+      } as Partial<Project>)
+      render(<RelationshipInspector project={project} relationshipId="rel-1" />)
+      expect(screen.queryByText(/^Contexts$/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/^Direction$/)).not.toBeInTheDocument()
+    })
+
+    it('keeps boxes in stable canvas-spatial positions when fromContext is on the right', () => {
+      const project = makeProject({
+        contexts: [
+          {
+            id: 'ctx-1',
+            name: 'Orders',
+            positions: { flow: { x: 80 }, strategic: { x: 80 }, shared: { y: 0 } },
+          },
+          {
+            id: 'ctx-2',
+            name: 'Billing',
+            positions: { flow: { x: 10 }, strategic: { x: 10 }, shared: { y: 0 } },
+          },
+        ],
+        relationships: [
+          {
+            id: 'rel-1',
+            fromContextId: 'ctx-1',
+            toContextId: 'ctx-2',
+            pattern: 'customer-supplier',
+          },
+        ],
+      } as Partial<Project>)
+      const { container } = render(
+        <RelationshipInspector project={project} relationshipId="rel-1" />
+      )
+      const slotButtons = Array.from(container.querySelectorAll('button[type="button"]')).filter(
+        (b) => /^(Orders|Billing)/.test(b.textContent?.trim() || '')
+      )
+      expect(slotButtons.length).toBe(2)
+      expect(slotButtons[0]?.textContent).toContain('Billing')
+      expect(slotButtons[1]?.textContent).toContain('Orders')
+      expect(slotButtons[0]?.textContent?.toLowerCase()).toContain('upstream')
+      expect(slotButtons[1]?.textContent?.toLowerCase()).toContain('downstream')
     })
   })
 })
