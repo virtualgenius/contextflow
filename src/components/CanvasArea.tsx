@@ -28,6 +28,12 @@ import { createSelectionState } from '../model/validation'
 import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import {
+  coordinateSpaceFor,
+  showsValueStreamScaffolding,
+  showsContextMapElements,
+  canvasBackdropFor,
+} from '../lib/canvasViewModel'
+import {
   computeSharedKernelPlan,
   computeSharedKernelSeparations,
   describeRelationshipForConversionPrompt,
@@ -81,7 +87,7 @@ function CustomControls() {
 
   const handleFitView = useCallback(() => {
     const bounds =
-      viewMode === 'flow'
+      coordinateSpaceFor(viewMode) === 'flow'
         ? { x: -120, y: -50, width: 2120, height: 1080 }
         : { x: 0, y: -50, width: 2000, height: 1080 }
 
@@ -181,7 +187,7 @@ function CanvasContent() {
   const { fitBounds } = useReactFlow()
 
   const getBounds = useCallback(() => {
-    return viewMode === 'flow'
+    return coordinateSpaceFor(viewMode) === 'flow'
       ? { x: -120, y: -50, width: 2120, height: 1080 }
       : { x: 0, y: -50, width: 2000, height: 1080 }
   }, [viewMode])
@@ -255,7 +261,7 @@ function CanvasContent() {
       const keyframes = project.temporal?.keyframes || []
       const { x, y } = getContextCanvasPosition(
         context.positions,
-        viewMode as 'flow' | 'strategic' | 'distillation',
+        coordinateSpaceFor(viewMode),
         viewMode === 'strategic' && project.temporal?.enabled ? currentDate : null,
         keyframes as any,
         interpolatePosition as any,
@@ -305,7 +311,7 @@ function CanvasContent() {
 
     // Create group nodes (not shown in distillation view)
     const groupNodes =
-      (viewMode !== 'distillation' &&
+      (showsContextMapElements(viewMode) &&
         (project.groups
           ?.map((group) => {
             const contexts = project.contexts.filter((c) => group.contextIds.includes(c.id))
@@ -313,7 +319,10 @@ function CanvasContent() {
 
             // Since we're already in a non-distillation view (checked above), compute positions
             const xPositions = contexts.map(
-              (c) => (viewMode === 'flow' ? c.positions.flow.x : c.positions.strategic.x) * 20
+              (c) =>
+                (coordinateSpaceFor(viewMode) === 'flow'
+                  ? c.positions.flow.x
+                  : c.positions.strategic.x) * 20
             )
             const yPositions = contexts.map((c) => c.positions.shared.y * 10)
 
@@ -383,7 +392,7 @@ function CanvasContent() {
 
     // Create user nodes (visible in Strategic and Value Stream views, not Distillation)
     const userNodes: Node[] =
-      viewMode !== 'distillation' && project.users
+      showsValueStreamScaffolding(viewMode) && project.users
         ? project.users.map((user) => {
             const x = (user.position / 100) * 2000
             const y = 10 // Fixed y position at top inside boundary
@@ -415,7 +424,7 @@ function CanvasContent() {
 
     // Create userNeed nodes (visible in Strategic and Value Stream views, not Distillation)
     const userNeedNodes: Node[] =
-      viewMode !== 'distillation' && project.userNeeds
+      showsValueStreamScaffolding(viewMode) && project.userNeeds
         ? project.userNeeds
             .filter((need) => need.visibility !== false)
             .map((userNeed) => {
@@ -488,7 +497,7 @@ function CanvasContent() {
     // Hovered or selected edges get bumped above their neighbors so the line
     // the user is interacting with renders in front of crossing relationships.
     const relationshipEdges =
-      viewMode !== 'distillation' && showRelationships
+      showsContextMapElements(viewMode) && showRelationships
         ? project.relationships.map((rel) => {
             const isEmphasized =
               rel.id === hoveredRelationshipId || rel.id === selectedRelationshipId
@@ -506,7 +515,7 @@ function CanvasContent() {
 
     // Add user-need connection edges (Strategic and Value Stream views, not Distillation)
     const userNeedConnectionEdges: Edge[] =
-      viewMode !== 'distillation' && project.userNeedConnections
+      showsValueStreamScaffolding(viewMode) && project.userNeedConnections
         ? project.userNeedConnections.map((conn) => ({
             id: conn.id,
             source: conn.userId,
@@ -520,7 +529,7 @@ function CanvasContent() {
 
     // Add need-context connection edges (Strategic and Value Stream views, not Distillation)
     const needContextConnectionEdges: Edge[] =
-      viewMode !== 'distillation' && project.needContextConnections
+      showsValueStreamScaffolding(viewMode) && project.needContextConnections
         ? project.needContextConnections.map((conn) => ({
             id: conn.id,
             source: conn.userNeedId,
@@ -689,7 +698,7 @@ function CanvasContent() {
                 distillation: { x: newX, y: 100 - newY }, // Invert Y back to 0=bottom, 100=top
                 shared: { y: ctx.positions.shared.y },
               }
-            } else if (viewMode === 'flow') {
+            } else if (coordinateSpaceFor(viewMode) === 'flow') {
               positionsMap[contextId] = {
                 flow: { x: newX },
                 strategic: { x: ctx.positions.strategic.x },
@@ -938,7 +947,7 @@ function CanvasContent() {
                 distillation: { x: newX, y: 100 - newY }, // Invert Y back to 0=bottom, 100=top
                 shared: { y: ctx.positions.shared.y },
               }
-            } else if (viewMode === 'flow') {
+            } else if (coordinateSpaceFor(viewMode) === 'flow') {
               positionsMap[contextId] = {
                 flow: { x: newX },
                 strategic: { x: ctx.positions.strategic.x },
@@ -977,7 +986,7 @@ function CanvasContent() {
               distillation: { x: xPercent, y: 100 - yPercent }, // Invert Y back to 0=bottom, 100=top
               shared: { y: context.positions.shared.y },
             })
-          } else if (viewMode === 'flow') {
+          } else if (coordinateSpaceFor(viewMode) === 'flow') {
             updateContextPosition(node.id, {
               flow: { x: xPercent },
               strategic: { x: context.positions.strategic.x },
@@ -1218,35 +1227,38 @@ function CanvasContent() {
 
           <CustomControls />
 
-          {viewMode === 'distillation' ? (
+          {canvasBackdropFor(viewMode) === 'distillation' ? (
             <DistillationRegions />
-          ) : viewMode === 'flow' ? (
+          ) : canvasBackdropFor(viewMode) === 'flow' ? (
             <>
               <ProblemSpaceBand />
               <StageBoundaryLines stages={flowStages} />
               <StageLabels stages={flowStages} />
               <YAxisLabels />
             </>
-          ) : (
+          ) : canvasBackdropFor(viewMode) === 'strategic' ? (
             <>
               <ProblemSpaceBand />
               <EvolutionBands />
               <YAxisLabels />
             </>
-          )}
+          ) : null}
 
           {/* Shared Kernel overlay - renders SK as overlapping hatched regions */}
-          {project && viewMode !== 'distillation' && showRelationships && (
+          {project && showsContextMapElements(viewMode) && showRelationships && (
             <SharedKernelOverlay
               contexts={project.contexts}
               relationships={project.relationships}
-              viewMode={viewMode}
+              viewMode={coordinateSpaceFor(viewMode)}
             />
           )}
 
           {/* Issue labels overlay - visible in all views when enabled */}
           {showIssueLabels && project && (
-            <IssueLabelsOverlay contexts={project.contexts} viewMode={viewMode} />
+            <IssueLabelsOverlay
+              contexts={project.contexts}
+              viewMode={coordinateSpaceFor(viewMode)}
+            />
           )}
 
           {/* Team labels overlay - visible in all views when enabled */}
@@ -1254,7 +1266,7 @@ function CanvasContent() {
             <TeamLabelsOverlay
               contexts={project.contexts}
               teams={project.teams}
-              viewMode={viewMode}
+              viewMode={coordinateSpaceFor(viewMode)}
               onTeamClick={setSelectedTeam}
             />
           )}

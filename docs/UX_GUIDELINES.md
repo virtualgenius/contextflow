@@ -68,9 +68,10 @@ Right-click menus appear on specific elements only:
 - **Context nodes (temporal mode only):** Hide/show in current keyframe. Only available when editing a keyframe in Strategic View.
 
 ### View Modes
-Three synchronized views of the same system model:
+Synchronized views of the same system model:
 
-- **Value Stream View (default):** X-axis = configurable flow stages (e.g., Discovery → Selection → Purchase → Fulfillment). Shows how value flows through the system. Stages are editable via TopBar.
+- **Context Map View (default for new projects):** Bounded contexts and their relationships only, with value-stream scaffolding (users, needs, stages, value-chain axis) hidden. Shares Flow's coordinate space, so positions stay consistent when switching views. New projects start here; existing projects reopen to their last view.
+- **Value Stream View:** X-axis = configurable flow stages (e.g., Discovery → Selection → Purchase → Fulfillment). Shows how value flows through the system. Stages are editable via TopBar.
 - **Distillation View:** X-axis = Business Differentiation (low → high), Y-axis = Model Complexity (low → high). Core Domain Chart for classifying domains (core/supporting/generic).
 - **Strategic View:** X-axis = Wardley evolution (Genesis → Custom-built → Product → Commodity). Shows three-layer value chain: Actors → User Needs → Contexts.
 - Toggle via top bar button. View transitions animate smoothly.

@@ -83,7 +83,8 @@ export function RelationshipInspector({
     if (!isSharedKernel) return
     if (activeViewMode === 'distillation') return
     if (!fromContext || !toContext) return
-    const separated = computeSeparatedPositions(fromContext, toContext, activeViewMode)
+    const separationViewMode = activeViewMode === 'context-map' ? 'flow' : activeViewMode
+    const separated = computeSeparatedPositions(fromContext, toContext, separationViewMode)
     if (!separated) return
     updateMultipleContextPositions({
       [fromContext.id]: separated.fromPositions,

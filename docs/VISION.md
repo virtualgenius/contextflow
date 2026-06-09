@@ -12,10 +12,11 @@ It lets you model:
 - The complete value chain from actors to user needs to solution components
 - How your architecture evolves over time
 
-It gives you three synchronized views of the same system:
-1. **Value Stream View** – shows how value/data/work moves through configurable flow stages (e.g., Discovery → Selection → Purchase → Fulfillment for e-commerce)
-2. **Distillation View** – classifies contexts using Nick Tune's Core Domain Chart (Business Differentiation vs Model Complexity) to identify core vs supporting vs generic domains
-3. **Strategic View** – shows the complete Wardley Map value chain with Actors → User Needs → Contexts positioned on the evolution axis (Genesis → Custom-built → Product → Commodity)
+It gives you synchronized views of the same system:
+1. **Context Map View** – a pure context map of bounded contexts and the relationships between them, with the value-stream scaffolding hidden, for teaching or practicing context mapping in isolation
+2. **Value Stream View** – shows how value/data/work moves through configurable flow stages (e.g., Discovery → Selection → Purchase → Fulfillment for e-commerce)
+3. **Distillation View** – classifies contexts using Nick Tune's Core Domain Chart (Business Differentiation vs Model Complexity) to identify core vs supporting vs generic domains
+4. **Strategic View** – shows the complete Wardley Map value chain with Actors → User Needs → Contexts positioned on the evolution axis (Genesis → Custom-built → Product → Commodity)
 
 You can switch between these views live. The map animates, but remains the "same" system. This is how you explain reality to delivery teams, architects, and execs using the same underlying model.
 

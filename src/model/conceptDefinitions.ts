@@ -317,6 +317,17 @@ export const POWER_DYNAMICS: ConceptDefinition = {
 
 // View Descriptions
 export const VIEW_DESCRIPTIONS: Record<string, ConceptDefinition> = {
+  contextMap: {
+    title: 'Context Map View',
+    description:
+      'A pure context map: just bounded contexts and the relationships between them, without value-stream scaffolding.',
+    characteristics: [
+      'Focus on contexts and relationships',
+      'Group contexts into capability clusters',
+      'Teach or practice context mapping in isolation',
+      'Reveal value-stream framing later, in other views',
+    ],
+  },
   flow: {
     title: 'Value Stream View',
     description:

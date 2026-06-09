@@ -272,6 +272,18 @@ export function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         {/* View Toggle */}
         <div className="flex items-center bg-slate-100 dark:bg-neutral-900 rounded-lg p-1">
+          <InfoTooltip content={VIEW_DESCRIPTIONS.contextMap}>
+            <button
+              onClick={() => setViewMode('context-map')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'context-map'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Context Map
+            </button>
+          </InfoTooltip>
           <InfoTooltip content={VIEW_DESCRIPTIONS.flow}>
             <button
               onClick={() => setViewMode('flow')}
@@ -284,18 +296,6 @@ export function TopBar() {
               Value Stream
             </button>
           </InfoTooltip>
-          <InfoTooltip content={VIEW_DESCRIPTIONS.distillation}>
-            <button
-              onClick={() => setViewMode('distillation')}
-              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                viewMode === 'distillation'
-                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Distillation
-            </button>
-          </InfoTooltip>
           <InfoTooltip content={VIEW_DESCRIPTIONS.strategic}>
             <button
               onClick={() => setViewMode('strategic')}
@@ -306,6 +306,18 @@ export function TopBar() {
               }`}
             >
               Strategic
+            </button>
+          </InfoTooltip>
+          <InfoTooltip content={VIEW_DESCRIPTIONS.distillation}>
+            <button
+              onClick={() => setViewMode('distillation')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'distillation'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Distillation
             </button>
           </InfoTooltip>
         </div>

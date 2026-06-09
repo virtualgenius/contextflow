@@ -11,7 +11,7 @@ import type {
   Relationship,
 } from './types'
 
-export type ViewMode = 'flow' | 'strategic' | 'distillation'
+export type ViewMode = 'context-map' | 'flow' | 'strategic' | 'distillation'
 
 export interface EditorCommand {
   type:

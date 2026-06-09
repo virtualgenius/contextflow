@@ -5,6 +5,7 @@ import { useEditorStore } from '../../model/store'
 import type { BoundedContext } from '../../model/types'
 import { Archive, CloudFog } from 'lucide-react'
 import { getContextTooltipLines } from '../../lib/contextTooltip'
+import { coordinateSpaceFor } from '../../lib/canvasViewModel'
 import { getContextNodeBorderStyle } from '../../lib/nodeStyles'
 import { NODE_SIZES } from '../../lib/canvasConstants'
 import { InfoTooltip } from '../InfoTooltip'
@@ -349,7 +350,7 @@ export function ContextNode({ data }: NodeProps) {
           const tooltipPos = getTooltipPosition()
           const lines = getContextTooltipLines({
             context,
-            viewMode: viewMode as 'flow' | 'strategic' | 'distillation',
+            viewMode: coordinateSpaceFor(viewMode),
             colorByMode,
             relationships: project?.relationships || [],
             contexts: project?.contexts || [],
