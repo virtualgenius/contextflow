@@ -41,6 +41,11 @@ import {
   findFirstUnoccupiedFlowPosition,
 } from '../lib/distillationGrid'
 import {
+  computeSpawnPoint,
+  relationshipEndpointsForDirection,
+  type SpawnDirection,
+} from '../lib/addContextGeometry'
+import {
   createProjectAction,
   deleteProjectAction,
   renameProjectAction,
@@ -126,6 +131,30 @@ async function reconnectCollabForProject(
     if (options?.loadExisting) {
       loadExistingProjectFromYDoc(ydoc, updateStoreAndAutosave)
     }
+  }
+}
+
+// A new context needs a position in every coordinate space so it renders in
+// all views and never carries a null position. When an explicit flow position
+// is given (on-canvas gestures), it drives flow.x / strategic.x / shared.y;
+// otherwise the first unoccupied flow slot is used.
+function buildNewContext(
+  name: string,
+  contexts: BoundedContext[],
+  position?: { x: number; y: number }
+): BoundedContext {
+  const flowPos = position ?? findFirstUnoccupiedFlowPosition(contexts)
+  return {
+    id: `context-${crypto.randomUUID()}`,
+    name,
+    positions: {
+      flow: { x: flowPos.x },
+      strategic: { x: flowPos.x },
+      distillation: findFirstUnoccupiedGridPosition(contexts),
+      shared: { y: flowPos.y },
+    },
+    strategicClassification: 'supporting',
+    evolutionStage: 'custom-built',
   }
 }
 
@@ -437,26 +466,16 @@ export const useEditorStore = create<EditorState>((set) => ({
       return result
     }),
 
-  addContext: (name) =>
+  addContext: (name, position) => {
+    let createdId: string | null = null
     set((state) => {
       const projectId = state.activeProjectId
       if (!projectId) return {}
       const project = state.projects[projectId]
       if (!project) return {}
 
-      const flowPos = findFirstUnoccupiedFlowPosition(project.contexts)
-      const newContext: BoundedContext = {
-        id: `context-${Date.now()}`,
-        name,
-        positions: {
-          flow: { x: flowPos.x },
-          strategic: { x: flowPos.x },
-          distillation: findFirstUnoccupiedGridPosition(project.contexts),
-          shared: { y: flowPos.y },
-        },
-        strategicClassification: 'supporting',
-        evolutionStage: 'custom-built',
-      }
+      const newContext = buildNewContext(name, project.contexts, position)
+      createdId = newContext.id
 
       getCollabMutations().addContext(newContext)
 
@@ -473,7 +492,73 @@ export const useEditorStore = create<EditorState>((set) => ({
       trackFTUEMilestone('first_context_added', updatedProject)
 
       return { selectedContextId: newContext.id }
-    }),
+    })
+    return createdId
+  },
+
+  createRelatedContext: (sourceId, direction, name) => {
+    let createdId: string | null = null
+    set((state) => {
+      const projectId = state.activeProjectId
+      if (!projectId) return {}
+      const project = state.projects[projectId]
+      if (!project) return {}
+
+      const source = project.contexts.find((c) => c.id === sourceId)
+      if (!source) return {}
+
+      const occupied = project.contexts.map((c) => ({
+        x: c.positions.flow.x,
+        y: c.positions.shared.y,
+      }))
+      const sourcePoint = { x: source.positions.flow.x, y: source.positions.shared.y }
+      const spawnPoint = computeSpawnPoint(sourcePoint, occupied, direction as SpawnDirection)
+
+      const newContext = buildNewContext(name, project.contexts, spawnPoint)
+      createdId = newContext.id
+
+      const endpoints = relationshipEndpointsForDirection(
+        direction as SpawnDirection,
+        sourceId,
+        newContext.id
+      )
+      const newRelationship = {
+        id: `rel-${crypto.randomUUID()}`,
+        fromContextId: endpoints.fromContextId,
+        toContextId: endpoints.toContextId,
+        pattern: endpoints.pattern,
+      }
+
+      getCollabMutations().addRelatedContext(newContext, newRelationship)
+
+      const updatedProject = {
+        ...project,
+        contexts: [...project.contexts, newContext],
+        relationships: [...project.relationships, newRelationship],
+      }
+      trackEvent('context_added', updatedProject, {
+        entity_type: 'context',
+        entity_id: newContext.id,
+        source_view: state.activeViewMode,
+        metadata: {
+          context_type: newContext.strategicClassification,
+          ownership: newContext.ownership || 'ours',
+          creation_method: 'related',
+          spawn_direction: direction,
+        },
+      })
+      trackEvent('relationship_added', updatedProject, {
+        entity_type: 'relationship',
+        entity_id: newRelationship.id,
+        pattern: newRelationship.pattern,
+      })
+      trackFTUEMilestone('first_context_added', updatedProject)
+      trackFTUEMilestone('first_relationship_added', updatedProject)
+
+      return { selectedContextId: newContext.id }
+    })
+    return createdId
+  },
 
   deleteContext: (contextId) =>
     set((state) => {

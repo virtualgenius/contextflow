@@ -34,6 +34,7 @@ export interface CollabMutations {
   updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void
   deleteContextIssue(contextId: string, issueId: string): void
   addRelationship(relationship: Relationship): void
+  addRelatedContext(context: BoundedContext, relationship: Relationship): void
   updateRelationship(relationshipId: string, updates: Partial<Relationship>): void
   deleteRelationship(relationshipId: string): void
   addGroup(group: Group): void
@@ -146,6 +147,9 @@ export function getCollabMutations(): CollabMutations {
     },
     addRelationship(relationship: Relationship): void {
       collabStore?.addRelationship(relationship)
+    },
+    addRelatedContext(context: BoundedContext, relationship: Relationship): void {
+      collabStore?.addRelatedContext(context, relationship)
     },
     updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
       collabStore?.updateRelationship(relationshipId, updates)

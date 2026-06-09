@@ -187,7 +187,12 @@ export interface EditorState {
   deleteProject: (projectId: string) => void
   renameProject: (projectId: string, newName: string) => void
   duplicateProject: (projectId: string) => void
-  addContext: (name: string) => void
+  addContext: (name: string, position?: { x: number; y: number }) => string | null
+  createRelatedContext: (
+    sourceId: string,
+    direction: 'up' | 'down' | 'left' | 'right',
+    name: string
+  ) => string | null
   deleteContext: (contextId: string) => void
   addContextIssue: (contextId: string, title: string, severity?: IssueSeverity) => void
   updateContextIssue: (contextId: string, issueId: string, updates: Partial<Issue>) => void

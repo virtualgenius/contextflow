@@ -101,6 +101,7 @@ export interface CollabStore {
   updateContextIssue(contextId: string, issueId: string, updates: Partial<Issue>): void
   deleteContextIssue(contextId: string, issueId: string): void
   addRelationship(relationship: Relationship): void
+  addRelatedContext(context: BoundedContext, relationship: Relationship): void
   updateRelationship(relationshipId: string, updates: Partial<Relationship>): void
   deleteRelationship(relationshipId: string): void
   addGroup(group: Group): void
@@ -207,6 +208,14 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
     addRelationship(relationship: Relationship): void {
       addRelationshipMutation(ydoc, relationship)
+    },
+
+    // One transaction so context + relationship undo together as a single step.
+    addRelatedContext(context: BoundedContext, relationship: Relationship): void {
+      ydoc.transact(() => {
+        addContextMutation(ydoc, context)
+        addRelationshipMutation(ydoc, relationship)
+      })
     },
 
     updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
@@ -476,6 +485,14 @@ export function createCollabStoreFromYDoc(
 
     addRelationship(relationship: Relationship): void {
       addRelationshipMutation(ydoc, relationship)
+    },
+
+    // One transaction so context + relationship undo together as a single step.
+    addRelatedContext(context: BoundedContext, relationship: Relationship): void {
+      ydoc.transact(() => {
+        addContextMutation(ydoc, context)
+        addRelationshipMutation(ydoc, relationship)
+      })
     },
 
     updateRelationship(relationshipId: string, updates: Partial<Relationship>): void {
