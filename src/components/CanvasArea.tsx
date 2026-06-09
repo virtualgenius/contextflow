@@ -26,7 +26,7 @@ import {
 } from '../lib/blobPositioning'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { createSelectionState } from '../model/validation'
-import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
+import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE, PROBLEM_SPACE_HEIGHT } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import {
   computeSpawnPoint,
@@ -38,6 +38,7 @@ import {
   showsValueStreamScaffolding,
   showsContextMapElements,
   canvasBackdropFor,
+  reservesProblemSpaceTop,
 } from '../lib/canvasViewModel'
 import {
   computeSharedKernelPlan,
@@ -813,7 +814,7 @@ function CanvasContent() {
         let deltaY = positionChange.position.y - draggedNode.position.y
 
         // Clamp delta so no selected node exceeds boundaries
-        const PROBLEM_SPACE_HEIGHT = 150
+        const topReservation = reservesProblemSpaceTop(viewMode) ? PROBLEM_SPACE_HEIGHT : 0
         const selectedDragNodes = allSelectedIds
           .map((id) => nodes.find((node) => node.id === id))
           .filter((n): n is Node => n != null && n.type === 'context')
@@ -825,7 +826,7 @@ function CanvasContent() {
         const clamped = clampDragDelta({ x: deltaX, y: deltaY }, selectedDragNodes, {
           width: 2000,
           height: 1000,
-          minY: PROBLEM_SPACE_HEIGHT,
+          minY: topReservation,
         })
         deltaX = clamped.x
         deltaY = clamped.y
@@ -917,29 +918,32 @@ function CanvasContent() {
     [nodes, viewMode, getContextBoxesForOverlap, setDragging]
   )
 
-  const constrainNodePosition: NodeDragHandler = useCallback((event, node) => {
-    if (node.type === 'user') {
-      node.position.y = 10
-      return
-    }
+  const constrainNodePosition: NodeDragHandler = useCallback(
+    (event, node) => {
+      if (node.type === 'user') {
+        node.position.y = 10
+        return
+      }
 
-    if (node.type === 'userNeed') {
-      node.position.y = 90
-      return
-    }
+      if (node.type === 'userNeed') {
+        node.position.y = 90
+        return
+      }
 
-    if (node.type !== 'context') return
+      if (node.type !== 'context') return
 
-    // Single node constraint (multi-select constraints are handled in onNodesChange)
-    const CANVAS_WIDTH = 2000
-    const CANVAS_HEIGHT = 1000
-    const PROBLEM_SPACE_HEIGHT = 150
+      // Single node constraint (multi-select constraints are handled in onNodesChange)
+      const CANVAS_WIDTH = 2000
+      const CANVAS_HEIGHT = 1000
+      const topReservation = reservesProblemSpaceTop(viewMode) ? PROBLEM_SPACE_HEIGHT : 0
 
-    const w = node.width ?? 170
-    const h = node.height ?? 100
-    node.position.x = Math.max(0, Math.min(CANVAS_WIDTH - w, node.position.x))
-    node.position.y = Math.max(PROBLEM_SPACE_HEIGHT, Math.min(CANVAS_HEIGHT - h, node.position.y))
-  }, [])
+      const w = node.width ?? 170
+      const h = node.height ?? 100
+      node.position.x = Math.max(0, Math.min(CANVAS_WIDTH - w, node.position.x))
+      node.position.y = Math.max(topReservation, Math.min(CANVAS_HEIGHT - h, node.position.y))
+    },
+    [viewMode]
+  )
 
   const onNodeDragStop: NodeDragHandler = useCallback(
     (event, node) => {
@@ -1412,7 +1416,13 @@ function CanvasContent() {
           <Background gap={24} size={0.4} color="#e5e7eb" />
 
           {/* Canvas boundary - marks the edges of the workspace */}
-          <CanvasBoundary />
+          <CanvasBoundary
+            topInset={
+              reservesProblemSpaceTop(viewMode) && !showsValueStreamScaffolding(viewMode)
+                ? PROBLEM_SPACE_HEIGHT
+                : 0
+            }
+          />
 
           <CustomControls />
 

@@ -1,5 +1,11 @@
 import type { UpstreamRole, DownstreamRole } from '../model/types'
 
+// Height (in canvas units) of the problem-space strip reserved at the top of
+// the value-chain coordinate space. Value Stream displays it as a band and
+// Context Map shares the same coordinates, so both reserve it; Distillation
+// uses its own coordinate space and reserves nothing.
+export const PROBLEM_SPACE_HEIGHT = 150
+
 // Node size mapping
 export const NODE_SIZES = {
   tiny: { width: 120, height: 70 },

@@ -4,6 +4,7 @@ import {
   showsValueStreamScaffolding,
   showsContextMapElements,
   canvasBackdropFor,
+  reservesProblemSpaceTop,
 } from '../canvasViewModel'
 
 describe('canvas view model', () => {
@@ -45,6 +46,18 @@ describe('canvas view model', () => {
       expect(canvasBackdropFor('distillation')).toBe('distillation')
       expect(showsContextMapElements('distillation')).toBe(false)
       expect(coordinateSpaceFor('distillation')).toBe('distillation')
+    })
+  })
+
+  describe('reservesProblemSpaceTop', () => {
+    it('reserves the top strip in the value-chain coordinate space (Flow, Strategic, Context Map)', () => {
+      expect(reservesProblemSpaceTop('flow')).toBe(true)
+      expect(reservesProblemSpaceTop('strategic')).toBe(true)
+      expect(reservesProblemSpaceTop('context-map')).toBe(true)
+    })
+
+    it('does not reserve in Distillation, which has its own coordinate space', () => {
+      expect(reservesProblemSpaceTop('distillation')).toBe(false)
     })
   })
 })

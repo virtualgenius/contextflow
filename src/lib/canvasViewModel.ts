@@ -22,6 +22,15 @@ export function showsContextMapElements(viewMode: ViewMode): boolean {
   return viewMode !== 'distillation'
 }
 
+// Whether a view reserves the problem-space strip at the top of the canvas
+// (keeping contexts out of it during drag). The value-chain coordinate space
+// reserves it: Value Stream displays it as a band, and Context Map shares the
+// same coordinates so it reserves the strip too (without displaying the band).
+// Distillation has its own coordinate space and reserves nothing.
+export function reservesProblemSpaceTop(viewMode: ViewMode): boolean {
+  return coordinateSpaceFor(viewMode) !== 'distillation'
+}
+
 // The backdrop chrome a view paints behind the nodes. Context Map paints none.
 export type CanvasBackdrop = 'distillation' | 'flow' | 'strategic' | 'none'
 

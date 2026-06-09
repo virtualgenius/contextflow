@@ -1,6 +1,10 @@
 import { useViewport } from 'reactflow'
 
-export function CanvasBoundary() {
+// topInset (in canvas units) lets a view start the outline below the reserved
+// problem-space strip. Context Map reserves that strip but does not display the
+// band, so its boundary begins at the bottom of the reserved area; other views
+// outline the full canvas.
+export function CanvasBoundary({ topInset = 0 }: { topInset?: number }) {
   const { x, y, zoom } = useViewport()
 
   // Canvas dimensions
@@ -9,9 +13,9 @@ export function CanvasBoundary() {
 
   // Transform canvas coordinates to screen coordinates
   const transformedX = 0 * zoom + x
-  const transformedY = 0 * zoom + y
+  const transformedY = topInset * zoom + y
   const width = canvasWidth * zoom
-  const height = canvasHeight * zoom
+  const height = (canvasHeight - topInset) * zoom
 
   return (
     <div
