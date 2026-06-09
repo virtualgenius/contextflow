@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { X, BookOpen, Keyboard } from 'lucide-react'
+import { version } from '../../package.json'
 
 interface HelpPopoverProps {
   onClose: () => void
@@ -48,6 +49,9 @@ export function HelpPopover({
           label="Keyboard Shortcuts"
           onClick={onOpenKeyboardShortcuts}
         />
+      </div>
+      <div className="mt-3 pt-2 border-t border-slate-200 dark:border-neutral-700">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">v{version}</p>
       </div>
     </div>
   )

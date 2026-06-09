@@ -12,7 +12,6 @@ import {
   Hash,
   Target,
   Share2,
-  Home,
   HelpCircle,
 } from 'lucide-react'
 import { useUrlRouter } from '../hooks/useUrlRouter'
@@ -42,7 +41,6 @@ import {
 import type { Project } from '../model/types'
 import { trackEvent } from '../utils/analytics'
 import { showsValueStreamScaffolding } from '../lib/canvasViewModel'
-import { version } from '../../package.json'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
@@ -203,15 +201,8 @@ export function TopBar() {
 
   return (
     <header className="flex items-center gap-4 px-5 py-3 border-b border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-      {/* Logo */}
-      <SimpleTooltip text={`v${version}`}>
-        <div className="font-semibold text-base text-slate-800 dark:text-slate-100">
-          ContextFlow
-        </div>
-      </SimpleTooltip>
-
-      {/* Home button */}
-      <SimpleTooltip text="Back to projects">
+      {/* Logo doubles as the Home link */}
+      <SimpleTooltip text="Home">
         <button
           onClick={() => {
             if (route === 'shared-project') {
@@ -219,10 +210,10 @@ export function TopBar() {
             }
             clearActiveProject()
           }}
-          className="p-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-          aria-label="Back to projects"
+          className="font-semibold text-base text-slate-800 dark:text-slate-100 px-2 py-1 -mx-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors"
+          aria-label="Home"
         >
-          <Home size={16} />
+          ContextFlow
         </button>
       </SimpleTooltip>
 

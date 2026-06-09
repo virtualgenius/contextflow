@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HelpPopover } from '../HelpPopover'
+import { version } from '../../../package.json'
 
 describe('HelpPopover', () => {
   it('renders the help menu heading and both links', () => {
@@ -45,6 +46,18 @@ describe('HelpPopover', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Keyboard Shortcuts' }))
 
     expect(onOpenKeyboardShortcuts).toHaveBeenCalledOnce()
+  })
+
+  it('shows the app version at the bottom', () => {
+    render(
+      <HelpPopover
+        onClose={() => {}}
+        onOpenGettingStarted={() => {}}
+        onOpenKeyboardShortcuts={() => {}}
+      />
+    )
+
+    expect(screen.getByText(`v${version}`)).toBeInTheDocument()
   })
 
   it('calls onClose when Escape is pressed', () => {
