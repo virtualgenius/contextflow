@@ -42,6 +42,17 @@ describe('perSideRelationshipConcept', () => {
   })
 })
 
+describe('Anti-Corruption Layer concept', () => {
+  it('scopes downstream control to its own model, not the relationship', () => {
+    const acl = RELATIONSHIP_PATTERNS['anti-corruption-layer']
+    const text = (acl.description + ' ' + (acl.characteristics ?? []).join(' ')).toLowerCase()
+    // The upstream keeps control of the relationship; ACL only lets the
+    // downstream defend its own model.
+    expect(text).not.toContain('controls the relationship')
+    expect(text).toContain('model')
+  })
+})
+
 describe('UPSTREAM_DOWNSTREAM concept', () => {
   it('frames the relationship as influence/power, not data flow', () => {
     expect(UPSTREAM_DOWNSTREAM.title).toBe('Upstream / Downstream')

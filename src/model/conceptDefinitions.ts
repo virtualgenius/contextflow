@@ -645,8 +645,8 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
     description:
       'Downstream protects itself with a translation layer, preventing upstream concepts from "corrupting" its domain model.',
     characteristics: [
-      '↓ Downstream controls the relationship',
-      'Isolates domain model from external concepts',
+      '↓ Downstream adapts to upstream control by guarding its own model',
+      'Isolates its domain model from external concepts',
       'Common for legacy or third-party integrations',
     ],
   },
