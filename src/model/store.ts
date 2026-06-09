@@ -63,6 +63,11 @@ import {
 import { determineProjectOrigin } from './builtInProjects'
 import { calculateKeyframeTransition } from './keyframes'
 import { validateStageName, validateStagePosition, createSelectionState } from './validation'
+import {
+  persistViewMode,
+  resolveViewModeForExistingProject,
+  newProjectViewMode,
+} from './viewModePersistence'
 
 export type { ViewMode, EditorCommand, EditorState }
 
@@ -128,7 +133,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   activeProjectId: initialActiveProjectId,
   projects: initialProjects,
 
-  activeViewMode: 'flow',
+  activeViewMode: resolveViewModeForExistingProject(initialActiveProjectId),
 
   selectedContextId: null,
   selectedRelationshipId: null,
@@ -264,13 +269,17 @@ export const useEditorStore = create<EditorState>((set) => ({
         to_view: mode,
       })
 
-      // Track FTUE milestone: second view discovered
-      // Check if user has switched views (different from starting view)
-      if (mode !== 'flow') {
-        // flow is the default starting view
-        const viewsUsed = ['flow', mode] // User started in flow, now viewing another
+      if (projectId) {
+        persistViewMode(projectId, mode)
+      }
+
+      // FTUE milestone: the user has navigated to a view different from the one
+      // they were in, so they have discovered a second view. Comparing against
+      // the current view (not a hardcoded default) stays correct now that new
+      // projects start in Context Map rather than Value Stream.
+      if (mode !== state.activeViewMode) {
         trackFTUEMilestone('second_view_discovered', project, {
-          views_used: viewsUsed,
+          views_used: [state.activeViewMode, mode],
         })
       }
 
@@ -316,6 +325,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Update state immediately
     useEditorStore.setState(() => ({
       activeProjectId: projectId,
+      activeViewMode: resolveViewModeForExistingProject(projectId),
       ...createSelectionState(null, 'context'),
       undoStack: [],
       redoStack: [],
@@ -341,8 +351,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     localStorage.setItem('contextflow.activeProjectId', newProjectId)
     autosaveIfNeeded(newProjectId, result.projects)
 
+    // New projects start in Context Map; seed storage so reopening restores it.
+    const newView = newProjectViewMode()
+    persistViewMode(newProjectId, newView)
+
     // Update state immediately with the new project
-    useEditorStore.setState(() => result)
+    useEditorStore.setState(() => ({ ...result, activeViewMode: newView }))
 
     await reconnectCollabForProject(newProjectId, newProject)
   },
@@ -358,13 +372,16 @@ export const useEditorStore = create<EditorState>((set) => ({
     localStorage.setItem('contextflow.activeProjectId', newProject.id)
     autosaveIfNeeded(newProject.id, { [newProject.id]: newProject })
 
-    // Update state immediately with the new project
+    // Update state immediately with the new project. Templates carry full
+    // value-stream content, so they open in their existing-project default
+    // (Value Stream) rather than the clean Context Map used for blank projects.
     useEditorStore.setState((state) => ({
       projects: {
         ...state.projects,
         [newProject.id]: newProject,
       },
       activeProjectId: newProject.id,
+      activeViewMode: resolveViewModeForExistingProject(newProject.id),
       ...createSelectionState(null, 'context'),
       undoStack: [],
       redoStack: [],
