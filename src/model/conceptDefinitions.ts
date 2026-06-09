@@ -698,11 +698,11 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
 export const UPSTREAM_DOWNSTREAM: ConceptDefinition = {
   title: 'Upstream / Downstream',
   description:
-    'A direction of influence, not data flow. The upstream context holds the power: its decisions ripple down to the downstream, which has little sway in return. Data can move either way; what sets the direction is who influences whom.',
+    'A direction of influence, not data flow. The upstream context shapes the downstream more than the reverse: its decisions and changes set the terms the downstream works within. The downstream still has some sway, and how much depends on the pattern (real negotiating power in Customer-Supplier, little as a Conformist). Data can move either way; what sets the direction is who influences whom.',
   characteristics: [
-    '↑ Upstream holds the power in the relationship',
-    '↓ Downstream adapts to upstream decisions and changes',
-    'Influence flows one way, whichever way data flows',
+    '↑ Upstream has the greater influence',
+    '↓ Downstream works within terms the upstream sets',
+    'How much sway the downstream has depends on the pattern',
   ],
 }
 

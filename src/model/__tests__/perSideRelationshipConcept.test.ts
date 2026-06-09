@@ -47,4 +47,14 @@ describe('UPSTREAM_DOWNSTREAM concept', () => {
     expect(UPSTREAM_DOWNSTREAM.title).toBe('Upstream / Downstream')
     expect(UPSTREAM_DOWNSTREAM.description.toLowerCase()).toContain('influence')
   })
+
+  it('does not overstate the imbalance: downstream sway depends on the pattern', () => {
+    const text = (
+      UPSTREAM_DOWNSTREAM.description +
+      ' ' +
+      (UPSTREAM_DOWNSTREAM.characteristics ?? []).join(' ')
+    ).toLowerCase()
+    expect(text).not.toContain('little sway')
+    expect(text).toContain('pattern')
+  })
 })
