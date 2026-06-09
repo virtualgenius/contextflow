@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started Guide Mockup - Context Map default (contextflow-nc8)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-6">
+
+  <div class="max-w-5xl mx-auto mb-5">
+    <h1 class="text-base font-semibold text-slate-800">Getting Started Guide &mdash; rewrite for the Context Map default</h1>
+    <p class="text-sm text-slate-500 mt-1">
+      Mockup for contextflow-nc8. Left: the proposed modal (light). Right: the same in dark. Selector and the
+      +User / +Need / +Stage steps are gone; groups are out of first run. Five steps, all reachable in Context Map,
+      then a short "switch views" pointer.
+    </p>
+  </div>
+
+  <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+    <!-- ================= LIGHT ================= -->
+    <div class="bg-white rounded-lg shadow-xl w-full border border-slate-200 flex flex-col" style="max-height: 88vh;">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Getting Started Guide</h2>
+          <p class="text-xs text-slate-500 mt-0.5">How to create your first context map</p>
+        </div>
+        <button class="p-1.5 rounded hover:bg-slate-100 text-slate-400" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <!-- Intro -->
+        <div class="text-sm text-slate-600">
+          <p>A context map shows how the parts of your system connect: your <strong>bounded contexts</strong> and
+          the <strong>relationships</strong> between them. Start here, then reveal more as your model grows.</p>
+        </div>
+
+        <!-- Philosophy callout (unchanged) -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 class="font-medium text-blue-900 text-sm mb-2">Focus on usefulness, not perfection</h4>
+          <p class="text-sm text-blue-800">
+            Your map is a discovery tool&mdash;use it to explore the landscape, challenge assumptions, and guide
+            future investment. Don't aim for a perfect model. Aim for one that sparks useful conversations and
+            helps you make better decisions.
+          </p>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="border border-slate-200 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold shrink-0">1</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-900 mb-2">Add your contexts</h4>
+              <div class="text-sm text-slate-600 space-y-2">
+                <p>Map outward from yourself&mdash;don't try to map everything. Add contexts in this order:</p>
+                <ol class="list-decimal ml-5 space-y-1.5">
+                  <li>Your own application first, as the <strong class="text-slate-700">primary context</strong> at the center (ownership: <strong class="text-slate-700">Our Team</strong>).</li>
+                  <li>The third-party APIs and applications it integrates with, as <strong class="text-slate-700">External</strong> contexts (outside your organization).</li>
+                  <li>Systems and APIs owned by other teams in your organization that you integrate with, as <strong class="text-slate-700">Internal</strong> contexts.</li>
+                </ol>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-400">▢</span>
+                  <span class="text-xs">Click <strong class="text-slate-700">+ Context</strong> for each, then set its ownership in the inspector.</span>
+                </div>
+                <div class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-md p-3 mt-1">
+                  <span class="text-amber-600 shrink-0">💡</span>
+                  <p class="text-xs text-amber-700">Put your context at the center and map from there. A useful map of your corner beats an exhaustive map of everything.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="border border-slate-200 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold shrink-0">2</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-900 mb-2">Connect them</h4>
+              <div class="text-sm text-slate-600 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-400">↳</span>
+                  <span>Drag from one context to another to show how they integrate.</span>
+                </div>
+                <p>Pick a DDD pattern&mdash;<em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>,
+                <em>Open Host Service</em>, <em>Shared Kernel</em>, <em>Partnership</em>&mdash;to describe the relationship.</p>
+                <div class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-md p-3 mt-1">
+                  <span class="text-amber-600 shrink-0">💡</span>
+                  <p class="text-xs text-amber-700">Don't worry about getting patterns perfect at first. You can always change them later.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="border border-slate-200 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold shrink-0">3</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-900 mb-2">Make your contexts richer</h4>
+              <div class="text-sm text-slate-600 space-y-2">
+                <p>Select a context to open the inspector, then add detail:</p>
+                <ul class="list-disc ml-5 space-y-1 text-slate-500">
+                  <li>Refine its <strong class="text-slate-700">properties</strong>&mdash;purpose, boundary type, code size, classification.</li>
+                  <li>Assign a <strong class="text-slate-700">repository</strong> so the map links to real code&mdash;for contexts your organization owns (Our Team or Internal).</li>
+                  <li>Assign a <strong class="text-slate-700">team</strong> to show ownership.</li>
+                </ul>
+                <div class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-md p-3 mt-1">
+                  <span class="text-amber-600 shrink-0">💡</span>
+                  <p class="text-xs text-amber-700">All of this stays in Context Map&mdash;no need to switch views to enrich a context.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="border border-slate-200 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-semibold shrink-0">4</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-900 mb-2">Flag issues</h4>
+              <div class="text-sm text-slate-600 space-y-2">
+                <p>Capture what's wrong or worth discussing as issues on a context. They show up on the map and
+                drive the conversation.</p>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mt-2">Context problems</p>
+                <div class="text-xs bg-slate-50 border border-slate-200 rounded-md p-2 text-slate-600 italic">
+                  "Application has too many responsibilities and is hard / risky to change."
+                </div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mt-2">Relationship problems</p>
+                <p class="text-xs">Record these on the affected context&mdash;usually the <strong class="text-slate-700">downstream</strong> one,
+                where the symptoms show up:</p>
+                <div class="text-xs bg-slate-50 border border-slate-200 rounded-md p-2 text-slate-600 italic space-y-1">
+                  <p>"Upstream thinks it's Customer-Supplier, but it's actually a Partnership."</p>
+                  <p>"Downstream from a big ball of mud. Needs an ACL to support the new domain model."</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Go further -->
+        <div class="border border-slate-200 rounded-lg p-4 bg-slate-50">
+          <h4 class="font-medium text-slate-900 mb-2">Go further: switch views</h4>
+          <p class="text-sm text-slate-600 mb-2">Context Map is your starting point. As your model grows, switch views to reveal more:</p>
+          <ul class="list-disc ml-5 space-y-2 text-sm text-slate-500">
+            <li><strong class="text-slate-700">Value Stream</strong> &mdash; add the users, needs, and stages your
+            contexts serve, to see how they support value delivery. (Start from a user journey here.)</li>
+            <li><strong class="text-slate-700">Distillation</strong> &mdash; classify each context as Core, Supporting, or Generic.</li>
+            <li><strong class="text-slate-700">Strategic</strong> &mdash; position contexts on the Wardley evolution axis.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer (unchanged) -->
+      <div class="px-5 py-3 border-t border-slate-200 shrink-0 flex gap-3">
+        <button class="flex-1 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded">Explore Sample Project</button>
+        <button class="flex-1 px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded">Close</button>
+      </div>
+    </div>
+
+    <!-- ================= DARK ================= -->
+    <div class="bg-neutral-800 rounded-lg shadow-xl w-full border border-neutral-700 flex flex-col" style="max-height: 88vh;">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-700 shrink-0">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-100">Getting Started Guide</h2>
+          <p class="text-xs text-slate-400 mt-0.5">How to create your first context map</p>
+        </div>
+        <button class="p-1.5 rounded hover:bg-neutral-700 text-slate-400" aria-label="Close">✕</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div class="text-sm text-slate-400">
+          <p>A context map shows how the parts of your system connect: your <strong class="text-slate-200">bounded contexts</strong>
+          and the <strong class="text-slate-200">relationships</strong> between them. Start here, then reveal more as your model grows.</p>
+        </div>
+
+        <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
+          <h4 class="font-medium text-blue-200 text-sm mb-2">Focus on usefulness, not perfection</h4>
+          <p class="text-sm text-blue-300">Your map is a discovery tool&mdash;use it to explore the landscape and
+          guide future investment. Aim for one that sparks useful conversations.</p>
+        </div>
+
+        <div class="border border-neutral-700 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 flex items-center justify-center text-sm font-semibold shrink-0">1</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-100 mb-2">Add your contexts</h4>
+              <div class="text-sm text-slate-400 space-y-2">
+                <p>Map outward from yourself&mdash;don't try to map everything:</p>
+                <ol class="list-decimal ml-5 space-y-1.5">
+                  <li>Your own application first, as the <strong class="text-slate-300">primary context</strong> at the center (<strong class="text-slate-300">Our Team</strong>).</li>
+                  <li>Third-party APIs/apps it integrates with, as <strong class="text-slate-300">External</strong> contexts.</li>
+                  <li>Other teams' systems in your org that you integrate with, as <strong class="text-slate-300">Internal</strong> contexts.</li>
+                </ol>
+                <div class="flex items-start gap-2 bg-amber-900/20 border border-amber-800 rounded-md p-3 mt-1">
+                  <span class="text-amber-400 shrink-0">💡</span>
+                  <p class="text-xs text-amber-400">Put your context at the center and map from there. A useful map of your corner beats an exhaustive one of everything.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-neutral-700 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 flex items-center justify-center text-sm font-semibold shrink-0">2</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-100 mb-2">Connect them</h4>
+              <div class="text-sm text-slate-400 space-y-2">
+                <p>Drag context to context, then pick a DDD pattern (Customer-Supplier, ACL, Shared Kernel...).</p>
+                <div class="flex items-start gap-2 bg-amber-900/20 border border-amber-800 rounded-md p-3 mt-1">
+                  <span class="text-amber-400 shrink-0">💡</span>
+                  <p class="text-xs text-amber-400">Patterns aren't permanent&mdash;change them as you learn.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-neutral-700 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 flex items-center justify-center text-sm font-semibold shrink-0">3</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-100 mb-2">Make your contexts richer</h4>
+              <div class="text-sm text-slate-400 space-y-2">
+                <p>Select a context to open the inspector:</p>
+                <ul class="list-disc ml-5 space-y-1 text-slate-500">
+                  <li>Refine <strong class="text-slate-300">properties</strong> (purpose, boundary, size, classification).</li>
+                  <li>Assign a <strong class="text-slate-300">repository</strong> (contexts your org owns).</li>
+                  <li>Assign a <strong class="text-slate-300">team</strong>.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-neutral-700 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-full bg-blue-900/40 text-blue-400 flex items-center justify-center text-sm font-semibold shrink-0">4</div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-100 mb-2">Flag issues</h4>
+              <div class="text-sm text-slate-400 space-y-2">
+                <p>Capture problems as issues on a context.</p>
+                <div class="text-xs bg-neutral-900 border border-neutral-700 rounded-md p-2 text-slate-400 italic">
+                  "Application has too many responsibilities and is hard / risky to change."
+                </div>
+                <p class="text-xs">Relationship problems go on the affected context, usually the <strong class="text-slate-300">downstream</strong> one:</p>
+                <div class="text-xs bg-neutral-900 border border-neutral-700 rounded-md p-2 text-slate-400 italic space-y-1">
+                  <p>"Upstream thinks it's Customer-Supplier, but it's actually a Partnership."</p>
+                  <p>"Downstream from a big ball of mud. Needs an ACL for the new domain model."</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-neutral-700 rounded-lg p-4 bg-neutral-900/50">
+          <h4 class="font-medium text-slate-100 mb-2">Go further: switch views</h4>
+          <ul class="list-disc ml-5 space-y-2 text-sm text-slate-500">
+            <li><strong class="text-slate-300">Value Stream</strong> &mdash; add users, needs, and stages (start from a user journey).</li>
+            <li><strong class="text-slate-300">Distillation</strong> &mdash; classify Core / Supporting / Generic.</li>
+            <li><strong class="text-slate-300">Strategic</strong> &mdash; Wardley evolution positioning.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 border-t border-neutral-700 shrink-0 flex gap-3">
+        <button class="flex-1 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded">Explore Sample Project</button>
+        <button class="flex-1 px-4 py-2 text-sm bg-neutral-700 hover:bg-neutral-600 text-slate-200 rounded">Close</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="max-w-5xl mx-auto mt-6 text-xs text-slate-500 leading-relaxed">
+    <p class="font-medium text-slate-600 mb-1">Notes / open questions for review</p>
+    <ul class="list-disc ml-5 space-y-1">
+      <li>Emoji (💡) shown here only to stand in for the Lightbulb icon used in the real component; the implementation keeps the lucide icon, no emoji.</li>
+      <li>Step 4 splits "context problems" from "relationship problems" with example cards. Is that the right amount of teaching, or too much for first run?</li>
+      <li>"Go further" is a pointer list, not click-by-click steps. Confirm that depth is enough.</li>
+      <li>Intro rewritten to name bounded contexts + relationships and the progressive-reveal idea. The "switch views to reveal more" thread runs intro &rarr; go-further.</li>
+    </ul>
+  </div>
+
+</body>
+</html>
