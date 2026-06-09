@@ -4,6 +4,34 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.10.0] - 2026-06-09
+
+- On-canvas context creation: double-click the canvas, press N, or use the toolbar to name a new context inline (no more pop-up prompt)
+- Grow the map from a selected context with the arrow keys or its directional stubs: up adds an upstream provider, down a downstream consumer, left a partnership peer, right a shared-kernel peer, and you can keep chaining from the keyboard
+- New Context Map view that hides the value-stream scaffolding so you can focus on contexts and relationships; new projects open here and your chosen view is remembered per project
+- Two-sided relationships: set the role on each side (Open Host Service or Published Language upstream, Anti-Corruption Layer or Conformist downstream), shown as edge indicators with a redesigned pattern picker and a direction mini-diagram
+- Create a Shared Kernel by dragging two contexts to overlap (shown as a hatched overlap region); drag them apart to convert it back to a Partnership
+- Double-click a relationship arrow to flip its direction
+- Redesigned Context Inspector with pill-group fields, a tighter header, a Concerns section with Legacy and Big Ball of Mud toggles, and a consistent close button
+- Improved connection drawing: hover stubs and a whole-shape drop target with target highlight and snap-to-side preview
+- Show all repos in the sidebar tab (not just unassigned), with drag hints on repo and team cards
+- Rewritten Getting Started guide for the Context Map default
+- Keyboard navigation and screen-reader labels on pill-group fields
+- Raised maximum zoom for tighter inspection
+- Replaced emoji icons with crisp line icons across the inspector and node badges, and separated identity icons from attention counters
+- Simplified relationship patterns to Customer/Supplier, Partnership, and Shared Kernel; older patterns migrate automatically when a project loads
+- Strategic Profile now appears only in the views where it applies
+- Relationship-pattern labels now default to off
+- Hovered or selected relationship edges now sit above their neighbors
+- Tooltips now appear instantly
+- Anonymous usage analytics now default to on, preserving any existing opt-outs
+- Fixed the inspector panel not scrolling when a repo card is expanded
+- Fixed issue counter ordering and icons overlapping the context name, and kept external contexts visually distinct
+- Fixed Shared Kernel overlay visibility, drag pass-through, and layering above context nodes
+- Fixed collaboration not reconnecting after a project finished loading
+- Fixed Add Team and Add Repo buttons not showing in the inspector when none were assigned
+- Fixed the temporal toggle not working on projects that had never enabled it
+
 ## [0.9.1] - 2026-02-26
 
 - Business Model Role field on bounded contexts (revenue-generator, engagement-creator, compliance-enforcer, cost-reduction) for investment prioritization discussions
