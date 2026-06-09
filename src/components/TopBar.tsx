@@ -55,9 +55,6 @@ export function TopBar() {
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
   const beginContextDraft = useEditorStore((s) => s.beginContextDraft)
-  const addUser = useEditorStore((s) => s.addUser)
-  const addUserNeed = useEditorStore((s) => s.addUserNeed)
-  const addFlowStage = useEditorStore((s) => s.addFlowStage)
   const importProject = useEditorStore((s) => s.importProject)
   const clearActiveProject = useEditorStore((s) => s.clearActiveProject)
   const toggleTemporalMode = useEditorStore((s) => s.toggleTemporalMode)
@@ -184,26 +181,15 @@ export function TopBar() {
   }
 
   const handleAddUser = () => {
-    const name = prompt('User name:')
-    if (!name) return
-    addUser(name)
+    beginContextDraft({ kind: 'entity', entity: 'user' })
   }
 
   const handleAddUserNeed = () => {
-    const name = prompt('User need name:')
-    if (!name) return
-    addUserNeed(name)
+    beginContextDraft({ kind: 'entity', entity: 'userNeed' })
   }
 
   const handleAddStage = () => {
-    const name = prompt('Stage name:')
-    if (!name) return
-
-    try {
-      addFlowStage(name.trim())
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to add stage')
-    }
+    beginContextDraft({ kind: 'entity', entity: 'stage' })
   }
 
   return (

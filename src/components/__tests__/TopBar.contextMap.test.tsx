@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { TopBar } from '../TopBar'
 import { useEditorStore } from '../../model/store'
 import type { ViewMode } from '../../model/storeTypes'
@@ -27,6 +27,8 @@ const project = {
   temporal: { enabled: false },
 }
 
+const beginContextDraft = vi.fn()
+
 function setupStore(viewMode: ViewMode) {
   const state = {
     activeProjectId: 'proj-1',
@@ -39,9 +41,7 @@ function setupStore(viewMode: ViewMode) {
     undo: vi.fn(),
     redo: vi.fn(),
     addContext: vi.fn(),
-    addUser: vi.fn(),
-    addUserNeed: vi.fn(),
-    addFlowStage: vi.fn(),
+    beginContextDraft,
     importProject: vi.fn(),
     clearActiveProject: vi.fn(),
     toggleTemporalMode: vi.fn(),
@@ -72,5 +72,19 @@ describe('TopBar add affordances by view mode', () => {
     expect(screen.getByText('User')).toBeInTheDocument()
     expect(screen.getByText('Need')).toBeInTheDocument()
     expect(screen.getByText('Stage')).toBeInTheDocument()
+  })
+
+  it('opens an inline entity draft (no browser prompt) for User, Need, and Stage', () => {
+    setupStore('flow')
+    render(<TopBar />)
+
+    fireEvent.click(screen.getByText('User'))
+    expect(beginContextDraft).toHaveBeenCalledWith({ kind: 'entity', entity: 'user' })
+
+    fireEvent.click(screen.getByText('Need'))
+    expect(beginContextDraft).toHaveBeenCalledWith({ kind: 'entity', entity: 'userNeed' })
+
+    fireEvent.click(screen.getByText('Stage'))
+    expect(beginContextDraft).toHaveBeenCalledWith({ kind: 'entity', entity: 'stage' })
   })
 })

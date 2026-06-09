@@ -15,13 +15,16 @@ export type ViewMode = 'context-map' | 'flow' | 'strategic' | 'distillation'
 
 export type SpawnDirection = 'up' | 'down' | 'left' | 'right'
 
-// An in-flight inline name entry for a context being created on-canvas. Held in
-// the store (not Yjs) because three separate components open it: the canvas
-// (double-click / N key / arrow keys), the toolbar button, and the node stubs.
+export type DraftEntity = 'user' | 'userNeed' | 'stage'
+
+// An in-flight inline name entry for an entity being created on-canvas. Held in
+// the store (not Yjs) because several components open it: the canvas
+// (double-click / N key / arrow keys), the toolbar buttons, and the node stubs.
 export type ContextDraft =
   | { kind: 'at'; x: number; y: number }
   | { kind: 'center' }
   | { kind: 'related'; sourceId: string; direction: SpawnDirection }
+  | { kind: 'entity'; entity: DraftEntity }
 
 export interface EditorCommand {
   type:

@@ -1279,7 +1279,7 @@ function CanvasContent() {
     let pct: { x: number; y: number }
     if (contextDraft.kind === 'at') {
       pct = { x: contextDraft.x, y: contextDraft.y }
-    } else if (contextDraft.kind === 'center') {
+    } else if (contextDraft.kind === 'center' || contextDraft.kind === 'entity') {
       const el = wrapperRef.current
       if (!el) return null
       const rect = el.getBoundingClientRect()
