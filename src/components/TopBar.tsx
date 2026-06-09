@@ -299,18 +299,6 @@ export function TopBar() {
               Value Stream
             </button>
           </InfoTooltip>
-          <InfoTooltip content={VIEW_DESCRIPTIONS.strategic}>
-            <button
-              onClick={() => setViewMode('strategic')}
-              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                viewMode === 'strategic'
-                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Strategic
-            </button>
-          </InfoTooltip>
           <InfoTooltip content={VIEW_DESCRIPTIONS.distillation}>
             <button
               onClick={() => setViewMode('distillation')}
@@ -321,6 +309,18 @@ export function TopBar() {
               }`}
             >
               Distillation
+            </button>
+          </InfoTooltip>
+          <InfoTooltip content={VIEW_DESCRIPTIONS.strategic}>
+            <button
+              onClick={() => setViewMode('strategic')}
+              className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                viewMode === 'strategic'
+                  ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              Strategic
             </button>
           </InfoTooltip>
         </div>
