@@ -3,7 +3,6 @@ import { X, Lightbulb } from 'lucide-react'
 
 interface GettingStartedGuideModalProps {
   onClose: () => void
-  onViewSample?: () => void
 }
 
 interface StepCardProps {
@@ -171,7 +170,7 @@ function ContextMapSteps() {
   )
 }
 
-export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStartedGuideModalProps) {
+export function GettingStartedGuideModal({ onClose }: GettingStartedGuideModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[600px] max-w-[90vw] max-h-[85vh] border border-slate-200 dark:border-neutral-700 flex flex-col">
@@ -222,18 +221,10 @@ export function GettingStartedGuideModal({ onClose, onViewSample }: GettingStart
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-slate-200 dark:border-neutral-700 shrink-0 flex gap-3">
-          {onViewSample && (
-            <button
-              onClick={onViewSample}
-              className="flex-1 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-            >
-              Explore Sample Project
-            </button>
-          )}
+        <div className="px-5 py-3 border-t border-slate-200 dark:border-neutral-700 shrink-0">
           <button
             onClick={onClose}
-            className={`${onViewSample ? 'flex-1' : 'w-full'} px-4 py-2 text-sm bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-200 rounded transition-colors`}
+            className="w-full px-4 py-2 text-sm bg-slate-100 dark:bg-neutral-700 hover:bg-slate-200 dark:hover:bg-neutral-600 text-slate-700 dark:text-slate-200 rounded transition-colors"
           >
             Close
           </button>

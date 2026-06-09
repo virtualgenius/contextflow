@@ -79,12 +79,16 @@ describe('GettingStartedGuideModal (Context Map default)', () => {
     expect(text).toMatch(/Partnership/)
   })
 
-  it('keeps the Focus on usefulness callout and the Explore Sample Project footer', () => {
-    const onViewSample = vi.fn()
-    render(<GettingStartedGuideModal onClose={vi.fn()} onViewSample={onViewSample} />)
+  it('keeps the Focus on usefulness callout', () => {
+    render(<GettingStartedGuideModal onClose={vi.fn()} />)
 
     expect(screen.getByText('Focus on usefulness, not perfection')).toBeInTheDocument()
-    expect(screen.getByText('Explore Sample Project')).toBeInTheDocument()
+  })
+
+  it('does not offer an Explore Sample Project shortcut', () => {
+    render(<GettingStartedGuideModal onClose={vi.fn()} />)
+
+    expect(screen.queryByText('Explore Sample Project')).not.toBeInTheDocument()
   })
 
   it('renders no emoji anywhere in the component', () => {

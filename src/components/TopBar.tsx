@@ -42,7 +42,6 @@ import {
 import type { Project } from '../model/types'
 import { trackEvent } from '../utils/analytics'
 import { showsValueStreamScaffolding } from '../lib/canvasViewModel'
-import { sampleProject } from '../model/builtInProjects'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -53,7 +52,6 @@ export function TopBar() {
   const projects = useEditorStore((s) => s.projects)
   const viewMode = useEditorStore((s) => s.activeViewMode)
   const setViewMode = useEditorStore((s) => s.setViewMode)
-  const setActiveProject = useEditorStore((s) => s.setActiveProject)
   const canUndo = useEditorStore((s) => s.undoStack.length > 0)
   const canRedo = useEditorStore((s) => s.redoStack.length > 0)
   const undo = useEditorStore((s) => s.undo)
@@ -118,13 +116,6 @@ export function TopBar() {
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
-
-  const selectProjectAndExitSharedMode = (newProjectId: string) => {
-    if (route === 'shared-project') {
-      navigate('/')
-    }
-    setActiveProject(newProjectId)
-  }
 
   const handleExport = () => {
     if (!project) return
@@ -434,13 +425,7 @@ export function TopBar() {
 
       {/* Getting Started Guide Modal */}
       {showGettingStartedGuide && (
-        <GettingStartedGuideModal
-          onClose={() => setShowGettingStartedGuide(false)}
-          onViewSample={() => {
-            selectProjectAndExitSharedMode(sampleProject.id)
-            setShowGettingStartedGuide(false)
-          }}
-        />
+        <GettingStartedGuideModal onClose={() => setShowGettingStartedGuide(false)} />
       )}
 
       {/* Import Conflict Dialog */}
