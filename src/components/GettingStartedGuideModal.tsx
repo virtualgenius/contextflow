@@ -68,7 +68,12 @@ function ContextMapSteps() {
             <strong className="text-slate-700 dark:text-slate-300">Internal</strong> contexts.
           </li>
         </ol>
-        <p>Add a context for each, then set its ownership in the inspector.</p>
+        <p>
+          To add one, double-click anywhere on the canvas (or press{' '}
+          <strong className="text-slate-700 dark:text-slate-300">N</strong>, or use the{' '}
+          <strong className="text-slate-700 dark:text-slate-300">Context</strong> button) and type
+          its name. Then set its ownership in the inspector.
+        </p>
         <TipBox>
           Put your context at the center and map from there. A useful map of your corner beats an
           exhaustive map of everything.
@@ -77,6 +82,12 @@ function ContextMapSteps() {
 
       <StepCard number={2} title="Connect them">
         <p>Drag from one context to another to show how they integrate.</p>
+        <p>
+          To grow the map quickly, hover a context and click one of its directional arrows, or
+          select it and press an arrow key, to spawn a new connected context on that side (up for an
+          upstream provider, down for a downstream consumer, left for a partnership, right for a
+          shared kernel).
+        </p>
         <p>
           Pick a DDD pattern—<em>Customer-Supplier</em>, <em>Anti-Corruption Layer</em>,{' '}
           <em>Open Host Service</em>, <em>Shared Kernel</em>, <em>Partnership</em>—to describe the

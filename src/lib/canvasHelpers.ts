@@ -1,6 +1,12 @@
 import type { Relationship, UpstreamRole, DownstreamRole } from '../model/types'
 import { PATTERN_DEFINITIONS, POWER_DYNAMICS_ICONS } from '../model/patternDefinitions'
 
+// The empty-canvas nudge that teaches the double-click gesture: show it only
+// while there is nothing on the canvas yet and no name field is already open.
+export function shouldShowAddContextHint(contextCount: number, hasOpenDraft: boolean): boolean {
+  return contextCount === 0 && !hasOpenDraft
+}
+
 /**
  * Given a hovered context ID and a list of relationships,
  * return the set of context IDs connected to the hovered context.

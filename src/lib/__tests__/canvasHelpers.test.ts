@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { getHoverConnectedContextIds, getEdgeLabelInfo } from '../canvasHelpers'
+import {
+  getHoverConnectedContextIds,
+  getEdgeLabelInfo,
+  shouldShowAddContextHint,
+} from '../canvasHelpers'
 import type { Relationship } from '../../model/types'
 
 function makeRelationship(
@@ -133,6 +137,20 @@ describe('getEdgeLabelInfo', () => {
       expect(info).not.toBeNull()
       expect(info!.label).toBe('Partnership')
       expect(info!.directionIcon).toBe('↔')
+    })
+  })
+
+  describe('shouldShowAddContextHint', () => {
+    it('shows the hint when there are no contexts and no name field is open', () => {
+      expect(shouldShowAddContextHint(0, false)).toBe(true)
+    })
+
+    it('hides the hint once at least one context exists', () => {
+      expect(shouldShowAddContextHint(1, false)).toBe(false)
+    })
+
+    it('hides the hint while a name field is open, even on an empty canvas', () => {
+      expect(shouldShowAddContextHint(0, true)).toBe(false)
     })
   })
 })

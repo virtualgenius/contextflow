@@ -16,7 +16,7 @@ import { useEditorStore, setFitViewCallback } from '../model/store'
 import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
 import type { SpawnDirection } from '../model/storeTypes'
-import { getHoverConnectedContextIds } from '../lib/canvasHelpers'
+import { getHoverConnectedContextIds, shouldShowAddContextHint } from '../lib/canvasHelpers'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
 import {
@@ -1533,6 +1533,14 @@ function CanvasContent() {
           </svg>
         </ReactFlow>
       </div>
+
+      {project && shouldShowAddContextHint(project.contexts.length, !!contextDraft) && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="rounded-full border border-dashed border-slate-300 bg-white/70 px-3 py-1.5 text-[13px] text-slate-400 dark:border-neutral-600 dark:bg-neutral-800/70 dark:text-neutral-400">
+            Double-click anywhere to add a context
+          </div>
+        </div>
+      )}
 
       {/* Connection Guidance Tooltip for invalid connections */}
       {invalidConnectionAttempt && (
