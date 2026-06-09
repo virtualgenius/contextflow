@@ -32,6 +32,9 @@ import { createSelectionState } from '../../model/validation'
 
 type SideIndicatorKey = 'open-host-service' | 'anti-corruption-layer'
 
+// Wider than tall: more text per line keeps these concept cards compact.
+const CONCEPT_TOOLTIP_WIDTH = 320
+
 function RelationshipEdge({
   id,
   source,
@@ -310,7 +313,7 @@ function RelationshipEdge({
       key === 'anti-corruption-layer' ? EDGE_INDICATORS.acl : EDGE_INDICATORS.ohs
     const screenX = boxPos.x * zoom + vpX
     const screenY = boxPos.y * zoom + vpY
-    const tooltipWidth = 256
+    const tooltipWidth = CONCEPT_TOOLTIP_WIDTH
     const tooltipX = Math.max(
       8,
       Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8)
@@ -322,7 +325,7 @@ function RelationshipEdge({
         className="fixed z-[9999] pointer-events-none"
         style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
       >
-        <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+        <div className="w-80 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
           <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
           <div className="text-xs text-slate-300 mb-2">{indicatorContent.description}</div>
           {indicatorContent.characteristics && indicatorContent.characteristics.length > 0 && (
@@ -444,7 +447,7 @@ function RelationshipEdge({
           const screenY = labelY * zoom + vpY
 
           // Position tooltip above the edge label point
-          const tooltipWidth = 256
+          const tooltipWidth = CONCEPT_TOOLTIP_WIDTH
           const tooltipX = Math.max(
             8,
             Math.min(screenX - tooltipWidth / 2, window.innerWidth - tooltipWidth - 8)
@@ -456,7 +459,7 @@ function RelationshipEdge({
               className="fixed z-[9999] pointer-events-none"
               style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
             >
-              <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+              <div className="w-80 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
                 <div className="font-semibold text-sm mb-1">{patternContent.title}</div>
                 <div className="text-xs text-slate-300 mb-2">{patternContent.description}</div>
                 {patternContent.characteristics && patternContent.characteristics.length > 0 && (

@@ -30,7 +30,7 @@ export function InfoTooltip({
     const updatePosition = () => {
       const rect = triggerRef.current!.getBoundingClientRect()
       const tooltipRect = tooltipRef.current?.getBoundingClientRect()
-      const tooltipWidth = tooltipRect?.width || 256
+      const tooltipWidth = tooltipRect?.width || 320
       const tooltipHeight = tooltipRect?.height || 150
 
       let x = 0
@@ -85,7 +85,7 @@ export function InfoTooltip({
         className="fixed z-[9999] pointer-events-none"
         style={{ left: coords.x, top: coords.y }}
       >
-        <div className="w-64 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
+        <div className="w-80 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
           <div className="font-semibold text-sm mb-1">{content.title}</div>
           <div className="text-xs text-slate-300 mb-2">{content.description}</div>
           {content.characteristics && content.characteristics.length > 0 && (
