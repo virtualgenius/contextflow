@@ -18,6 +18,7 @@ import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '
 import type { SpawnDirection, DraftEntity } from '../model/storeTypes'
 import { getHoverConnectedContextIds, shouldShowAddContextHint } from '../lib/canvasHelpers'
 import { entityDraftFlowPosition } from '../lib/entityDraftPlacement'
+import { isPointInCanvasBounds } from '../lib/canvasBounds'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
 import {
@@ -1377,13 +1378,18 @@ function CanvasContent() {
       const target = e.target as HTMLElement
       if (target.closest('.react-flow__node')) return
       const flow = screenToFlowPosition({ x: e.clientX, y: e.clientY })
+      const topInset =
+        reservesProblemSpaceTop(viewMode) && !showsValueStreamScaffolding(viewMode)
+          ? PROBLEM_SPACE_HEIGHT
+          : 0
+      if (!isPointInCanvasBounds(flow, topInset)) return
       beginContextDraft({
         kind: 'at',
         x: ((flow.x - DRAFT_NODE_SIZE.width / 2) / CANVAS_WIDTH_UNITS) * 100,
         y: ((flow.y - DRAFT_NODE_SIZE.height / 2) / CANVAS_HEIGHT_UNITS) * 100,
       })
     },
-    [screenToFlowPosition, beginContextDraft]
+    [screenToFlowPosition, beginContextDraft, viewMode]
   )
 
   // Capture-phase so the canvas owns arrow keys before React Flow's node-nudge
