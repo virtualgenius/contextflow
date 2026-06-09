@@ -60,11 +60,14 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 }
 
 describe('ContextInspector', () => {
+  let activeViewMode = 'flow'
+
   beforeEach(() => {
     vi.clearAllMocks()
+    activeViewMode = 'flow'
     vi.mocked(useEditorStore).mockImplementation((selector) => {
       const state = {
-        activeViewMode: 'flow',
+        activeViewMode,
         updateContext: mockUpdateContext,
         deleteContext: mockDeleteContext,
         unassignRepo: mockUnassignRepo,
@@ -132,6 +135,41 @@ describe('ContextInspector', () => {
     render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
     fireEvent.click(screen.getByText('Add Issue'))
     expect(mockAddContextIssue).toHaveBeenCalledWith('ctx-1', 'New issue')
+  })
+
+  it('hides the Strategic Profile section in Context Map view', () => {
+    activeViewMode = 'context-map'
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.queryByText('Strategic Profile')).not.toBeInTheDocument()
+  })
+
+  it('hides the Strategic Profile section in Value Stream view', () => {
+    activeViewMode = 'flow'
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.queryByText('Strategic Profile')).not.toBeInTheDocument()
+  })
+
+  it('shows the Strategic Profile section in Distillation view', () => {
+    activeViewMode = 'distillation'
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.getByText('Strategic Profile')).toBeInTheDocument()
+  })
+
+  it('shows the Strategic Profile section in Strategic view', () => {
+    activeViewMode = 'strategic'
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    expect(screen.getByText('Strategic Profile')).toBeInTheDocument()
+  })
+
+  it('places the Role section between Codebase and Notes & Issues', () => {
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const codebase = screen.getByText('Codebase')
+    const role = screen.getByRole('radiogroup', { name: 'Role' })
+    const notesIssues = screen.getByText('Notes & Issues')
+    expect(codebase.compareDocumentPosition(role) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(
+      role.compareDocumentPosition(notesIssues) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 
   it('renders Big Ball of Mud toggle', () => {

@@ -310,34 +310,22 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       )}
 
       {/* ---------- 2. Strategic Profile ---------- */}
-      <SectionDivider label="Strategic Profile">
-        <div className="flex flex-wrap gap-3">
-          <div>
-            <MiniLabel text="Domain" tooltip={STRATEGIC_CLASSIFICATION_CONCEPT} />
-            <ClassificationBadge classification={context.strategicClassification} />
+      {/* Domain and Evolution are assigned by positioning the context in these
+          views, so the read-only readout only belongs where it can be set. */}
+      {(viewMode === 'strategic' || viewMode === 'distillation') && (
+        <SectionDivider label="Strategic Profile">
+          <div className="flex flex-wrap gap-3">
+            <div>
+              <MiniLabel text="Domain" tooltip={STRATEGIC_CLASSIFICATION_CONCEPT} />
+              <ClassificationBadge classification={context.strategicClassification} />
+            </div>
+            <div>
+              <MiniLabel text="Evolution" tooltip={WARDLEY_EVOLUTION_CONCEPT} />
+              <EvolutionBadge stage={context.evolutionStage} />
+            </div>
           </div>
-          <div>
-            <MiniLabel text="Evolution" tooltip={WARDLEY_EVOLUTION_CONCEPT} />
-            <EvolutionBadge stage={context.evolutionStage} />
-          </div>
-        </div>
-
-        <div>
-          <FieldLabel
-            text="Role"
-            tooltip={{ content: BUSINESS_MODEL_ROLE }}
-            id={`field-role-${context.id}`}
-          />
-          <PillGroup
-            options={ROLE_OPTIONS}
-            value={context.businessModelRole}
-            onChange={(next) => handleUpdate({ businessModelRole: next })}
-            layout="grid-2"
-            variant="green"
-            labelId={`field-role-${context.id}`}
-          />
-        </div>
-      </SectionDivider>
+        </SectionDivider>
+      )}
 
       {/* ---------- Temporal Position (conditional, after Strategic Profile) ---------- */}
       {hasTemporal && (
@@ -571,7 +559,21 @@ export function ContextInspector({ project, contextId }: { project: Project; con
         </div>
       </SectionDivider>
 
-      {/* ---------- 5. Notes & Issues ---------- */}
+      {/* ---------- 5. Business Model Role ---------- */}
+      <SectionDivider
+        label={<SectionHeader text="Business Model Role" tooltip={BUSINESS_MODEL_ROLE} />}
+      >
+        <PillGroup
+          options={ROLE_OPTIONS}
+          value={context.businessModelRole}
+          onChange={(next) => handleUpdate({ businessModelRole: next })}
+          layout="grid-2"
+          variant="green"
+          ariaLabel="Role"
+        />
+      </SectionDivider>
+
+      {/* ---------- 6. Notes & Issues ---------- */}
       <SectionDivider label="Notes & Issues">
         <Section label={<SectionHeader text="Notes" tooltip={NOTES_CONCEPT} />}>
           <textarea
