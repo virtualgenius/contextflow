@@ -2,8 +2,52 @@ import { describe, it, expect } from 'vitest'
 import {
   relationshipEndpointsForDirection,
   computeSpawnPoint,
+  spawnFromConnectGesture,
   type FlowPoint,
+  type ConnectGesture,
 } from './addContextGeometry'
+
+describe('spawnFromConnectGesture', () => {
+  const baseGesture: ConnectGesture = {
+    sourceId: 'ctx-1',
+    side: 'top',
+    startX: 100,
+    startY: 100,
+    connected: false,
+  }
+
+  it('treats an in-place release on a stub as a click and spawns the side direction', () => {
+    expect(spawnFromConnectGesture(baseGesture, 102, 99)).toEqual({
+      sourceId: 'ctx-1',
+      direction: 'up',
+    })
+  })
+
+  it('maps every stub side to its spawn direction', () => {
+    const sides: Array<[string, string]> = [
+      ['top', 'up'],
+      ['bottom', 'down'],
+      ['left', 'left'],
+      ['right', 'right'],
+    ]
+    for (const [side, direction] of sides) {
+      const result = spawnFromConnectGesture({ ...baseGesture, side }, 100, 100)
+      expect(result?.direction).toBe(direction)
+    }
+  })
+
+  it('returns null when the pointer moved beyond the threshold (a real drag)', () => {
+    expect(spawnFromConnectGesture(baseGesture, 140, 100)).toBeNull()
+  })
+
+  it('returns null when a connection was actually made', () => {
+    expect(spawnFromConnectGesture({ ...baseGesture, connected: true }, 100, 100)).toBeNull()
+  })
+
+  it('returns null when there is no gesture', () => {
+    expect(spawnFromConnectGesture(null, 100, 100)).toBeNull()
+  })
+})
 
 describe('relationshipEndpointsForDirection', () => {
   const source = 'src'

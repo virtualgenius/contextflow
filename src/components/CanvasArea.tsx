@@ -28,7 +28,11 @@ import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions
 import { createSelectionState } from '../model/validation'
 import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
-import { computeSpawnPoint } from '../lib/addContextGeometry'
+import {
+  computeSpawnPoint,
+  spawnFromConnectGesture,
+  type ConnectGesture,
+} from '../lib/addContextGeometry'
 import {
   coordinateSpaceFor,
   showsValueStreamScaffolding,
@@ -157,6 +161,10 @@ function CanvasContent() {
   const beginContextDraft = useEditorStore((s) => s.beginContextDraft)
 
   const wrapperRef = useRef<HTMLDivElement>(null)
+
+  // Tracks an in-flight connection drag started from a directional stub so a
+  // release in place (a click, not a drag) spawns a related context instead.
+  const connectGestureRef = useRef<ConnectGesture | null>(null)
 
   // Snapshot of which contexts the actively-dragged context already overlapped
   // when the drag started. Used by the post-drag plan so that only NEWLY created
@@ -626,6 +634,9 @@ function CanvasContent() {
   // Handle edge connection (User → User Need → Context, or Context → Context)
   const onConnect = useCallback(
     (connection: any) => {
+      // A real connection was made, so the stub gesture was a drag, not a click.
+      if (connectGestureRef.current) connectGestureRef.current.connected = true
+
       const { source, target } = connection
       const sourceNode = nodes.find((n) => n.id === source)
       const targetNode = nodes.find((n) => n.id === target)
@@ -671,6 +682,47 @@ function CanvasContent() {
       })
     },
     [nodes]
+  )
+
+  const handleConnectStart = useCallback(
+    (
+      event: React.MouseEvent | React.TouchEvent,
+      params: { nodeId?: string | null; handleId?: string | null }
+    ) => {
+      setIsConnecting(true)
+      const side = params.handleId?.startsWith('stub-')
+        ? params.handleId.slice('stub-'.length)
+        : null
+      if (!side || !params.nodeId) {
+        connectGestureRef.current = null
+        return
+      }
+      const point = 'touches' in event ? event.touches[0] : event
+      connectGestureRef.current = {
+        sourceId: params.nodeId,
+        side,
+        startX: point.clientX,
+        startY: point.clientY,
+        connected: false,
+      }
+    },
+    []
+  )
+
+  // A connection drag that starts on a stub and is released in place (no target,
+  // no movement) is a click: spawn a related context with that side's semantics.
+  const handleConnectEnd = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      setIsConnecting(false)
+      const gesture = connectGestureRef.current
+      connectGestureRef.current = null
+      const point = 'changedTouches' in event ? event.changedTouches[0] : event
+      const spawn = spawnFromConnectGesture(gesture, point.clientX, point.clientY)
+      if (spawn) {
+        beginContextDraft({ kind: 'related', sourceId: spawn.sourceId, direction: spawn.direction })
+      }
+    },
+    [beginContextDraft]
   )
 
   // Wrap onNodesChange to handle multi-select drag
@@ -1250,7 +1302,10 @@ function CanvasContent() {
     }
 
     return {
-      id: DRAFT_NODE_ID,
+      // Per-draft id so React remounts a fresh ContextDraftNode for each draft
+      // rather than reusing a settled instance (which would carry stale input
+      // text and a spent commit guard) when one draft replaces another.
+      id: `${DRAFT_NODE_ID}:${JSON.stringify(contextDraft)}`,
       type: 'contextDraft',
       position: {
         x: (pct.x / 100) * CANVAS_WIDTH_UNITS,
@@ -1331,8 +1386,8 @@ function CanvasContent() {
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onConnect={onConnect}
-          onConnectStart={() => setIsConnecting(true)}
-          onConnectEnd={() => setIsConnecting(false)}
+          onConnectStart={handleConnectStart}
+          onConnectEnd={handleConnectEnd}
           connectionMode={ConnectionMode.Loose}
           connectionLineType={ConnectionLineType.Straight}
           connectionLineComponent={StubConnectionLine}

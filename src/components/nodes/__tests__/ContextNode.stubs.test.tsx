@@ -158,44 +158,6 @@ describe('ContextNode hover stubs (GH #22)', () => {
     }
   })
 
-  it('spawns a related context with the side direction on a plain click (no drag)', () => {
-    renderContextNode()
-    const top = document.querySelector('[data-context-stub="top"]') as Element
-    fireEvent.pointerDown(top, { clientX: 100, clientY: 100 })
-    fireEvent.pointerUp(top, { clientX: 100, clientY: 100 })
-    expect(mockBeginContextDraft).toHaveBeenCalledWith({
-      kind: 'related',
-      sourceId: 'ctx-1',
-      direction: 'up',
-    })
-  })
-
-  it('maps each side to its spawn direction on click', () => {
-    renderContextNode()
-    const cases: Array<[string, string]> = [
-      ['right', 'right'],
-      ['bottom', 'down'],
-      ['left', 'left'],
-    ]
-    for (const [side, direction] of cases) {
-      mockBeginContextDraft.mockClear()
-      const nub = document.querySelector(`[data-context-stub="${side}"]`) as Element
-      fireEvent.pointerDown(nub, { clientX: 50, clientY: 50 })
-      fireEvent.pointerUp(nub, { clientX: 50, clientY: 50 })
-      expect(mockBeginContextDraft).toHaveBeenCalledWith(
-        expect.objectContaining({ kind: 'related', direction })
-      )
-    }
-  })
-
-  it('does not spawn when the pointer moves beyond the click threshold (a drag)', () => {
-    renderContextNode()
-    const right = document.querySelector('[data-context-stub="right"]') as Element
-    fireEvent.pointerDown(right, { clientX: 100, clientY: 100 })
-    fireEvent.pointerUp(right, { clientX: 140, clientY: 100 })
-    expect(mockBeginContextDraft).not.toHaveBeenCalled()
-  })
-
   it('marks the stubs container with the data-stub attribute so it can be targeted in CSS/tests', () => {
     renderContextNode()
     const stubs = document.querySelectorAll('[data-context-stub]')

@@ -35,6 +35,43 @@ export function relationshipEndpointsForDirection(
   }
 }
 
+// A stub is overloaded: dragging it connects to an existing context, a plain
+// click spawns a new related context on that side. Below this pointer travel
+// the connection gesture reads as a click rather than a drag.
+export const STUB_CLICK_MOVEMENT_THRESHOLD_PX = 5
+
+const STUB_SIDE_TO_DIRECTION: Record<string, SpawnDirection> = {
+  top: 'up',
+  right: 'right',
+  bottom: 'down',
+  left: 'left',
+}
+
+export interface ConnectGesture {
+  sourceId: string
+  side: string
+  startX: number
+  startY: number
+  connected: boolean
+}
+
+// Decide whether a finished connection gesture was actually a click on a stub
+// (no target connected, pointer barely moved) and, if so, which related context
+// to spawn. Returns null when the gesture was a real drag/connection.
+export function spawnFromConnectGesture(
+  gesture: ConnectGesture | null,
+  endX: number,
+  endY: number,
+  threshold: number = STUB_CLICK_MOVEMENT_THRESHOLD_PX
+): { sourceId: string; direction: SpawnDirection } | null {
+  if (!gesture || gesture.connected) return null
+  const direction = STUB_SIDE_TO_DIRECTION[gesture.side]
+  if (!direction) return null
+  const moved = Math.hypot(endX - gesture.startX, endY - gesture.startY)
+  if (moved > threshold) return null
+  return { sourceId: gesture.sourceId, direction }
+}
+
 const HORIZONTAL_OFFSET = 14
 const VERTICAL_OFFSET = 16
 const SHARED_KERNEL_OVERLAP_OFFSET = 5

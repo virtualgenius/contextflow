@@ -19,25 +19,12 @@ const STUB_TOOLTIP_OFFSET = 8
 const STUB_TOOLTIP_VIEWPORT_PADDING = 8
 
 type Side = 'top' | 'right' | 'bottom' | 'left'
-type SpawnDirection = 'up' | 'down' | 'left' | 'right'
 
 const SIDE_POSITION: Record<Side, Position> = {
   top: Position.Top,
   right: Position.Right,
   bottom: Position.Bottom,
   left: Position.Left,
-}
-
-// A stub is overloaded: dragging it connects to an existing context, a plain
-// click spawns a new related context on that side. Below this pointer travel
-// the gesture reads as a click, not a connection drag.
-const CLICK_MOVEMENT_THRESHOLD_PX = 4
-
-const SIDE_DIRECTION: Record<Side, SpawnDirection> = {
-  top: 'up',
-  right: 'right',
-  bottom: 'down',
-  left: 'left',
 }
 
 const STUB_PATHS: Record<Side, string> = {
@@ -144,34 +131,11 @@ function computeTooltipPosition(
   }
 }
 
-function ContextStub({
-  side,
-  parentHovered,
-  onSpawn,
-}: {
-  side: Side
-  parentHovered: boolean
-  onSpawn: (direction: SpawnDirection) => void
-}) {
+function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boolean }) {
   const [stubHovered, setStubHovered] = React.useState(false)
   const nubRef = React.useRef<HTMLDivElement>(null)
   const tooltipRef = React.useRef<HTMLDivElement>(null)
   const [coords, setCoords] = React.useState({ left: 0, top: 0 })
-  const pointerDownRef = React.useRef<{ x: number; y: number } | null>(null)
-
-  const handlePointerDown = (e: React.PointerEvent): void => {
-    pointerDownRef.current = { x: e.clientX, y: e.clientY }
-  }
-
-  const handlePointerUp = (e: React.PointerEvent): void => {
-    const start = pointerDownRef.current
-    pointerDownRef.current = null
-    if (!start) return
-    const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y)
-    if (moved <= CLICK_MOVEMENT_THRESHOLD_PX) {
-      onSpawn(SIDE_DIRECTION[side])
-    }
-  }
 
   React.useEffect(() => {
     if (!stubHovered || !nubRef.current) return
@@ -219,8 +183,6 @@ function ContextStub({
         data-context-stub={side}
         onMouseEnter={() => setStubHovered(true)}
         onMouseLeave={() => setStubHovered(false)}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
         style={getNubStyle(side, parentHovered)}
       >
         <svg
@@ -241,19 +203,13 @@ function ContextStub({
   )
 }
 
-export function ContextNodeStubs({
-  visible,
-  onSpawn,
-}: {
-  visible: boolean
-  onSpawn: (direction: SpawnDirection) => void
-}) {
+export function ContextNodeStubs({ visible }: { visible: boolean }) {
   return (
     <>
-      <ContextStub side="top" parentHovered={visible} onSpawn={onSpawn} />
-      <ContextStub side="right" parentHovered={visible} onSpawn={onSpawn} />
-      <ContextStub side="bottom" parentHovered={visible} onSpawn={onSpawn} />
-      <ContextStub side="left" parentHovered={visible} onSpawn={onSpawn} />
+      <ContextStub side="top" parentHovered={visible} />
+      <ContextStub side="right" parentHovered={visible} />
+      <ContextStub side="bottom" parentHovered={visible} />
+      <ContextStub side="left" parentHovered={visible} />
     </>
   )
 }
