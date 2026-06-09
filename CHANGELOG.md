@@ -25,6 +25,12 @@ All notable changes to ContextFlow will be documented in this file.
 - Hovered or selected relationship edges now sit above their neighbors
 - Tooltips now appear instantly
 - Anonymous usage analytics now default to on, preserving any existing opt-outs
+- New Help menu in the top bar gathers the Getting Started Guide and Keyboard Shortcuts behind a help icon (moved out of Settings); the Keyboard Shortcuts dialog now documents the context-adding gestures, and the app version shows at the bottom of the menu
+- The ContextFlow wordmark is now the link back to your projects, replacing the separate Home icon
+- Concept tooltips for two-sided relationships: each per-side role explains itself in the inspector, and hovering a relationship edge explains it, including a plain Upstream/Downstream note (a direction of influence, not data flow) for relationships with only a direction set
+- Name users, user needs, and value-stream stages with the same inline canvas input used for contexts (no pop-up prompt)
+- Double-click a context to rename it inline in the inspector
+- Removed the redundant Explore Sample Project button from the Getting Started guide; open any sample from the home page instead
 - Fixed the inspector panel not scrolling when a repo card is expanded
 - Fixed issue counter ordering and icons overlapping the context name, and kept external contexts visually distinct
 - Fixed Shared Kernel overlay visibility, drag pass-through, and layering above context nodes
@@ -32,6 +38,9 @@ All notable changes to ContextFlow will be documented in this file.
 - Fixed Add Team and Add Repo buttons not showing in the inspector when none were assigned
 - Fixed the temporal toggle not working on projects that had never enabled it
 - Fixed the Context Map boundary to outline the actual mapping area, and removed an unused reserved strip at the top of Distillation
+- Fixed user, user need, and stage names showing as context boxes instead of labels on their band or lane
+- Fixed double-clicks just outside the canvas boundary creating stray contexts
+- Fixed the Shared Kernel overlay lagging behind contexts during a multi-select drag
 
 ## [0.9.1] - 2026-02-26
 
