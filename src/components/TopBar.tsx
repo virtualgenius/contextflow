@@ -42,6 +42,7 @@ import {
 import type { Project } from '../model/types'
 import { trackEvent } from '../utils/analytics'
 import { showsValueStreamScaffolding } from '../lib/canvasViewModel'
+import { sampleProject } from '../model/builtInProjects'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -436,7 +437,7 @@ export function TopBar() {
         <GettingStartedGuideModal
           onClose={() => setShowGettingStartedGuide(false)}
           onViewSample={() => {
-            selectProjectAndExitSharedMode('acme-ecommerce')
+            selectProjectAndExitSharedMode(sampleProject.id)
             setShowGettingStartedGuide(false)
           }}
         />
