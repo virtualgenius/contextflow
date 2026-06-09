@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Context: Combined Approach - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      outline: none;
+    }
+    .stage:focus-within { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .stage.empty-hint::before {
+      content: "Double-click anywhere to add a context";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 13px;
+      color: #94a3b8;
+      pointer-events: none;
+      background: rgba(255,255,255,0.7);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px dashed #cbd5e1;
+    }
+    .stage.empty-hint.has-content::before { display: none; }
+
+    /* Context card */
+    .ctx {
+      position: absolute;
+      width: 168px;
+      height: 88px;
+      border-radius: 8px;
+      background: #d1fae5;
+      border: 2px solid #94a3b8;
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      cursor: grab;
+      user-select: none;
+      transition: box-shadow 0.18s, border-color 0.18s;
+    }
+    .ctx.selected { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.22); }
+    .ctx.is-new { animation: ctx-pop 0.22s ease-out; }
+    @keyframes ctx-pop {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .ctx .name { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .ctx .label { font-size: 10px; color: #64748b; margin-top: 5px; }
+    .name-input {
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      background: white;
+      border: 1.5px solid #2563eb;
+      border-radius: 4px;
+      padding: 3px 6px;
+      outline: none;
+    }
+
+    /* Ghost preview during double-click placement */
+    .ghost {
+      box-sizing: border-box;
+      position: absolute;
+      width: 168px;
+      height: 88px;
+      border-radius: 8px;
+      background: rgba(209, 250, 229, 0.5);
+      border: 2px dashed #2563eb;
+      padding: 10px 12px;
+    }
+
+    /* Hover/selection arrows -- semantic (Scheme D) */
+    .arrows { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+    .ctx:hover .arrows, .ctx.selected .arrows, .ctx.show-arrows .arrows { opacity: 1; }
+    .arrow-stub {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .arrow-stub svg { width: 28px; height: 28px; opacity: 0.45; transition: opacity 0.12s; }
+    .arrow-stub svg path { transition: fill 0.12s; }
+    .arrow-stub:hover svg { opacity: 1; }
+
+    /* Color-code each arrow by relationship family */
+    .arrow-stub.top    svg path { fill: #2563eb; } /* upstream */
+    .arrow-stub.bottom svg path { fill: #2563eb; } /* downstream */
+    .arrow-stub.left   svg path { fill: #7c3aed; } /* partnership */
+    .arrow-stub.right  svg path { fill: #db2777; } /* shared kernel */
+
+    .arrow-stub.top    { left: 50%; top: -34px;    transform: translateX(-50%); }
+    .arrow-stub.right  { right: -34px; top: 50%;   transform: translateY(-50%); }
+    .arrow-stub.bottom { left: 50%; bottom: -34px; transform: translateX(-50%); }
+    .arrow-stub.left   { left: -34px; top: 50%;    transform: translateY(-50%); }
+
+    .arrow-stub .tip {
+      position: absolute;
+      background: #0f172a;
+      color: white;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s;
+    }
+    .arrow-stub.top    .tip { bottom: 32px; left: 50%; transform: translateX(-50%); }
+    .arrow-stub.right  .tip { left: 32px;   top: 50%; transform: translateY(-50%); }
+    .arrow-stub.bottom .tip { top: 32px;    left: 50%; transform: translateX(-50%); }
+    .arrow-stub.left   .tip { right: 32px;  top: 50%; transform: translateY(-50%); }
+    .arrow-stub:hover .tip { opacity: 1; }
+
+    /* Edges */
+    .edges-layer { position: absolute; inset: 0; pointer-events: none; }
+    .edge-path { fill: none; stroke: #475569; stroke-width: 2; }
+    .edge-path.partnership { stroke: #7c3aed; stroke-dasharray: 6 3; }
+    .edge-path.shared-kernel { stroke: #db2777; }
+    .edge-arrow-head { fill: #475569; }
+
+    /* Keystroke HUD */
+    .hud {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      color: white;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      min-width: 60px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .hud.show { opacity: 1; }
+
+    /* Legend chip in canvas corner */
+    .legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 10.5px;
+      color: #475569;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .legend .lrow { display: flex; align-items: center; gap: 6px; }
+    .legend .ar { width: 16px; text-align: center; font-family: ui-monospace, Menlo, monospace; font-weight: 700; }
+    .legend .ar.up, .legend .ar.down { color: #2563eb; }
+    .legend .ar.lt { color: #7c3aed; }
+    .legend .ar.rt { color: #db2777; }
+
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); margin-bottom: 28px; }
+    .panel-h { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; }
+    .panel-body { padding: 18px; }
+    .kicker { font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 0.04em; text-transform: uppercase; }
+    .step-num { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; border-radius: 999px; background: #2563eb; color: white; font-size: 11px; font-weight: 600; margin-right: 8px; }
+    .key { display: inline-block; padding: 1px 6px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #334155; }
+    .reset-btn { font-size: 11px; color: #64748b; background: none; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+    .reset-btn:hover { background: #f1f5f9; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 260px; gap: 16px; }
+    @media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+    .shortcuts { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; font-size: 12px; color: #475569; line-height: 1.8; }
+    .shortcuts .row { display: flex; align-items: center; gap: 8px; }
+    .shortcuts .row + .row { margin-top: 4px; }
+    .shortcuts .row .keys { flex: 0 0 auto; min-width: 96px; }
+    .tradeoff { font-size: 12px; color: #64748b; line-height: 1.5; padding: 8px 12px; border-left: 3px solid #cbd5e1; background: #f8fafc; border-radius: 0 4px 4px 0; margin-top: 12px; }
+    .tradeoff strong { color: #334155; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-6xl mx-auto p-8">
+    <header class="mb-8">
+      <div class="kicker">ContextFlow / Add Context UX</div>
+      <h1 class="text-2xl font-semibold mt-1">Adding contexts: double-click + semantic arrows (mouse and keyboard)</h1>
+      <p class="text-sm text-slate-600 mt-2 max-w-3xl">
+        One model, two input paths. <strong>Double-click empty canvas</strong> to seed a context with an inline name.
+        Then <strong>grow the map with four semantic arrows</strong> that mean the same thing whether you click them on hover
+        or press them on the keyboard: <span class="key">↑</span> upstream provider, <span class="key">↓</span> downstream consumer,
+        <span class="key">←</span> partnership peer, <span class="key">→</span> shared-kernel peer. Mouse and keyboard call the
+        identical action, so muscle memory transfers between them.
+      </p>
+    </header>
+
+    <!-- Single combined interactive canvas -->
+    <section class="panel">
+      <div class="panel-h">
+        <div class="kicker">Combined flow</div>
+        <h2 class="text-lg font-semibold mt-1">Try it: build a map with no menus</h2>
+        <p class="text-sm text-slate-600 mt-1">
+          <span class="step-num">1</span>Double-click empty canvas, type a name, <span class="key">Enter</span>.
+          <span class="step-num">2</span>Hover or select a context.
+          <span class="step-num">3</span>Click an arrow <em>or</em> press the matching arrow key to grow a related context.
+        </p>
+      </div>
+      <div class="panel-body grid2">
+        <div class="stage canvas-bg empty-hint" id="stage" tabindex="0"></div>
+        <div>
+          <div class="shortcuts">
+            <div class="row"><span class="keys"><span class="key">dbl-click</span></span><span>new context here</span></div>
+            <div class="row"><span class="keys"><span class="key">N</span></span><span>new context at center</span></div>
+            <div class="row"><span class="keys"><span class="key">↑</span></span><span>upstream provider</span></div>
+            <div class="row"><span class="keys"><span class="key">↓</span></span><span>downstream consumer</span></div>
+            <div class="row"><span class="keys"><span class="key">←</span></span><span>partnership peer</span></div>
+            <div class="row"><span class="keys"><span class="key">→</span></span><span>shared-kernel peer</span></div>
+            <div class="row"><span class="keys"><span class="key">Enter</span></span><span>commit name</span></div>
+            <div class="row"><span class="keys"><span class="key">Esc</span></span><span>cancel</span></div>
+          </div>
+          <div class="tradeoff">
+            <strong>Mouse = keyboard.</strong> The four hover arrows are the same four relationships as the arrow keys, in the
+            same screen positions. Learn one, you know the other.
+          </div>
+          <button class="reset-btn mt-3" onclick="resetStage()">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Notes / open questions -->
+    <section class="panel">
+      <div class="panel-h">
+        <div class="kicker">Notes</div>
+        <h2 class="text-lg font-semibold mt-1">Decisions and open questions</h2>
+      </div>
+      <div class="panel-body text-sm text-slate-700 space-y-3">
+        <div>
+          <strong>Shared kernel is the overlap, not an edge.</strong> In this app, two contexts overlapping <em>is</em> a Shared
+          Kernel (dragging them apart auto-converts to Partnership). So the right arrow drops the new context partially
+          overlapping the source rather than spaced apart with a connector. Partnership (left) and Shared Kernel (right) are then
+          the same relationship at two overlap distances: adjacent-with-edge vs overlapping.
+        </div>
+        <div>
+          <strong>Open question on the right-arrow slot.</strong> Given shared kernel is already reachable by dragging into
+          overlap, is a dedicated right arrow for it worth the key, or should the fourth slot be separate ways / conformist
+          instead? Whatever is chosen, the arrow key and the hover arrow must agree.
+        </div>
+        <div>
+          <strong>First context vs. subsequent.</strong> Double-click (or <span class="key">N</span>) creates a standalone
+          context with no edge. Arrows always create a context related to the current one, so the relationship is captured at
+          creation time instead of as a separate second step.
+        </div>
+        <div>
+          <strong>Directionality follows the codebase convention.</strong> Upstream provides, downstream consumes; the rendered
+          edge direction matches the existing relationship-drawing convention rather than introducing a new one.
+        </div>
+        <div>
+          <strong>Plain arrow keys need an override.</strong> React Flow uses arrow keys for selection nudge and pan. The
+          add-context binding only fires when a context is selected and no name input is focused; otherwise arrows fall through
+          to default canvas behavior.
+        </div>
+        <div>
+          <strong>Collision and layout.</strong> If the target spot is occupied, offset further out (and pan if needed) rather
+          than overlapping silently.
+        </div>
+        <div>
+          <strong>Toolbar Add Context stays</strong> as a discoverable fallback and for keyboard-only users who haven't learned
+          the arrows yet. It lands at viewport center with the inline rename pre-focused, same end state as <span class="key">N</span>.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const REL = {
+      up:    { dir: 'up',    edge: 'upstream',     label: 'upstream',      tip: '+ upstream provider',  hud: '↑ upstream' },
+      down:  { dir: 'down',  edge: 'downstream',   label: 'downstream',    tip: '+ downstream consumer',hud: '↓ downstream' },
+      left:  { dir: 'left',  edge: 'partnership',  label: 'partnership',   tip: '+ partnership peer',   hud: '← partnership' },
+      right: { dir: 'right', edge: 'shared-kernel',label: 'shared kernel', tip: '+ shared-kernel peer', hud: '→ shared kernel' },
+    };
+    const COLORS = ['#dbeafe', '#fef3c7', '#fce7f3', '#e0e7ff', '#fee2e2', '#d1fae5'];
+    let count = 0;
+    let selected = null;
+
+    function nextColor() { return COLORS[count++ % COLORS.length]; }
+
+    function ensureEdgeLayer(stage) {
+      let layer = stage.querySelector('.edges-layer');
+      if (!layer) {
+        layer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        layer.setAttribute('class', 'edges-layer');
+        layer.style.position = 'absolute';
+        layer.style.inset = '0';
+        layer.style.pointerEvents = 'none';
+        layer.innerHTML = `
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" class="edge-arrow-head" />
+            </marker>
+          </defs>`;
+        stage.insertBefore(layer, stage.firstChild);
+      }
+      return layer;
+    }
+
+    function drawEdge(stage, fromEl, toEl, kind) {
+      const layer = ensureEdgeLayer(stage);
+      const sRect = stage.getBoundingClientRect();
+      const fRect = fromEl.getBoundingClientRect();
+      const tRect = toEl.getBoundingClientRect();
+      const fx = fRect.left + fRect.width / 2 - sRect.left;
+      const fy = fRect.top + fRect.height / 2 - sRect.top;
+      const tx = tRect.left + tRect.width / 2 - sRect.left;
+      const ty = tRect.top + tRect.height / 2 - sRect.top;
+      const dx = (tx - fx) * 0.5;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${fx} ${fy} C ${fx + dx} ${fy}, ${tx - dx} ${ty}, ${tx} ${ty}`);
+      const classes = ['edge-path'];
+      if (kind === 'partnership') classes.push('partnership');
+      if (kind === 'shared-kernel') classes.push('shared-kernel');
+      path.setAttribute('class', classes.join(' '));
+      if (kind === 'upstream' || kind === 'downstream') path.setAttribute('marker-end', 'url(#ah)');
+      layer.appendChild(path);
+    }
+
+    function rotatedArrowSvg(rotation) {
+      return `<svg viewBox="0 0 28 28" style="transform: rotate(${rotation}deg)"><path d="M 4 14 L 18 14 L 18 8 L 26 14 L 18 20 L 18 14 Z"/></svg>`;
+    }
+
+    function select(stage, ctx) {
+      stage.querySelectorAll('.ctx').forEach(c => c.classList.remove('selected'));
+      selected = ctx || null;
+      if (ctx) ctx.classList.add('selected');
+    }
+
+    function createContext(stage, x, y, name, color) {
+      const w = 168, h = 88;
+      const sRect = stage.getBoundingClientRect();
+      x = Math.max(w/2 + 8, Math.min(sRect.width - w/2 - 8, x));
+      y = Math.max(h/2 + 8, Math.min(sRect.height - h/2 - 8, y));
+
+      const ctx = document.createElement('div');
+      ctx.className = 'ctx is-new';
+      ctx.style.left = (x - w/2) + 'px';
+      ctx.style.top = (y - h/2) + 'px';
+      ctx.style.background = color || nextColor();
+      ctx.dataset.cx = x;
+      ctx.dataset.cy = y;
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'name';
+      nameEl.textContent = name;
+      ctx.appendChild(nameEl);
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'label';
+      labelEl.textContent = 'hover for arrows';
+      ctx.appendChild(labelEl);
+
+      const arrows = document.createElement('div');
+      arrows.className = 'arrows';
+      arrows.innerHTML = `
+        <div class="arrow-stub top"    data-dir="up"   >${rotatedArrowSvg(-90)}<span class="tip">${REL.up.tip}</span></div>
+        <div class="arrow-stub right"  data-dir="right">${rotatedArrowSvg(0)}  <span class="tip">${REL.right.tip}</span></div>
+        <div class="arrow-stub bottom" data-dir="down" >${rotatedArrowSvg(90)} <span class="tip">${REL.down.tip}</span></div>
+        <div class="arrow-stub left"   data-dir="left" >${rotatedArrowSvg(180)}<span class="tip">${REL.left.tip}</span></div>`;
+      ctx.appendChild(arrows);
+
+      arrows.querySelectorAll('.arrow-stub').forEach(stub => {
+        stub.addEventListener('click', (e) => {
+          e.stopPropagation();
+          select(stage, ctx);
+          spawnRelative(stage, ctx, REL[stub.dataset.dir]);
+        });
+      });
+
+      ctx.addEventListener('click', (e) => {
+        if (e.target.closest('.arrow-stub')) return;
+        e.stopPropagation();
+        select(stage, ctx);
+      });
+
+      stage.appendChild(ctx);
+      stage.classList.add('has-content');
+      setTimeout(() => ctx.classList.remove('is-new'), 250);
+      return ctx;
+    }
+
+    function spawnRelative(stage, source, rel) {
+      const cx = parseFloat(source.dataset.cx);
+      const cy = parseFloat(source.dataset.cy);
+      const HSP = 220, VSP = 150, OVERLAP = 96;
+      let nx = cx, ny = cy;
+      // Shared kernel is the overlap itself, not an edge: drop the new context
+      // partially overlapping the source rather than spaced apart.
+      if (rel.edge === 'shared-kernel') nx += OVERLAP;
+      else if (rel.dir === 'right') nx += HSP;
+      else if (rel.dir === 'left')  nx -= HSP;
+      else if (rel.dir === 'up')    ny -= VSP;
+      else if (rel.dir === 'down')  ny += VSP;
+
+      promptForName(stage, nx, ny, (name) => {
+        if (!name) return;
+        const newCtx = createContext(stage, nx, ny, name);
+        const labelEl = newCtx.querySelector('.label');
+        if (labelEl) labelEl.textContent = rel.label;
+        select(stage, newCtx);
+        requestAnimationFrame(() => {
+          if (rel.edge === 'upstream')        drawEdge(stage, newCtx, source, 'upstream');
+          else if (rel.edge === 'downstream') drawEdge(stage, source, newCtx, 'downstream');
+          else if (rel.edge === 'partnership')drawEdge(stage, source, newCtx, 'partnership');
+          // shared kernel: no edge -- the overlap conveys the relationship
+        });
+      });
+    }
+
+    function promptForName(stage, x, y, onCommit) {
+      const w = 168, h = 88;
+      const sRect = stage.getBoundingClientRect();
+      x = Math.max(w/2 + 8, Math.min(sRect.width - w/2 - 8, x));
+      y = Math.max(h/2 + 8, Math.min(sRect.height - h/2 - 8, y));
+
+      const ghost = document.createElement('div');
+      ghost.className = 'ghost';
+      ghost.style.left = (x - w/2) + 'px';
+      ghost.style.top = (y - h/2) + 'px';
+      const input = document.createElement('input');
+      input.className = 'name-input';
+      input.placeholder = 'Context name...';
+      input.autocomplete = 'off';
+      ghost.appendChild(input);
+      stage.appendChild(ghost);
+      setTimeout(() => input.focus(), 10);
+
+      let done = false;
+      // Return focus to the stage so arrow-key shortcuts reach its keydown handler;
+      // without this, focus falls back to <body> after the input is removed.
+      function commit() { if (done) return; done = true; const v = input.value.trim(); ghost.remove(); onCommit(v); stage.focus(); }
+      function cancel() { if (done) return; done = true; ghost.remove(); onCommit(null); stage.focus(); }
+      input.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+      });
+      input.addEventListener('blur', commit);
+    }
+
+    function flashHud(stage, text) {
+      let hud = stage.querySelector('.hud');
+      if (!hud) { hud = document.createElement('div'); hud.className = 'hud'; stage.appendChild(hud); }
+      hud.textContent = text;
+      hud.classList.add('show');
+      clearTimeout(hud._t);
+      hud._t = setTimeout(() => hud.classList.remove('show'), 900);
+    }
+
+    function spawnAtCenter(stage) {
+      const sRect = stage.getBoundingClientRect();
+      promptForName(stage, sRect.width / 2, sRect.height / 2, (name) => {
+        if (name) select(stage, createContext(stage, sRect.width / 2, sRect.height / 2, name));
+      });
+    }
+
+    function addLegend(stage) {
+      const legend = document.createElement('div');
+      legend.className = 'legend';
+      legend.innerHTML = `
+        <div class="lrow"><span class="ar up">↑</span> upstream</div>
+        <div class="lrow"><span class="ar down">↓</span> downstream</div>
+        <div class="lrow"><span class="ar lt">←</span> partnership</div>
+        <div class="lrow"><span class="ar rt">→</span> shared kernel</div>`;
+      stage.appendChild(legend);
+    }
+
+    function wireStage(stage) {
+      stage.addEventListener('dblclick', (e) => {
+        if (e.target.closest('.ctx') || e.target.closest('.arrow-stub')) return;
+        const sRect = stage.getBoundingClientRect();
+        promptForName(stage, e.clientX - sRect.left, e.clientY - sRect.top, (name) => {
+          if (name) select(stage, createContext(stage, e.clientX - sRect.left, e.clientY - sRect.top, name));
+        });
+      });
+
+      stage.addEventListener('click', (e) => {
+        if (e.target === stage || e.target.classList.contains('legend')) select(stage, null);
+      });
+
+      stage.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === 'n' || e.key === 'N') { e.preventDefault(); flashHud(stage, 'N'); spawnAtCenter(stage); return; }
+        const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+        if (map[e.key]) {
+          if (!selected) { flashHud(stage, 'select a context first'); return; }
+          e.preventDefault();
+          const rel = REL[map[e.key]];
+          flashHud(stage, rel.hud);
+          spawnRelative(stage, selected, rel);
+        }
+      });
+    }
+
+    function resetStage() {
+      const stage = document.getElementById('stage');
+      stage.querySelectorAll('.ctx, .edges-layer, .hud, .ghost, .legend').forEach(el => el.remove());
+      stage.classList.remove('has-content');
+      count = 0;
+      selected = null;
+      addLegend(stage);
+    }
+
+    const stage = document.getElementById('stage');
+    wireStage(stage);
+    addLegend(stage);
+  </script>
+</body>
+</html>
