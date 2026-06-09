@@ -220,6 +220,9 @@ export function ContextInspector({ project, contextId }: { project: Project; con
   const addTeam = useEditorStore((s) => s.addTeam)
   const addRepo = useEditorStore((s) => s.addRepo)
   const assignRepoToContext = useEditorStore((s) => s.assignRepoToContext)
+  const focusContextNameId = useEditorStore((s) => s.focusContextNameId)
+  const clearContextNameEditFocus = useEditorStore((s) => s.clearContextNameEditFocus)
+  const nameInputRef = React.useRef<HTMLInputElement>(null)
 
   // Temporal state
   const currentDate = useEditorStore((s) => s.temporal.currentDate)
@@ -232,6 +235,15 @@ export function ContextInspector({ project, contextId }: { project: Project; con
     const stored = localStorage.getItem('contextflow.useCodeCohesionAPI')
     return stored === 'true'
   })
+
+  // A double-click on the context requests its name field here; focus and
+  // select it once, then clear the one-shot request.
+  React.useEffect(() => {
+    if (focusContextNameId !== contextId) return
+    nameInputRef.current?.focus()
+    nameInputRef.current?.select()
+    clearContextNameEditFocus()
+  }, [focusContextNameId, contextId, clearContextNameEditFocus])
 
   const context = project.contexts.find((c) => c.id === contextId)
   if (!context) {
@@ -261,6 +273,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
       {/* ---------- 1. Identity ---------- */}
       <InspectorHeader>
         <input
+          ref={nameInputRef}
           type="text"
           value={context.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}

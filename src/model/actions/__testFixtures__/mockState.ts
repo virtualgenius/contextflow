@@ -70,6 +70,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   colorByMode: 'strategic' as const,
   isDragging: false,
   contextDraft: null,
+  focusContextNameId: null,
   temporal: {
     currentDate: '2024',
     activeKeyframeId: null,
@@ -144,6 +145,8 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   setDragging: vi.fn(),
   beginContextDraft: vi.fn(),
   cancelContextDraft: vi.fn(),
+  requestContextNameEdit: vi.fn(),
+  clearContextNameEditFocus: vi.fn(),
   swapRelationshipDirection: vi.fn(),
   updateFlowStage: vi.fn(),
   addFlowStage: vi.fn(),

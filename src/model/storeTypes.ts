@@ -137,6 +137,9 @@ export interface EditorState {
   hoveredRelationshipId: string | null
   isDragging: boolean
   contextDraft: ContextDraft | null
+  // One-shot request to focus and select a context's name field in the
+  // inspector (set on double-click, cleared by the inspector once consumed).
+  focusContextNameId: string | null
 
   canvasView: {
     flow: { zoom: number; panX: number; panY: number }
@@ -305,6 +308,8 @@ export interface EditorState {
   setDragging: (isDragging: boolean) => void
   beginContextDraft: (draft: ContextDraft) => void
   cancelContextDraft: () => void
+  requestContextNameEdit: (contextId: string) => void
+  clearContextNameEditFocus: () => void
   undo: () => void
   redo: () => void
   fitToMap: () => void

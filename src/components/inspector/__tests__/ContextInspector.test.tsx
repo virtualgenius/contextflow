@@ -59,15 +59,21 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   } as unknown as Project
 }
 
+const mockClearContextNameEditFocus = vi.fn()
+
 describe('ContextInspector', () => {
   let activeViewMode = 'flow'
+  let focusContextNameId: string | null = null
 
   beforeEach(() => {
     vi.clearAllMocks()
     activeViewMode = 'flow'
+    focusContextNameId = null
     vi.mocked(useEditorStore).mockImplementation((selector) => {
       const state = {
         activeViewMode,
+        focusContextNameId,
+        clearContextNameEditFocus: mockClearContextNameEditFocus,
         updateContext: mockUpdateContext,
         deleteContext: mockDeleteContext,
         unassignRepo: mockUnassignRepo,
@@ -87,6 +93,32 @@ describe('ContextInspector', () => {
       }
       return selector(state as never)
     })
+  })
+
+  it('focuses and selects the name field when a name-edit is requested for this context', () => {
+    focusContextNameId = 'ctx-1'
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const nameInput = screen.getByDisplayValue('Orders') as HTMLInputElement
+    expect(document.activeElement).toBe(nameInput)
+    expect(nameInput.selectionStart).toBe(0)
+    expect(nameInput.selectionEnd).toBe('Orders'.length)
+    expect(mockClearContextNameEditFocus).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not focus the name field when no name-edit is requested', () => {
+    focusContextNameId = null
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const nameInput = screen.getByDisplayValue('Orders') as HTMLInputElement
+    expect(document.activeElement).not.toBe(nameInput)
+    expect(mockClearContextNameEditFocus).not.toHaveBeenCalled()
+  })
+
+  it('does not focus the name field when the request targets a different context', () => {
+    focusContextNameId = 'ctx-other'
+    render(<ContextInspector project={makeProject()} contextId="ctx-1" />)
+    const nameInput = screen.getByDisplayValue('Orders') as HTMLInputElement
+    expect(document.activeElement).not.toBe(nameInput)
+    expect(mockClearContextNameEditFocus).not.toHaveBeenCalled()
   })
 
   it('renders not-found when contextId is invalid', () => {

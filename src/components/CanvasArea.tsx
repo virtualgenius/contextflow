@@ -172,6 +172,7 @@ function CanvasContent() {
   const updateRelationship = useEditorStore((s) => s.updateRelationship)
   const contextDraft = useEditorStore((s) => s.contextDraft)
   const beginContextDraft = useEditorStore((s) => s.beginContextDraft)
+  const requestContextNameEdit = useEditorStore((s) => s.requestContextNameEdit)
 
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -636,6 +637,16 @@ function CanvasContent() {
       })
     }
   }, [])
+
+  // Double-clicking a context opens its inspector and drops straight into
+  // renaming it. Only contexts rename inline; other node types are ignored.
+  const onNodeDoubleClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      if (node.type !== 'context') return
+      requestContextNameEdit(node.id)
+    },
+    [requestContextNameEdit]
+  )
 
   // Handle pane click (deselect)
   const onPaneClick = useCallback(() => {
@@ -1434,6 +1445,7 @@ function CanvasContent() {
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           onNodeClick={onNodeClick}
+          onNodeDoubleClick={onNodeDoubleClick}
           onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
           onNodeDragStart={onNodeDragStart}

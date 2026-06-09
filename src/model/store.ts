@@ -179,6 +179,7 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   isDragging: false,
   contextDraft: null,
+  focusContextNameId: null,
 
   canvasView: {
     flow: { zoom: 1, panX: 0, panY: 0 },
@@ -1328,6 +1329,12 @@ export const useEditorStore = create<EditorState>((set) => ({
   setDragging: (isDragging) => set({ isDragging }),
   beginContextDraft: (draft) => set({ contextDraft: draft }),
   cancelContextDraft: () => set({ contextDraft: null }),
+  requestContextNameEdit: (contextId) =>
+    set({
+      ...createSelectionState(contextId, 'context'),
+      focusContextNameId: contextId,
+    }),
+  clearContextNameEditFocus: () => set({ focusContextNameId: null }),
 
   updateFlowStage: (index, updates) =>
     set((state) => {
