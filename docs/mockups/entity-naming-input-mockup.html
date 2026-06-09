@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entity Naming Input (User / Need / Stage) - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    /* A real bounded-context box (emerald). The current draft reuses this look. */
+    .ctx-box {
+      width: 220px; height: 110px;
+      background: rgba(209, 250, 229, 0.5);
+      border: 2px solid #94a3b8;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 13px; font-weight: 600; color: #0f172a;
+    }
+    /* The current entity draft: identical emerald context box + blue dashed border. */
+    .ctx-draft {
+      width: 220px; height: 110px;
+      background: rgba(209, 250, 229, 0.5);
+      border: 2px dashed #2563eb;
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .ctx-draft input, .chip input, .band-input input {
+      width: 100%; border: 1.5px solid #2563eb; border-radius: 6px;
+      background: #fff; padding: 5px 7px; font-size: 13px; font-weight: 600;
+      color: #0f172a; outline: none;
+    }
+    /* User / Need card, matching the real Value Stream node look. */
+    .vs-card {
+      width: 150px; min-height: 48px;
+      background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 8px;
+      padding: 8px; font-size: 11px; font-weight: 600; color: #0f172a;
+      display: flex; gap: 4px; align-items: flex-start;
+    }
+    /* Option A: compact entity naming chip (NOT a context box). */
+    .chip {
+      width: 210px;
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(15,23,42,0.12);
+      padding: 8px;
+    }
+    .chip-head {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; color: #64748b; margin-bottom: 6px;
+    }
+    .band {
+      position: relative;
+      border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
+      background: rgba(241,245,249,0.5);
+    }
+    .band-label {
+      position: absolute; left: 8px; top: 6px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; color: #94a3b8;
+    }
+    .band-input { display: flex; align-items: center; }
+    .band-input input { width: 150px; }
+    .lane-line { border-left: 1px dashed #cbd5e1; }
+    .stage-label { font-size: 11px; font-weight: 600; color: #334155; }
+    .annot { font-size: 12px; color: #475569; }
+    .pro::before { content: "✓ "; color: #16a34a; font-weight: 700; }
+    .con::before { content: "△ "; color: #d97706; font-weight: 700; }
+    .panel { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .panel-head { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; background: #fff; }
+    .mini-canvas { height: 280px; position: relative; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-slate-900">Entity Naming Input: User / Need / Stage</h1>
+    <p class="mt-2 text-slate-600 max-w-3xl">
+      Clicking <strong>Add User / Need / Stage</strong> in Value Stream view opens an inline name field.
+      It correctly creates the right entity, but it currently reuses the bounded-context box look, so it
+      reads as "adding a context." Below: the problem, then three treatments to choose from.
+    </p>
+
+    <!-- PROBLEM -->
+    <section class="mt-8 panel">
+      <div class="panel-head">
+        <span class="inline-block text-xs font-bold uppercase tracking-wide text-rose-600">Now &middot; the problem</span>
+        <h2 class="text-lg font-semibold text-slate-900">The naming box looks exactly like a new context</h2>
+      </div>
+      <div class="mini-canvas canvas-bg">
+        <div style="position:absolute; left:40px; top:150px;" class="ctx-box">Context</div>
+        <div style="position:absolute; left:210px; top:185px;" class="ctx-box">Shared&nbsp;Kernel</div>
+        <!-- current draft: emerald, context-sized, dashed -->
+        <div style="position:absolute; left:150px; top:40px;" class="ctx-draft">
+          <input value="" placeholder="User name..." />
+        </div>
+        <div style="position:absolute; left:385px; top:48px;" class="annot italic">
+          ← same emerald box,<br/>same size as a context
+        </div>
+      </div>
+    </section>
+
+    <!-- OPTION A -->
+    <section class="mt-8 panel">
+      <div class="panel-head flex items-center justify-between">
+        <div>
+          <span class="inline-block text-xs font-bold uppercase tracking-wide text-blue-600">Option A</span>
+          <h2 class="text-lg font-semibold text-slate-900">Compact entity naming chip at center</h2>
+        </div>
+        <span class="text-xs text-slate-500">smallest change &middot; keeps one naming UI + center placement</span>
+      </div>
+      <div class="mini-canvas canvas-bg">
+        <div style="position:absolute; left:40px; top:150px;" class="ctx-box">Context</div>
+        <div style="position:absolute; left:210px; top:185px;" class="ctx-box">Shared&nbsp;Kernel</div>
+        <!-- naming chip: white, labelled, icon, NOT emerald, NOT context-sized -->
+        <div style="position:absolute; left:160px; top:55px;" class="chip">
+          <div class="chip-head">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+            New user
+          </div>
+          <input value="" placeholder="User name..." />
+        </div>
+      </div>
+      <div class="px-14 py-5 bg-white border-t border-slate-200">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">The three entities, same chip:</p>
+        <div class="flex flex-wrap gap-5">
+          <div class="chip">
+            <div class="chip-head">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+              New user
+            </div>
+            <input placeholder="User name..." />
+          </div>
+          <div class="chip">
+            <div class="chip-head">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.6" fill="#d97706"/></svg>
+              New need
+            </div>
+            <input placeholder="User need name..." />
+          </div>
+          <div class="chip">
+            <div class="chip-head">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg>
+              New stage
+            </div>
+            <input placeholder="Stage name..." />
+          </div>
+        </div>
+        <ul class="mt-5 space-y-1 annot">
+          <li class="pro">Clearly not a context: white chip, entity icon + label, smaller than a context box.</li>
+          <li class="pro">One naming UI, center placement unchanged. Minimal, low-risk diff.</li>
+          <li class="con">Still floats at center rather than where the entity lands.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- OPTION B -->
+    <section class="mt-8 panel">
+      <div class="panel-head flex items-center justify-between">
+        <div>
+          <span class="inline-block text-xs font-bold uppercase tracking-wide text-violet-600">Option B</span>
+          <h2 class="text-lg font-semibold text-slate-900">Name it where it will land (on its band / lane)</h2>
+        </div>
+        <span class="text-xs text-slate-500">most faithful &middot; larger change &middot; revisits center-placement</span>
+      </div>
+      <div class="canvas-bg" style="height:330px; position:relative;">
+        <!-- Users band -->
+        <div class="band" style="position:absolute; left:0; right:0; top:18px; height:70px;">
+          <span class="band-label">Users</span>
+          <div style="position:absolute; left:90px; top:14px;" class="vs-card">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+            Dealer
+          </div>
+          <!-- naming input INLINE on the users band -->
+          <div class="band-input" style="position:absolute; left:260px; top:20px;">
+            <input placeholder="User name..." />
+          </div>
+        </div>
+        <!-- Needs band -->
+        <div class="band" style="position:absolute; left:0; right:0; top:100px; height:64px;">
+          <span class="band-label">Needs</span>
+          <div style="position:absolute; left:90px; top:12px;" class="vs-card">Submit a claim</div>
+        </div>
+        <!-- Context area with stage lanes -->
+        <div style="position:absolute; left:0; right:0; top:176px; bottom:0;">
+          <div class="lane-line" style="position:absolute; left:33%; top:0; bottom:0;"></div>
+          <div class="lane-line" style="position:absolute; left:66%; top:0; bottom:0;"></div>
+          <span class="stage-label" style="position:absolute; left:60px; top:6px;">Intake</span>
+          <span class="stage-label" style="position:absolute; left:38%; top:6px;">Adjudication</span>
+          <!-- new stage name appears at the next lane boundary -->
+          <span style="position:absolute; left:69%; top:4px;" class="band-input"><input placeholder="Stage name..." style="width:120px" /></span>
+          <div style="position:absolute; left:60px; top:34px;" class="ctx-box">Context</div>
+        </div>
+      </div>
+      <div class="px-14 py-5 bg-white border-t border-slate-200">
+        <ul class="space-y-1 annot">
+          <li class="pro">Naming happens where the entity actually lives: user on the Users band, need on Needs, stage at the next lane.</li>
+          <li class="pro">No chance of mistaking it for a context.</li>
+          <li class="con">Bigger change: three placements instead of one center field; revisits the bead's center-placement decision.</li>
+          <li class="con">Stage input sits in a tight lane-header area; needs care so it does not crowd existing stage labels.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="mt-8 text-sm text-slate-500">
+      A third path (not shown as a panel): keep center placement but tint the chip per entity (blue user / amber need / violet stage)
+      with the matching icon. That is Option A with color, if you want the entity legible at a glance.
+    </p>
+  </div>
+</body>
+</html>

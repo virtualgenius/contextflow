@@ -116,3 +116,37 @@ describe('ContextDraftNode commit routing', () => {
     expect(screen.queryByText('Stage name must be unique')).not.toBeInTheDocument()
   })
 })
+
+describe('ContextDraftNode chrome', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders the emerald context box for a context draft', () => {
+    const { container } = setup({ kind: 'center' })
+    const root = container.firstChild as HTMLElement
+    expect(root.className).toContain('bg-emerald-100/50')
+  })
+
+  it('renders a slate band card with an icon for a user draft, not the context box', () => {
+    const { container } = setup({ kind: 'entity', entity: 'user' })
+    const root = container.firstChild as HTMLElement
+    expect(root.className).not.toContain('bg-emerald-100/50')
+    expect(root.className).toContain('bg-slate-50')
+    expect(container.querySelector('svg')).not.toBeNull()
+  })
+
+  it('renders a band card for a userNeed draft, not the context box', () => {
+    const { container } = setup({ kind: 'entity', entity: 'userNeed' })
+    const root = container.firstChild as HTMLElement
+    expect(root.className).not.toContain('bg-emerald-100/50')
+    expect(root.className).toContain('bg-slate-50')
+  })
+
+  it('renders a centered lane input for a stage draft, not the context box', () => {
+    const { container } = setup({ kind: 'entity', entity: 'stage' })
+    const root = container.firstChild as HTMLElement
+    expect(root.className).not.toContain('bg-emerald-100/50')
+    expect((screen.getByRole('textbox') as HTMLInputElement).className).toContain('text-center')
+  })
+})

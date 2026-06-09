@@ -15,8 +15,9 @@ import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
-import type { SpawnDirection } from '../model/storeTypes'
+import type { SpawnDirection, DraftEntity } from '../model/storeTypes'
 import { getHoverConnectedContextIds, shouldShowAddContextHint } from '../lib/canvasHelpers'
+import { entityDraftFlowPosition } from '../lib/entityDraftPlacement'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
 import {
@@ -84,6 +85,17 @@ const nodeTypes = {
 
 const DRAFT_NODE_ID = '__context_draft__'
 const DRAFT_NODE_SIZE = NODE_SIZES.medium
+// Inline name field footprint per Value Stream entity. user/need are anchored
+// top-left like their nodes (band aligns to the left edge); the stage field is
+// centred on the lane like a stage label (which renders with translate -50%).
+const ENTITY_DRAFT_SIZES: Record<
+  DraftEntity,
+  { width: number; height: number; centered: boolean }
+> = {
+  user: { width: 150, height: 50, centered: false },
+  userNeed: { width: 150, height: 50, centered: false },
+  stage: { width: 150, height: 34, centered: true },
+}
 const CANVAS_WIDTH_UNITS = 2000
 const CANVAS_HEIGHT_UNITS = 1000
 const DIRECTION_BY_ARROW_KEY: Record<string, SpawnDirection> = {
@@ -1276,10 +1288,33 @@ function CanvasContent() {
   const draftNode: Node | null = useMemo(() => {
     if (!contextDraft || !project) return null
 
+    if (contextDraft.kind === 'entity') {
+      const landing = entityDraftFlowPosition(contextDraft.entity, project)
+      const spec = ENTITY_DRAFT_SIZES[contextDraft.entity]
+      return {
+        id: `${DRAFT_NODE_ID}:${JSON.stringify(contextDraft)}`,
+        type: 'contextDraft',
+        position: {
+          x: spec.centered ? landing.x - spec.width / 2 : landing.x,
+          y: spec.centered ? landing.y - spec.height / 2 : landing.y,
+        },
+        data: {
+          draft: contextDraft,
+          position: { x: 0, y: 0 },
+          size: { width: spec.width, height: spec.height },
+        },
+        draggable: false,
+        selectable: false,
+        width: spec.width,
+        height: spec.height,
+        style: { zIndex: 100 },
+      }
+    }
+
     let pct: { x: number; y: number }
     if (contextDraft.kind === 'at') {
       pct = { x: contextDraft.x, y: contextDraft.y }
-    } else if (contextDraft.kind === 'center' || contextDraft.kind === 'entity') {
+    } else if (contextDraft.kind === 'center') {
       const el = wrapperRef.current
       if (!el) return null
       const rect = el.getBoundingClientRect()
