@@ -6,7 +6,7 @@ All notable changes to ContextFlow will be documented in this file.
 
 ## [0.10.0] - 2026-06-09
 
-- On-canvas context creation: double-click the canvas, press N, or use the toolbar to name a new context inline (no more pop-up prompt)
+- On-canvas context creation: double-click the canvas, press N, or use the toolbar to name a new context inline (no more pop-up prompt), with an on-canvas hint when the map is empty
 - Grow the map from a selected context with the arrow keys or its directional stubs: up adds an upstream provider, down a downstream consumer, left a partnership peer, right a shared-kernel peer, and you can keep chaining from the keyboard
 - New Context Map view that hides the value-stream scaffolding so you can focus on contexts and relationships; new projects open here and your chosen view is remembered per project
 - Two-sided relationships: set the role on each side (Open Host Service or Published Language upstream, Anti-Corruption Layer or Conformist downstream), shown as edge indicators with a redesigned pattern picker and a direction mini-diagram
@@ -31,6 +31,7 @@ All notable changes to ContextFlow will be documented in this file.
 - Fixed collaboration not reconnecting after a project finished loading
 - Fixed Add Team and Add Repo buttons not showing in the inspector when none were assigned
 - Fixed the temporal toggle not working on projects that had never enabled it
+- Fixed the Context Map boundary to outline the actual mapping area, and removed an unused reserved strip at the top of Distillation
 
 ## [0.9.1] - 2026-02-26
 
