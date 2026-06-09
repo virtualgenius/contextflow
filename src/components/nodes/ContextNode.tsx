@@ -34,6 +34,7 @@ export function ContextNode({ data }: NodeProps) {
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const setHoveredContext = useEditorStore((s) => s.setHoveredContext)
   const setSelectedContext = useEditorStore((s) => s.setSelectedContext)
+  const beginContextDraft = useEditorStore((s) => s.beginContextDraft)
   const isHoveredByRelationship = data.isHoveredByRelationship as boolean
   const nodeRef = React.useRef<HTMLDivElement>(null)
   // Tiny grace period before clearing hover lets the cursor traverse the air
@@ -217,7 +218,12 @@ export function ContextNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Top} id="top" />
 
       {/* Hover-revealed directional source stubs on all four sides (GH #22) */}
-      <ContextNodeStubs visible={isHovered} />
+      <ContextNodeStubs
+        visible={isHovered}
+        onSpawn={(direction) =>
+          beginContextDraft({ kind: 'related', sourceId: context.id, direction })
+        }
+      />
 
       <div
         style={{

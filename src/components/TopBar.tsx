@@ -54,7 +54,7 @@ export function TopBar() {
   const canRedo = useEditorStore((s) => s.redoStack.length > 0)
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
-  const addContext = useEditorStore((s) => s.addContext)
+  const beginContextDraft = useEditorStore((s) => s.beginContextDraft)
   const addUser = useEditorStore((s) => s.addUser)
   const addUserNeed = useEditorStore((s) => s.addUserNeed)
   const addFlowStage = useEditorStore((s) => s.addFlowStage)
@@ -180,9 +180,7 @@ export function TopBar() {
   }
 
   const handleAddContext = () => {
-    const name = prompt('Context name:')
-    if (!name) return
-    addContext(name)
+    beginContextDraft({ kind: 'center' })
   }
 
   const handleAddUser = () => {

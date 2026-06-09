@@ -178,6 +178,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   hoveredRelationshipId: null,
 
   isDragging: false,
+  contextDraft: null,
 
   canvasView: {
     flow: { zoom: 1, panX: 0, panY: 0 },
@@ -1325,6 +1326,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   },
 
   setDragging: (isDragging) => set({ isDragging }),
+  beginContextDraft: (draft) => set({ contextDraft: draft }),
+  cancelContextDraft: () => set({ contextDraft: null }),
 
   updateFlowStage: (index, updates) =>
     set((state) => {

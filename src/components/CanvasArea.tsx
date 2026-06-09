@@ -15,6 +15,7 @@ import 'reactflow/dist/style.css'
 import { useEditorStore, setFitViewCallback } from '../model/store'
 import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
+import type { SpawnDirection } from '../model/storeTypes'
 import { getHoverConnectedContextIds } from '../lib/canvasHelpers'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
 import { generateBlobPath } from '../lib/blobShape'
@@ -27,6 +28,7 @@ import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions
 import { createSelectionState } from '../model/validation'
 import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE } from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
+import { computeSpawnPoint } from '../lib/addContextGeometry'
 import {
   coordinateSpaceFor,
   showsValueStreamScaffolding,
@@ -46,7 +48,7 @@ import { TimeSlider } from './TimeSlider'
 import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
-import { ContextNode, GroupNode, UserNode, UserNeedNode } from './nodes'
+import { ContextNode, GroupNode, UserNode, UserNeedNode, ContextDraftNode } from './nodes'
 import { StubConnectionLine } from './StubConnectionLine'
 import {
   RelationshipEdge,
@@ -72,6 +74,18 @@ const nodeTypes = {
   group: GroupNode,
   user: UserNode,
   userNeed: UserNeedNode,
+  contextDraft: ContextDraftNode,
+}
+
+const DRAFT_NODE_ID = '__context_draft__'
+const DRAFT_NODE_SIZE = NODE_SIZES.medium
+const CANVAS_WIDTH_UNITS = 2000
+const CANVAS_HEIGHT_UNITS = 1000
+const DIRECTION_BY_ARROW_KEY: Record<string, SpawnDirection> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
 }
 
 const edgeTypes = {
@@ -139,6 +153,10 @@ function CanvasContent() {
   const setDragging = useEditorStore((s) => s.setDragging)
   const addRelationship = useEditorStore((s) => s.addRelationship)
   const updateRelationship = useEditorStore((s) => s.updateRelationship)
+  const contextDraft = useEditorStore((s) => s.contextDraft)
+  const beginContextDraft = useEditorStore((s) => s.beginContextDraft)
+
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   // Snapshot of which contexts the actively-dragged context already overlapped
   // when the drag started. Used by the post-drag plan so that only NEWLY created
@@ -184,7 +202,7 @@ function CanvasContent() {
   const [seenSampleProjects, setSeenSampleProjects] = React.useState<Set<string>>(new Set())
   const _setActiveProject = useEditorStore((s) => s.setActiveProject)
 
-  const { fitBounds } = useReactFlow()
+  const { fitBounds, screenToFlowPosition } = useReactFlow()
 
   const getBounds = useCallback(() => {
     return coordinateSpaceFor(viewMode) === 'flow'
@@ -1154,7 +1172,16 @@ function CanvasContent() {
   // Handle keyboard shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      const isTextEntry =
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        target?.isContentEditable === true
       if (e.key === 'Escape') {
+        // While the inline name field is open, its own Esc handling (cancel
+        // creation, keep selection for chaining) takes precedence over clearing
+        // the surrounding selection.
+        if (isTextEntry) return
         useEditorStore.setState(CLEARED_SELECTION)
       }
       // Delete/Backspace: Delete selected connection edges
@@ -1186,14 +1213,120 @@ function CanvasContent() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // Resolve the in-flight context draft to a concrete canvas node so the inline
+  // name input pans and zooms with the canvas. Standalone drafts (double-click /
+  // N / toolbar) seed from the click or viewport center; related drafts (arrow
+  // key / stub) seed from the collision-aware spawn point.
+  const draftNode: Node | null = useMemo(() => {
+    if (!contextDraft || !project) return null
+
+    let pct: { x: number; y: number }
+    if (contextDraft.kind === 'at') {
+      pct = { x: contextDraft.x, y: contextDraft.y }
+    } else if (contextDraft.kind === 'center') {
+      const el = wrapperRef.current
+      if (!el) return null
+      const rect = el.getBoundingClientRect()
+      const flow = screenToFlowPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      })
+      pct = {
+        x: ((flow.x - DRAFT_NODE_SIZE.width / 2) / CANVAS_WIDTH_UNITS) * 100,
+        y: ((flow.y - DRAFT_NODE_SIZE.height / 2) / CANVAS_HEIGHT_UNITS) * 100,
+      }
+    } else {
+      const source = project.contexts.find((c) => c.id === contextDraft.sourceId)
+      if (!source) return null
+      const occupied = project.contexts.map((c) => ({
+        x: c.positions.flow.x,
+        y: c.positions.shared.y,
+      }))
+      pct = computeSpawnPoint(
+        { x: source.positions.flow.x, y: source.positions.shared.y },
+        occupied,
+        contextDraft.direction
+      )
+    }
+
+    return {
+      id: DRAFT_NODE_ID,
+      type: 'contextDraft',
+      position: {
+        x: (pct.x / 100) * CANVAS_WIDTH_UNITS,
+        y: (pct.y / 100) * CANVAS_HEIGHT_UNITS,
+      },
+      data: { draft: contextDraft, position: pct },
+      draggable: false,
+      selectable: false,
+      width: DRAFT_NODE_SIZE.width,
+      height: DRAFT_NODE_SIZE.height,
+      style: { zIndex: 100 },
+    }
+  }, [contextDraft, project, screenToFlowPosition])
+
+  const nodesWithDraft = draftNode ? [...nodes, draftNode] : nodes
+
+  const handleCanvasDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest('.react-flow__node')) return
+      const flow = screenToFlowPosition({ x: e.clientX, y: e.clientY })
+      beginContextDraft({
+        kind: 'at',
+        x: ((flow.x - DRAFT_NODE_SIZE.width / 2) / CANVAS_WIDTH_UNITS) * 100,
+        y: ((flow.y - DRAFT_NODE_SIZE.height / 2) / CANVAS_HEIGHT_UNITS) * 100,
+      })
+    },
+    [screenToFlowPosition, beginContextDraft]
+  )
+
+  // Capture-phase so the canvas owns arrow keys before React Flow's node-nudge
+  // a11y handler sees them. Arrows create a related context only when a context
+  // is selected and no name field is focused; otherwise they fall through to
+  // React Flow's canvas pan. N opens a standalone draft at viewport center.
+  useEffect(() => {
+    const el = wrapperRef.current
+    if (!el) return
+
+    const handler = (e: KeyboardEvent): void => {
+      const target = e.target as HTMLElement | null
+      const tag = target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return
+      if (useEditorStore.getState().contextDraft) return
+
+      if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        beginContextDraft({ kind: 'center' })
+        return
+      }
+
+      const direction = DIRECTION_BY_ARROW_KEY[e.key]
+      if (!direction) return
+      const selectedId = useEditorStore.getState().selectedContextId
+      if (!selectedId) return
+      e.preventDefault()
+      e.stopPropagation()
+      beginContextDraft({ kind: 'related', sourceId: selectedId, direction })
+    }
+
+    el.addEventListener('keydown', handler, true)
+    return () => el.removeEventListener('keydown', handler, true)
+  }, [beginContextDraft])
+
   const flowStages = project?.viewConfig.flowStages || []
 
   return (
     <div className="relative w-full h-full">
       <TimeSlider />
-      <div className={`react-flow-wrapper w-full h-full ${isDragging ? 'dragging' : ''}`}>
+      <div
+        ref={wrapperRef}
+        tabIndex={0}
+        className={`react-flow-wrapper w-full h-full outline-none ${isDragging ? 'dragging' : ''}`}
+        onDoubleClick={handleCanvasDoubleClick}
+      >
         <ReactFlow
-          nodes={nodes}
+          nodes={nodesWithDraft}
           edges={edges}
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
@@ -1214,6 +1347,7 @@ function CanvasContent() {
           onNodeDragStop={onNodeDragStop}
           onInit={onInit}
           elementsSelectable
+          zoomOnDoubleClick={false}
           deleteKeyCode={['Backspace', 'Delete']}
           minZoom={0.1}
           maxZoom={8}

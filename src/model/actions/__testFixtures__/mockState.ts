@@ -69,6 +69,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   groupOpacity: 0.6,
   colorByMode: 'strategic' as const,
   isDragging: false,
+  contextDraft: null,
   temporal: {
     currentDate: '2024',
     activeKeyframeId: null,
@@ -141,6 +142,8 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   setGroupOpacity: vi.fn(),
   setColorByMode: vi.fn(),
   setDragging: vi.fn(),
+  beginContextDraft: vi.fn(),
+  cancelContextDraft: vi.fn(),
   swapRelationshipDirection: vi.fn(),
   updateFlowStage: vi.fn(),
   addFlowStage: vi.fn(),

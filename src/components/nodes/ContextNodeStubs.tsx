@@ -8,18 +8,36 @@ const STUB_SIZE = 26
 const STUB_OFFSET = 16
 const STUB_DEFAULT_COLOR = '#475569'
 const STUB_HOVER_COLOR = '#2563eb'
-const STUB_TOOLTIP_TEXT = 'Drag to another context to map the relationship'
+const SIDE_SPAWN_LABEL: Record<Side, string> = {
+  top: 'upstream',
+  right: 'shared kernel',
+  bottom: 'downstream',
+  left: 'partnership',
+}
 const STUB_TOOLTIP_MAX_WIDTH = 160
 const STUB_TOOLTIP_OFFSET = 8
 const STUB_TOOLTIP_VIEWPORT_PADDING = 8
 
 type Side = 'top' | 'right' | 'bottom' | 'left'
+type SpawnDirection = 'up' | 'down' | 'left' | 'right'
 
 const SIDE_POSITION: Record<Side, Position> = {
   top: Position.Top,
   right: Position.Right,
   bottom: Position.Bottom,
   left: Position.Left,
+}
+
+// A stub is overloaded: dragging it connects to an existing context, a plain
+// click spawns a new related context on that side. Below this pointer travel
+// the gesture reads as a click, not a connection drag.
+const CLICK_MOVEMENT_THRESHOLD_PX = 4
+
+const SIDE_DIRECTION: Record<Side, SpawnDirection> = {
+  top: 'up',
+  right: 'right',
+  bottom: 'down',
+  left: 'left',
 }
 
 const STUB_PATHS: Record<Side, string> = {
@@ -126,11 +144,34 @@ function computeTooltipPosition(
   }
 }
 
-function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boolean }) {
+function ContextStub({
+  side,
+  parentHovered,
+  onSpawn,
+}: {
+  side: Side
+  parentHovered: boolean
+  onSpawn: (direction: SpawnDirection) => void
+}) {
   const [stubHovered, setStubHovered] = React.useState(false)
   const nubRef = React.useRef<HTMLDivElement>(null)
   const tooltipRef = React.useRef<HTMLDivElement>(null)
   const [coords, setCoords] = React.useState({ left: 0, top: 0 })
+  const pointerDownRef = React.useRef<{ x: number; y: number } | null>(null)
+
+  const handlePointerDown = (e: React.PointerEvent): void => {
+    pointerDownRef.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent): void => {
+    const start = pointerDownRef.current
+    pointerDownRef.current = null
+    if (!start) return
+    const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y)
+    if (moved <= CLICK_MOVEMENT_THRESHOLD_PX) {
+      onSpawn(SIDE_DIRECTION[side])
+    }
+  }
 
   React.useEffect(() => {
     if (!stubHovered || !nubRef.current) return
@@ -158,7 +199,7 @@ function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boole
           className="px-2 py-1 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded shadow-lg"
           style={{ maxWidth: STUB_TOOLTIP_MAX_WIDTH, whiteSpace: 'normal' }}
         >
-          {STUB_TOOLTIP_TEXT}
+          {`Click: new ${SIDE_SPAWN_LABEL[side]} · Drag: connect`}
         </div>
       </div>,
       document.body
@@ -178,6 +219,8 @@ function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boole
         data-context-stub={side}
         onMouseEnter={() => setStubHovered(true)}
         onMouseLeave={() => setStubHovered(false)}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
         style={getNubStyle(side, parentHovered)}
       >
         <svg
@@ -198,13 +241,19 @@ function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boole
   )
 }
 
-export function ContextNodeStubs({ visible }: { visible: boolean }) {
+export function ContextNodeStubs({
+  visible,
+  onSpawn,
+}: {
+  visible: boolean
+  onSpawn: (direction: SpawnDirection) => void
+}) {
   return (
     <>
-      <ContextStub side="top" parentHovered={visible} />
-      <ContextStub side="right" parentHovered={visible} />
-      <ContextStub side="bottom" parentHovered={visible} />
-      <ContextStub side="left" parentHovered={visible} />
+      <ContextStub side="top" parentHovered={visible} onSpawn={onSpawn} />
+      <ContextStub side="right" parentHovered={visible} onSpawn={onSpawn} />
+      <ContextStub side="bottom" parentHovered={visible} onSpawn={onSpawn} />
+      <ContextStub side="left" parentHovered={visible} onSpawn={onSpawn} />
     </>
   )
 }
