@@ -39,6 +39,7 @@ import {
 } from '../model/actions/projectActions'
 import type { Project } from '../model/types'
 import { trackEvent } from '../utils/analytics'
+import { showsValueStreamScaffolding } from '../lib/canvasViewModel'
 import { version } from '../../package.json'
 
 export function TopBar() {
@@ -248,8 +249,10 @@ export function TopBar() {
           <AddButton onClick={handleAddContext} icon={<Box size={14} />} label="Context" />
         </InfoTooltip>
 
-        {/* User/Need buttons: Strategic and Value Stream views (not Distillation) */}
-        {viewMode !== 'distillation' && (
+        {/* User/Need buttons: Strategic and Value Stream views. Absent in the
+            pure Context Map view (and Distillation), where value-stream
+            scaffolding is not editable. */}
+        {showsValueStreamScaffolding(viewMode) && (
           <>
             <InfoTooltip content={USER_DEFINITION} position="bottom">
               <AddButton onClick={handleAddUser} icon={<User size={14} />} label="User" />
