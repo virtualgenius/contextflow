@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useViewport } from 'reactflow'
+import { useViewport, useNodes } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import { createSelectionState } from '../../model/validation'
 import type { BoundedContext, Relationship } from '../../model/types'
@@ -30,6 +30,16 @@ function getContextBox(context: BoundedContext, viewMode: ViewMode): Box {
   return { x, y, width: size.width, height: size.height }
 }
 
+function resolveContextBox(
+  context: BoundedContext,
+  viewMode: ViewMode,
+  livePosition: { x: number; y: number } | undefined
+): Box {
+  if (!livePosition) return getContextBox(context, viewMode)
+  const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
+  return { x: livePosition.x, y: livePosition.y, width: size.width, height: size.height }
+}
+
 interface SharedKernelOverlayProps {
   contexts: BoundedContext[]
   relationships: Relationship[]
@@ -42,6 +52,11 @@ export function SharedKernelOverlay({
   viewMode,
 }: SharedKernelOverlayProps) {
   const { x: vpX, y: vpY, zoom } = useViewport()
+  // React Flow moves nodes visually during a drag but only writes the
+  // committed context.positions on drag stop. Reading the live node position
+  // keeps the overlay tracking continuously instead of snapping on release.
+  const liveNodes = useNodes()
+  const livePositionById = new Map(liveNodes.map((node) => [node.id, node.position]))
   const selectedRelationshipId = useEditorStore((s) => s.selectedRelationshipId)
   const hoveredRelationshipId = useEditorStore((s) => s.hoveredRelationshipId)
   const showRelationshipLabels = useEditorStore((s) => s.showRelationshipLabels)
@@ -56,8 +71,8 @@ export function SharedKernelOverlay({
       const from = contextById.get(rel.fromContextId)
       const to = contextById.get(rel.toContextId)
       if (!from || !to) return null
-      const boxA = getContextBox(from, viewMode)
-      const boxB = getContextBox(to, viewMode)
+      const boxA = resolveContextBox(from, viewMode, livePositionById.get(from.id))
+      const boxB = resolveContextBox(to, viewMode, livePositionById.get(to.id))
       const overlap = computeOverlapRegion(boxA, boxB)
       if (!overlap) return null
       return { rel, overlap }

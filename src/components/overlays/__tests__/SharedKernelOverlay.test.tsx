@@ -8,8 +8,11 @@ vi.mock('../../../model/store', () => ({
   useEditorStore: Object.assign(vi.fn(), { setState: vi.fn() }),
 }))
 
+let mockLiveNodes: Array<{ id: string; position: { x: number; y: number } }> = []
+
 vi.mock('reactflow', () => ({
   useViewport: () => ({ x: 0, y: 0, zoom: 1 }),
+  useNodes: () => mockLiveNodes,
 }))
 
 function setupStoreMock(overrides: Record<string, unknown> = {}) {
@@ -58,6 +61,7 @@ describe('SharedKernelOverlay', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setupStoreMock()
+    mockLiveNodes = []
   })
 
   it('renders a hatched region over the intersection of two overlapping SK contexts', () => {
@@ -226,6 +230,41 @@ describe('SharedKernelOverlay', () => {
     const label = container.querySelector('[data-shared-kernel-label="rel-1"]') as HTMLElement
     expect(label).not.toBeNull()
     expect(label.style.pointerEvents).toBe('auto')
+  })
+
+  it('positions the hatched region from live node positions during a drag', () => {
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+    mockLiveNodes = [
+      { id: 'ctx-a', position: { x: 0, y: 0 } },
+      { id: 'ctx-b', position: { x: 50, y: 25 } },
+    ]
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const region = container.querySelector('[data-shared-kernel-id="rel-1"]') as HTMLElement
+    expect(region).not.toBeNull()
+    expect(region.style.left).toBe('50px')
+    expect(region.style.top).toBe('25px')
+  })
+
+  it('falls back to committed context positions when no live node position is present', () => {
+    const a = makeContext('ctx-a', 0, 0)
+    const b = makeContext('ctx-b', 5, 5)
+    const rel = makeRel('rel-1', 'ctx-a', 'ctx-b', 'shared-kernel')
+    mockLiveNodes = []
+
+    const { container } = render(
+      <SharedKernelOverlay contexts={[a, b]} relationships={[rel]} viewMode="flow" />
+    )
+
+    const region = container.querySelector('[data-shared-kernel-id="rel-1"]') as HTMLElement
+    expect(region).not.toBeNull()
+    expect(region.style.left).toBe('100px')
+    expect(region.style.top).toBe('50px')
   })
 
   it('returns null when no SK relationships are present', () => {
