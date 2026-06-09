@@ -86,4 +86,16 @@ describe('KeyboardShortcutsModal', () => {
     expect(screen.getByText('Editing')).toBeInTheDocument()
     expect(screen.getByText('Canvas')).toBeInTheDocument()
   })
+
+  it('documents the context-adding shortcuts in their own section', () => {
+    render(<KeyboardShortcutsModal onClose={() => {}} />)
+
+    expect(screen.getByText('Adding contexts')).toBeInTheDocument()
+    expect(screen.getByText('Add a context')).toBeInTheDocument()
+    expect(screen.getByText('Add a context at the cursor')).toBeInTheDocument()
+    expect(screen.getByText('Add an upstream context')).toBeInTheDocument()
+    expect(screen.getByText('Add a downstream context')).toBeInTheDocument()
+    expect(screen.getByText('Add a partnership context')).toBeInTheDocument()
+    expect(screen.getByText('Add a shared kernel context')).toBeInTheDocument()
+  })
 })

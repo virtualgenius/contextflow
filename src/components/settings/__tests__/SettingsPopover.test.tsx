@@ -21,51 +21,27 @@ describe('SettingsPopover close affordances', () => {
   })
 
   it('renders a Close button', () => {
-    render(
-      <SettingsPopover
-        onClose={vi.fn()}
-        onOpenGettingStarted={vi.fn()}
-        onOpenKeyboardShortcuts={vi.fn()}
-      />
-    )
+    render(<SettingsPopover onClose={vi.fn()} />)
     expect(screen.getByRole('button', { name: /close settings/i })).toBeInTheDocument()
   })
 
   it('calls onClose when the X button is clicked', () => {
     const onClose = vi.fn()
-    render(
-      <SettingsPopover
-        onClose={onClose}
-        onOpenGettingStarted={vi.fn()}
-        onOpenKeyboardShortcuts={vi.fn()}
-      />
-    )
+    render(<SettingsPopover onClose={onClose} />)
     fireEvent.click(screen.getByRole('button', { name: /close settings/i }))
     expect(onClose).toHaveBeenCalled()
   })
 
   it('calls onClose when Escape is pressed', () => {
     const onClose = vi.fn()
-    render(
-      <SettingsPopover
-        onClose={onClose}
-        onOpenGettingStarted={vi.fn()}
-        onOpenKeyboardShortcuts={vi.fn()}
-      />
-    )
+    render(<SettingsPopover onClose={onClose} />)
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onClose).toHaveBeenCalled()
   })
 
   it('removes the Escape listener on unmount', () => {
     const onClose = vi.fn()
-    const { unmount } = render(
-      <SettingsPopover
-        onClose={onClose}
-        onOpenGettingStarted={vi.fn()}
-        onOpenKeyboardShortcuts={vi.fn()}
-      />
-    )
+    const { unmount } = render(<SettingsPopover onClose={onClose} />)
     unmount()
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onClose).not.toHaveBeenCalled()

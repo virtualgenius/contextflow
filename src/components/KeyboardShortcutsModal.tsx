@@ -12,6 +12,7 @@ interface ShortcutEntry {
 
 interface ShortcutSection {
   title: string
+  note?: string
   shortcuts: ShortcutEntry[]
 }
 
@@ -21,7 +22,24 @@ function buildSections(): ShortcutSection[] {
   const shift = isMac ? '\u21E7' : 'Shift'
   const del = isMac ? '\u232B' : 'Delete'
 
+  const up = '↑'
+  const down = '↓'
+  const left = '←'
+  const right = '→'
+
   return [
+    {
+      title: 'Adding contexts',
+      note: 'With a context selected, arrow keys add a related context in that direction.',
+      shortcuts: [
+        { label: 'Add a context', keys: ['N'] },
+        { label: 'Add a context at the cursor', keys: ['Double-click'] },
+        { label: 'Add an upstream context', keys: [up] },
+        { label: 'Add a downstream context', keys: [down] },
+        { label: 'Add a partnership context', keys: [left] },
+        { label: 'Add a shared kernel context', keys: [right] },
+      ],
+    },
     {
       title: 'Editing',
       shortcuts: [
@@ -88,6 +106,11 @@ export function KeyboardShortcutsModal({ onClose }: KeyboardShortcutsModalProps)
               <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
                 {section.title}
               </h3>
+              {section.note && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 -mt-1">
+                  {section.note}
+                </p>
+              )}
               <div className="space-y-1">
                 {section.shortcuts.map((shortcut) => (
                   <div key={shortcut.label} className="flex items-center justify-between py-1.5">

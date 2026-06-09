@@ -7,15 +7,9 @@ import { SettingsIntegrations } from './SettingsIntegrations'
 
 interface SettingsPopoverProps {
   onClose: () => void
-  onOpenGettingStarted: () => void
-  onOpenKeyboardShortcuts: () => void
 }
 
-export function SettingsPopover({
-  onClose,
-  onOpenGettingStarted,
-  onOpenKeyboardShortcuts,
-}: SettingsPopoverProps) {
+export function SettingsPopover({ onClose }: SettingsPopoverProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -44,10 +38,7 @@ export function SettingsPopover({
       <div className="space-y-4">
         <SettingsViewOptions />
         <div className="border-t border-slate-200 dark:border-neutral-700" />
-        <SettingsHelp
-          onOpenGettingStarted={onOpenGettingStarted}
-          onOpenKeyboardShortcuts={onOpenKeyboardShortcuts}
-        />
+        <SettingsHelp />
         <div className="border-t border-slate-200 dark:border-neutral-700" />
         <SettingsDisplay />
         <div className="border-t border-slate-200 dark:border-neutral-700" />

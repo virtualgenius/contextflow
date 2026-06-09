@@ -33,7 +33,7 @@ function setupStore() {
 }
 
 function renderHelp() {
-  return render(<SettingsHelp onOpenGettingStarted={vi.fn()} onOpenKeyboardShortcuts={vi.fn()} />)
+  return render(<SettingsHelp />)
 }
 
 describe('SettingsHelp - analytics toggle', () => {

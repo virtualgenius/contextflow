@@ -13,12 +13,14 @@ import {
   Target,
   Share2,
   Home,
+  HelpCircle,
 } from 'lucide-react'
 import { useUrlRouter } from '../hooks/useUrlRouter'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
 import { Switch } from './Switch'
 import { SettingsPopover } from './settings/SettingsPopover'
+import { HelpPopover } from './HelpPopover'
 import { CloudStatusIndicator } from './CloudStatusIndicator'
 import { ShareProjectDialog } from './ShareProjectDialog'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
@@ -44,6 +46,7 @@ import { version } from '../../package.json'
 
 export function TopBar() {
   const settingsRef = useRef<HTMLDivElement>(null)
+  const helpRef = useRef<HTMLDivElement>(null)
   const projectId = useEditorStore((s) => s.activeProjectId)
   const project = useEditorStore((s) => (projectId ? s.projects[projectId] : undefined))
   const projects = useEditorStore((s) => s.projects)
@@ -61,6 +64,7 @@ export function TopBar() {
   const temporalEnabled = project?.temporal?.enabled || false
   const { route, navigate } = useUrlRouter()
   const [showSettings, setShowSettings] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [showGettingStartedGuide, setShowGettingStartedGuide] = useState(false)
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
@@ -81,6 +85,19 @@ export function TopBar() {
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showSettings])
+
+  // Close help popover when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (helpRef.current && !helpRef.current.contains(event.target as Node)) {
+        setShowHelp(false)
+      }
+    }
+    if (showHelp) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showHelp])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -375,6 +392,32 @@ export function TopBar() {
 
         <div className="w-px h-5 bg-slate-200 dark:bg-neutral-700" />
 
+        <div className="relative" ref={helpRef}>
+          <SimpleTooltip text="Guides and keyboard shortcuts">
+            <IconButton
+              onClick={() => setShowHelp(!showHelp)}
+              icon={<HelpCircle size={16} />}
+              ariaLabel="Help"
+            />
+          </SimpleTooltip>
+
+          {showHelp && (
+            <HelpPopover
+              onClose={() => setShowHelp(false)}
+              onOpenGettingStarted={() => {
+                trackEvent('getting_started_guide_opened', project || null)
+                setShowGettingStartedGuide(true)
+                setShowHelp(false)
+              }}
+              onOpenKeyboardShortcuts={() => {
+                trackEvent('keyboard_shortcuts_opened', project || null)
+                setShowKeyboardShortcuts(true)
+                setShowHelp(false)
+              }}
+            />
+          )}
+        </div>
+
         <div className="relative" ref={settingsRef}>
           <SimpleTooltip text="Display options and preferences">
             <IconButton
@@ -384,21 +427,7 @@ export function TopBar() {
             />
           </SimpleTooltip>
 
-          {showSettings && (
-            <SettingsPopover
-              onClose={() => setShowSettings(false)}
-              onOpenGettingStarted={() => {
-                trackEvent('getting_started_guide_opened', project || null)
-                setShowGettingStartedGuide(true)
-                setShowSettings(false)
-              }}
-              onOpenKeyboardShortcuts={() => {
-                trackEvent('keyboard_shortcuts_opened', project || null)
-                setShowKeyboardShortcuts(true)
-                setShowSettings(false)
-              }}
-            />
-          )}
+          {showSettings && <SettingsPopover onClose={() => setShowSettings(false)} />}
         </div>
       </div>
 

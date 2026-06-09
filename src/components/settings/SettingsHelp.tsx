@@ -9,12 +9,7 @@ import {
 } from '../../utils/analytics'
 import { ChevronRight } from 'lucide-react'
 
-interface SettingsHelpProps {
-  onOpenGettingStarted: () => void
-  onOpenKeyboardShortcuts: () => void
-}
-
-export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: SettingsHelpProps) {
+export function SettingsHelp() {
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const toggleHelpTooltips = useEditorStore((s) => s.toggleHelpTooltips)
   const [analyticsOn, setAnalyticsOn] = useState(isAnalyticsEnabled)
@@ -31,23 +26,11 @@ export function SettingsHelp({ onOpenGettingStarted, onOpenKeyboardShortcuts }: 
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Help</h3>
+      <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">
+        Help &amp; Privacy
+      </h3>
 
-      <button
-        onClick={onOpenGettingStarted}
-        className="block text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-      >
-        Getting Started Guide
-      </button>
-
-      <button
-        onClick={onOpenKeyboardShortcuts}
-        className="block mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-      >
-        Keyboard Shortcuts
-      </button>
-
-      <div className="flex items-center justify-between mt-3">
+      <div className="flex items-center justify-between">
         <span className="text-xs text-slate-600 dark:text-slate-400">Show concept tooltips</span>
         <Switch checked={showHelpTooltips} onCheckedChange={() => toggleHelpTooltips()} />
       </div>
