@@ -30,13 +30,25 @@ const PATTERN_LABELS: Record<PickerPattern, { name: string; influence: string }>
 }
 
 const UPSTREAM_ROLE_OPTIONS: ReadonlyArray<PillOption<UpstreamRole>> = [
-  { value: 'open-host-service', label: 'Open Host Service' },
-  { value: 'published-language', label: 'Published Language' },
+  {
+    value: 'open-host-service',
+    label: 'Open Host Service',
+    tooltip: RELATIONSHIP_PATTERNS['open-host-service'],
+  },
+  {
+    value: 'published-language',
+    label: 'Published Language',
+    tooltip: RELATIONSHIP_PATTERNS['published-language'],
+  },
 ]
 
 const DOWNSTREAM_ROLE_OPTIONS: ReadonlyArray<PillOption<DownstreamRole>> = [
-  { value: 'conformist', label: 'Conformist' },
-  { value: 'anti-corruption-layer', label: 'Anti-Corruption Layer' },
+  { value: 'conformist', label: 'Conformist', tooltip: RELATIONSHIP_PATTERNS['conformist'] },
+  {
+    value: 'anti-corruption-layer',
+    label: 'Anti-Corruption Layer',
+    tooltip: RELATIONSHIP_PATTERNS['anti-corruption-layer'],
+  },
 ]
 
 export function RelationshipInspector({

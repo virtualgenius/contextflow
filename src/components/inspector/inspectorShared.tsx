@@ -2,6 +2,8 @@ import React from 'react'
 import { X } from 'lucide-react'
 import { useEditorStore } from '../../model/store'
 import { CLEARED_SELECTION } from '../../lib/selectionDismiss'
+import { InfoTooltip } from '../InfoTooltip'
+import type { ConceptDefinition } from '../../model/conceptDefinitions'
 
 // Shared input styles for consistency across all inspector panels
 export const INPUT_TITLE_CLASS =
@@ -76,6 +78,7 @@ export type PillOption<T extends string> = {
   value: T
   label: string
   adornment?: React.ReactNode
+  tooltip?: ConceptDefinition
 }
 
 export type PillVariant = 'green' | 'slate'
@@ -212,9 +215,8 @@ export function PillGroup<T extends string>({
       {options.map((opt, index) => {
         const isActive = value === opt.value
         const stretch = layout === 'horizontal' ? 'flex-1 text-center' : 'text-center'
-        return (
+        const pill = (
           <button
-            key={opt.value}
             ref={(el) => {
               pillRefs.current[index] = el
             }}
@@ -233,6 +235,21 @@ export function PillGroup<T extends string>({
             <span>{opt.label}</span>
           </button>
         )
+
+        if (opt.tooltip) {
+          return (
+            <InfoTooltip
+              key={opt.value}
+              content={opt.tooltip}
+              position="bottom"
+              className={layout === 'horizontal' ? 'flex-1' : ''}
+            >
+              {pill}
+            </InfoTooltip>
+          )
+        }
+
+        return React.cloneElement(pill, { key: opt.value })
       })}
     </div>
   )

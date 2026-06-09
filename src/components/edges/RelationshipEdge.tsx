@@ -22,7 +22,12 @@ import {
   EDGE_TRANSITION,
   PATTERN_EDGE_INDICATORS,
 } from '../../lib/canvasConstants'
-import { EDGE_INDICATORS, RELATIONSHIP_PATTERNS } from '../../model/conceptDefinitions'
+import {
+  EDGE_INDICATORS,
+  RELATIONSHIP_PATTERNS,
+  UPSTREAM_DOWNSTREAM,
+  perSideRelationshipConcept,
+} from '../../model/conceptDefinitions'
 import { createSelectionState } from '../../model/validation'
 
 type SideIndicatorKey = 'open-host-service' | 'anti-corruption-layer'
@@ -428,7 +433,10 @@ function RelationshipEdge({
       {showHelpTooltips &&
         (isHovered || isSelected) &&
         (() => {
-          const patternContent = RELATIONSHIP_PATTERNS[pattern]
+          const patternContent =
+            RELATIONSHIP_PATTERNS[pattern] ||
+            perSideRelationshipConcept(relationship?.upstreamRole, relationship?.downstreamRole) ||
+            (relationship ? UPSTREAM_DOWNSTREAM : null)
           if (!patternContent) return null
 
           // Convert canvas coordinates to screen coordinates

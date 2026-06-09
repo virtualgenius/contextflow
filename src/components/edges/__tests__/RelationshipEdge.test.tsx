@@ -270,4 +270,51 @@ describe('RelationshipEdge tooltip layering', () => {
     fireEvent.mouseEnter(hitArea!)
     expect(document.body.textContent).toContain('Upstream delivers what downstream needs')
   })
+
+  it('shows a combined per-side tooltip for a double-sided relationship', () => {
+    setupMock({ showRelationshipLabels: false, showHelpTooltips: true })
+    const props = {
+      ...baseProps,
+      data: {
+        relationship: {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+          upstreamRole: 'open-host-service',
+          downstreamRole: 'anti-corruption-layer',
+        },
+      },
+    }
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...props} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.mouseEnter(hitArea!)
+    expect(document.body.textContent).toContain('Open Host Service + Anti-Corruption Layer')
+  })
+
+  it('shows the Upstream/Downstream tooltip for a direction-only relationship', () => {
+    setupMock({ showRelationshipLabels: false, showHelpTooltips: true })
+    const props = {
+      ...baseProps,
+      data: {
+        relationship: {
+          id: 'rel-1',
+          fromContextId: 'ctx-1',
+          toContextId: 'ctx-2',
+        },
+      },
+    }
+    const { container } = render(
+      <svg>
+        <RelationshipEdge {...props} />
+      </svg>
+    )
+    const hitArea = container.querySelector('path[style*="cursor: pointer"]')
+    fireEvent.mouseEnter(hitArea!)
+    expect(document.body.textContent).toContain('Upstream / Downstream')
+    expect(document.body.textContent).toContain('influence')
+  })
 })

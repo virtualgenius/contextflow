@@ -56,6 +56,7 @@ function setupStore(viewMode: 'flow' | 'strategic' | 'distillation' = 'flow') {
       swapRelationshipDirection: mockSwapRelationshipDirection,
       updateMultipleContextPositions: mockUpdateMultipleContextPositions,
       activeViewMode: viewMode,
+      showHelpTooltips: true,
     }
     return selector(state as never)
   })
@@ -274,6 +275,26 @@ describe('RelationshipInspector', () => {
       expect(mockUpdateRelationship).toHaveBeenCalledWith('rel-1', {
         downstreamRole: undefined,
       })
+    })
+
+    it('shows a concept tooltip when hovering each per-side role pill', () => {
+      render(<RelationshipInspector project={makeProject()} relationshipId="rel-1" />)
+
+      const upstreamGroup = screen.getByRole('radiogroup', { name: /upstream role/i })
+      const ohs = within(upstreamGroup).getByRole('radio', { name: /open host service/i })
+      fireEvent.mouseEnter(ohs.parentElement as HTMLElement)
+      expect(screen.getByText(/well-documented, stable API/i)).toBeInTheDocument()
+      fireEvent.mouseLeave(ohs.parentElement as HTMLElement)
+
+      const pl = within(upstreamGroup).getByRole('radio', { name: /published language/i })
+      fireEvent.mouseEnter(pl.parentElement as HTMLElement)
+      expect(screen.getByText(/shared, well-documented interchange format/i)).toBeInTheDocument()
+      fireEvent.mouseLeave(pl.parentElement as HTMLElement)
+
+      const downstreamGroup = screen.getByRole('radiogroup', { name: /downstream role/i })
+      const conformist = within(downstreamGroup).getByRole('radio', { name: /^conformist$/i })
+      fireEvent.mouseEnter(conformist.parentElement as HTMLElement)
+      expect(screen.getByText(/fully adopts the upstream model/i)).toBeInTheDocument()
     })
   })
 

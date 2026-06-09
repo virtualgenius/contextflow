@@ -691,3 +691,46 @@ export const RELATIONSHIP_PATTERNS: Record<string, ConceptDefinition> = {
     ],
   },
 }
+
+// A plain directional relationship with no specific pattern or per-side role.
+// Upstream/downstream is a power dynamic (who influences whom), not a data-flow
+// direction; data can move either way regardless of which side is upstream.
+export const UPSTREAM_DOWNSTREAM: ConceptDefinition = {
+  title: 'Upstream / Downstream',
+  description:
+    'A direction of influence, not data flow. The upstream context holds the power: its decisions ripple down to the downstream, which has little sway in return. Data can move either way; what sets the direction is who influences whom.',
+  characteristics: [
+    '↑ Upstream holds the power in the relationship',
+    '↓ Downstream adapts to upstream decisions and changes',
+    'Influence flows one way, whichever way data flows',
+  ],
+}
+
+// Combine the per-side roles of a double-sided relationship into a single
+// concept card. Returns the lone role when only one side is set, a merged card
+// (deduped characteristics) when both are, or null when neither is.
+export function perSideRelationshipConcept(
+  upstreamRole?: string,
+  downstreamRole?: string
+): ConceptDefinition | null {
+  const defs: ConceptDefinition[] = []
+  if (upstreamRole && RELATIONSHIP_PATTERNS[upstreamRole]) {
+    defs.push(RELATIONSHIP_PATTERNS[upstreamRole])
+  }
+  if (downstreamRole && RELATIONSHIP_PATTERNS[downstreamRole]) {
+    defs.push(RELATIONSHIP_PATTERNS[downstreamRole])
+  }
+  if (defs.length === 0) return null
+  if (defs.length === 1) return defs[0]
+
+  const mergedCharacteristics = [
+    ...(defs[0].characteristics ?? []),
+    ...(defs[1].characteristics ?? []),
+  ].filter((item, index, all) => all.indexOf(item) === index)
+
+  return {
+    title: `${defs[0].title} + ${defs[1].title}`,
+    description: `${defs[0].description} ${defs[1].description}`,
+    characteristics: mergedCharacteristics,
+  }
+}
