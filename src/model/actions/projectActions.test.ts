@@ -149,14 +149,14 @@ describe('projectActions', () => {
       expect(result.selectedContextIds).toEqual([])
     })
 
-    it('should clear undo/redo stacks', () => {
-      mockState.undoStack = [{ type: 'addContext', payload: {} }]
-      mockState.redoStack = [{ type: 'deleteContext', payload: {} }]
+    it('should reset undo/redo availability', () => {
+      mockState.canUndo = true
+      mockState.canRedo = true
 
       const result = createProjectAction(mockState, 'New Project')
 
-      expect(result.undoStack).toEqual([])
-      expect(result.redoStack).toEqual([])
+      expect(result.canUndo).toBe(false)
+      expect(result.canRedo).toBe(false)
     })
 
     it('should throw for empty name', () => {
@@ -294,15 +294,15 @@ describe('projectActions', () => {
       expect(() => deleteProjectAction(mockState, 'non-existent')).toThrow()
     })
 
-    it('should clear undo/redo stacks when deleting active project', () => {
+    it('should reset undo/redo availability when deleting active project', () => {
       mockState.activeProjectId = 'test-project'
-      mockState.undoStack = [{ type: 'addContext', payload: {} }]
-      mockState.redoStack = [{ type: 'deleteContext', payload: {} }]
+      mockState.canUndo = true
+      mockState.canRedo = true
 
       const result = deleteProjectAction(mockState, 'test-project')
 
-      expect(result.undoStack).toEqual([])
-      expect(result.redoStack).toEqual([])
+      expect(result.canUndo).toBe(false)
+      expect(result.canRedo).toBe(false)
     })
   })
 
@@ -503,14 +503,14 @@ describe('projectActions', () => {
       expect(result.selectedContextIds).toEqual([])
     })
 
-    it('should clear undo/redo stacks', () => {
-      mockState.undoStack = [{ type: 'addContext', payload: {} }]
-      mockState.redoStack = [{ type: 'deleteContext', payload: {} }]
+    it('should reset undo/redo availability', () => {
+      mockState.canUndo = true
+      mockState.canRedo = true
 
       const result = duplicateProjectAction(mockState, 'test-project')
 
-      expect(result.undoStack).toEqual([])
-      expect(result.redoStack).toEqual([])
+      expect(result.canUndo).toBe(false)
+      expect(result.canRedo).toBe(false)
     })
 
     it('should throw for non-existent project', () => {

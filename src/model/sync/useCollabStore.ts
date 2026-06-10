@@ -86,8 +86,26 @@ import {
 } from './metadataMutations'
 import { renameProjectMutation } from './projectMutations'
 
+export interface UndoState {
+  canUndo: boolean
+  canRedo: boolean
+}
+
 export interface CollabStoreOptions {
   onProjectChange?: (project: Project) => void
+  onUndoStateChange?: (state: UndoState) => void
+}
+
+function attachUndoStateNotifier(
+  manager: CollabUndoManager,
+  onUndoStateChange: CollabStoreOptions['onUndoStateChange']
+): () => void {
+  if (!onUndoStateChange) return () => {}
+  const notify = (): void =>
+    onUndoStateChange({ canUndo: manager.canUndo(), canRedo: manager.canRedo() })
+  const detach = manager.onStackChange(notify)
+  notify()
+  return detach
 }
 
 export interface CollabStore {
@@ -168,6 +186,7 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
 
   syncManager = new SyncManager(ydoc, handleProjectChange)
   undoManager = createUndoManager(ydoc)
+  let detachUndoNotifier = attachUndoStateNotifier(undoManager, options.onUndoStateChange)
 
   const store: CollabStore = {
     getYDoc(): Y.Doc {
@@ -402,17 +421,21 @@ export function useCollabStore(project: Project, options: CollabStoreOptions = {
     },
 
     reset(newProject: Project): void {
+      detachUndoNotifier()
       syncManager?.destroy()
       undoManager?.destroy()
 
       ydoc = projectToYDoc(newProject)
       syncManager = new SyncManager(ydoc, handleProjectChange)
       undoManager = createUndoManager(ydoc)
+      detachUndoNotifier = attachUndoStateNotifier(undoManager, options.onUndoStateChange)
     },
 
     destroy(): void {
       if (isDestroyed) return
       isDestroyed = true
+
+      detachUndoNotifier()
 
       syncManager?.destroy()
       syncManager = null
@@ -445,6 +468,7 @@ export function createCollabStoreFromYDoc(
 
   syncManager = new SyncManager(ydoc, handleProjectChange)
   undoManager = createUndoManager(ydoc)
+  const detachUndoNotifier = attachUndoStateNotifier(undoManager, options.onUndoStateChange)
 
   const store: CollabStore = {
     getYDoc(): Y.Doc {
@@ -687,6 +711,8 @@ export function createCollabStoreFromYDoc(
     destroy(): void {
       if (isDestroyed) return
       isDestroyed = true
+
+      detachUndoNotifier()
 
       syncManager?.destroy()
       syncManager = null

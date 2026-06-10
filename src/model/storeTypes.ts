@@ -26,97 +26,6 @@ export type ContextDraft =
   | { kind: 'related'; sourceId: string; direction: SpawnDirection }
   | { kind: 'entity'; entity: DraftEntity }
 
-export interface EditorCommand {
-  type:
-    | 'moveContext'
-    | 'moveContextGroup'
-    | 'addContext'
-    | 'deleteContext'
-    | 'assignRepo'
-    | 'unassignRepo'
-    | 'addGroup'
-    | 'deleteGroup'
-    | 'removeFromGroup'
-    | 'addToGroup'
-    | 'addRelationship'
-    | 'deleteRelationship'
-    | 'updateRelationship'
-    | 'addUser'
-    | 'deleteUser'
-    | 'moveUser'
-    | 'addUserNeed'
-    | 'deleteUserNeed'
-    | 'moveUserNeed'
-    | 'addUserNeedConnection'
-    | 'deleteUserNeedConnection'
-    | 'addNeedContextConnection'
-    | 'deleteNeedContextConnection'
-    | 'createKeyframe'
-    | 'deleteKeyframe'
-    | 'moveContextInKeyframe'
-    | 'updateKeyframe'
-    | 'updateFlowStage'
-    | 'addFlowStage'
-    | 'deleteFlowStage'
-  payload: {
-    contextId?: string
-    contextIds?: string[]
-    oldPositions?: BoundedContext['positions']
-    newPositions?: BoundedContext['positions']
-    positionsMap?: Record<
-      string,
-      { old: BoundedContext['positions']; new: BoundedContext['positions'] }
-    >
-    context?: BoundedContext
-    repoId?: string
-    oldContextId?: string
-    newContextId?: string
-    group?: any
-    groupId?: string
-    relationship?: any
-    relationshipId?: string
-    user?: User
-    userId?: string
-    oldPosition?: number
-    newPosition?: number
-    userNeed?: UserNeed
-    userNeedId?: string
-    userNeedConnection?: UserNeedConnection
-    userNeedConnectionId?: string
-    needContextConnection?: NeedContextConnection
-    needContextConnectionId?: string
-    keyframe?: TemporalKeyframe
-    keyframes?: TemporalKeyframe[] // For commands that create multiple keyframes
-    keyframeId?: string
-    oldKeyframeData?: Partial<TemporalKeyframe>
-    newKeyframeData?: Partial<TemporalKeyframe>
-    flowStageIndex?: number
-    flowStage?: {
-      name: string
-      position: number
-      description?: string
-      owner?: string
-      notes?: string
-    }
-    oldFlowStage?: {
-      name: string
-      position: number
-      description?: string
-      owner?: string
-      notes?: string
-    }
-    newFlowStage?: {
-      name: string
-      position: number
-      description?: string
-      owner?: string
-      notes?: string
-    }
-    oldRelationship?: any
-    newRelationship?: any
-  }
-}
-
 export interface EditorState {
   activeProjectId: string | null
   projects: Record<string, Project>
@@ -169,8 +78,9 @@ export interface EditorState {
     savedShowRelationships?: boolean // Saved relationship visibility when entering keyframe mode
   }
 
-  undoStack: EditorCommand[]
-  redoStack: EditorCommand[]
+  // Mirrored from the Yjs undo manager so toolbar buttons re-render on change.
+  canUndo: boolean
+  canRedo: boolean
 
   // Temporal actions
   toggleTemporalMode: () => void

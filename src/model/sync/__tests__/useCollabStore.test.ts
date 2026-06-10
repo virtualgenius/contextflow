@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import * as Y from 'yjs'
 
-import { useCollabStore, type CollabStore } from '../useCollabStore'
+import { useCollabStore, createCollabStoreFromYDoc, type CollabStore } from '../useCollabStore'
+import { projectToYDoc } from '../projectSync'
 import type { Project, BoundedContext } from '../../types'
 
 function createTestProject(): Project {
@@ -352,6 +353,84 @@ describe('useCollabStore', () => {
 
       expect(store.canUndo()).toBe(false)
       expect(store.canRedo()).toBe(false)
+    })
+  })
+
+  describe('onUndoStateChange', () => {
+    let onUndoStateChange: Mock<(state: { canUndo: boolean; canRedo: boolean }) => void>
+
+    beforeEach(() => {
+      onUndoStateChange = vi.fn()
+    })
+
+    function lastNotifiedState(): { canUndo: boolean; canRedo: boolean } {
+      return onUndoStateChange.mock.calls[onUndoStateChange.mock.calls.length - 1][0]
+    }
+
+    it('should notify the initial disabled state on creation', () => {
+      store = useCollabStore(project, { onProjectChange, onUndoStateChange })
+
+      expect(lastNotifiedState()).toEqual({ canUndo: false, canRedo: false })
+    })
+
+    it('should notify canUndo true after a mutation', () => {
+      store = useCollabStore(project, { onProjectChange, onUndoStateChange })
+
+      store.updateContext('ctx-1', { name: 'Updated Name' })
+
+      expect(lastNotifiedState()).toEqual({ canUndo: true, canRedo: false })
+    })
+
+    it('should notify canRedo true after undo', () => {
+      store = useCollabStore(project, { onProjectChange, onUndoStateChange })
+      store.updateContext('ctx-1', { name: 'Updated Name' })
+
+      store.undo()
+
+      expect(lastNotifiedState()).toEqual({ canUndo: false, canRedo: true })
+    })
+
+    it('should notify the disabled state again on reset', () => {
+      store = useCollabStore(project, { onProjectChange, onUndoStateChange })
+      store.updateContext('ctx-1', { name: 'Updated Name' })
+
+      const newProject = createTestProject()
+      newProject.id = 'new-project'
+      store.reset(newProject)
+
+      expect(lastNotifiedState()).toEqual({ canUndo: false, canRedo: false })
+    })
+
+    it('should keep notifying mutations made after reset', () => {
+      store = useCollabStore(project, { onProjectChange, onUndoStateChange })
+      const newProject = createTestProject()
+      newProject.id = 'new-project'
+      store.reset(newProject)
+
+      store.updateContext('ctx-1', { name: 'Updated After Reset' })
+
+      expect(lastNotifiedState()).toEqual({ canUndo: true, canRedo: false })
+    })
+
+    it('should stop notifying after destroy', () => {
+      store = useCollabStore(project, { onProjectChange, onUndoStateChange })
+      store.destroy()
+      onUndoStateChange.mockClear()
+
+      store.getYDoc().getMap('project').set('name', 'After Destroy')
+
+      expect(onUndoStateChange).not.toHaveBeenCalled()
+    })
+
+    it('should notify from a store created from an existing Y.Doc', () => {
+      const ydoc = projectToYDoc(project)
+      store = createCollabStoreFromYDoc(ydoc, { onProjectChange, onUndoStateChange })
+
+      expect(lastNotifiedState()).toEqual({ canUndo: false, canRedo: false })
+
+      store.updateContext('ctx-1', { name: 'Updated Name' })
+
+      expect(lastNotifiedState()).toEqual({ canUndo: true, canRedo: false })
     })
   })
 })

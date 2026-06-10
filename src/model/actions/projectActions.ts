@@ -53,8 +53,8 @@ export function createProjectAction(state: EditorState, name: string): Partial<E
     },
     activeProjectId: newProject.id,
     ...createSelectionState(null, 'context'),
-    undoStack: [],
-    redoStack: [],
+    canUndo: false,
+    canRedo: false,
   }
 }
 
@@ -115,8 +115,8 @@ export function deleteProjectAction(state: EditorState, projectId: string): Part
 
   if (isDeletingActiveProject) {
     Object.assign(result, createSelectionState(null, 'context'))
-    result.undoStack = []
-    result.redoStack = []
+    result.canUndo = false
+    result.canRedo = false
   }
 
   return result
@@ -284,8 +284,8 @@ function duplicateViewConfig(project: Project) {
 function createClearedSelectionState(): Partial<EditorState> {
   return {
     ...createSelectionState(null, 'context'),
-    undoStack: [],
-    redoStack: [],
+    canUndo: false,
+    canRedo: false,
   }
 }
 

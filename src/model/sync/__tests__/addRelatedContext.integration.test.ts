@@ -44,8 +44,8 @@ describe('position-aware context creation', () => {
       activeProjectId: testProject.id,
       projects: { [testProject.id]: testProject },
       selectedContextId: null,
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     })
     initializeCollabMode(testProject, {
       onProjectChange: (project: Project): void => {

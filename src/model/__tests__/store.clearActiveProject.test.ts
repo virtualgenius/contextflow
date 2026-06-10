@@ -29,17 +29,17 @@ describe('Store - clearActiveProject', () => {
     expect(state.selectedRelationshipId).toBeNull()
   })
 
-  it('clears undo and redo stacks', () => {
+  it('resets undo/redo availability', () => {
     useEditorStore.setState({
-      undoStack: [{ type: 'addContext', payload: {} }],
-      redoStack: [{ type: 'deleteContext', payload: {} }],
+      canUndo: true,
+      canRedo: true,
     })
 
     useEditorStore.getState().clearActiveProject()
 
     const state = useEditorStore.getState()
-    expect(state.undoStack).toHaveLength(0)
-    expect(state.redoStack).toHaveLength(0)
+    expect(state.canUndo).toBe(false)
+    expect(state.canRedo).toBe(false)
   })
 
   it('removes localStorage key', () => {

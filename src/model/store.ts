@@ -16,7 +16,7 @@ import {
   trackFTUEMilestone,
 } from '../utils/analytics'
 import { classifyFromDistillationPosition } from './classification'
-import type { ViewMode, EditorCommand, EditorState } from './storeTypes'
+import type { ViewMode, EditorState } from './storeTypes'
 import {
   initialProjects,
   initialActiveProjectId,
@@ -74,7 +74,7 @@ import {
   newProjectViewMode,
 } from './viewModePersistence'
 
-export type { ViewMode, EditorCommand, EditorState }
+export type { ViewMode, EditorState }
 
 function getAllSelectedContextIds(state: EditorState): string[] {
   const singleSelection =
@@ -126,7 +126,10 @@ async function reconnectCollabForProject(
         console.error('Failed to autosave project to IndexedDB:', err)
       })
     }
-    initializeCollabModeWithYDoc(ydoc, { onProjectChange: updateStoreAndAutosave })
+    initializeCollabModeWithYDoc(ydoc, {
+      onProjectChange: updateStoreAndAutosave,
+      onUndoStateChange: (undoState) => useEditorStore.setState(undoState),
+    })
 
     if (options?.loadExisting) {
       loadExistingProjectFromYDoc(ydoc, updateStoreAndAutosave)
@@ -230,8 +233,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     activeKeyframeId: null,
   },
 
-  undoStack: [],
-  redoStack: [],
+  canUndo: false,
+  canRedo: false,
 
   updateContext: (contextId, updates) =>
     set((state) => {
@@ -358,8 +361,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: projectId,
       activeViewMode: resolveViewModeForExistingProject(projectId),
       ...createSelectionState(null, 'context'),
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     }))
 
     await reconnectCollabForProject(projectId, project)
@@ -414,8 +417,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: newProject.id,
       activeViewMode: resolveViewModeForExistingProject(newProject.id),
       ...createSelectionState(null, 'context'),
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     }))
 
     await reconnectCollabForProject(newProject.id, newProject)
@@ -1304,8 +1307,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     set({
       activeProjectId: null,
       ...createSelectionState(null, 'context'),
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     })
   },
 
@@ -1518,8 +1521,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
       activeViewMode: 'flow',
       ...createSelectionState(null, 'context'),
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     }),
 
   loadSharedProject: async (projectId: string) => {
@@ -1554,8 +1557,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
       activeProjectId: projectId,
       ...createSelectionState(null, 'context'),
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     }))
 
     await reconnectCollabForProject(projectId, placeholderProject, { loadExisting: true })

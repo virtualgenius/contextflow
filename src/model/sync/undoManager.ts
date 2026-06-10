@@ -30,6 +30,18 @@ export class CollabUndoManager {
     this.undoManager.clear()
   }
 
+  onStackChange(listener: () => void): () => void {
+    const handler = (): void => listener()
+    this.undoManager.on('stack-item-added', handler)
+    this.undoManager.on('stack-item-popped', handler)
+    this.undoManager.on('stack-cleared', handler)
+    return () => {
+      this.undoManager.off('stack-item-added', handler)
+      this.undoManager.off('stack-item-popped', handler)
+      this.undoManager.off('stack-cleared', handler)
+    }
+  }
+
   stopCapturing(): void {
     this.undoManager.trackedOrigins.delete(null)
   }

@@ -55,8 +55,8 @@ describe('Store Collab Integration', () => {
     useEditorStore.setState({
       activeProjectId: testProject.id,
       projects: { [testProject.id]: testProject },
-      undoStack: [],
-      redoStack: [],
+      canUndo: false,
+      canRedo: false,
     })
   })
 
@@ -329,8 +329,8 @@ describe('Store Collab Integration', () => {
       useEditorStore.setState({
         activeProjectId: testProject.id,
         projects: { [testProject.id]: testProject },
-        undoStack: [],
-        redoStack: [],
+        canUndo: false,
+        canRedo: false,
       })
 
       const onProjectChange = (project: Project): void => {

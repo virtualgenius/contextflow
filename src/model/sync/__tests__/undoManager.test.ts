@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import * as Y from 'yjs'
 
 import { createUndoManager, CollabUndoManager } from '../undoManager'
@@ -352,6 +352,73 @@ describe('CollabUndoManager', () => {
       expect(undoManager.canUndo()).toBe(true)
       undoManager.undo()
       expect(yProject.get('name')).toBe('Skipped')
+    })
+  })
+
+  describe('onStackChange', () => {
+    it('should notify when a tracked change adds an undo stack item', () => {
+      const project = createTestProject()
+      const ydoc = projectToYDoc(project)
+      const undoManager = createUndoManager(ydoc)
+      const listener = vi.fn()
+
+      undoManager.onStackChange(listener)
+      ydoc.getMap('project').set('name', 'Updated')
+
+      expect(listener).toHaveBeenCalledTimes(1)
+    })
+
+    it('should notify when undo pops a stack item', () => {
+      const project = createTestProject()
+      const ydoc = projectToYDoc(project)
+      const undoManager = createUndoManager(ydoc)
+      ydoc.getMap('project').set('name', 'Updated')
+
+      const listener = vi.fn()
+      undoManager.onStackChange(listener)
+      undoManager.undo()
+
+      expect(listener).toHaveBeenCalled()
+    })
+
+    it('should notify when the stacks are cleared', () => {
+      const project = createTestProject()
+      const ydoc = projectToYDoc(project)
+      const undoManager = createUndoManager(ydoc)
+      ydoc.getMap('project').set('name', 'Updated')
+
+      const listener = vi.fn()
+      undoManager.onStackChange(listener)
+      undoManager.clear()
+
+      expect(listener).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not notify untracked-origin changes', () => {
+      const project = createTestProject()
+      const ydoc = projectToYDoc(project)
+      const undoManager = createUndoManager(ydoc)
+      const listener = vi.fn()
+
+      undoManager.onStackChange(listener)
+      ydoc.transact(() => {
+        ydoc.getMap('project').set('name', 'Remote Update')
+      }, 'remote-peer')
+
+      expect(listener).not.toHaveBeenCalled()
+    })
+
+    it('should stop notifying after unsubscribe', () => {
+      const project = createTestProject()
+      const ydoc = projectToYDoc(project)
+      const undoManager = createUndoManager(ydoc)
+      const listener = vi.fn()
+
+      const unsubscribe = undoManager.onStackChange(listener)
+      unsubscribe()
+      ydoc.getMap('project').set('name', 'Updated')
+
+      expect(listener).not.toHaveBeenCalled()
     })
   })
 
