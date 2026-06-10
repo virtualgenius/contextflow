@@ -4,6 +4,12 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.10.2] - 2026-06-10
+
+- Fixed the Undo and Redo toolbar buttons staying disabled; they now enable as you make changes and work alongside the keyboard shortcuts
+
+---
+
 ## [0.10.1] - 2026-06-10
 
 - Fixed the Settings and Help menus not closing when you click on the canvas
