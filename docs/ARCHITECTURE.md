@@ -435,7 +435,7 @@ interface EditorState {
 - Scoped to user's own changes (like Figma/Miro)
 - Ctrl+Z only undoes YOUR changes, not collaborator's
 - Session-scoped (cleared on refresh)
-- Applies to all structural actions (add/move/delete context, relationships, groups, etc.)
+- Applies to all local edits: structural actions (add/move/delete context, relationships, groups, etc.) and Inspector text edits (every null-origin transaction on the project map is tracked)
 
 ---
 

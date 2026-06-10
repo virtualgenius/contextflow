@@ -94,8 +94,8 @@ Every BoundedContext has three position coordinates:
 - Show "External" badge and dotted ring visual treatment
 
 **Undo/redo scope:**
-- Applies only to structural canvas actions (add/move/delete context, add/delete relationship, assign/unassign repo, create/delete group)
-- Text edits in InspectorPanel autosave directly and are NOT undoable
+- Applies to all local Yjs-backed edits: structural canvas actions (add/move/delete context, add/delete relationship, assign/unassign repo, create/delete group) AND text edits in the InspectorPanel
+- Every null-origin transaction is tracked by Y.UndoManager; InspectorPanel fields save on every keystroke and `captureTimeout` is 0, so each keystroke is its own undo step
 
 **DDD relationship patterns:**
 Use fixed vocabulary from types.ts: `customer-supplier`, `conformist`, `anti-corruption-layer`, `open-host-service`, `published-language`, `shared-kernel`, `partnership`, `separate-ways`

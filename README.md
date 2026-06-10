@@ -74,7 +74,7 @@ All three views analyze the same system — different lenses, different strategi
 - Import/export as JSON
 - Drag repos onto contexts, link teams to boards
 - Full editing: drag nodes, create relationships, organize into groups
-- Autosave with undo/redo for structural changes
+- Autosave with undo/redo
 - Light/dark theme support
 - Designed for DDD facilitators, platform architects, and teams doing strategic design
 
@@ -107,7 +107,7 @@ All three views analyze the same system — different lenses, different strategi
 - Team and ownership details with clickable Jira board links
 - Inspector panel for editing context/relationship/group/actor/user need details
 - **Multi-project support** with project switcher dropdown
-- Undo/redo for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes)
+- Undo/redo for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes) and inspector text edits
 - Theme toggle (light/dark mode)
 - **Cloud sync** with real-time collaboration (Yjs + Cloudflare)
 - Import/export project JSON

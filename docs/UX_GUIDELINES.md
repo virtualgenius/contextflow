@@ -48,7 +48,7 @@ The UX is inspired by **Miro**, **Wardley Maps**, and the **Linear** aesthetic: 
 - **Drag-to-connect:** Click and drag from one context's handle to another to create a relationship edge. Visual feedback: dashed blue line while dragging, pulsing target handles on hover.
 - **Select Entity:** Click context/relationship/group/actor/user need to open Inspector Panel (right sidebar).
 - **Deselect:** Click empty canvas or press `Esc`.
-- **Undo/Redo:** Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes).
+- **Undo/Redo:** Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z (or the TopBar buttons) for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes) and Inspector text edits.
 - **Autosave:** Changes sync to cloud automatically via Yjs. No save confirmation is shown; mutations reflect immediately in the UI.
 
 ### Keyboard Shortcuts
@@ -233,7 +233,7 @@ Accessible via the gear icon in TopBar. Three categories:
 
 - **Cloud-first persistence:** Yjs + Cloudflare Durable Objects with automatic sync. IndexedDB used only for migration backup.
 - **Multi-project support:** Project switcher dropdown in TopBar. Each project has isolated state.
-- **Undo/redo history:** Per project session. Applies to structural changes only (add/move/delete context, relationships, repo assignments, groups, keyframes). Text edits in Inspector autosave directly and are not undoable.
+- **Undo/redo history:** Per project session. Applies to structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes) and Inspector text edits. Text fields autosave on every keystroke, and each keystroke is a separate undo step.
 - **Import/export:** JSON format for project data. No YAML or other formats in current version.
 - **CodeCohesion API:** Optional integration for live repository statistics and contributor data.
 
