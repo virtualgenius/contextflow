@@ -78,8 +78,10 @@ export function TopBar() {
       }
     }
     if (showSettings) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      // Capture phase: the React Flow pane stops propagation on canvas mousedown,
+      // so a bubble-phase document listener never fires for clicks on the canvas.
+      document.addEventListener('mousedown', handleClickOutside, true)
+      return () => document.removeEventListener('mousedown', handleClickOutside, true)
     }
   }, [showSettings])
 
@@ -91,8 +93,8 @@ export function TopBar() {
       }
     }
     if (showHelp) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside, true)
+      return () => document.removeEventListener('mousedown', handleClickOutside, true)
     }
   }, [showHelp])
 
