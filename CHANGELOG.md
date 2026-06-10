@@ -4,6 +4,12 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.10.1] - 2026-06-10
+
+- Fixed the Settings and Help menus not closing when you click on the canvas
+
+---
+
 ## [0.10.0] - 2026-06-09
 
 - On-canvas context creation: double-click the canvas, press N, or use the toolbar to name a new context inline (no more pop-up prompt), with an on-canvas hint when the map is empty
