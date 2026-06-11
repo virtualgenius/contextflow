@@ -72,20 +72,6 @@
     .toggle-bar { display: flex; gap: 20px; align-items: center; max-width: 1100px; margin: 0 auto 10px; font-size: 12px; color: #334155; }
     .toggle-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
-    /* ---- Style options ---- */
-    .option-card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
-    .option-card.recommended { border-color: #10b981; background: #f0fdf41a; }
-    .option-stage { height: 110px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 6px; margin: 8px 0; }
-    .option-title { font-size: 12px; font-weight: 600; color: #0f172a; }
-    .option-desc { font-size: 11px; color: #64748b; line-height: 1.4; }
-    .rec-chip { font-size: 9px; font-weight: 700; color: #047857; background: #d1fae5; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
-
-    .pill-node { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; font-size: 12px; font-weight: 600; }
-    .pill-node svg { width: 14px; height: 14px; }
-    .ring-node { position: relative; width: 48px; height: 48px; border-radius: 999px; background: white; border: 3px solid #f59e0b; display: flex; align-items: center; justify-content: center; color: #334155; }
-    .ring-node svg { width: 20px; height: 20px; }
-    .ring-node .mini-badge { position: absolute; right: -6px; top: -6px; width: 18px; height: 18px; border-radius: 999px; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; display: flex; align-items: center; justify-content: center; }
-    .ring-node .mini-badge svg { width: 10px; height: 10px; }
   </style>
 </head>
 <body class="p-8">
@@ -177,56 +163,11 @@
       </div>
     </section>
 
-    <!-- Node style options -->
-    <section class="panel">
-      <div class="heading-row">
-        <h2>Node Style Options</h2>
-        <span class="tag">Same core context, three treatments</span>
-      </div>
-      <div class="flex gap-4">
-        <div class="option-card recommended">
-          <div class="flex items-center justify-between">
-            <span class="option-title">A. Filled circle, icon inside</span>
-            <span class="rec-chip">Selected</span>
-          </div>
-          <div class="option-stage">
-            <div class="map-node" style="position:static; transform:none;">
-              <div class="glyph glyph-context glyph-core"><i data-lucide="sparkles"></i></div>
-              <div class="label">Learning Experience</div>
-            </div>
-          </div>
-          <div class="option-desc">Classification carried by fill color and icon, both already established in the inspector. Smallest footprint, label sits outside the glyph like a classic Wardley node.</div>
-        </div>
-        <div class="option-card">
-          <div class="option-title">B. Ring with corner badge</div>
-          <div class="option-stage">
-            <div class="map-node" style="position:static; transform:none;">
-              <div class="ring-node">
-                <i data-lucide="hexagon"></i>
-                <span class="mini-badge"><i data-lucide="sparkles"></i></span>
-              </div>
-              <div class="label">Learning Experience</div>
-            </div>
-          </div>
-          <div class="option-desc">A shared "bounded context" glyph (hexagon) with classification pushed to a corner badge. More uniform, but the badge is illegible below ~75% zoom.</div>
-        </div>
-        <div class="option-card">
-          <div class="option-title">C. Compact pill</div>
-          <div class="option-stage">
-            <div class="map-node" style="position:static; transform:none;">
-              <span class="pill-node"><i data-lucide="sparkles"></i> Learning Experience</span>
-            </div>
-          </div>
-          <div class="option-desc">Smallest change from today's boxes. Still reads as a container and the wide footprint crowds the evolution axis once a map has 15+ elements.</div>
-        </div>
-      </div>
-    </section>
-
     <!-- Full map example -->
     <section class="panel">
       <div class="heading-row">
         <h2>Full Map: Online School (Architecture for Flow example)</h2>
-        <span class="tag">Option A applied</span>
+        <span class="tag">Icon glyph nodes</span>
       </div>
       <div class="toggle-bar">
         <label><input type="checkbox" id="toggle-teams" checked /> Team Topologies overlays</label>
