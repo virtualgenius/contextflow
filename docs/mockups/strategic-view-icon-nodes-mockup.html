@@ -26,7 +26,7 @@
     .glyph svg { width: 20px; height: 20px; }
     .glyph-user { background: #334155; border-color: #334155; color: white; }
     .glyph-need { border-color: #10b981; color: #047857; }
-    .glyph-process { border-color: #6366f1; color: #4f46e5; }
+    .glyph-capability { border-color: #6366f1; color: #4f46e5; }
     .glyph-context { width: 52px; height: 52px; }
     .glyph-context svg { width: 24px; height: 24px; }
     .glyph-core { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
@@ -71,9 +71,10 @@
     .world.hide-tags .decision-tag { display: none; }
 
     .tt-overlay { position: absolute; border-radius: 16px; z-index: 0; }
-    .tt-overlay .tt-label { position: absolute; top: 4px; left: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+    .tt-overlay .tt-label { position: absolute; top: 4px; left: 10px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
     .tt-platform .tt-label { top: auto; bottom: 4px; }
-    .tt-subsystem .tt-label { top: -16px; left: 0; }
+    .tt-subsystem .tt-label { top: -14px; left: 0; }
+    .tt-label.outside-below { top: auto; bottom: -14px; left: 0; }
     .tt-stream { background: rgba(253, 224, 71, 0.22); border: 1.5px solid rgba(202, 138, 4, 0.45); }
     .tt-stream .tt-label { color: #a16207; }
     .tt-platform { background: rgba(147, 197, 253, 0.22); border: 1.5px solid rgba(37, 99, 235, 0.4); }
@@ -100,8 +101,10 @@
         boxes dominate the canvas, hide the value chain lines, and read as "containers" rather than positioned components.
         This mockup follows the visual vocabulary Susanne Kaiser uses in <em>Architecture for Flow</em>: small icon nodes
         for every element type, with domain classification, build/buy/outsource decisions, and Team Topologies overlays.
-        Example domain is the online school from her InfoQ article
-        (<a class="text-blue-600 underline" href="https://www.infoq.com/articles/adaptive-socio-technical-systems-flow/">Adaptive Socio-Technical Systems with Architecture for Flow</a>).
+        The example is the online school from her
+        <a class="text-blue-600 underline" href="https://www.infoq.com/articles/adaptive-socio-technical-systems-flow/">InfoQ article</a>
+        and <a class="text-blue-600 underline" href="https://www.infoq.com/presentations/ddd-wardley-mapping-team-topology/">Architecture for Flow talk</a>,
+        using her bounded context decomposition.
       </p>
     </header>
 
@@ -121,24 +124,24 @@
           <div><div class="name">User Need</div><div class="desc">The problem the user wants solved. Already exists in the data model.</div></div>
         </div>
         <div class="legend-item">
-          <div class="glyph glyph-process"><i data-lucide="workflow"></i></div>
-          <div><div class="name">Business Process / Activity</div><div class="desc">New element type. The activities that fulfill a need, before solution components.</div></div>
+          <div class="glyph glyph-capability"><i data-lucide="workflow"></i></div>
+          <div><div class="name">Capability</div><div class="desc">Kaiser's canvas vocabulary (users, needs, capabilities, components). Optional layer: in her maps, needs usually connect directly to components.</div></div>
         </div>
         <div class="legend-item">
           <div class="glyph glyph-context glyph-core"><i data-lucide="sparkles"></i></div>
-          <div><div class="name">Bounded Context: Core</div><div class="desc">Larger glyph than other elements. Classification icon and color match the inspector badges.</div></div>
+          <div><div class="name">Bounded Context: Core</div><div class="desc">Larger glyph than other elements. Classification icon and color match the inspector badges. Build in-house, custom-built stage.</div></div>
         </div>
         <div class="legend-item">
           <div class="glyph glyph-context glyph-supporting"><i data-lucide="wrench"></i></div>
-          <div><div class="name">Bounded Context: Supporting</div><div class="desc">Same treatment, blue. Necessary but not differentiating.</div></div>
+          <div><div class="name">Bounded Context: Supporting</div><div class="desc">Same treatment, blue. Off-the-shelf or OSS where possible, else build with minimal investment.</div></div>
         </div>
         <div class="legend-item">
           <div class="glyph glyph-context glyph-generic"><i data-lucide="package"></i></div>
-          <div><div class="name">Bounded Context: Generic</div><div class="desc">Same treatment, slate. Candidate to buy rather than build.</div></div>
+          <div><div class="name">Bounded Context: Generic</div><div class="desc">Same treatment, slate. Buy or outsource.</div></div>
         </div>
         <div class="legend-item">
           <div class="glyph glyph-component"><i data-lucide="database"></i></div>
-          <div><div class="name">Infrastructure Component</div><div class="desc">New element type. Data storage, search engine, message broker, email, compute platform. Icon varies by kind.</div></div>
+          <div><div class="name">Infrastructure Component</div><div class="desc">New element type. Data storage, search engine, message broker, SMTP server, compute platform. Icon varies by kind.</div></div>
         </div>
         <div class="legend-item">
           <div class="glyph glyph-component glyph-external"><i data-lucide="server"></i></div>
@@ -153,6 +156,7 @@
             <span class="decision-tag tag-buy" style="margin:0">Buy</span>
             <span class="decision-tag tag-outsource" style="margin:0">Outsource</span>
           </div>
+          <div class="text-[10px] text-slate-400 mt-1 max-w-[220px]">Her doctrine: build genesis/custom-built in-house, buy products and OSS, outsource commodity to utility suppliers.</div>
         </div>
         <div>
           <h3>Team Topologies overlays</h3>
@@ -162,6 +166,7 @@
             <span class="px-2 py-1 rounded" style="background:rgba(253,186,116,0.4); color:#c2410c;">Complicated subsystem</span>
             <span class="px-2 py-1 rounded" style="background:rgba(216,180,254,0.4); color:#7e22ce;">Enabling</span>
           </div>
+          <div class="text-[10px] text-slate-400 mt-1 max-w-[280px]">"Bounded contexts are indicating suitable team boundaries for stream-aligned teams": one team boundary per context, not one box around several.</div>
         </div>
         <div>
           <h3>Movement annotations</h3>
@@ -175,6 +180,7 @@
               Inertia (resistance to movement)
             </span>
           </div>
+          <div class="text-[10px] text-slate-400 mt-1 max-w-[280px]">Simon Wardley's canon, not Kaiser-specific. Kept because movement maps directly onto ContextFlow's temporal keyframes.</div>
         </div>
       </div>
     </section>
@@ -182,13 +188,13 @@
     <!-- Full map example -->
     <section class="panel">
       <div class="heading-row">
-        <h2>Full Map: Online School (Architecture for Flow example)</h2>
+        <h2>Full Map: Online School (Kaiser's example, her decomposition)</h2>
         <span class="tag">Icon glyph nodes</span>
       </div>
       <div class="toggle-bar">
         <label><input type="checkbox" id="toggle-teams" checked /> Team Topologies overlays</label>
         <label><input type="checkbox" id="toggle-decisions" checked /> Build / buy / outsource tags</label>
-        <label><input type="checkbox" id="toggle-dense" /> Dense map (25 elements)</label>
+        <label><input type="checkbox" id="toggle-dense" /> Dense map (26 elements)</label>
         <div class="zoom-control">
           <span class="text-[11px] text-slate-500">Zoom</span>
           <input type="range" id="zoom-slider" min="30" max="160" value="100" />
@@ -214,8 +220,10 @@
         <strong>Try it:</strong> drag nodes (edges follow, the evolution band under the node highlights), scroll or use the
         slider to zoom (decision tags hide first, then labels, mirroring the app's overlay zoom cutoffs), hover or click a
         node to trace its value chain two hops out, and switch to the dense map to stress-test label crowding.
-        Value chain reads top to bottom; evolution reads left to right. The dashed red arrow marks the message broker
-        commoditizing toward a managed service; the black bar marks inertia on the self-managed data storage.
+        Value chain reads top to bottom: users, needs, bounded contexts, infrastructure components. Bounded contexts are
+        Kaiser's: content creation, class management, course studies, learning support (core); student evaluation,
+        notification handling (supporting); identity &amp; access (generic). Each gets its own stream-aligned team boundary.
+        The dashed red arrow and inertia bar are Wardley-canon movement annotations.
       </div>
     </section>
 
@@ -227,9 +235,10 @@
       </div>
       <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-3xl">
         <li><strong>Contexts shrink from 160px boxes to 52px glyphs</strong> in Strategic View only. Flow and Distillation views keep the box nodes.</li>
-        <li><strong>Two new element types</strong>: business process/activity and infrastructure component. Both need the full Yjs round-trip (types, schema, sync, mutations) and analytics events.</li>
-        <li><strong>Decision tags and movement annotations</strong> (build/buy/outsource, evolution arrow, inertia) are new per-element fields, surfaced as toggleable overlays.</li>
-        <li><strong>Team overlays</strong> build on the existing teamId assignment and Team Topologies types; this is the "team boundary overlay" quick win from the Susanne Kaiser feature ideas doc.</li>
+        <li><strong>Two new element types</strong>: capability and infrastructure component. Both need the full Yjs round-trip (types, schema, sync, mutations) and analytics events. Capability is optional in Kaiser's method; needs may connect directly to contexts.</li>
+        <li><strong>Decision tags and movement annotations</strong> (build/buy/outsource, evolution arrow, inertia) are new per-element fields, surfaced as toggleable overlays. The movement annotations are Wardley canon rather than Kaiser-specific.</li>
+        <li><strong>Team overlays</strong> build on the existing teamId assignment and Team Topologies types, with one stream-aligned boundary per bounded context; this is the "team boundary overlay" quick win from the Susanne Kaiser feature ideas doc.</li>
+        <li><strong>Not drawn yet</strong>: Team Topologies interaction modes (collaboration, X-as-a-Service, facilitating) from her canvas. Her as-is to to-be landscape evolution is already covered by ContextFlow's temporal keyframes.</li>
         <li><strong>Icon and color choices reuse the inspector vocabulary</strong> (sparkles/wrench/package, amber/blue/slate) so the map and inspector tell one story.</li>
       </ul>
     </section>
@@ -244,61 +253,73 @@
     const CLICK_DRAG_THRESHOLD_PX = 4;
 
     const BASE_NODES = [
-      { id: 'teacher',   x: 24, y: 7,  type: 'user',    icon: 'user',     label: 'Teacher' },
-      { id: 'student',   x: 46, y: 7,  type: 'user',    icon: 'user',     label: 'Student' },
-      { id: 'need-create', x: 24, y: 19, type: 'need',  icon: 'target',   label: 'Create course content' },
-      { id: 'need-study',  x: 46, y: 19, type: 'need',  icon: 'target',   label: 'Study courses, get help' },
-      { id: 'act-plan',  x: 26, y: 32, type: 'process', icon: 'workflow', label: 'Plan & publish classes' },
-      { id: 'act-take',  x: 48, y: 32, type: 'process', icon: 'workflow', label: 'Browse & take courses' },
-      { id: 'bc-author', x: 30, y: 48, type: 'context', classification: 'core', icon: 'sparkles', label: 'Course Authoring', tag: 'build' },
-      { id: 'bc-learn',  x: 45, y: 51, type: 'context', classification: 'core', icon: 'sparkles', label: 'Learning Experience', tag: 'build' },
-      { id: 'bc-iam',    x: 69, y: 46, type: 'context', classification: 'generic', icon: 'package', label: 'Identity & Access', tag: 'buy', external: true },
-      { id: 'infra-search',  x: 58, y: 64, type: 'component', icon: 'search',   label: 'Search Engine', tag: 'buy' },
-      { id: 'infra-broker',  x: 66, y: 74, type: 'component', icon: 'share-2',  label: 'Message Broker', tag: 'buy', evolves: true },
-      { id: 'infra-mail',    x: 83, y: 60, type: 'component', icon: 'mail',     label: 'Email Delivery', tag: 'outsource', external: true },
-      { id: 'infra-db',      x: 79, y: 77, type: 'component', icon: 'database', label: 'Data Storage', tag: 'outsource', inertia: true },
+      { id: 'teacher',     x: 24, y: 7,  type: 'user', icon: 'user',   label: 'Teacher' },
+      { id: 'student',     x: 47, y: 7,  type: 'user', icon: 'user',   label: 'Student' },
+      { id: 'need-create', x: 24, y: 17, type: 'need', icon: 'target', label: 'Create content, plan classes' },
+      { id: 'need-study',  x: 47, y: 17, type: 'need', icon: 'target', label: 'Study courses, get help' },
+      { id: 'bc-class',   x: 29, y: 30, type: 'context', classification: 'core', icon: 'sparkles', label: 'Class Management', tag: 'build' },
+      { id: 'bc-studies', x: 44, y: 30, type: 'context', classification: 'core', icon: 'sparkles', label: 'Course Studies', tag: 'build' },
+      { id: 'bc-content', x: 29, y: 46, type: 'context', classification: 'core', icon: 'sparkles', label: 'Content Creation', tag: 'build' },
+      { id: 'bc-support', x: 44, y: 46, type: 'context', classification: 'core', icon: 'sparkles', label: 'Learning Support', tag: 'build' },
+      { id: 'bc-eval',    x: 37, y: 63, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Student Evaluation', tag: 'build' },
+      { id: 'bc-notify',  x: 48, y: 64, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Notification Handling', tag: 'build' },
+      { id: 'bc-iam',     x: 68, y: 46, type: 'context', classification: 'generic', icon: 'package', label: 'Identity & Access', tag: 'buy', external: true },
+      { id: 'infra-search',  x: 58, y: 76, type: 'component', icon: 'search',   label: 'Search Engine', tag: 'buy' },
+      { id: 'infra-broker',  x: 66, y: 84, type: 'component', icon: 'share-2',  label: 'Message Broker', tag: 'buy', evolves: true },
+      { id: 'infra-mail',    x: 83, y: 60, type: 'component', icon: 'mail',     label: 'Email (SMTP)', tag: 'outsource', external: true },
+      { id: 'infra-db',      x: 80, y: 77, type: 'component', icon: 'database', label: 'Data Storage', tag: 'outsource', inertia: true },
       { id: 'infra-compute', x: 88, y: 89, type: 'component', icon: 'server',   label: 'Compute Platform', tag: 'outsource', external: true },
     ];
 
     const BASE_EDGES = [
       ['teacher', 'need-create'], ['student', 'need-study'],
-      ['need-create', 'act-plan'], ['need-study', 'act-take'],
-      ['act-plan', 'bc-author'], ['act-take', 'bc-learn'],
-      ['bc-learn', 'bc-iam'],
-      ['bc-author', 'infra-db'], ['bc-author', 'infra-broker'],
-      ['bc-learn', 'infra-search'], ['bc-learn', 'infra-broker'], ['bc-learn', 'infra-mail'],
+      ['need-create', 'bc-class'], ['need-create', 'bc-content'],
+      ['need-study', 'bc-studies'], ['need-study', 'bc-support'],
+      ['bc-studies', 'bc-iam'], ['bc-studies', 'infra-search'], ['bc-studies', 'bc-eval'],
+      ['bc-content', 'infra-db'], ['bc-content', 'infra-broker'],
+      ['bc-class', 'bc-notify'], ['bc-support', 'bc-notify'],
+      ['bc-notify', 'infra-broker'], ['bc-notify', 'infra-mail'],
+      ['bc-eval', 'infra-db'],
       ['infra-search', 'infra-compute'], ['infra-broker', 'infra-compute'], ['infra-db', 'infra-compute'],
     ];
 
     const DENSE_EXTRA_NODES = [
-      { id: 'admin',      x: 68, y: 7,  type: 'user',    icon: 'user',     label: 'School Admin' },
-      { id: 'need-admin', x: 68, y: 19, type: 'need',    icon: 'target',   label: 'Run school operations' },
-      { id: 'act-admin',  x: 68, y: 31, type: 'process', icon: 'workflow', label: 'Manage enrollments' },
-      { id: 'bc-enroll',  x: 52, y: 42, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Enrollment', tag: 'build' },
-      { id: 'bc-billing', x: 64, y: 55, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Billing', tag: 'buy' },
-      { id: 'bc-cert',    x: 37, y: 66, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Certification', tag: 'build' },
+      { id: 'admin',      x: 68, y: 7,  type: 'user',       icon: 'user',     label: 'School Admin' },
+      { id: 'need-admin', x: 68, y: 17, type: 'need',       icon: 'target',   label: 'Run school operations' },
+      { id: 'cap-enroll', x: 68, y: 28, type: 'capability', icon: 'workflow', label: 'Manage enrollments' },
+      { id: 'bc-enroll',  x: 56, y: 44, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Enrollment', tag: 'build' },
+      { id: 'bc-billing', x: 62, y: 58, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Billing', tag: 'buy' },
       { id: 'bc-reco',    x: 13, y: 57, type: 'context', classification: 'core', icon: 'sparkles', label: 'Recommendations', tag: 'build' },
       { id: 'comp-payment',   x: 88, y: 47, type: 'component', icon: 'credit-card',  label: 'Payment Provider', tag: 'outsource', external: true },
-      { id: 'comp-video',     x: 73, y: 64, type: 'component', icon: 'video',        label: 'Video Streaming', tag: 'buy' },
-      { id: 'comp-cdn',       x: 91, y: 70, type: 'component', icon: 'globe',        label: 'CDN', tag: 'outsource', external: true },
-      { id: 'comp-analytics', x: 50, y: 79, type: 'component', icon: 'chart-column', label: 'Analytics', tag: 'buy' },
+      { id: 'comp-video',     x: 73, y: 68, type: 'component', icon: 'video',        label: 'Video Streaming', tag: 'buy' },
+      { id: 'comp-cdn',       x: 91, y: 68, type: 'component', icon: 'globe',        label: 'CDN', tag: 'outsource', external: true },
+      { id: 'comp-analytics', x: 53, y: 88, type: 'component', icon: 'chart-column', label: 'Analytics', tag: 'buy' },
     ];
 
     const DENSE_EXTRA_EDGES = [
-      ['admin', 'need-admin'], ['need-admin', 'act-admin'], ['act-admin', 'bc-enroll'],
+      ['admin', 'need-admin'], ['need-admin', 'cap-enroll'], ['cap-enroll', 'bc-enroll'],
       ['bc-enroll', 'bc-iam'], ['bc-enroll', 'bc-billing'], ['bc-enroll', 'infra-db'],
       ['bc-billing', 'comp-payment'],
-      ['bc-learn', 'bc-reco'], ['bc-reco', 'infra-db'],
-      ['bc-learn', 'comp-video'], ['comp-video', 'comp-cdn'],
-      ['act-take', 'bc-cert'], ['bc-cert', 'infra-mail'],
-      ['bc-learn', 'comp-analytics'], ['comp-analytics', 'infra-compute'],
+      ['bc-studies', 'bc-reco'], ['bc-reco', 'infra-db'],
+      ['bc-studies', 'comp-video'], ['comp-video', 'comp-cdn'],
+      ['bc-eval', 'comp-analytics'], ['comp-analytics', 'infra-compute'],
     ];
 
-    const TEAM_OVERLAYS = [
-      { cls: 'tt-stream',    label: 'Stream-aligned team', left: 22, top: 39, width: 31, height: 21 },
-      { cls: 'tt-platform',  label: 'Platform team',       left: 60, top: 67, width: 34, height: 30 },
-      { cls: 'tt-subsystem', label: 'Complicated subsystem', left: 52.5, top: 58, width: 11, height: 13 },
-      { cls: 'tt-enabling',  label: 'Enabling team',       left: 13, top: 41, width: 8, height: 10 },
+    /* One stream-aligned boundary per bounded context (Kaiser: bounded
+       contexts indicate suitable team boundaries for stream-aligned teams). */
+    const BASE_OVERLAYS = [
+      { cls: 'tt-stream', label: '', left: 23.5, top: 23, width: 11, height: 14.5 },
+      { cls: 'tt-stream', label: '', left: 38.5, top: 23, width: 11, height: 14.5 },
+      { cls: 'tt-stream', label: 'Stream-aligned team per context', labelBelow: true, left: 23.5, top: 39, width: 11, height: 14.5 },
+      { cls: 'tt-stream', label: '', left: 38.5, top: 39, width: 11, height: 14.5 },
+      { cls: 'tt-stream', label: '', left: 31.5, top: 56, width: 11, height: 14.5 },
+      { cls: 'tt-stream', label: '', left: 42.5, top: 57, width: 11, height: 14.5 },
+      { cls: 'tt-platform', label: 'Platform team', left: 54, top: 70, width: 40, height: 27 },
+      { cls: 'tt-enabling', label: 'Enabling team', left: 14, top: 24, width: 8, height: 10 },
+    ];
+
+    const DENSE_EXTRA_OVERLAYS = [
+      { cls: 'tt-subsystem', label: 'Complicated subsystem', labelBelow: true, left: 7.5, top: 50, width: 11, height: 14.5 },
     ];
 
     const map = document.getElementById('map');
@@ -306,6 +327,7 @@
 
     let nodes = [];
     let edges = [];
+    let overlays = [];
     let nodeEls = {};
     let edgeEls = [];
     let bandEls = [];
@@ -317,6 +339,7 @@
     function loadDataset(dense) {
       nodes = (dense ? BASE_NODES.concat(DENSE_EXTRA_NODES) : BASE_NODES).map((n) => ({ ...n }));
       edges = dense ? BASE_EDGES.concat(DENSE_EXTRA_EDGES) : BASE_EDGES;
+      overlays = dense ? BASE_OVERLAYS.concat(DENSE_EXTRA_OVERLAYS) : BASE_OVERLAYS;
       adjacency = {};
       edges.forEach(([a, b]) => {
         (adjacency[a] = adjacency[a] || []).push(b);
@@ -351,14 +374,16 @@
     }
 
     function renderTeamOverlays() {
-      TEAM_OVERLAYS.forEach((t) => {
+      overlays.forEach((t) => {
         const el = document.createElement('div');
         el.className = 'tt-overlay ' + t.cls;
         el.style.left = t.left + '%';
         el.style.top = t.top + '%';
         el.style.width = t.width + '%';
         el.style.height = t.height + '%';
-        el.innerHTML = '<span class="tt-label">' + t.label + '</span>';
+        if (t.label) {
+          el.innerHTML = '<span class="tt-label' + (t.labelBelow ? ' outside-below' : '') + '">' + t.label + '</span>';
+        }
         world.appendChild(el);
       });
     }
@@ -414,7 +439,7 @@
       const classes = ['glyph'];
       if (n.type === 'user') classes.push('glyph-user');
       if (n.type === 'need') classes.push('glyph-need');
-      if (n.type === 'process') classes.push('glyph-process');
+      if (n.type === 'capability') classes.push('glyph-capability');
       if (n.type === 'context') classes.push('glyph-context', 'glyph-' + n.classification);
       if (n.type === 'component') classes.push('glyph-component');
       if (n.external) classes.push('glyph-external');
