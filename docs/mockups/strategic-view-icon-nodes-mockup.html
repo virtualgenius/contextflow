@@ -22,7 +22,7 @@
     .legend-item .name { font-size: 12px; font-weight: 600; color: #0f172a; }
 
     /* ---- Map node glyphs ---- */
-    .glyph { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; border: 2px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .glyph { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; border: 2px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: box-shadow 0.15s, border-color 0.15s; }
     .glyph svg { width: 20px; height: 20px; }
     .glyph-user { background: #334155; border-color: #334155; color: white; }
     .glyph-need { border-color: #10b981; color: #047857; }
@@ -38,23 +38,37 @@
     /* ---- Map ---- */
     .map-wrap { position: relative; width: 100%; max-width: 1100px; margin: 0 auto; }
     .map { position: relative; width: 100%; aspect-ratio: 1100 / 640; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-    .band { position: absolute; top: 0; bottom: 0; }
-    .band-alt { background: #f8fafc; }
+    .world { position: absolute; inset: 0; transform-origin: 50% 50%; }
+    .band-zone { position: absolute; top: 0; bottom: 0; width: 25%; transition: background 0.15s; }
+    .band-zone.band-alt { background: #f8fafc; }
+    .band-zone.band-hl { background: rgba(59, 130, 246, 0.07); }
     .band-line { position: absolute; top: 0; bottom: 0; width: 1px; background: #e2e8f0; }
     .axis-x { display: flex; max-width: 1100px; margin: 4px auto 0; }
     .axis-x .stage { flex: 1; text-align: center; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
     .axis-x .stage span { display: block; font-size: 10px; font-weight: 400; color: #94a3b8; text-transform: none; letter-spacing: 0; }
-    .axis-y { position: absolute; left: -14px; top: 0; bottom: 0; width: 0; }
+    .axis-y { position: absolute; left: -14px; top: 0; bottom: 0; width: 0; z-index: 5; }
     .axis-y .y-label { position: absolute; transform: rotate(-90deg) translateX(50%); transform-origin: left center; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
 
-    .map-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 3; }
+    .map-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 3; cursor: grab; user-select: none; touch-action: none; transition: opacity 0.15s; }
+    .map-node:active { cursor: grabbing; }
+    .map-node.dim { opacity: 0.2; }
+    .map-node.selected .glyph { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 4px 12px -2px rgba(59, 130, 246, 0.25); }
     .map-node .label { margin-top: 4px; font-size: 11px; font-weight: 600; color: #0f172a; background: rgba(255,255,255,0.85); padding: 1px 5px; border-radius: 4px; white-space: nowrap; line-height: 1.3; }
     .map-node .decision-tag { margin-top: 2px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 6px; border-radius: 999px; }
     .tag-build { background: #fef3c7; color: #92400e; }
     .tag-buy { background: #dbeafe; color: #1e40af; }
     .tag-outsource { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-    .edges { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+    .edges { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+    .edges line { transition: opacity 0.15s; }
+    .edges line.edge-hi { stroke: #3b82f6; stroke-width: 2.5; }
+    .edges line.edge-dim { opacity: 0.12; }
+
+    /* Zoom-driven detail thresholds (mirrors the app's overlay zoom cutoffs) */
+    .world.zoom-sm .decision-tag { display: none; }
+    .world.zoom-xs .map-node .label { display: none; }
+    .world.hide-teams .tt-overlay { display: none; }
+    .world.hide-tags .decision-tag { display: none; }
 
     .tt-overlay { position: absolute; border-radius: 16px; z-index: 0; }
     .tt-overlay .tt-label { position: absolute; top: 4px; left: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
@@ -69,9 +83,11 @@
     .tt-enabling { background: rgba(216, 180, 254, 0.25); border: 1.5px dashed rgba(147, 51, 234, 0.5); }
     .tt-enabling .tt-label { color: #7e22ce; }
 
-    .toggle-bar { display: flex; gap: 20px; align-items: center; max-width: 1100px; margin: 0 auto 10px; font-size: 12px; color: #334155; }
+    .toggle-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; max-width: 1100px; margin: 0 auto 10px; font-size: 12px; color: #334155; }
     .toggle-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-
+    .zoom-control { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .zoom-control input[type="range"] { width: 130px; accent-color: #3b82f6; }
+    .zoom-control .zoom-readout { font-variant-numeric: tabular-nums; font-size: 11px; color: #64748b; width: 36px; text-align: right; }
   </style>
 </head>
 <body class="p-8">
@@ -172,6 +188,12 @@
       <div class="toggle-bar">
         <label><input type="checkbox" id="toggle-teams" checked /> Team Topologies overlays</label>
         <label><input type="checkbox" id="toggle-decisions" checked /> Build / buy / outsource tags</label>
+        <label><input type="checkbox" id="toggle-dense" /> Dense map (25 elements)</label>
+        <div class="zoom-control">
+          <span class="text-[11px] text-slate-500">Zoom</span>
+          <input type="range" id="zoom-slider" min="30" max="160" value="100" />
+          <span class="zoom-readout" id="zoom-readout">100%</span>
+        </div>
       </div>
       <div class="map-wrap pl-6">
         <div class="map" id="map">
@@ -179,6 +201,7 @@
             <span class="y-label" style="top: 9%; left: -10px;">Visible</span>
             <span class="y-label" style="top: 91%; left: -10px;">Invisible</span>
           </div>
+          <div class="world" id="world"></div>
         </div>
         <div class="axis-x">
           <div class="stage">Genesis</div>
@@ -188,10 +211,11 @@
         </div>
       </div>
       <div class="note max-w-4xl mx-auto">
-        Value chain reads top to bottom: users, needs, processes, bounded contexts, infrastructure components.
-        Evolution reads left to right. The dashed red arrow marks the message broker commoditizing toward a managed
-        service; the black bar marks inertia on the self-managed data storage. Team overlays sit behind the nodes,
-        so flow between teams stays visible.
+        <strong>Try it:</strong> drag nodes (edges follow, the evolution band under the node highlights), scroll or use the
+        slider to zoom (decision tags hide first, then labels, mirroring the app's overlay zoom cutoffs), hover or click a
+        node to trace its value chain two hops out, and switch to the dense map to stress-test label crowding.
+        Value chain reads top to bottom; evolution reads left to right. The dashed red arrow marks the message broker
+        commoditizing toward a managed service; the black bar marks inertia on the self-managed data storage.
       </div>
     </section>
 
@@ -214,8 +238,12 @@
 
   <script>
     const MAP_W = 1100, MAP_H = 640;
+    const ZOOM_MIN = 0.3, ZOOM_MAX = 1.6;
+    const ZOOM_HIDE_TAGS = 0.65, ZOOM_HIDE_LABELS = 0.45;
+    const HIGHLIGHT_HOPS = 2;
+    const CLICK_DRAG_THRESHOLD_PX = 4;
 
-    const NODES = [
+    const BASE_NODES = [
       { id: 'teacher',   x: 24, y: 7,  type: 'user',    icon: 'user',     label: 'Teacher' },
       { id: 'student',   x: 46, y: 7,  type: 'user',    icon: 'user',     label: 'Student' },
       { id: 'need-create', x: 24, y: 19, type: 'need',  icon: 'target',   label: 'Create course content' },
@@ -232,7 +260,7 @@
       { id: 'infra-compute', x: 88, y: 89, type: 'component', icon: 'server',   label: 'Compute Platform', tag: 'outsource', external: true },
     ];
 
-    const EDGES = [
+    const BASE_EDGES = [
       ['teacher', 'need-create'], ['student', 'need-study'],
       ['need-create', 'act-plan'], ['need-study', 'act-take'],
       ['act-plan', 'bc-author'], ['act-take', 'bc-learn'],
@@ -240,6 +268,30 @@
       ['bc-author', 'infra-db'], ['bc-author', 'infra-broker'],
       ['bc-learn', 'infra-search'], ['bc-learn', 'infra-broker'], ['bc-learn', 'infra-mail'],
       ['infra-search', 'infra-compute'], ['infra-broker', 'infra-compute'], ['infra-db', 'infra-compute'],
+    ];
+
+    const DENSE_EXTRA_NODES = [
+      { id: 'admin',      x: 68, y: 7,  type: 'user',    icon: 'user',     label: 'School Admin' },
+      { id: 'need-admin', x: 68, y: 19, type: 'need',    icon: 'target',   label: 'Run school operations' },
+      { id: 'act-admin',  x: 68, y: 31, type: 'process', icon: 'workflow', label: 'Manage enrollments' },
+      { id: 'bc-enroll',  x: 52, y: 42, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Enrollment', tag: 'build' },
+      { id: 'bc-billing', x: 64, y: 55, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Billing', tag: 'buy' },
+      { id: 'bc-cert',    x: 37, y: 66, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Certification', tag: 'build' },
+      { id: 'bc-reco',    x: 13, y: 57, type: 'context', classification: 'core', icon: 'sparkles', label: 'Recommendations', tag: 'build' },
+      { id: 'comp-payment',   x: 88, y: 47, type: 'component', icon: 'credit-card',  label: 'Payment Provider', tag: 'outsource', external: true },
+      { id: 'comp-video',     x: 73, y: 64, type: 'component', icon: 'video',        label: 'Video Streaming', tag: 'buy' },
+      { id: 'comp-cdn',       x: 91, y: 70, type: 'component', icon: 'globe',        label: 'CDN', tag: 'outsource', external: true },
+      { id: 'comp-analytics', x: 50, y: 79, type: 'component', icon: 'chart-column', label: 'Analytics', tag: 'buy' },
+    ];
+
+    const DENSE_EXTRA_EDGES = [
+      ['admin', 'need-admin'], ['need-admin', 'act-admin'], ['act-admin', 'bc-enroll'],
+      ['bc-enroll', 'bc-iam'], ['bc-enroll', 'bc-billing'], ['bc-enroll', 'infra-db'],
+      ['bc-billing', 'comp-payment'],
+      ['bc-learn', 'bc-reco'], ['bc-reco', 'infra-db'],
+      ['bc-learn', 'comp-video'], ['comp-video', 'comp-cdn'],
+      ['act-take', 'bc-cert'], ['bc-cert', 'infra-mail'],
+      ['bc-learn', 'comp-analytics'], ['comp-analytics', 'infra-compute'],
     ];
 
     const TEAM_OVERLAYS = [
@@ -250,24 +302,51 @@
     ];
 
     const map = document.getElementById('map');
+    const world = document.getElementById('world');
+
+    let nodes = [];
+    let edges = [];
+    let nodeEls = {};
+    let edgeEls = [];
+    let bandEls = [];
+    let zoom = 1;
+    let selectedId = null;
+    let hoveredId = null;
+    let adjacency = {};
+
+    function loadDataset(dense) {
+      nodes = (dense ? BASE_NODES.concat(DENSE_EXTRA_NODES) : BASE_NODES).map((n) => ({ ...n }));
+      edges = dense ? BASE_EDGES.concat(DENSE_EXTRA_EDGES) : BASE_EDGES;
+      adjacency = {};
+      edges.forEach(([a, b]) => {
+        (adjacency[a] = adjacency[a] || []).push(b);
+        (adjacency[b] = adjacency[b] || []).push(a);
+      });
+      selectedId = null;
+      hoveredId = null;
+    }
 
     function px(node) {
       return { x: node.x / 100 * MAP_W, y: node.y / 100 * MAP_H };
     }
 
+    function nodeById(id) {
+      return nodes.find((n) => n.id === id);
+    }
+
     function renderBands() {
-      [25, 50, 75].forEach((p, i) => {
-        if (i % 2 === 0) {
-          const band = document.createElement('div');
-          band.className = 'band band-alt';
-          band.style.left = p + '%';
-          band.style.width = '25%';
-          map.appendChild(band);
-        }
+      bandEls = [0, 1, 2, 3].map((i) => {
+        const band = document.createElement('div');
+        band.className = 'band-zone' + (i % 2 === 1 ? ' band-alt' : '');
+        band.style.left = i * 25 + '%';
+        world.appendChild(band);
+        return band;
+      });
+      [25, 50, 75].forEach((p) => {
         const line = document.createElement('div');
         line.className = 'band-line';
         line.style.left = p + '%';
-        map.appendChild(line);
+        world.appendChild(line);
       });
     }
 
@@ -280,36 +359,55 @@
         el.style.width = t.width + '%';
         el.style.height = t.height + '%';
         el.innerHTML = '<span class="tt-label">' + t.label + '</span>';
-        map.appendChild(el);
+        world.appendChild(el);
       });
     }
 
-    function renderEdges() {
-      const byId = Object.fromEntries(NODES.map((n) => [n.id, n]));
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('viewBox', '0 0 ' + MAP_W + ' ' + MAP_H);
-      svg.setAttribute('preserveAspectRatio', 'none');
-      svg.classList.add('edges');
-
-      let content = EDGES.map(([a, b]) => {
-        const p1 = px(byId[a]), p2 = px(byId[b]);
-        return '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y + '" stroke="#cbd5e1" stroke-width="1.5" />';
+    function edgeSvgContent() {
+      let content = edges.map(([a, b]) => {
+        const p1 = px(nodeById(a)), p2 = px(nodeById(b));
+        return '<line data-a="' + a + '" data-b="' + b + '" x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y + '" stroke="#cbd5e1" stroke-width="1.5" />';
       }).join('');
 
-      NODES.filter((n) => n.evolves).forEach((n) => {
+      nodes.filter((n) => n.evolves).forEach((n) => {
         const p = px(n);
         const x1 = p.x + 34, x2 = p.x + 78, y = p.y;
         content += '<line x1="' + x1 + '" y1="' + y + '" x2="' + (x2 - 8) + '" y2="' + y + '" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" />';
         content += '<path d="M' + (x2 - 8) + ' ' + (y - 5) + ' L' + x2 + ' ' + y + ' L' + (x2 - 8) + ' ' + (y + 5) + ' Z" fill="#dc2626" />';
       });
 
-      NODES.filter((n) => n.inertia).forEach((n) => {
+      nodes.filter((n) => n.inertia).forEach((n) => {
         const p = px(n);
         content += '<rect x="' + (p.x + 36) + '" y="' + (p.y - 12) + '" width="5" height="24" fill="#0f172a" />';
       });
 
-      svg.innerHTML = content;
-      map.appendChild(svg);
+      return content;
+    }
+
+    let edgeSvg = null;
+
+    function renderEdges() {
+      edgeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      edgeSvg.setAttribute('viewBox', '0 0 ' + MAP_W + ' ' + MAP_H);
+      edgeSvg.setAttribute('preserveAspectRatio', 'none');
+      edgeSvg.classList.add('edges');
+      edgeSvg.innerHTML = edgeSvgContent();
+      world.appendChild(edgeSvg);
+      collectEdgeEls();
+    }
+
+    function collectEdgeEls() {
+      edgeEls = Array.from(edgeSvg.querySelectorAll('line[data-a]')).map((el) => ({
+        a: el.getAttribute('data-a'),
+        b: el.getAttribute('data-b'),
+        el,
+      }));
+    }
+
+    function refreshEdges() {
+      edgeSvg.innerHTML = edgeSvgContent();
+      collectEdgeEls();
+      applyHighlight();
     }
 
     function glyphClasses(n) {
@@ -324,7 +422,8 @@
     }
 
     function renderNodes() {
-      NODES.forEach((n) => {
+      nodeEls = {};
+      nodes.forEach((n) => {
         const el = document.createElement('div');
         el.className = 'map-node';
         el.style.left = n.x + '%';
@@ -333,25 +432,153 @@
         html += '<div class="label">' + n.label + '</div>';
         if (n.tag) html += '<div class="decision-tag tag-' + n.tag + '">' + n.tag + '</div>';
         el.innerHTML = html;
-        map.appendChild(el);
+        world.appendChild(el);
+        nodeEls[n.id] = el;
+        wireNodeInteraction(n, el);
       });
     }
 
-    function wireToggles() {
-      document.getElementById('toggle-teams').addEventListener('change', (e) => {
-        document.querySelectorAll('.tt-overlay').forEach((el) => { el.style.display = e.target.checked ? '' : 'none'; });
-      });
-      document.getElementById('toggle-decisions').addEventListener('change', (e) => {
-        document.querySelectorAll('.map-node .decision-tag').forEach((el) => { el.style.display = e.target.checked ? '' : 'none'; });
+    /* ---- Hover and selection highlighting (value chain, 2 hops) ---- */
+
+    function neighborhood(startId, hops) {
+      const seen = new Set([startId]);
+      let frontier = [startId];
+      for (let i = 0; i < hops; i++) {
+        const next = [];
+        frontier.forEach((id) => {
+          (adjacency[id] || []).forEach((other) => {
+            if (!seen.has(other)) { seen.add(other); next.push(other); }
+          });
+        });
+        frontier = next;
+      }
+      return seen;
+    }
+
+    function applyHighlight() {
+      const focusId = hoveredId || selectedId;
+      Object.values(nodeEls).forEach((el) => el.classList.remove('dim'));
+      Object.entries(nodeEls).forEach(([id, el]) => el.classList.toggle('selected', id === selectedId));
+      edgeEls.forEach((e) => e.el.classList.remove('edge-hi', 'edge-dim'));
+      if (!focusId) return;
+
+      const inChain = neighborhood(focusId, HIGHLIGHT_HOPS);
+      Object.entries(nodeEls).forEach(([id, el]) => el.classList.toggle('dim', !inChain.has(id)));
+      edgeEls.forEach((e) => {
+        const connected = inChain.has(e.a) && inChain.has(e.b);
+        e.el.classList.toggle('edge-hi', connected);
+        e.el.classList.toggle('edge-dim', !connected);
       });
     }
 
-    renderBands();
-    renderTeamOverlays();
-    renderEdges();
-    renderNodes();
-    wireToggles();
-    lucide.createIcons();
+    /* ---- Drag, click-to-select, band highlight ---- */
+
+    function bandIndexFor(x) {
+      return Math.max(0, Math.min(3, Math.floor(x / 25)));
+    }
+
+    function highlightBand(index) {
+      bandEls.forEach((el, i) => el.classList.toggle('band-hl', i === index));
+    }
+
+    function wireNodeInteraction(n, el) {
+      el.addEventListener('pointerenter', () => {
+        hoveredId = n.id;
+        applyHighlight();
+      });
+      el.addEventListener('pointerleave', () => {
+        if (hoveredId === n.id) hoveredId = null;
+        applyHighlight();
+      });
+
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        el.setPointerCapture(e.pointerId);
+        const mapRect = map.getBoundingClientRect();
+        const start = { clientX: e.clientX, clientY: e.clientY, x: n.x, y: n.y };
+        let moved = false;
+
+        const onMove = (ev) => {
+          const dxPct = (ev.clientX - start.clientX) / (mapRect.width * zoom) * 100;
+          const dyPct = (ev.clientY - start.clientY) / (mapRect.height * zoom) * 100;
+          if (!moved && Math.hypot(ev.clientX - start.clientX, ev.clientY - start.clientY) < CLICK_DRAG_THRESHOLD_PX) return;
+          moved = true;
+          n.x = Math.max(2, Math.min(98, start.x + dxPct));
+          n.y = Math.max(4, Math.min(94, start.y + dyPct));
+          el.style.left = n.x + '%';
+          el.style.top = n.y + '%';
+          highlightBand(bandIndexFor(n.x));
+          refreshEdges();
+        };
+
+        const onUp = () => {
+          el.removeEventListener('pointermove', onMove);
+          el.removeEventListener('pointerup', onUp);
+          highlightBand(-1);
+          if (!moved) {
+            selectedId = selectedId === n.id ? null : n.id;
+            applyHighlight();
+          }
+        };
+
+        el.addEventListener('pointermove', onMove);
+        el.addEventListener('pointerup', onUp);
+      });
+    }
+
+    map.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.map-node')) return;
+      selectedId = null;
+      applyHighlight();
+    });
+
+    /* ---- Zoom ---- */
+
+    const zoomSlider = document.getElementById('zoom-slider');
+    const zoomReadout = document.getElementById('zoom-readout');
+
+    function setZoom(z) {
+      zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+      world.style.transform = 'scale(' + zoom + ')';
+      world.classList.toggle('zoom-sm', zoom < ZOOM_HIDE_TAGS);
+      world.classList.toggle('zoom-xs', zoom < ZOOM_HIDE_LABELS);
+      zoomSlider.value = Math.round(zoom * 100);
+      zoomReadout.textContent = Math.round(zoom * 100) + '%';
+    }
+
+    zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value / 100));
+
+    map.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      setZoom(zoom * Math.exp(-e.deltaY * 0.0015));
+    }, { passive: false });
+
+    /* ---- Toggles and render ---- */
+
+    function render() {
+      world.innerHTML = '';
+      renderBands();
+      renderTeamOverlays();
+      renderEdges();
+      renderNodes();
+      applyHighlight();
+      lucide.createIcons();
+    }
+
+    document.getElementById('toggle-teams').addEventListener('change', (e) => {
+      world.classList.toggle('hide-teams', !e.target.checked);
+    });
+    document.getElementById('toggle-decisions').addEventListener('change', (e) => {
+      world.classList.toggle('hide-tags', !e.target.checked);
+    });
+    document.getElementById('toggle-dense').addEventListener('change', (e) => {
+      loadDataset(e.target.checked);
+      render();
+    });
+
+    loadDataset(false);
+    render();
+    setZoom(1);
   </script>
 </body>
 </html>
