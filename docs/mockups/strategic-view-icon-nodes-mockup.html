@@ -20,15 +20,20 @@
     .legend-item { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid #f1f5f9; border-radius: 6px; }
     .legend-item .desc { font-size: 11px; color: #64748b; line-height: 1.35; }
     .legend-item .name { font-size: 12px; font-weight: 600; color: #0f172a; }
+    /* Legend glyphs stay large for readability; map glyphs are smaller */
+    .legend-item .glyph { width: 44px; height: 44px; }
+    .legend-item .glyph svg { width: 20px; height: 20px; }
+    .legend-item .glyph-context { width: 52px; height: 52px; }
+    .legend-item .glyph-context svg { width: 24px; height: 24px; }
 
-    /* ---- Map node glyphs ---- */
-    .glyph { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; border: 2px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: box-shadow 0.15s, border-color 0.15s; }
-    .glyph svg { width: 20px; height: 20px; }
+    /* ---- Map node glyphs (small, Wardley-style) ---- */
+    .glyph { width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; border: 2px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: box-shadow 0.15s, border-color 0.15s; }
+    .glyph svg { width: 15px; height: 15px; }
     .glyph-user { background: #334155; border-color: #334155; color: white; }
     .glyph-need { border-color: #10b981; color: #047857; }
     .glyph-capability { border-color: #6366f1; color: #4f46e5; }
-    .glyph-context { width: 52px; height: 52px; }
-    .glyph-context svg { width: 24px; height: 24px; }
+    .glyph-context { width: 40px; height: 40px; }
+    .glyph-context svg { width: 18px; height: 18px; }
     .glyph-core { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
     .glyph-supporting { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
     .glyph-generic { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
@@ -37,7 +42,7 @@
 
     /* ---- Map ---- */
     .map-wrap { position: relative; width: 100%; max-width: 1100px; margin: 0 auto; }
-    .map { position: relative; width: 100%; aspect-ratio: 1100 / 640; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .map { position: relative; width: 100%; aspect-ratio: 1100 / 720; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
     .world { position: absolute; inset: 0; transform-origin: 50% 50%; }
     .band-zone { position: absolute; top: 0; bottom: 0; width: 25%; transition: background 0.15s; }
     .band-zone.band-alt { background: #f8fafc; }
@@ -49,12 +54,14 @@
     .axis-y { position: absolute; left: -14px; top: 0; bottom: 0; width: 0; z-index: 5; }
     .axis-y .y-label { position: absolute; transform: rotate(-90deg) translateX(50%); transform-origin: left center; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
 
-    .map-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 3; cursor: grab; user-select: none; touch-action: none; transition: opacity 0.15s; }
+    /* Node anchors on the glyph center; caption hangs below without affecting layout */
+    .map-node { position: absolute; transform: translate(-50%, -50%); z-index: 3; cursor: grab; user-select: none; touch-action: none; transition: opacity 0.15s; }
     .map-node:active { cursor: grabbing; }
     .map-node.dim { opacity: 0.2; }
     .map-node.selected .glyph { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 4px 12px -2px rgba(59, 130, 246, 0.25); }
-    .map-node .label { margin-top: 4px; font-size: 11px; font-weight: 600; color: #0f172a; background: rgba(255,255,255,0.85); padding: 1px 5px; border-radius: 4px; white-space: nowrap; line-height: 1.3; }
-    .map-node .decision-tag { margin-top: 2px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 6px; border-radius: 999px; }
+    .map-node .caption { position: absolute; top: calc(100% + 2px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .map-node .label { font-size: 10px; font-weight: 600; color: #0f172a; background: rgba(255,255,255,0.85); padding: 0 4px; border-radius: 4px; white-space: nowrap; line-height: 1.4; }
+    .map-node .decision-tag { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 5px; border-radius: 999px; }
     .tag-build { background: #fef3c7; color: #92400e; }
     .tag-buy { background: #dbeafe; color: #1e40af; }
     .tag-outsource { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
@@ -66,22 +73,21 @@
 
     /* Zoom-driven detail thresholds (mirrors the app's overlay zoom cutoffs) */
     .world.zoom-sm .decision-tag { display: none; }
-    .world.zoom-xs .map-node .label { display: none; }
+    .world.zoom-xs .map-node .caption { display: none; }
     .world.hide-teams .tt-overlay { display: none; }
     .world.hide-tags .decision-tag { display: none; }
 
-    .tt-overlay { position: absolute; border-radius: 16px; z-index: 0; }
+    .tt-overlay { position: absolute; border-radius: 12px; z-index: 0; }
     .tt-overlay .tt-label { position: absolute; top: 4px; left: 10px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
     .tt-platform .tt-label { top: auto; bottom: 4px; }
-    .tt-subsystem .tt-label { top: -14px; left: 0; }
     .tt-label.outside-below { top: auto; bottom: -14px; left: 0; }
-    .tt-stream { background: rgba(253, 224, 71, 0.22); border: 1.5px solid rgba(202, 138, 4, 0.45); }
+    .tt-stream { background: rgba(253, 224, 71, 0.12); border: 1.5px solid rgba(202, 138, 4, 0.35); }
     .tt-stream .tt-label { color: #a16207; }
-    .tt-platform { background: rgba(147, 197, 253, 0.22); border: 1.5px solid rgba(37, 99, 235, 0.4); }
+    .tt-platform { background: rgba(147, 197, 253, 0.12); border: 1.5px solid rgba(37, 99, 235, 0.3); }
     .tt-platform .tt-label { color: #1d4ed8; }
-    .tt-subsystem { background: rgba(253, 186, 116, 0.25); border: 1.5px solid rgba(234, 88, 12, 0.45); }
+    .tt-subsystem { background: rgba(253, 186, 116, 0.15); border: 1.5px solid rgba(234, 88, 12, 0.35); }
     .tt-subsystem .tt-label { color: #c2410c; }
-    .tt-enabling { background: rgba(216, 180, 254, 0.25); border: 1.5px dashed rgba(147, 51, 234, 0.5); }
+    .tt-enabling { background: rgba(216, 180, 254, 0.15); border: 1.5px dashed rgba(147, 51, 234, 0.4); }
     .tt-enabling .tt-label { color: #7e22ce; }
 
     .toggle-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; max-width: 1100px; margin: 0 auto 10px; font-size: 12px; color: #334155; }
@@ -152,9 +158,9 @@
         <div>
           <h3>Strategic decision tags</h3>
           <div class="flex gap-2 mt-2">
-            <span class="decision-tag tag-build" style="margin:0">Build</span>
-            <span class="decision-tag tag-buy" style="margin:0">Buy</span>
-            <span class="decision-tag tag-outsource" style="margin:0">Outsource</span>
+            <span class="decision-tag tag-build" style="margin:0; font-size:9px; padding:1px 6px;">Build</span>
+            <span class="decision-tag tag-buy" style="margin:0; font-size:9px; padding:1px 6px;">Buy</span>
+            <span class="decision-tag tag-outsource" style="margin:0; font-size:9px; padding:1px 6px;">Outsource</span>
           </div>
           <div class="text-[10px] text-slate-400 mt-1 max-w-[220px]">Her doctrine: build genesis/custom-built in-house, buy products and OSS, outsource commodity to utility suppliers.</div>
         </div>
@@ -192,7 +198,7 @@
         <span class="tag">Icon glyph nodes</span>
       </div>
       <div class="toggle-bar">
-        <label><input type="checkbox" id="toggle-teams" checked /> Team Topologies overlays</label>
+        <label><input type="checkbox" id="toggle-teams" /> Team Topologies overlays</label>
         <label><input type="checkbox" id="toggle-decisions" checked /> Build / buy / outsource tags</label>
         <label><input type="checkbox" id="toggle-dense" /> Dense map (26 elements)</label>
         <div class="zoom-control">
@@ -207,7 +213,7 @@
             <span class="y-label" style="top: 9%; left: -10px;">Visible</span>
             <span class="y-label" style="top: 91%; left: -10px;">Invisible</span>
           </div>
-          <div class="world" id="world"></div>
+          <div class="world hide-teams" id="world"></div>
         </div>
         <div class="axis-x">
           <div class="stage">Genesis</div>
@@ -219,11 +225,11 @@
       <div class="note max-w-4xl mx-auto">
         <strong>Try it:</strong> drag nodes (edges follow, the evolution band under the node highlights), scroll or use the
         slider to zoom (decision tags hide first, then labels, mirroring the app's overlay zoom cutoffs), hover or click a
-        node to trace its value chain two hops out, and switch to the dense map to stress-test label crowding.
-        Value chain reads top to bottom: users, needs, bounded contexts, infrastructure components. Bounded contexts are
-        Kaiser's: content creation, class management, course studies, learning support (core); student evaluation,
-        notification handling (supporting); identity &amp; access (generic). Each gets its own stream-aligned team boundary.
-        The dashed red arrow and inertia bar are Wardley-canon movement annotations.
+        node to trace its value chain two hops out, switch on the team overlays, and use the dense map to stress-test
+        label crowding. Value chain reads top to bottom: users, needs, bounded contexts, infrastructure components.
+        Bounded contexts are Kaiser's: content creation, class management, course studies, learning support (core);
+        student evaluation, notification handling (supporting); identity &amp; access (generic). Each gets its own
+        stream-aligned team boundary. The dashed red arrow and inertia bar are Wardley-canon movement annotations.
       </div>
     </section>
 
@@ -234,10 +240,10 @@
         <span class="tag">Scope notes</span>
       </div>
       <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-3xl">
-        <li><strong>Contexts shrink from 160px boxes to 52px glyphs</strong> in Strategic View only. Flow and Distillation views keep the box nodes.</li>
+        <li><strong>Contexts shrink from 160px boxes to 40px glyphs</strong> (other elements 32px) in Strategic View only. Flow and Distillation views keep the box nodes.</li>
         <li><strong>Two new element types</strong>: capability and infrastructure component. Both need the full Yjs round-trip (types, schema, sync, mutations) and analytics events. Capability is optional in Kaiser's method; needs may connect directly to contexts.</li>
         <li><strong>Decision tags and movement annotations</strong> (build/buy/outsource, evolution arrow, inertia) are new per-element fields, surfaced as toggleable overlays. The movement annotations are Wardley canon rather than Kaiser-specific.</li>
-        <li><strong>Team overlays</strong> build on the existing teamId assignment and Team Topologies types, with one stream-aligned boundary per bounded context; this is the "team boundary overlay" quick win from the Susanne Kaiser feature ideas doc.</li>
+        <li><strong>Team overlays</strong> build on the existing teamId assignment and Team Topologies types, with one stream-aligned boundary per bounded context; this is the "team boundary overlay" quick win from the Susanne Kaiser feature ideas doc. Off by default to keep the base map quiet.</li>
         <li><strong>Not drawn yet</strong>: Team Topologies interaction modes (collaboration, X-as-a-Service, facilitating) from her canvas. Her as-is to to-be landscape evolution is already covered by ContextFlow's temporal keyframes.</li>
         <li><strong>Icon and color choices reuse the inspector vocabulary</strong> (sparkles/wrench/package, amber/blue/slate) so the map and inspector tell one story.</li>
       </ul>
@@ -246,11 +252,12 @@
   </div>
 
   <script>
-    const MAP_W = 1100, MAP_H = 640;
+    const MAP_W = 1100, MAP_H = 720;
     const ZOOM_MIN = 0.3, ZOOM_MAX = 1.6;
     const ZOOM_HIDE_TAGS = 0.65, ZOOM_HIDE_LABELS = 0.45;
     const HIGHLIGHT_HOPS = 2;
     const CLICK_DRAG_THRESHOLD_PX = 4;
+    const GLYPH_HALF_PX = 20;
 
     const BASE_NODES = [
       { id: 'teacher',     x: 24, y: 7,  type: 'user', icon: 'user',   label: 'Teacher' },
@@ -308,18 +315,18 @@
     /* One stream-aligned boundary per bounded context (Kaiser: bounded
        contexts indicate suitable team boundaries for stream-aligned teams). */
     const BASE_OVERLAYS = [
-      { cls: 'tt-stream', label: '', left: 23.5, top: 23, width: 11, height: 14.5 },
-      { cls: 'tt-stream', label: '', left: 38.5, top: 23, width: 11, height: 14.5 },
-      { cls: 'tt-stream', label: 'Stream-aligned team per context', labelBelow: true, left: 23.5, top: 39, width: 11, height: 14.5 },
-      { cls: 'tt-stream', label: '', left: 38.5, top: 39, width: 11, height: 14.5 },
-      { cls: 'tt-stream', label: '', left: 31.5, top: 56, width: 11, height: 14.5 },
-      { cls: 'tt-stream', label: '', left: 42.5, top: 57, width: 11, height: 14.5 },
+      { cls: 'tt-stream', label: '', left: 23.5, top: 26, width: 11, height: 11 },
+      { cls: 'tt-stream', label: '', left: 38.5, top: 26, width: 11, height: 11 },
+      { cls: 'tt-stream', label: 'Stream-aligned team per context', labelBelow: true, left: 23.5, top: 42, width: 11, height: 11 },
+      { cls: 'tt-stream', label: '', left: 38.5, top: 42, width: 11, height: 11 },
+      { cls: 'tt-stream', label: '', left: 31.5, top: 59, width: 11, height: 11 },
+      { cls: 'tt-stream', label: '', left: 42.5, top: 60, width: 11, height: 11 },
       { cls: 'tt-platform', label: 'Platform team', left: 54, top: 70, width: 40, height: 27 },
-      { cls: 'tt-enabling', label: 'Enabling team', left: 14, top: 24, width: 8, height: 10 },
+      { cls: 'tt-enabling', label: 'Enabling team', left: 14, top: 25, width: 8, height: 9 },
     ];
 
     const DENSE_EXTRA_OVERLAYS = [
-      { cls: 'tt-subsystem', label: 'Complicated subsystem', labelBelow: true, left: 7.5, top: 50, width: 11, height: 14.5 },
+      { cls: 'tt-subsystem', label: 'Complicated subsystem', labelBelow: true, left: 7.5, top: 53, width: 11, height: 11 },
     ];
 
     const map = document.getElementById('map');
@@ -391,19 +398,19 @@
     function edgeSvgContent() {
       let content = edges.map(([a, b]) => {
         const p1 = px(nodeById(a)), p2 = px(nodeById(b));
-        return '<line data-a="' + a + '" data-b="' + b + '" x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y + '" stroke="#cbd5e1" stroke-width="1.5" />';
+        return '<line data-a="' + a + '" data-b="' + b + '" x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y + '" stroke="#cbd5e1" stroke-width="1.2" />';
       }).join('');
 
       nodes.filter((n) => n.evolves).forEach((n) => {
         const p = px(n);
-        const x1 = p.x + 34, x2 = p.x + 78, y = p.y;
+        const x1 = p.x + GLYPH_HALF_PX + 6, x2 = p.x + GLYPH_HALF_PX + 46, y = p.y;
         content += '<line x1="' + x1 + '" y1="' + y + '" x2="' + (x2 - 8) + '" y2="' + y + '" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" />';
         content += '<path d="M' + (x2 - 8) + ' ' + (y - 5) + ' L' + x2 + ' ' + y + ' L' + (x2 - 8) + ' ' + (y + 5) + ' Z" fill="#dc2626" />';
       });
 
       nodes.filter((n) => n.inertia).forEach((n) => {
         const p = px(n);
-        content += '<rect x="' + (p.x + 36) + '" y="' + (p.y - 12) + '" width="5" height="24" fill="#0f172a" />';
+        content += '<rect x="' + (p.x + GLYPH_HALF_PX + 8) + '" y="' + (p.y - 10) + '" width="4" height="20" fill="#0f172a" />';
       });
 
       return content;
@@ -453,10 +460,9 @@
         el.className = 'map-node';
         el.style.left = n.x + '%';
         el.style.top = n.y + '%';
-        let html = '<div class="' + glyphClasses(n) + '"><i data-lucide="' + n.icon + '"></i></div>';
-        html += '<div class="label">' + n.label + '</div>';
-        if (n.tag) html += '<div class="decision-tag tag-' + n.tag + '">' + n.tag + '</div>';
-        el.innerHTML = html;
+        let caption = '<div class="label">' + n.label + '</div>';
+        if (n.tag) caption += '<div class="decision-tag tag-' + n.tag + '">' + n.tag + '</div>';
+        el.innerHTML = '<div class="' + glyphClasses(n) + '"><i data-lucide="' + n.icon + '"></i></div><div class="caption">' + caption + '</div>';
         world.appendChild(el);
         nodeEls[n.id] = el;
         wireNodeInteraction(n, el);
