@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategic View Icon Nodes Mockup - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f8fafc; }
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+    h2 { font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 6px 0; }
+    h3 { font-size: 13px; font-weight: 600; color: #334155; margin: 0 0 4px 0; }
+    .heading-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .heading-row .tag { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .note { font-size: 12px; color: #475569; background: #fef9c3; border-left: 3px solid #eab308; padding: 8px 12px; border-radius: 4px; margin-top: 8px; }
+
+    /* ---- Legend ---- */
+    .legend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid #f1f5f9; border-radius: 6px; }
+    .legend-item .desc { font-size: 11px; color: #64748b; line-height: 1.35; }
+    .legend-item .name { font-size: 12px; font-weight: 600; color: #0f172a; }
+
+    /* ---- Map node glyphs ---- */
+    .glyph { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; border: 2px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .glyph svg { width: 20px; height: 20px; }
+    .glyph-user { background: #334155; border-color: #334155; color: white; }
+    .glyph-need { border-color: #10b981; color: #047857; }
+    .glyph-process { border-color: #6366f1; color: #4f46e5; }
+    .glyph-context { width: 52px; height: 52px; }
+    .glyph-context svg { width: 24px; height: 24px; }
+    .glyph-core { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+    .glyph-supporting { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+    .glyph-generic { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+    .glyph-component { border-color: #94a3b8; color: #475569; }
+    .glyph-external { border-style: dashed; }
+
+    /* ---- Map ---- */
+    .map-wrap { position: relative; width: 100%; max-width: 1100px; margin: 0 auto; }
+    .map { position: relative; width: 100%; aspect-ratio: 1100 / 640; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .band { position: absolute; top: 0; bottom: 0; }
+    .band-alt { background: #f8fafc; }
+    .band-line { position: absolute; top: 0; bottom: 0; width: 1px; background: #e2e8f0; }
+    .axis-x { display: flex; max-width: 1100px; margin: 4px auto 0; }
+    .axis-x .stage { flex: 1; text-align: center; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .axis-x .stage span { display: block; font-size: 10px; font-weight: 400; color: #94a3b8; text-transform: none; letter-spacing: 0; }
+    .axis-y { position: absolute; left: -14px; top: 0; bottom: 0; width: 0; }
+    .axis-y .y-label { position: absolute; transform: rotate(-90deg) translateX(50%); transform-origin: left center; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+
+    .map-node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 3; }
+    .map-node .label { margin-top: 4px; font-size: 11px; font-weight: 600; color: #0f172a; background: rgba(255,255,255,0.85); padding: 1px 5px; border-radius: 4px; white-space: nowrap; line-height: 1.3; }
+    .map-node .decision-tag { margin-top: 2px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 6px; border-radius: 999px; }
+    .tag-build { background: #fef3c7; color: #92400e; }
+    .tag-buy { background: #dbeafe; color: #1e40af; }
+    .tag-outsource { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+    .edges { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+
+    .tt-overlay { position: absolute; border-radius: 16px; z-index: 0; }
+    .tt-overlay .tt-label { position: absolute; top: 4px; left: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+    .tt-platform .tt-label { top: auto; bottom: 4px; }
+    .tt-subsystem .tt-label { top: -16px; left: 0; }
+    .tt-stream { background: rgba(253, 224, 71, 0.22); border: 1.5px solid rgba(202, 138, 4, 0.45); }
+    .tt-stream .tt-label { color: #a16207; }
+    .tt-platform { background: rgba(147, 197, 253, 0.22); border: 1.5px solid rgba(37, 99, 235, 0.4); }
+    .tt-platform .tt-label { color: #1d4ed8; }
+    .tt-subsystem { background: rgba(253, 186, 116, 0.25); border: 1.5px solid rgba(234, 88, 12, 0.45); }
+    .tt-subsystem .tt-label { color: #c2410c; }
+    .tt-enabling { background: rgba(216, 180, 254, 0.25); border: 1.5px dashed rgba(147, 51, 234, 0.5); }
+    .tt-enabling .tt-label { color: #7e22ce; }
+
+    .toggle-bar { display: flex; gap: 20px; align-items: center; max-width: 1100px; margin: 0 auto 10px; font-size: 12px; color: #334155; }
+    .toggle-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+    /* ---- Style options ---- */
+    .option-card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+    .option-card.recommended { border-color: #10b981; background: #f0fdf41a; }
+    .option-stage { height: 110px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 6px; margin: 8px 0; }
+    .option-title { font-size: 12px; font-weight: 600; color: #0f172a; }
+    .option-desc { font-size: 11px; color: #64748b; line-height: 1.4; }
+    .rec-chip { font-size: 9px; font-weight: 700; color: #047857; background: #d1fae5; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .pill-node { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; font-size: 12px; font-weight: 600; }
+    .pill-node svg { width: 14px; height: 14px; }
+    .ring-node { position: relative; width: 48px; height: 48px; border-radius: 999px; background: white; border: 3px solid #f59e0b; display: flex; align-items: center; justify-content: center; color: #334155; }
+    .ring-node svg { width: 20px; height: 20px; }
+    .ring-node .mini-badge { position: absolute; right: -6px; top: -6px; width: 18px; height: 18px; border-radius: 999px; background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; display: flex; align-items: center; justify-content: center; }
+    .ring-node .mini-badge svg { width: 10px; height: 10px; }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <header>
+      <h1 class="text-2xl font-bold text-slate-900">Strategic View: Icon Nodes Instead of Boxes</h1>
+      <p class="text-sm text-slate-600 mt-1 max-w-3xl">
+        The Strategic View currently reuses the Flow View's large box nodes. On a Wardley map that fights the medium:
+        boxes dominate the canvas, hide the value chain lines, and read as "containers" rather than positioned components.
+        This mockup follows the visual vocabulary Susanne Kaiser uses in <em>Architecture for Flow</em>: small icon nodes
+        for every element type, with domain classification, build/buy/outsource decisions, and Team Topologies overlays.
+        Example domain is the online school from her InfoQ article
+        (<a class="text-blue-600 underline" href="https://www.infoq.com/articles/adaptive-socio-technical-systems-flow/">Adaptive Socio-Technical Systems with Architecture for Flow</a>).
+      </p>
+    </header>
+
+    <!-- Element vocabulary -->
+    <section class="panel">
+      <div class="heading-row">
+        <h2>Element Vocabulary</h2>
+        <span class="tag">Legend</span>
+      </div>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <div class="glyph glyph-user"><i data-lucide="user"></i></div>
+          <div><div class="name">User / Actor</div><div class="desc">Anchor of the map. Dark fill so the value chain visibly starts here.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-need"><i data-lucide="target"></i></div>
+          <div><div class="name">User Need</div><div class="desc">The problem the user wants solved. Already exists in the data model.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-process"><i data-lucide="workflow"></i></div>
+          <div><div class="name">Business Process / Activity</div><div class="desc">New element type. The activities that fulfill a need, before solution components.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-context glyph-core"><i data-lucide="sparkles"></i></div>
+          <div><div class="name">Bounded Context: Core</div><div class="desc">Larger glyph than other elements. Classification icon and color match the inspector badges.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-context glyph-supporting"><i data-lucide="wrench"></i></div>
+          <div><div class="name">Bounded Context: Supporting</div><div class="desc">Same treatment, blue. Necessary but not differentiating.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-context glyph-generic"><i data-lucide="package"></i></div>
+          <div><div class="name">Bounded Context: Generic</div><div class="desc">Same treatment, slate. Candidate to buy rather than build.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-component"><i data-lucide="database"></i></div>
+          <div><div class="name">Infrastructure Component</div><div class="desc">New element type. Data storage, search engine, message broker, email, compute platform. Icon varies by kind.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-component glyph-external"><i data-lucide="server"></i></div>
+          <div><div class="name">External / Outsourced</div><div class="desc">Dashed ring, consistent with the existing external-context treatment.</div></div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-10 mt-4 pt-4 border-t border-slate-100">
+        <div>
+          <h3>Strategic decision tags</h3>
+          <div class="flex gap-2 mt-2">
+            <span class="decision-tag tag-build" style="margin:0">Build</span>
+            <span class="decision-tag tag-buy" style="margin:0">Buy</span>
+            <span class="decision-tag tag-outsource" style="margin:0">Outsource</span>
+          </div>
+        </div>
+        <div>
+          <h3>Team Topologies overlays</h3>
+          <div class="flex gap-2 mt-2 text-[10px] font-semibold">
+            <span class="px-2 py-1 rounded" style="background:rgba(253,224,71,0.35); color:#a16207;">Stream-aligned</span>
+            <span class="px-2 py-1 rounded" style="background:rgba(147,197,253,0.35); color:#1d4ed8;">Platform</span>
+            <span class="px-2 py-1 rounded" style="background:rgba(253,186,116,0.4); color:#c2410c;">Complicated subsystem</span>
+            <span class="px-2 py-1 rounded" style="background:rgba(216,180,254,0.4); color:#7e22ce;">Enabling</span>
+          </div>
+        </div>
+        <div>
+          <h3>Movement annotations</h3>
+          <div class="flex gap-4 mt-2 items-center text-[11px] text-slate-600">
+            <span class="flex items-center gap-1">
+              <svg width="40" height="10"><line x1="0" y1="5" x2="32" y2="5" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/><path d="M32 1 L39 5 L32 9 Z" fill="#dc2626"/></svg>
+              Evolution (component is commoditizing)
+            </span>
+            <span class="flex items-center gap-1">
+              <svg width="14" height="16"><rect x="5" y="0" width="4" height="16" fill="#0f172a"/></svg>
+              Inertia (resistance to movement)
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Node style options -->
+    <section class="panel">
+      <div class="heading-row">
+        <h2>Node Style Options</h2>
+        <span class="tag">Same core context, three treatments</span>
+      </div>
+      <div class="flex gap-4">
+        <div class="option-card recommended">
+          <div class="flex items-center justify-between">
+            <span class="option-title">A. Filled circle, icon inside</span>
+            <span class="rec-chip">Recommended</span>
+          </div>
+          <div class="option-stage">
+            <div class="map-node" style="position:static; transform:none;">
+              <div class="glyph glyph-context glyph-core"><i data-lucide="sparkles"></i></div>
+              <div class="label">Learning Experience</div>
+            </div>
+          </div>
+          <div class="option-desc">Classification carried by fill color and icon, both already established in the inspector. Smallest footprint, label sits outside the glyph like a classic Wardley node.</div>
+        </div>
+        <div class="option-card">
+          <div class="option-title">B. Ring with corner badge</div>
+          <div class="option-stage">
+            <div class="map-node" style="position:static; transform:none;">
+              <div class="ring-node">
+                <i data-lucide="hexagon"></i>
+                <span class="mini-badge"><i data-lucide="sparkles"></i></span>
+              </div>
+              <div class="label">Learning Experience</div>
+            </div>
+          </div>
+          <div class="option-desc">A shared "bounded context" glyph (hexagon) with classification pushed to a corner badge. More uniform, but the badge is illegible below ~75% zoom.</div>
+        </div>
+        <div class="option-card">
+          <div class="option-title">C. Compact pill</div>
+          <div class="option-stage">
+            <div class="map-node" style="position:static; transform:none;">
+              <span class="pill-node"><i data-lucide="sparkles"></i> Learning Experience</span>
+            </div>
+          </div>
+          <div class="option-desc">Smallest change from today's boxes. Still reads as a container and the wide footprint crowds the evolution axis once a map has 15+ elements.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Full map example -->
+    <section class="panel">
+      <div class="heading-row">
+        <h2>Full Map: Online School (Architecture for Flow example)</h2>
+        <span class="tag">Option A applied</span>
+      </div>
+      <div class="toggle-bar">
+        <label><input type="checkbox" id="toggle-teams" checked /> Team Topologies overlays</label>
+        <label><input type="checkbox" id="toggle-decisions" checked /> Build / buy / outsource tags</label>
+      </div>
+      <div class="map-wrap pl-6">
+        <div class="map" id="map">
+          <div class="axis-y">
+            <span class="y-label" style="top: 9%; left: -10px;">Visible</span>
+            <span class="y-label" style="top: 91%; left: -10px;">Invisible</span>
+          </div>
+        </div>
+        <div class="axis-x">
+          <div class="stage">Genesis</div>
+          <div class="stage">Custom-Built</div>
+          <div class="stage">Product <span>(+rental)</span></div>
+          <div class="stage">Commodity <span>(+utility)</span></div>
+        </div>
+      </div>
+      <div class="note max-w-4xl mx-auto">
+        Value chain reads top to bottom: users, needs, processes, bounded contexts, infrastructure components.
+        Evolution reads left to right. The dashed red arrow marks the message broker commoditizing toward a managed
+        service; the black bar marks inertia on the self-managed data storage. Team overlays sit behind the nodes,
+        so flow between teams stays visible.
+      </div>
+    </section>
+
+    <!-- What changes -->
+    <section class="panel">
+      <div class="heading-row">
+        <h2>What Changes vs. Today</h2>
+        <span class="tag">Scope notes</span>
+      </div>
+      <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-3xl">
+        <li><strong>Contexts shrink from 160px boxes to 52px glyphs</strong> in Strategic View only. Flow and Distillation views keep the box nodes.</li>
+        <li><strong>Two new element types</strong>: business process/activity and infrastructure component. Both need the full Yjs round-trip (types, schema, sync, mutations) and analytics events.</li>
+        <li><strong>Decision tags and movement annotations</strong> (build/buy/outsource, evolution arrow, inertia) are new per-element fields, surfaced as toggleable overlays.</li>
+        <li><strong>Team overlays</strong> build on the existing teamId assignment and Team Topologies types; this is the "team boundary overlay" quick win from the Susanne Kaiser feature ideas doc.</li>
+        <li><strong>Icon and color choices reuse the inspector vocabulary</strong> (sparkles/wrench/package, amber/blue/slate) so the map and inspector tell one story.</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    const MAP_W = 1100, MAP_H = 640;
+
+    const NODES = [
+      { id: 'teacher',   x: 24, y: 7,  type: 'user',    icon: 'user',     label: 'Teacher' },
+      { id: 'student',   x: 46, y: 7,  type: 'user',    icon: 'user',     label: 'Student' },
+      { id: 'need-create', x: 24, y: 19, type: 'need',  icon: 'target',   label: 'Create course content' },
+      { id: 'need-study',  x: 46, y: 19, type: 'need',  icon: 'target',   label: 'Study courses, get help' },
+      { id: 'act-plan',  x: 26, y: 32, type: 'process', icon: 'workflow', label: 'Plan & publish classes' },
+      { id: 'act-take',  x: 48, y: 32, type: 'process', icon: 'workflow', label: 'Browse & take courses' },
+      { id: 'bc-author', x: 30, y: 48, type: 'context', classification: 'core', icon: 'sparkles', label: 'Course Authoring', tag: 'build' },
+      { id: 'bc-learn',  x: 45, y: 51, type: 'context', classification: 'core', icon: 'sparkles', label: 'Learning Experience', tag: 'build' },
+      { id: 'bc-iam',    x: 69, y: 46, type: 'context', classification: 'generic', icon: 'package', label: 'Identity & Access', tag: 'buy', external: true },
+      { id: 'infra-search',  x: 58, y: 64, type: 'component', icon: 'search',   label: 'Search Engine', tag: 'buy' },
+      { id: 'infra-broker',  x: 66, y: 74, type: 'component', icon: 'share-2',  label: 'Message Broker', tag: 'buy', evolves: true },
+      { id: 'infra-mail',    x: 83, y: 60, type: 'component', icon: 'mail',     label: 'Email Delivery', tag: 'outsource', external: true },
+      { id: 'infra-db',      x: 79, y: 77, type: 'component', icon: 'database', label: 'Data Storage', tag: 'outsource', inertia: true },
+      { id: 'infra-compute', x: 88, y: 89, type: 'component', icon: 'server',   label: 'Compute Platform', tag: 'outsource', external: true },
+    ];
+
+    const EDGES = [
+      ['teacher', 'need-create'], ['student', 'need-study'],
+      ['need-create', 'act-plan'], ['need-study', 'act-take'],
+      ['act-plan', 'bc-author'], ['act-take', 'bc-learn'],
+      ['bc-learn', 'bc-iam'],
+      ['bc-author', 'infra-db'], ['bc-author', 'infra-broker'],
+      ['bc-learn', 'infra-search'], ['bc-learn', 'infra-broker'], ['bc-learn', 'infra-mail'],
+      ['infra-search', 'infra-compute'], ['infra-broker', 'infra-compute'], ['infra-db', 'infra-compute'],
+    ];
+
+    const TEAM_OVERLAYS = [
+      { cls: 'tt-stream',    label: 'Stream-aligned team', left: 22, top: 39, width: 31, height: 21 },
+      { cls: 'tt-platform',  label: 'Platform team',       left: 60, top: 67, width: 34, height: 30 },
+      { cls: 'tt-subsystem', label: 'Complicated subsystem', left: 52.5, top: 58, width: 11, height: 13 },
+      { cls: 'tt-enabling',  label: 'Enabling team',       left: 13, top: 41, width: 8, height: 10 },
+    ];
+
+    const map = document.getElementById('map');
+
+    function px(node) {
+      return { x: node.x / 100 * MAP_W, y: node.y / 100 * MAP_H };
+    }
+
+    function renderBands() {
+      [25, 50, 75].forEach((p, i) => {
+        if (i % 2 === 0) {
+          const band = document.createElement('div');
+          band.className = 'band band-alt';
+          band.style.left = p + '%';
+          band.style.width = '25%';
+          map.appendChild(band);
+        }
+        const line = document.createElement('div');
+        line.className = 'band-line';
+        line.style.left = p + '%';
+        map.appendChild(line);
+      });
+    }
+
+    function renderTeamOverlays() {
+      TEAM_OVERLAYS.forEach((t) => {
+        const el = document.createElement('div');
+        el.className = 'tt-overlay ' + t.cls;
+        el.style.left = t.left + '%';
+        el.style.top = t.top + '%';
+        el.style.width = t.width + '%';
+        el.style.height = t.height + '%';
+        el.innerHTML = '<span class="tt-label">' + t.label + '</span>';
+        map.appendChild(el);
+      });
+    }
+
+    function renderEdges() {
+      const byId = Object.fromEntries(NODES.map((n) => [n.id, n]));
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + MAP_W + ' ' + MAP_H);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.classList.add('edges');
+
+      let content = EDGES.map(([a, b]) => {
+        const p1 = px(byId[a]), p2 = px(byId[b]);
+        return '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y + '" stroke="#cbd5e1" stroke-width="1.5" />';
+      }).join('');
+
+      NODES.filter((n) => n.evolves).forEach((n) => {
+        const p = px(n);
+        const x1 = p.x + 34, x2 = p.x + 78, y = p.y;
+        content += '<line x1="' + x1 + '" y1="' + y + '" x2="' + (x2 - 8) + '" y2="' + y + '" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" />';
+        content += '<path d="M' + (x2 - 8) + ' ' + (y - 5) + ' L' + x2 + ' ' + y + ' L' + (x2 - 8) + ' ' + (y + 5) + ' Z" fill="#dc2626" />';
+      });
+
+      NODES.filter((n) => n.inertia).forEach((n) => {
+        const p = px(n);
+        content += '<rect x="' + (p.x + 36) + '" y="' + (p.y - 12) + '" width="5" height="24" fill="#0f172a" />';
+      });
+
+      svg.innerHTML = content;
+      map.appendChild(svg);
+    }
+
+    function glyphClasses(n) {
+      const classes = ['glyph'];
+      if (n.type === 'user') classes.push('glyph-user');
+      if (n.type === 'need') classes.push('glyph-need');
+      if (n.type === 'process') classes.push('glyph-process');
+      if (n.type === 'context') classes.push('glyph-context', 'glyph-' + n.classification);
+      if (n.type === 'component') classes.push('glyph-component');
+      if (n.external) classes.push('glyph-external');
+      return classes.join(' ');
+    }
+
+    function renderNodes() {
+      NODES.forEach((n) => {
+        const el = document.createElement('div');
+        el.className = 'map-node';
+        el.style.left = n.x + '%';
+        el.style.top = n.y + '%';
+        let html = '<div class="' + glyphClasses(n) + '"><i data-lucide="' + n.icon + '"></i></div>';
+        html += '<div class="label">' + n.label + '</div>';
+        if (n.tag) html += '<div class="decision-tag tag-' + n.tag + '">' + n.tag + '</div>';
+        el.innerHTML = html;
+        map.appendChild(el);
+      });
+    }
+
+    function wireToggles() {
+      document.getElementById('toggle-teams').addEventListener('change', (e) => {
+        document.querySelectorAll('.tt-overlay').forEach((el) => { el.style.display = e.target.checked ? '' : 'none'; });
+      });
+      document.getElementById('toggle-decisions').addEventListener('change', (e) => {
+        document.querySelectorAll('.map-node .decision-tag').forEach((el) => { el.style.display = e.target.checked ? '' : 'none'; });
+      });
+    }
+
+    renderBands();
+    renderTeamOverlays();
+    renderEdges();
+    renderNodes();
+    wireToggles();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
