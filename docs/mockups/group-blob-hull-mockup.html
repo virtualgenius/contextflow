@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group Blob: Stroke-Dilated Hull Mockup - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f8fafc; }
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+    h2 { font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 6px 0; }
+    .note { font-size: 12px; color: #475569; background: #fef9c3; border-left: 3px solid #eab308; padding: 8px 12px; border-radius: 4px; margin-top: 8px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; font-size: 12px; color: #334155; margin-bottom: 10px; }
+    .controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .controls input[type="range"] { width: 130px; accent-color: #10b981; }
+    .pad-readout { font-variant-numeric: tabular-nums; font-size: 11px; color: #64748b; width: 30px; }
+    svg .ctx-box { cursor: grab; }
+    svg .ctx-box:active { cursor: grabbing; }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <header>
+      <h1 class="text-2xl font-bold text-slate-900">Group Blob: Stroke-Dilated Convex Hull</h1>
+      <p class="text-sm text-slate-600 mt-1 max-w-3xl">
+        Verifies the replacement algorithm for the app's group blob rendering before implementation, using
+        variable-size boxes like Flow View context nodes. The blob body is the convex hull of all member
+        rectangle corners, rendered with a fill plus a fat round-join stroke (stroke-width = 2 &times; padding).
+        The dashed border is a second, explicit path: the rounded hull outline built from offset edges joined by
+        circular arcs at each hull vertex. The thin gray rectangle is the computed bounds (hull extent + padding),
+        the contract that feeds blob positioning.
+      </p>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <span class="font-semibold text-slate-700">Members:</span>
+        <label><input type="radio" name="memberset" value="1" /> 1 box</label>
+        <label><input type="radio" name="memberset" value="2" /> 2 boxes</label>
+        <label><input type="radio" name="memberset" value="5" checked /> 5 boxes</label>
+        <label class="ml-4"><input type="checkbox" id="toggle-selected" /> Group selected (solid border)</label>
+        <label><input type="checkbox" id="toggle-bounds" checked /> Show computed bounds</label>
+        <span class="ml-auto flex items-center gap-2">Padding
+          <input type="range" id="pad-slider" min="20" max="100" value="60" />
+          <span class="pad-readout" id="pad-readout">60</span>
+        </span>
+      </div>
+      <svg id="stage" viewBox="0 0 1000 600" class="w-full bg-white border border-slate-200 rounded-lg" style="aspect-ratio: 1000 / 600;"></svg>
+      <div class="note">
+        <strong>Try it:</strong> drag the boxes. The blob, dashed outline, and bounds all recompute live.
+        Things to verify: padding stays visually uniform around every box regardless of size; corners are clean
+        arcs with no ripples; the dashed border hugs the blob edge exactly; one box yields a rounded rectangle and
+        two boxes a clean elongated blob with <em>no special-case code</em> (rectangle corners always give the hull
+        at least four points); the blob never escapes the gray bounds rectangle.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the two paths are built</h2>
+      <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-3xl">
+        <li><strong>Body</strong>: raw hull polygon, <code>fill</code> + <code>stroke-width = 2&times;padding</code> with <code>stroke-linejoin/linecap: round</code>, wrapped in <code>&lt;g opacity&gt;</code> so fill and stroke flatten to one tint. Round-join stroking dilates the hull by exactly the padding with true circular arcs.</li>
+        <li><strong>Border</strong>: each hull edge offset outward by the padding along its normal, consecutive offset edges joined by an <code>A</code> (arc) segment of radius = padding around the shared hull vertex. This is the exact outline of the dilated shape, so it can be dashed or solid independently of the body.</li>
+        <li><strong>Bounds</strong>: hull min/max extended by padding on every side. Exact, because the dilation extends exactly the padding beyond the hull everywhere.</li>
+        <li>No ClipperLib, no spline, no compensation constant. The only geometry code is a convex hull and one outline builder (~30 lines each).</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    const STAGE_W = 1000, STAGE_H = 600;
+    const BLOB_FILL = '#10b981';
+    const BORDER_COLOR = '#059669';
+    const BLOB_OPACITY = 0.10;
+
+    const ALL_BOXES = [
+      { id: 'a', x: 300, y: 190, w: 180, h: 90,  label: 'Order Management' },
+      { id: 'b', x: 540, y: 260, w: 140, h: 70,  label: 'Pricing' },
+      { id: 'c', x: 330, y: 390, w: 200, h: 100, label: 'Fulfillment' },
+      { id: 'd', x: 580, y: 430, w: 120, h: 60,  label: 'Shipping' },
+      { id: 'e', x: 660, y: 150, w: 160, h: 80,  label: 'Catalog' },
+    ];
+    const MEMBER_SETS = { 1: ['a'], 2: ['a', 'd'], 5: ['a', 'b', 'c', 'd', 'e'] };
+
+    const stage = document.getElementById('stage');
+    let memberIds = MEMBER_SETS[5];
+    let padding = 60;
+    let selected = false;
+    let showBounds = true;
+
+    function activeBoxes() {
+      return ALL_BOXES.filter((b) => memberIds.includes(b.id));
+    }
+
+    function corners(box) {
+      const hw = box.w / 2, hh = box.h / 2;
+      return [
+        { x: box.x - hw, y: box.y - hh },
+        { x: box.x + hw, y: box.y - hh },
+        { x: box.x + hw, y: box.y + hh },
+        { x: box.x - hw, y: box.y + hh },
+      ];
+    }
+
+    function convexHull(points) {
+      const pts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+      if (pts.length < 3) return pts;
+      const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+      const half = (input) => {
+        const out = [];
+        input.forEach((p) => {
+          while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0) out.pop();
+          out.push(p);
+        });
+        out.pop();
+        return out;
+      };
+      return half(pts).concat(half([...pts].reverse()));
+    }
+
+    /* Exact outline of the hull dilated by p: offset each edge outward along its
+       normal, join consecutive offset edges with a radius-p arc around the shared
+       hull vertex. Rectangle corners guarantee the hull has at least 4 points. */
+    function roundedHullPath(hull, p) {
+      const n = hull.length;
+      if (n < 3) return '';
+      const cx = hull.reduce((s, q) => s + q.x, 0) / n;
+      const cy = hull.reduce((s, q) => s + q.y, 0) / n;
+
+      const offsetEdges = hull.map((a, i) => {
+        const b = hull[(i + 1) % n];
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        let nx = (b.y - a.y) / len, ny = -(b.x - a.x) / len;
+        const midOutX = (a.x + b.x) / 2 - cx, midOutY = (a.y + b.y) / 2 - cy;
+        if (nx * midOutX + ny * midOutY < 0) { nx = -nx; ny = -ny; }
+        return {
+          from: { x: a.x + nx * p, y: a.y + ny * p },
+          to: { x: b.x + nx * p, y: b.y + ny * p },
+        };
+      });
+
+      let d = 'M ' + offsetEdges[0].from.x + ' ' + offsetEdges[0].from.y;
+      for (let i = 0; i < n; i++) {
+        const edge = offsetEdges[i];
+        const next = offsetEdges[(i + 1) % n];
+        const v = hull[(i + 1) % n];
+        const cross = (edge.to.x - v.x) * (next.from.y - v.y) - (edge.to.y - v.y) * (next.from.x - v.x);
+        const sweep = cross > 0 ? 1 : 0;
+        d += ' L ' + edge.to.x + ' ' + edge.to.y;
+        d += ' A ' + p + ' ' + p + ' 0 0 ' + sweep + ' ' + next.from.x + ' ' + next.from.y;
+      }
+      return d + ' Z';
+    }
+
+    function blobBounds(hull, p) {
+      const xs = hull.map((q) => q.x), ys = hull.map((q) => q.y);
+      return {
+        minX: Math.min(...xs) - p,
+        maxX: Math.max(...xs) + p,
+        minY: Math.min(...ys) - p,
+        maxY: Math.max(...ys) + p,
+      };
+    }
+
+    function render() {
+      const boxes = activeBoxes();
+      const hull = convexHull(boxes.flatMap(corners));
+      const polyD = 'M ' + hull.map((q) => q.x + ' ' + q.y).join(' L ') + ' Z';
+      const outlineD = roundedHullPath(hull, padding);
+      const bounds = blobBounds(hull, padding);
+
+      let svg = '';
+      svg += '<g opacity="' + BLOB_OPACITY + '"><path d="' + polyD + '" fill="' + BLOB_FILL + '" stroke="' + BLOB_FILL + '" stroke-width="' + padding * 2 + '" stroke-linejoin="round" stroke-linecap="round" /></g>';
+      svg += '<path d="' + outlineD + '" fill="none" stroke="' + BORDER_COLOR + '" stroke-width="' + (selected ? 2 : 1.5) + '"' + (selected ? '' : ' stroke-dasharray="5 5"') + ' />';
+      if (showBounds) {
+        svg += '<rect x="' + bounds.minX + '" y="' + bounds.minY + '" width="' + (bounds.maxX - bounds.minX) + '" height="' + (bounds.maxY - bounds.minY) + '" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2 3" />';
+        svg += '<text x="' + (bounds.minX + 6) + '" y="' + (bounds.minY - 6) + '" font-size="10" fill="#94a3b8">computed bounds</text>';
+      }
+      boxes.forEach((b) => {
+        svg += '<g class="ctx-box" data-id="' + b.id + '">';
+        svg += '<rect x="' + (b.x - b.w / 2) + '" y="' + (b.y - b.h / 2) + '" width="' + b.w + '" height="' + b.h + '" rx="8" fill="#d1fae5" stroke="#94a3b8" stroke-width="2" />';
+        svg += '<text x="' + b.x + '" y="' + (b.y + 4) + '" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">' + b.label + '</text>';
+        svg += '</g>';
+      });
+      stage.innerHTML = svg;
+      wireDrag();
+    }
+
+    function wireDrag() {
+      stage.querySelectorAll('.ctx-box').forEach((el) => {
+        const box = ALL_BOXES.find((b) => b.id === el.getAttribute('data-id'));
+        /* Listeners go on the document: render() rebuilds the SVG mid-drag,
+           so the originating element does not survive the gesture. */
+        el.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          const scale = STAGE_W / stage.getBoundingClientRect().width;
+          const start = { clientX: e.clientX, clientY: e.clientY, x: box.x, y: box.y };
+          const onMove = (ev) => {
+            box.x = Math.max(70, Math.min(STAGE_W - 70, start.x + (ev.clientX - start.clientX) * scale));
+            box.y = Math.max(50, Math.min(STAGE_H - 50, start.y + (ev.clientY - start.clientY) * scale));
+            render();
+          };
+          const onUp = () => {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+          };
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      });
+    }
+
+    document.querySelectorAll('input[name="memberset"]').forEach((r) => {
+      r.addEventListener('change', () => { memberIds = MEMBER_SETS[r.value]; render(); });
+    });
+    document.getElementById('toggle-selected').addEventListener('change', (e) => { selected = e.target.checked; render(); });
+    document.getElementById('toggle-bounds').addEventListener('change', (e) => { showBounds = e.target.checked; render(); });
+    const padSlider = document.getElementById('pad-slider');
+    padSlider.addEventListener('input', () => {
+      padding = Number(padSlider.value);
+      document.getElementById('pad-readout').textContent = padding;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
