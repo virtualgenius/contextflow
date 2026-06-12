@@ -169,6 +169,8 @@ ContextFlow builds on established practices in domain-driven design, team topolo
 **Start Here:**
 - [Adaptive Socio-Technical Systems with Architecture for Flow](https://www.infoq.com/articles/adaptive-socio-technical-systems-flow/) (InfoQ) — explains how system architecture and team design must co-evolve
 - [Architecture for Flow: Adaptive Systems with Domain-Driven Design, Wardley Mapping, and Team Topologies](https://www.amazon.com/Adaptive-Systems-Domain-Driven-Wardley-Topologies/dp/0137393032) by _Susanne Kaiser_ — integrates DDD, Wardley Mapping, and Team Topologies into a unified approach
+- [Architecture for Flow talk](https://www.infoq.com/presentations/ddd-wardley-mapping-team-topology/) (InfoQ) by _Susanne Kaiser_ — walks through evolving a legacy online school using all three practices on one Wardley map
+- [Architecture for Flow Canvas](https://architectureforflow.com/canvas) by _Susanne Kaiser_ — step-by-step canvas from as-is assessment to future landscape and team organization
 
 **Domain-Driven Design & Context Mapping:**
 - [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas) by DDD Crew — visual template for documenting bounded contexts

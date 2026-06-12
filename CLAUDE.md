@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 For comprehensive documentation, see:
 - **Product vision & goals**: [docs/VISION.md](docs/VISION.md)
-- **Planning docs & ideas**: `~/Documents/business-hub/products/contextflow-ideas/` (private, outside this public repo)
+- **Planning docs & ideas**: `~/Documents/business-hub/docs/contextflow-ideas/` (private, outside this public repo)
 - **Technical architecture & data model**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **UX principles**: [docs/UX_GUIDELINES.md](docs/UX_GUIDELINES.md)
 - **Getting started**: [README.md](README.md)

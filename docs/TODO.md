@@ -18,7 +18,7 @@
 - [ ] Add about page? link to repo? link to VG.com
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
 - [ ] Add logo
-- [ ] Susanne Kaiser feature ideas: flow overlays, blocker visualization, value stream types, team boundaries (see [Susanne_Kaiser_Feature_Ideas.md](Susanne_Kaiser_Feature_Ideas.md))
+- [ ] Susanne Kaiser feature ideas: flow overlays, blocker visualization, value stream types, team boundaries (notes live in the private planning folder, `contextflow-ideas/susanne-kaiser-feature-ideas.md`)
 
 ### Future
 
