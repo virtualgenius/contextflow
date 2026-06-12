@@ -70,6 +70,9 @@
     .tag-outsource { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
     .groups { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .groups path { pointer-events: visiblePainted; }
+    .groups g { transition: opacity 0.15s; }
+    .groups g:hover { opacity: 0.2; }
     .edges { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
     .edges line { transition: opacity 0.15s; }
     .edges line.edge-hi { stroke: #3b82f6; stroke-width: 2.5; }
@@ -252,7 +255,8 @@
       <div class="note max-w-4xl mx-auto">
         <strong>Try it:</strong> drag nodes (edges, group hulls, and the evolution band highlight all follow), scroll or
         use the slider to zoom (decision tags hide first, then labels, mirroring the app's overlay zoom cutoffs), hover or
-        click a node to trace its value chain two hops out, toggle system groups and team overlays independently, and use
+        click a node to trace its value chain two hops out, hover a group hull to highlight exactly its members, toggle
+        system groups and team overlays independently, and use
         the dense map to stress-test label crowding. The teal and fuchsia hulls are Value Stream view groups reused as
         systems: each mixes bounded contexts with the skills, knowledge, and components that system depends on. Value chain reads top to bottom: users, needs, bounded contexts, infrastructure components.
         Bounded contexts are Kaiser's: content creation, class management, course studies, learning support (core);
@@ -385,6 +389,7 @@
     let zoom = 1;
     let selectedId = null;
     let hoveredId = null;
+    let hoveredGroup = null;
     let adjacency = {};
 
     function loadDataset(dense) {
@@ -399,6 +404,7 @@
       });
       selectedId = null;
       hoveredId = null;
+      hoveredGroup = null;
     }
 
     function px(node) {
@@ -460,15 +466,29 @@
     }
 
     function groupSvgContent() {
-      return groups.map((g) => {
+      return groups.map((g, i) => {
         const pts = g.members.map((id) => px(nodeById(id)));
         const hull = convexHull(pts);
         const d = 'M ' + hull.map((p) => p.x + ' ' + p.y).join(' L ') + ' Z';
         const labelX = pts.reduce((s, p) => s + p.x, 0) / pts.length;
         const labelY = Math.min(...pts.map((p) => p.y)) - 44;
-        return '<g opacity="0.11"><path d="' + d + '" fill="' + g.color + '" stroke="' + g.color + '" stroke-width="64" stroke-linejoin="round" stroke-linecap="round" /></g>'
+        return '<g opacity="0.11"><path data-group="' + i + '" d="' + d + '" fill="' + g.color + '" stroke="' + g.color + '" stroke-width="64" stroke-linejoin="round" stroke-linecap="round" /></g>'
           + '<text x="' + labelX + '" y="' + labelY + '" text-anchor="middle" fill="' + g.color + '" font-size="10" font-weight="600">' + g.label + '</text>';
       }).join('');
+    }
+
+    function wireGroupHover() {
+      groupsSvg.querySelectorAll('path[data-group]').forEach((p) => {
+        const idx = Number(p.getAttribute('data-group'));
+        p.addEventListener('pointerenter', () => {
+          hoveredGroup = idx;
+          applyHighlight();
+        });
+        p.addEventListener('pointerleave', () => {
+          if (hoveredGroup === idx) hoveredGroup = null;
+          applyHighlight();
+        });
+      });
     }
 
     let groupsSvg = null;
@@ -480,10 +500,12 @@
       groupsSvg.classList.add('groups');
       groupsSvg.innerHTML = groupSvgContent();
       world.appendChild(groupsSvg);
+      wireGroupHover();
     }
 
     function refreshGroups() {
       groupsSvg.innerHTML = groupSvgContent();
+      wireGroupHover();
     }
 
     function edgeSvgContent() {
@@ -585,9 +607,15 @@
       Object.values(nodeEls).forEach((el) => el.classList.remove('dim'));
       Object.entries(nodeEls).forEach(([id, el]) => el.classList.toggle('selected', id === selectedId));
       edgeEls.forEach((e) => e.el.classList.remove('edge-hi', 'edge-dim'));
-      if (!focusId) return;
 
-      const inChain = neighborhood(focusId, HIGHLIGHT_HOPS);
+      let inChain = null;
+      if (hoveredGroup !== null && groups[hoveredGroup]) {
+        inChain = new Set(groups[hoveredGroup].members);
+      } else if (focusId) {
+        inChain = neighborhood(focusId, HIGHLIGHT_HOPS);
+      }
+      if (!inChain) return;
+
       Object.entries(nodeEls).forEach(([id, el]) => el.classList.toggle('dim', !inChain.has(id)));
       edgeEls.forEach((e) => {
         const connected = inChain.has(e.a) && inChain.has(e.b);
