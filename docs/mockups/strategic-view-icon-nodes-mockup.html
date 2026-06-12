@@ -32,6 +32,9 @@
     .glyph-user { background: #334155; border-color: #334155; color: white; }
     .glyph-need { border-color: #10b981; color: #047857; }
     .glyph-capability { border-color: #6366f1; color: #4f46e5; }
+    .glyph-skill { border-color: #f43f5e; color: #be123c; }
+    .glyph-knowledge { border-color: #0ea5e9; color: #0369a1; }
+    .glyph-expertise { border-color: #a855f7; color: #7e22ce; }
     .glyph-context { width: 40px; height: 40px; }
     .glyph-context svg { width: 18px; height: 18px; }
     .glyph-core { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
@@ -66,6 +69,7 @@
     .tag-buy { background: #dbeafe; color: #1e40af; }
     .tag-outsource { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
+    .groups { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
     .edges { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
     .edges line { transition: opacity 0.15s; }
     .edges line.edge-hi { stroke: #3b82f6; stroke-width: 2.5; }
@@ -76,6 +80,8 @@
     .world.zoom-xs .map-node .caption { display: none; }
     .world.hide-teams .tt-overlay { display: none; }
     .world.hide-tags .decision-tag { display: none; }
+    .world.hide-groups .groups { display: none; }
+    .world.zoom-xs .groups text { display: none; }
 
     .tt-overlay { position: absolute; border-radius: 12px; z-index: 0; }
     .tt-overlay .tt-label { position: absolute; top: 4px; left: 10px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
@@ -146,6 +152,18 @@
           <div><div class="name">Bounded Context: Generic</div><div class="desc">Same treatment, slate. Buy or outsource.</div></div>
         </div>
         <div class="legend-item">
+          <div class="glyph glyph-skill"><i data-lucide="zap"></i></div>
+          <div><div class="name">Skill / Practice</div><div class="desc">New element type. Practiced abilities the system depends on (e.g. video production). Wardley maps practices alongside activities.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-knowledge"><i data-lucide="book-open"></i></div>
+          <div><div class="name">Knowledge</div><div class="desc">New element type. Domain knowledge the system depends on (e.g. pedagogy). A Wardley component type.</div></div>
+        </div>
+        <div class="legend-item">
+          <div class="glyph glyph-expertise"><i data-lucide="brain"></i></div>
+          <div><div class="name">Expertise</div><div class="desc">New element type. Specialist mastery bound to people (e.g. assessment design), scarcer and further left than codified knowledge.</div></div>
+        </div>
+        <div class="legend-item">
           <div class="glyph glyph-component"><i data-lucide="database"></i></div>
           <div><div class="name">Infrastructure Component</div><div class="desc">New element type. Data storage, search engine, message broker, SMTP server, compute platform. Icon varies by kind.</div></div>
         </div>
@@ -175,6 +193,14 @@
           <div class="text-[10px] text-slate-400 mt-1 max-w-[280px]">"Bounded contexts are indicating suitable team boundaries for stream-aligned teams": one team boundary per context, not one box around several.</div>
         </div>
         <div>
+          <h3>System groups</h3>
+          <div class="flex gap-2 mt-2 text-[10px] font-semibold">
+            <span class="px-2 py-1 rounded-full" style="background:rgba(13,148,136,0.12); border:1px solid rgba(13,148,136,0.3); color:#0f766e;">Content Production</span>
+            <span class="px-2 py-1 rounded-full" style="background:rgba(192,38,211,0.1); border:1px solid rgba(192,38,211,0.3); color:#a21caf;">Learning Delivery</span>
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1 max-w-[260px]">The existing Groups feature from the Value Stream view, rendered as organic hulls here. Members mix contexts, skills, knowledge, and components of one system.</div>
+        </div>
+        <div>
           <h3>Movement annotations</h3>
           <div class="flex gap-4 mt-2 items-center text-[11px] text-slate-600">
             <span class="flex items-center gap-1">
@@ -198,9 +224,10 @@
         <span class="tag">Icon glyph nodes</span>
       </div>
       <div class="toggle-bar">
+        <label><input type="checkbox" id="toggle-groups" checked /> System groups</label>
         <label><input type="checkbox" id="toggle-teams" /> Team Topologies overlays</label>
         <label><input type="checkbox" id="toggle-decisions" checked /> Build / buy / outsource tags</label>
-        <label><input type="checkbox" id="toggle-dense" /> Dense map (26 elements)</label>
+        <label><input type="checkbox" id="toggle-dense" /> Dense map (29 elements)</label>
         <div class="zoom-control">
           <span class="text-[11px] text-slate-500">Zoom</span>
           <input type="range" id="zoom-slider" min="30" max="160" value="100" />
@@ -223,10 +250,11 @@
         </div>
       </div>
       <div class="note max-w-4xl mx-auto">
-        <strong>Try it:</strong> drag nodes (edges follow, the evolution band under the node highlights), scroll or use the
-        slider to zoom (decision tags hide first, then labels, mirroring the app's overlay zoom cutoffs), hover or click a
-        node to trace its value chain two hops out, switch on the team overlays, and use the dense map to stress-test
-        label crowding. Value chain reads top to bottom: users, needs, bounded contexts, infrastructure components.
+        <strong>Try it:</strong> drag nodes (edges, group hulls, and the evolution band highlight all follow), scroll or
+        use the slider to zoom (decision tags hide first, then labels, mirroring the app's overlay zoom cutoffs), hover or
+        click a node to trace its value chain two hops out, toggle system groups and team overlays independently, and use
+        the dense map to stress-test label crowding. The teal and fuchsia hulls are Value Stream view groups reused as
+        systems: each mixes bounded contexts with the skills, knowledge, and components that system depends on. Value chain reads top to bottom: users, needs, bounded contexts, infrastructure components.
         Bounded contexts are Kaiser's: content creation, class management, course studies, learning support (core);
         student evaluation, notification handling (supporting); identity &amp; access (generic). Each gets its own
         stream-aligned team boundary. The dashed red arrow and inertia bar are Wardley-canon movement annotations.
@@ -241,9 +269,10 @@
       </div>
       <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-3xl">
         <li><strong>Contexts shrink from 160px boxes to 40px glyphs</strong> (other elements 32px) in Strategic View only. Flow and Distillation views keep the box nodes.</li>
-        <li><strong>Two new element types</strong>: capability and infrastructure component. Both need the full Yjs round-trip (types, schema, sync, mutations) and analytics events. Capability is optional in Kaiser's method; needs may connect directly to contexts.</li>
+        <li><strong>Five new element types</strong>: capability, infrastructure component, skill/practice, knowledge, and expertise (the latter three are Wardley's practice/knowledge component types). All need the full Yjs round-trip (types, schema, sync, mutations) and analytics events. Open question: separate entities vs one "map element" type with a kind field. Capability is optional in Kaiser's method; needs may connect directly to contexts.</li>
         <li><strong>Decision tags and movement annotations</strong> (build/buy/outsource, evolution arrow, inertia) are new per-element fields, surfaced as toggleable overlays. The movement annotations are Wardley canon rather than Kaiser-specific.</li>
         <li><strong>Team overlays</strong> build on the existing teamId assignment and Team Topologies types, with one stream-aligned boundary per bounded context; this is the "team boundary overlay" quick win from the Susanne Kaiser feature ideas doc. Off by default to keep the base map quiet.</li>
+        <li><strong>System groups reuse the existing Groups feature</strong> from the Value Stream view, rendered as the same organic hulls. Group membership widens beyond contexts to the new element types, so one group can show a whole system: its contexts plus the skills, knowledge, and components it depends on. Groups and team overlays are independent toggles, which is a small step toward Kaiser's overlay-multiple-perspectives idea.</li>
         <li><strong>Not drawn yet</strong>: Team Topologies interaction modes (collaboration, X-as-a-Service, facilitating) from her canvas. Her as-is to to-be landscape evolution is already covered by ContextFlow's temporal keyframes.</li>
         <li><strong>Icon and color choices reuse the inspector vocabulary</strong> (sparkles/wrench/package, amber/blue/slate) so the map and inspector tell one story.</li>
       </ul>
@@ -271,6 +300,9 @@
       { id: 'bc-eval',    x: 37, y: 63, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Student Evaluation', tag: 'build' },
       { id: 'bc-notify',  x: 48, y: 64, type: 'context', classification: 'supporting', icon: 'wrench', label: 'Notification Handling', tag: 'build' },
       { id: 'bc-iam',     x: 68, y: 46, type: 'context', classification: 'generic', icon: 'package', label: 'Identity & Access', tag: 'buy', external: true },
+      { id: 'know-pedagogy', x: 20, y: 68, type: 'knowledge', icon: 'book-open', label: 'Pedagogy knowledge' },
+      { id: 'skill-video',   x: 28, y: 76, type: 'skill',     icon: 'zap',       label: 'Video production skills' },
+      { id: 'exp-assess',    x: 40, y: 80, type: 'expertise', icon: 'brain',     label: 'Assessment expertise' },
       { id: 'infra-search',  x: 58, y: 76, type: 'component', icon: 'search',   label: 'Search Engine', tag: 'buy' },
       { id: 'infra-broker',  x: 66, y: 84, type: 'component', icon: 'share-2',  label: 'Message Broker', tag: 'buy', evolves: true },
       { id: 'infra-mail',    x: 83, y: 60, type: 'component', icon: 'mail',     label: 'Email (SMTP)', tag: 'outsource', external: true },
@@ -287,7 +319,18 @@
       ['bc-class', 'bc-notify'], ['bc-support', 'bc-notify'],
       ['bc-notify', 'infra-broker'], ['bc-notify', 'infra-mail'],
       ['bc-eval', 'infra-db'],
+      ['bc-class', 'know-pedagogy'], ['bc-content', 'know-pedagogy'],
+      ['bc-content', 'skill-video'], ['bc-eval', 'exp-assess'],
       ['infra-search', 'infra-compute'], ['infra-broker', 'infra-compute'], ['infra-db', 'infra-compute'],
+    ];
+
+    const BASE_GROUPS = [
+      { label: 'Content Production System', color: '#0d9488', members: ['bc-class', 'bc-content', 'know-pedagogy', 'skill-video'] },
+      { label: 'Learning Delivery System', color: '#c026d3', members: ['bc-studies', 'bc-support', 'bc-notify', 'infra-search'] },
+    ];
+
+    const DENSE_EXTRA_GROUPS = [
+      { label: 'Commerce System', color: '#65a30d', members: ['bc-enroll', 'bc-billing', 'comp-payment'] },
     ];
 
     const DENSE_EXTRA_NODES = [
@@ -335,6 +378,7 @@
     let nodes = [];
     let edges = [];
     let overlays = [];
+    let groups = [];
     let nodeEls = {};
     let edgeEls = [];
     let bandEls = [];
@@ -347,6 +391,7 @@
       nodes = (dense ? BASE_NODES.concat(DENSE_EXTRA_NODES) : BASE_NODES).map((n) => ({ ...n }));
       edges = dense ? BASE_EDGES.concat(DENSE_EXTRA_EDGES) : BASE_EDGES;
       overlays = dense ? BASE_OVERLAYS.concat(DENSE_EXTRA_OVERLAYS) : BASE_OVERLAYS;
+      groups = dense ? BASE_GROUPS.concat(DENSE_EXTRA_GROUPS) : BASE_GROUPS;
       adjacency = {};
       edges.forEach(([a, b]) => {
         (adjacency[a] = adjacency[a] || []).push(b);
@@ -393,6 +438,52 @@
         }
         world.appendChild(el);
       });
+    }
+
+    /* Organic hull per group: convex hull of member positions, expanded by a
+       fat round-joined stroke so it reads as a soft blob like the Value Stream
+       view's group rendering. */
+    function convexHull(points) {
+      const pts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+      if (pts.length < 3) return pts;
+      const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+      const half = (input) => {
+        const out = [];
+        input.forEach((p) => {
+          while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0) out.pop();
+          out.push(p);
+        });
+        out.pop();
+        return out;
+      };
+      return half(pts).concat(half([...pts].reverse()));
+    }
+
+    function groupSvgContent() {
+      return groups.map((g) => {
+        const pts = g.members.map((id) => px(nodeById(id)));
+        const hull = convexHull(pts);
+        const d = 'M ' + hull.map((p) => p.x + ' ' + p.y).join(' L ') + ' Z';
+        const labelX = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+        const labelY = Math.min(...pts.map((p) => p.y)) - 44;
+        return '<g opacity="0.11"><path d="' + d + '" fill="' + g.color + '" stroke="' + g.color + '" stroke-width="64" stroke-linejoin="round" stroke-linecap="round" /></g>'
+          + '<text x="' + labelX + '" y="' + labelY + '" text-anchor="middle" fill="' + g.color + '" font-size="10" font-weight="600">' + g.label + '</text>';
+      }).join('');
+    }
+
+    let groupsSvg = null;
+
+    function renderGroups() {
+      groupsSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      groupsSvg.setAttribute('viewBox', '0 0 ' + MAP_W + ' ' + MAP_H);
+      groupsSvg.setAttribute('preserveAspectRatio', 'none');
+      groupsSvg.classList.add('groups');
+      groupsSvg.innerHTML = groupSvgContent();
+      world.appendChild(groupsSvg);
+    }
+
+    function refreshGroups() {
+      groupsSvg.innerHTML = groupSvgContent();
     }
 
     function edgeSvgContent() {
@@ -447,6 +538,9 @@
       if (n.type === 'user') classes.push('glyph-user');
       if (n.type === 'need') classes.push('glyph-need');
       if (n.type === 'capability') classes.push('glyph-capability');
+      if (n.type === 'skill') classes.push('glyph-skill');
+      if (n.type === 'knowledge') classes.push('glyph-knowledge');
+      if (n.type === 'expertise') classes.push('glyph-expertise');
       if (n.type === 'context') classes.push('glyph-context', 'glyph-' + n.classification);
       if (n.type === 'component') classes.push('glyph-component');
       if (n.external) classes.push('glyph-external');
@@ -540,6 +634,7 @@
           el.style.top = n.y + '%';
           highlightBand(bandIndexFor(n.x));
           refreshEdges();
+          refreshGroups();
         };
 
         const onUp = () => {
@@ -589,6 +684,7 @@
     function render() {
       world.innerHTML = '';
       renderBands();
+      renderGroups();
       renderTeamOverlays();
       renderEdges();
       renderNodes();
@@ -596,6 +692,9 @@
       lucide.createIcons();
     }
 
+    document.getElementById('toggle-groups').addEventListener('change', (e) => {
+      world.classList.toggle('hide-groups', !e.target.checked);
+    });
     document.getElementById('toggle-teams').addEventListener('change', (e) => {
       world.classList.toggle('hide-teams', !e.target.checked);
     });
