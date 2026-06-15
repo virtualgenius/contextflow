@@ -6,6 +6,10 @@ import { Handle, Position } from 'reactflow'
 const STUB_DEFAULT_OPACITY = 0.2
 const STUB_HOVER_OPACITY = 1
 export const STUB_SIZE = 26
+// Transparent hit area around the visible triangle. Larger than STUB_SIZE so
+// the arrow is an easier target; the visible SVG stays STUB_SIZE, centered in
+// this box, so only the clickable region grows (GH #37 follow-up).
+export const STUB_HIT_SIZE = 40
 export const STUB_OFFSET = 16
 const STUB_DEFAULT_COLOR = '#475569'
 const STUB_HOVER_COLOR = '#2563eb'
@@ -77,8 +81,8 @@ function getNubStyle(side: Side, visible: boolean): React.CSSProperties {
   // cursor to traverse the air gap from the node body to the stub.
   const base: React.CSSProperties = {
     position: 'absolute',
-    width: STUB_SIZE,
-    height: STUB_SIZE,
+    width: STUB_HIT_SIZE,
+    height: STUB_HIT_SIZE,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -87,15 +91,17 @@ function getNubStyle(side: Side, visible: boolean): React.CSSProperties {
     opacity: visible ? 1 : 0,
     transition: 'opacity 0.15s',
   }
+  // Centered at STUB_OFFSET outside the edge midpoint, same as a STUB_SIZE box,
+  // so the visible triangle is unchanged while the hit area grows symmetrically.
   switch (side) {
     case 'top':
-      return { ...base, top: -STUB_OFFSET - STUB_SIZE / 2, left: -STUB_SIZE / 2 }
+      return { ...base, top: -STUB_OFFSET - STUB_HIT_SIZE / 2, left: -STUB_HIT_SIZE / 2 }
     case 'right':
-      return { ...base, right: -STUB_OFFSET - STUB_SIZE / 2, top: -STUB_SIZE / 2 }
+      return { ...base, right: -STUB_OFFSET - STUB_HIT_SIZE / 2, top: -STUB_HIT_SIZE / 2 }
     case 'bottom':
-      return { ...base, bottom: -STUB_OFFSET - STUB_SIZE / 2, left: -STUB_SIZE / 2 }
+      return { ...base, bottom: -STUB_OFFSET - STUB_HIT_SIZE / 2, left: -STUB_HIT_SIZE / 2 }
     case 'left':
-      return { ...base, left: -STUB_OFFSET - STUB_SIZE / 2, top: -STUB_SIZE / 2 }
+      return { ...base, left: -STUB_OFFSET - STUB_HIT_SIZE / 2, top: -STUB_HIT_SIZE / 2 }
   }
 }
 

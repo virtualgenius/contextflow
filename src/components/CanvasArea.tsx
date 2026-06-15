@@ -28,7 +28,13 @@ import {
 } from '../lib/blobPositioning'
 import { shouldShowGettingStartedGuide, isSampleProject } from '../model/actions/projectHelpers'
 import { createSelectionState } from '../model/validation'
-import { NODE_SIZES, RELATIONSHIP_MARKER_SIZE, PROBLEM_SPACE_HEIGHT } from '../lib/canvasConstants'
+import {
+  NODE_SIZES,
+  RELATIONSHIP_MARKER_SIZE,
+  PROBLEM_SPACE_HEIGHT,
+  CANVAS_Z,
+  contextNodeZIndex,
+} from '../lib/canvasConstants'
 import { getContextCanvasPosition, clampDragDelta } from '../lib/positionUtils'
 import {
   computeSpawnPoint,
@@ -341,7 +347,7 @@ function CanvasContent() {
         style: {
           width: size.width,
           height: size.height,
-          zIndex: 10,
+          zIndex: contextNodeZIndex(context.id === hoveredContextId),
         },
         width: size.width,
         height: size.height,
@@ -404,7 +410,7 @@ function CanvasContent() {
               style: {
                 width: blobPosition.containerWidth,
                 height: blobPosition.containerHeight,
-                zIndex: 0,
+                zIndex: CANVAS_Z.group,
                 background: 'transparent',
                 border: 'none',
                 borderRadius: 0,
@@ -452,7 +458,7 @@ function CanvasContent() {
               style: {
                 width: 100,
                 height: 50,
-                zIndex: 15, // Above contexts but below user connections
+                zIndex: CANVAS_Z.user,
               },
               width: 100,
               height: 50,
@@ -488,7 +494,7 @@ function CanvasContent() {
                 style: {
                   width: 100,
                   height: 50,
-                  zIndex: 14, // Between users (15) and contexts (10)
+                  zIndex: CANVAS_Z.userNeed,
                 },
                 width: 100,
                 height: 50,
@@ -550,7 +556,7 @@ function CanvasContent() {
               type: 'relationship',
               data: { relationship: rel },
               animated: false,
-              zIndex: isEmphasized ? 9 : 5,
+              zIndex: isEmphasized ? CANVAS_Z.relationshipEmphasized : CANVAS_Z.relationship,
             }
           })
         : []
@@ -565,7 +571,7 @@ function CanvasContent() {
             type: 'userNeedConnection',
             data: { connection: conn },
             animated: false,
-            zIndex: 12,
+            zIndex: CANVAS_Z.userNeedConnection,
           }))
         : []
 
@@ -579,7 +585,7 @@ function CanvasContent() {
             type: 'needContextConnection',
             data: { connection: conn },
             animated: false,
-            zIndex: 11,
+            zIndex: CANVAS_Z.needContextConnection,
           }))
         : []
 

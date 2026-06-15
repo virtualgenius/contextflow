@@ -15,6 +15,27 @@ export const NODE_SIZES = {
   huge: { width: 240, height: 240 },
 }
 
+// Stacking order (z-index) for canvas nodes and connection-line edges.
+// A hovered context is lifted above the connection-line layers so its
+// directional connection arrows (stubs) win pointer hit-testing instead of the
+// wide transparent edge hit paths that would otherwise sit on top (GH #37
+// follow-up). contextHovered stays below the user/userNeed node layers.
+export const CANVAS_Z = {
+  group: 0,
+  relationship: 5,
+  relationshipEmphasized: 9,
+  context: 10,
+  needContextConnection: 11,
+  userNeedConnection: 12,
+  contextHovered: 13,
+  userNeed: 14,
+  user: 15,
+} as const
+
+export function contextNodeZIndex(isHovered: boolean): number {
+  return isHovered ? CANVAS_Z.contextHovered : CANVAS_Z.context
+}
+
 // Edge styling constants
 export const EDGE_HIT_AREA_WIDTH = 20
 export const EDGE_STROKE_WIDTH = { default: 1.5, hover: 2, selected: 2.5 }
