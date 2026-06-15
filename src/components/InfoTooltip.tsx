@@ -2,6 +2,7 @@ import React, { ReactNode, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useEditorStore } from '../model/store'
 import type { ConceptDefinition } from '../model/conceptDefinitions'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface InfoTooltipProps {
   content: ConceptDefinition
@@ -82,8 +83,8 @@ export function InfoTooltip({
     createPortal(
       <div
         ref={tooltipRef}
-        className="fixed z-[9999] pointer-events-none"
-        style={{ left: coords.x, top: coords.y }}
+        className="fixed pointer-events-none"
+        style={{ left: coords.x, top: coords.y, zIndex: Z_LAYERS.dialogTooltip }}
       >
         <div className="w-80 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
           <div className="font-semibold text-sm mb-1">{content.title}</div>

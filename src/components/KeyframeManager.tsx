@@ -3,6 +3,7 @@ import { X, Plus, Trash2, Copy, ChevronRight } from 'lucide-react'
 import type { TemporalKeyframe } from '../model/types'
 import { useEditorStore } from '../model/store'
 import { SimpleTooltip } from './SimpleTooltip'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface KeyframeManagerProps {
   onClose: () => void
@@ -71,7 +72,8 @@ export function KeyframeManager({ onClose }: KeyframeManagerProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center"
+      style={{ zIndex: Z_LAYERS.dialog }}
       onClick={onClose}
     >
       <div

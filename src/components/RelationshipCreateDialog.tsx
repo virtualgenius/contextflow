@@ -2,6 +2,7 @@ import React from 'react'
 import { X, HelpCircle } from 'lucide-react'
 import type { BoundedContext, Relationship, UpstreamRole, DownstreamRole } from '../model/types'
 import { InfoTooltip } from './InfoTooltip'
+import { Z_LAYERS } from '../lib/zLayers'
 import { RELATIONSHIP_PATTERNS } from '../model/conceptDefinitions'
 import { PillGroup, type PillOption } from './inspector/inspectorShared'
 
@@ -79,7 +80,10 @@ export function RelationshipCreateDialog({
     availableContexts.find((c) => c.id === toContextId)?.name || 'Target context'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50"
+      style={{ zIndex: Z_LAYERS.dialog }}
+    >
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[480px] max-w-[90vw] max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-neutral-700">
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-neutral-700">
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">

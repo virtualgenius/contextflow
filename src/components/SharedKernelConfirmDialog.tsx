@@ -1,4 +1,5 @@
 import { X, Layers } from 'lucide-react'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface SharedKernelConfirmDialogProps {
   draggedContextName: string
@@ -17,7 +18,8 @@ export function SharedKernelConfirmDialog({
 }: SharedKernelConfirmDialogProps) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 flex items-center justify-center bg-black/50"
+      style={{ zIndex: Z_LAYERS.dialog }}
       data-testid="shared-kernel-confirm-dialog"
     >
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[440px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">

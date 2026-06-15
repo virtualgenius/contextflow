@@ -1,5 +1,6 @@
 import React from 'react'
 import { AlertCircle, X } from 'lucide-react'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface ImportConflictDialogProps {
   importedProjectName: string
@@ -17,7 +18,10 @@ export function ImportConflictDialog({
   onCancel,
 }: ImportConflictDialogProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50"
+      style={{ zIndex: Z_LAYERS.dialog }}
+    >
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[440px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-neutral-700">

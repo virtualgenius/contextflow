@@ -1,5 +1,6 @@
 import React, { ReactNode, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface SimpleTooltipProps {
   text: string
@@ -69,8 +70,8 @@ export function SimpleTooltip({ text, children, position = 'bottom' }: SimpleToo
     createPortal(
       <div
         ref={tooltipRef}
-        className="fixed z-[9999] pointer-events-none"
-        style={{ left: coords.x, top: coords.y }}
+        className="fixed pointer-events-none"
+        style={{ left: coords.x, top: coords.y, zIndex: Z_LAYERS.tooltip }}
       >
         <div className="px-2 py-1 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded shadow-lg whitespace-nowrap">
           {text}

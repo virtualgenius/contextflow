@@ -1,5 +1,6 @@
 import React from 'react'
 import { useEditorStore } from './model/store'
+import { Z_LAYERS } from './lib/zLayers'
 import { CanvasArea } from './components/CanvasArea'
 import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
@@ -154,7 +155,10 @@ function Workspace() {
 
       {/* Multi-select floating panel */}
       {selectedContextIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-4">
+        <div
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-4"
+          style={{ zIndex: Z_LAYERS.floating }}
+        >
           <div className="text-sm text-slate-700 dark:text-slate-300">
             {selectedContextIds.length} context{selectedContextIds.length !== 1 ? 's' : ''} selected
           </div>
@@ -189,7 +193,10 @@ function Workspace() {
 
       {/* Loading overlay for shared projects */}
       {isLoadingSharedProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+          style={{ zIndex: Z_LAYERS.dialog }}
+        >
           <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl px-8 py-6 flex flex-col items-center gap-4">
             <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
             <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
