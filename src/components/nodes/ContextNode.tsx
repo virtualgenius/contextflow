@@ -7,7 +7,7 @@ import type { BoundedContext } from '../../model/types'
 import { Archive, CloudFog } from 'lucide-react'
 import { getContextTooltipLines } from '../../lib/contextTooltip'
 import { coordinateSpaceFor } from '../../lib/canvasViewModel'
-import { getContextNodeBorderStyle } from '../../lib/nodeStyles'
+import { getContextNodeBorderStyle, OWNERSHIP_FILL_COLORS } from '../../lib/nodeStyles'
 import { NODE_SIZES } from '../../lib/canvasConstants'
 import { InfoTooltip } from '../InfoTooltip'
 import { LEGACY_CONTEXT, BIG_BALL_OF_MUD } from '../../model/conceptDefinitions'
@@ -137,11 +137,6 @@ export function ContextNode({ data }: NodeProps) {
   }
 
   // Fill color based on colorByMode setting
-  const OWNERSHIP_COLORS = {
-    ours: '#d1fae5', // green-100
-    internal: '#dbeafe', // blue-100
-    external: '#fed7aa', // orange-200
-  }
   const STRATEGIC_COLORS = {
     core: '#f8e7a1', // yellow
     supporting: '#dbeafe', // blue
@@ -149,7 +144,7 @@ export function ContextNode({ data }: NodeProps) {
   }
   const fillColor =
     colorByMode === 'ownership'
-      ? OWNERSHIP_COLORS[context.ownership || 'ours']
+      ? OWNERSHIP_FILL_COLORS[context.ownership || 'ours']
       : STRATEGIC_COLORS[context.strategicClassification || 'generic']
 
   // Reserve horizontal space for the absolutely-positioned identity icons in

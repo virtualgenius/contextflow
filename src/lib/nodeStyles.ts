@@ -1,5 +1,11 @@
 import type { ContextOwnership } from '../model/types'
 
+export const OWNERSHIP_FILL_COLORS: Record<ContextOwnership, string> = {
+  ours: '#d1fae5', // green-100
+  internal: '#dbeafe', // blue-100
+  external: '#fed7aa', // orange-200
+}
+
 type BoundaryIntegrity = 'strong' | 'moderate' | 'weak'
 
 interface ContextStyleInput {
