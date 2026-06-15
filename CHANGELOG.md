@@ -4,6 +4,12 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.10.3] - 2026-06-15
+
+- The empty canvas now welcomes you with a Buckminster Fuller quote above the prompt to add your first bounded context
+
+---
+
 ## [0.10.2] - 2026-06-10
 
 - Fixed the Undo and Redo toolbar buttons staying disabled; they now enable as you make changes and work alongside the keyboard shortcuts

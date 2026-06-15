@@ -56,6 +56,7 @@ import { ConnectionGuidanceTooltip } from './ConnectionGuidanceTooltip'
 import { ValueChainGuideModal } from './ValueChainGuideModal'
 import { GettingStartedGuideModal } from './GettingStartedGuideModal'
 import { ContextNode, GroupNode, UserNode, UserNeedNode, ContextDraftNode } from './nodes'
+import { CanvasWelcomeCard } from './CanvasWelcomeCard'
 import { StubConnectionLine } from './StubConnectionLine'
 import {
   RelationshipEdge,
@@ -1598,11 +1599,7 @@ function CanvasContent() {
       </div>
 
       {project && shouldShowAddContextHint(project.contexts.length, !!contextDraft) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="rounded-full border border-dashed border-slate-300 bg-white/70 px-3 py-1.5 text-[13px] text-slate-400 dark:border-neutral-600 dark:bg-neutral-800/70 dark:text-neutral-400">
-            Double-click anywhere to add a context
-          </div>
-        </div>
+        <CanvasWelcomeCard />
       )}
 
       {/* Connection Guidance Tooltip for invalid connections */}
