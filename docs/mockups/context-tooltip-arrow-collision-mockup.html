@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concept tooltip vs top arrow collision - ContextFlow (GH #37)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+    .canvas-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Context card -- approximates the real node (green, slate border) */
+    .ctx {
+      position: absolute;
+      width: 120px;
+      height: 64px;
+      border-radius: 8px;
+      background: #d1fae5;
+      border: 2px solid #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.25), 0 4px 12px rgba(0,0,0,0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: #0f172a;
+      user-select: none;
+    }
+
+    /* Directional arrow stubs -- real geometry: 26px nub, 16px offset, centered on each edge */
+    .stub { position: absolute; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+    .stub svg { width: 26px; height: 26px; }
+    .stub svg path { fill: #475569; opacity: 0.45; transition: opacity .12s, fill .12s; }
+    .stub.top    { left: 50%; top: -29px;    transform: translateX(-50%); }
+    .stub.right  { right: -29px; top: 50%;    transform: translateY(-50%); }
+    .stub.bottom { left: 50%; bottom: -29px;  transform: translateX(-50%); }
+    .stub.left   { left: -29px; top: 50%;     transform: translateY(-50%); }
+
+    /* Concept (rich) hover tooltip -- dark, portalled above the box in the app */
+    .concept-tip {
+      position: absolute;
+      width: 230px;
+      background: #1e293b;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      font-size: 12px;
+      text-align: left;
+      z-index: 60;            /* matches Z_LAYERS.tooltip; floats above the whole canvas */
+    }
+    .concept-tip .title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+    .concept-tip .row { color: #cbd5e1; font-size: 11.5px; display:flex; gap:6px; }
+    .concept-tip .row::before { content: "•"; color:#64748b; }
+
+    /* Stub guidance tooltip -- shown when hovering a stub */
+    .stub-tip {
+      position: absolute;
+      background: #0f172a; color: #fff; font-size: 11px;
+      padding: 4px 8px; border-radius: 4px; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 60;
+    }
+
+    .panel { position: relative; height: 320px; border:1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+    .badge { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; display:inline-block; }
+    .badge.bad { background:#fee2e2; color:#b91c1c; }
+    .badge.good { background:#dcfce7; color:#15803d; }
+    .badge.alt { background:#e0e7ff; color:#4338ca; }
+    .note { font-size: 12.5px; color:#475569; line-height: 1.5; }
+    .arrow-callout { position:absolute; font-size:11px; color:#b91c1c; font-weight:600; }
+  </style>
+</head>
+<body class="bg-white text-slate-800">
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-slate-900">Concept tooltip occludes the top connection arrow</h1>
+    <p class="text-slate-600 mt-1">GH #37 &middot; bead contextflow-46o. On context hover, the rich concept tooltip is anchored just above the top edge of the box, exactly where the upstream arrow lives. The tooltip is a <code>document.body</code> portal at z&nbsp;60; the arrow is sealed inside the React Flow canvas stacking context (root z&nbsp;0), so the tooltip always paints over it. This is a layout collision, not a z-index one.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+
+      <!-- PANEL 1: CURRENT (BUG) -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge bad">Current &mdash; the bug</span>
+          <span class="text-xs text-slate-400">hover the box</span>
+        </div>
+        <div class="panel canvas-bg" id="p1">
+          <!-- concept tooltip: bottom 8px above box top, centered (covers the top arrow) -->
+          <div class="concept-tip" style="left:50%; transform:translateX(-50%); bottom:calc(50% + 32px + 8px);">
+            <div class="title">Orders</div>
+            <div class="row">Click to set ownership</div>
+          </div>
+          <div class="ctx" style="left:50%; top:50%; transform:translate(-50%,-50%);">
+            Orders
+            <div class="stub top"><svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z"/></svg></div>
+            <div class="stub right"><svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg></div>
+            <div class="stub bottom"><svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg></div>
+            <div class="stub left"><svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg></div>
+          </div>
+          <div class="arrow-callout" style="left:50%; top:calc(50% - 52px); transform:translateX(-50%);">&uarr; top arrow hidden behind tooltip</div>
+        </div>
+        <p class="note mt-2">The upstream (top) arrow is rendered at full opacity but completely covered. Left / right / bottom arrows are clear because the tooltip only occupies the band above the box.</p>
+      </div>
+
+      <!-- PANEL 2: FIX, resting -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge good">Recommended &mdash; resting</span>
+          <span class="text-xs text-slate-400">node hovered, no arrow hovered</span>
+        </div>
+        <div class="panel canvas-bg" id="p2">
+          <!-- concept tooltip raised to clear the top arrow (air gap holds the arrow) -->
+          <div class="concept-tip" style="left:50%; transform:translateX(-50%); bottom:calc(50% + 32px + 46px);">
+            <div class="title">Orders</div>
+            <div class="row">Click to set ownership</div>
+          </div>
+          <div class="ctx" style="left:50%; top:50%; transform:translate(-50%,-50%);">
+            Orders
+            <div class="stub top"><svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z" style="opacity:1; fill:#2563eb"/></svg></div>
+            <div class="stub right"><svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg></div>
+            <div class="stub bottom"><svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg></div>
+            <div class="stub left"><svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg></div>
+          </div>
+          <div class="arrow-callout" style="left:50%; top:calc(50% - 60px); transform:translateX(-50%); color:#15803d;">&uarr; top arrow visible from the start</div>
+        </div>
+        <p class="note mt-2">The concept tooltip is raised so its bottom edge clears the top arrow, opening a small air gap the arrow sits in. All four arrows are visible at rest. (Satisfies the reporter's "triangle should be visible from the start.")</p>
+      </div>
+
+      <!-- PANEL 3: FIX, stub hovered -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge good">Recommended &mdash; arrow hovered</span>
+          <span class="text-xs text-slate-400">cursor on the top arrow</span>
+        </div>
+        <div class="panel canvas-bg" id="p3">
+          <!-- concept tooltip hidden; stub guidance takes the space -->
+          <div class="stub-tip" style="left:50%; transform:translateX(-50%); bottom:calc(50% + 32px + 40px);">Click: new upstream &middot; Drag: connect</div>
+          <div class="ctx" style="left:50%; top:50%; transform:translate(-50%,-50%);">
+            Orders
+            <div class="stub top"><svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z" style="opacity:1; fill:#2563eb"/></svg></div>
+            <div class="stub right"><svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg></div>
+            <div class="stub bottom"><svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg></div>
+            <div class="stub left"><svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg></div>
+          </div>
+        </div>
+        <p class="note mt-2">As soon as a stub is hovered, the concept tooltip is suppressed so the stub's own guidance owns the space. Prevents the two tooltips stacking on top of each other (the reporter's Firefox case).</p>
+      </div>
+
+      <!-- PANEL 4: ALTERNATIVE corner anchor -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge alt">Alternative &mdash; corner anchor</span>
+          <span class="text-xs text-slate-400">for comparison</span>
+        </div>
+        <div class="panel canvas-bg" id="p4">
+          <!-- concept tooltip anchored up-and-left of the top-left corner; arrows centered on edges stay clear -->
+          <div class="concept-tip" style="right:calc(50% + 8px); bottom:calc(50% + 24px);">
+            <div class="title">Orders</div>
+            <div class="row">Click to set ownership</div>
+          </div>
+          <div class="ctx" style="left:50%; top:50%; transform:translate(-50%,-50%);">
+            Orders
+            <div class="stub top"><svg viewBox="0 0 18 18"><path d="M9 1 L17 13 L1 13 Z" style="opacity:1; fill:#2563eb"/></svg></div>
+            <div class="stub right"><svg viewBox="0 0 18 18"><path d="M17 9 L5 17 L5 1 Z"/></svg></div>
+            <div class="stub bottom"><svg viewBox="0 0 18 18"><path d="M9 17 L1 5 L17 5 Z"/></svg></div>
+            <div class="stub left"><svg viewBox="0 0 18 18"><path d="M1 9 L13 1 L13 17 Z"/></svg></div>
+          </div>
+        </div>
+        <p class="note mt-2">Anchor the concept tooltip diagonally off a corner. Stubs are edge-centered, so corners are free; all arrows stay clear without raising. Larger change to a long-standing tooltip position, and near map edges it would need flip logic.</p>
+      </div>
+
+    </div>
+
+    <div class="mt-8 p-4 rounded-lg bg-slate-50 border border-slate-200">
+      <h2 class="font-semibold text-slate-900">Recommendation</h2>
+      <p class="note mt-1">Ship panels 2 + 3 together: raise the resting concept tooltip to clear the top arrow, and suppress the concept tooltip whenever a stub is hovered so the stub guidance takes over. This keeps both affordances usable, needs no change to the React Flow stacking model, and is the smallest change that resolves both the occlusion and the two-tooltips-overlapping case.</p>
+    </div>
+  </div>
+</body>
+</html>
