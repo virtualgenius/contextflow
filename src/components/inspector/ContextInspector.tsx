@@ -20,8 +20,6 @@ import {
   Activity,
   Archive,
   CloudFog,
-  Building2,
-  ExternalLink,
   DollarSign,
   Heart,
   Shield,
@@ -53,6 +51,7 @@ import {
 } from '../../model/conceptDefinitions'
 import type { ContextOwnership, Project } from '../../model/types'
 import { getConnectedUsers, categorizeRelationships } from '../../lib/inspectorHelpers'
+import { OWNERSHIP_FILL_COLORS } from '../../lib/nodeStyles'
 import { RepoCard } from './ContextRepoCard'
 import { RelationshipGroup } from './RelationshipGroup'
 import { IssueSeverityButton } from './IssueSeverityButton'
@@ -75,18 +74,20 @@ type CodeSizeBucket = NonNullable<NonNullable<Project['contexts'][number]['codeS
 
 const PILL_ICON_CLASS = 'mr-1 align-middle text-current'
 
+function OwnershipSwatch({ ownership }: { ownership: ContextOwnership }) {
+  return (
+    <span
+      aria-hidden
+      className="inline-block rounded-[2px] mr-1.5 align-middle ring-1 ring-black/10 dark:ring-white/15"
+      style={{ width: 12, height: 12, backgroundColor: OWNERSHIP_FILL_COLORS[ownership] }}
+    />
+  )
+}
+
 const OWNERSHIP_OPTIONS: ReadonlyArray<PillOption<ContextOwnership>> = [
-  { value: 'ours', label: 'Our Team', adornment: <Users size={12} className={PILL_ICON_CLASS} /> },
-  {
-    value: 'internal',
-    label: 'Internal',
-    adornment: <Building2 size={12} className={PILL_ICON_CLASS} />,
-  },
-  {
-    value: 'external',
-    label: 'External',
-    adornment: <ExternalLink size={12} className={PILL_ICON_CLASS} />,
-  },
+  { value: 'ours', label: 'Our Team', adornment: <OwnershipSwatch ownership="ours" /> },
+  { value: 'internal', label: 'Internal', adornment: <OwnershipSwatch ownership="internal" /> },
+  { value: 'external', label: 'External', adornment: <OwnershipSwatch ownership="external" /> },
 ]
 
 const ROLE_OPTIONS: ReadonlyArray<PillOption<BusinessModelRole>> = [
@@ -375,7 +376,7 @@ export function ContextInspector({ project, contextId }: { project: Project; con
             value={(context.ownership || 'ours') as ContextOwnership}
             onChange={(next) => handleUpdate({ ownership: (next ?? 'ours') as ContextOwnership })}
             layout="horizontal"
-            variant="green"
+            variant="slate"
             labelId={`field-ownership-${context.id}`}
           />
         </div>
