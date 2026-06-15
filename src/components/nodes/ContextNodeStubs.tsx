@@ -5,8 +5,8 @@ import { Handle, Position } from 'reactflow'
 
 const STUB_DEFAULT_OPACITY = 0.2
 const STUB_HOVER_OPACITY = 1
-const STUB_SIZE = 26
-const STUB_OFFSET = 16
+export const STUB_SIZE = 26
+export const STUB_OFFSET = 16
 const STUB_DEFAULT_COLOR = '#475569'
 const STUB_HOVER_COLOR = '#2563eb'
 const SIDE_SPAWN_LABEL: Record<Side, string> = {
@@ -132,7 +132,15 @@ function computeTooltipPosition(
   }
 }
 
-function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boolean }) {
+function ContextStub({
+  side,
+  parentHovered,
+  onHoverChange,
+}: {
+  side: Side
+  parentHovered: boolean
+  onHoverChange: (side: Side, hovered: boolean) => void
+}) {
   const [stubHovered, setStubHovered] = React.useState(false)
   const nubRef = React.useRef<HTMLDivElement>(null)
   const tooltipRef = React.useRef<HTMLDivElement>(null)
@@ -182,8 +190,14 @@ function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boole
         ref={nubRef}
         className="source"
         data-context-stub={side}
-        onMouseEnter={() => setStubHovered(true)}
-        onMouseLeave={() => setStubHovered(false)}
+        onMouseEnter={() => {
+          setStubHovered(true)
+          onHoverChange(side, true)
+        }}
+        onMouseLeave={() => {
+          setStubHovered(false)
+          onHoverChange(side, false)
+        }}
         style={getNubStyle(side, parentHovered)}
       >
         <svg
@@ -204,13 +218,35 @@ function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boole
   )
 }
 
-export function ContextNodeStubs({ visible }: { visible: boolean }) {
+export function ContextNodeStubs({
+  visible,
+  onStubHoveredChange,
+}: {
+  visible: boolean
+  onStubHoveredChange?: (hovered: boolean) => void
+}) {
+  const [hoveredSides, setHoveredSides] = React.useState<Set<Side>>(() => new Set())
+
+  const handleHoverChange = React.useCallback((side: Side, hovered: boolean) => {
+    setHoveredSides((prev) => {
+      const next = new Set(prev)
+      if (hovered) next.add(side)
+      else next.delete(side)
+      return next
+    })
+  }, [])
+
+  const anyStubHovered = hoveredSides.size > 0
+  React.useEffect(() => {
+    onStubHoveredChange?.(anyStubHovered)
+  }, [anyStubHovered, onStubHoveredChange])
+
   return (
     <>
-      <ContextStub side="top" parentHovered={visible} />
-      <ContextStub side="right" parentHovered={visible} />
-      <ContextStub side="bottom" parentHovered={visible} />
-      <ContextStub side="left" parentHovered={visible} />
+      <ContextStub side="top" parentHovered={visible} onHoverChange={handleHoverChange} />
+      <ContextStub side="right" parentHovered={visible} onHoverChange={handleHoverChange} />
+      <ContextStub side="bottom" parentHovered={visible} onHoverChange={handleHoverChange} />
+      <ContextStub side="left" parentHovered={visible} onHoverChange={handleHoverChange} />
     </>
   )
 }

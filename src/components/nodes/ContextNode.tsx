@@ -11,8 +11,14 @@ import { getContextNodeBorderStyle } from '../../lib/nodeStyles'
 import { NODE_SIZES } from '../../lib/canvasConstants'
 import { InfoTooltip } from '../InfoTooltip'
 import { LEGACY_CONTEXT, BIG_BALL_OF_MUD } from '../../model/conceptDefinitions'
-import { ContextNodeStubs } from './ContextNodeStubs'
+import { ContextNodeStubs, STUB_OFFSET, STUB_SIZE } from './ContextNodeStubs'
 import { IssueCounterPill } from './IssueCounterPill'
+
+// The concept tooltip is anchored above the top edge, where the upstream stub
+// also sits. Lift its bottom edge above the stub's outer reach (plus a gap) so
+// the top arrow stays visible from the start instead of being covered (GH #37).
+const CONCEPT_TOOLTIP_TOP_GAP = 8
+export const CONCEPT_TOOLTIP_STUB_CLEARANCE = STUB_OFFSET + STUB_SIZE / 2 + CONCEPT_TOOLTIP_TOP_GAP
 
 // Custom node component
 export function ContextNode({ data }: NodeProps) {
@@ -22,6 +28,7 @@ export function ContextNode({ data }: NodeProps) {
   const opacity = data.opacity as number | undefined
   const [isHovered, setIsHovered] = React.useState(false)
   const [showTooltip, setShowTooltip] = React.useState(false)
+  const [isStubHovered, setIsStubHovered] = React.useState(false)
   const [isDragOver, setIsDragOver] = React.useState(false)
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number } | null>(null)
   const assignRepoToContext = useEditorStore((s) => s.assignRepoToContext)
@@ -55,7 +62,7 @@ export function ContextNode({ data }: NodeProps) {
     const rect = nodeRef.current.getBoundingClientRect()
     return {
       x: rect.left + rect.width / 2,
-      y: rect.top - 8,
+      y: rect.top - CONCEPT_TOOLTIP_STUB_CLEARANCE,
     }
   }
 
@@ -218,7 +225,7 @@ export function ContextNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Top} id="top" />
 
       {/* Hover-revealed directional source stubs on all four sides (GH #22) */}
-      <ContextNodeStubs visible={isHovered} />
+      <ContextNodeStubs visible={isHovered} onStubHoveredChange={setIsStubHovered} />
 
       <div
         style={{
@@ -344,9 +351,11 @@ export function ContextNode({ data }: NodeProps) {
         </div>
       )}
 
-      {/* Rich tooltip on hover */}
+      {/* Rich tooltip on hover. Suppressed while a stub is hovered so the
+         stub's own guidance owns the space above the box (GH #37). */}
       {showHelpTooltips &&
         showTooltip &&
+        !isStubHovered &&
         (() => {
           const tooltipPos = getTooltipPosition()
           const lines = getContextTooltipLines({

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { ReactNode } from 'react'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { ContextNode } from '../ContextNode'
 import { useEditorStore } from '../../../model/store'
@@ -9,10 +10,18 @@ vi.mock('../../../model/store', () => ({
 }))
 
 vi.mock('reactflow', () => ({
-  Position: { Left: 'left', Right: 'right', Top: 'top' },
-  Handle: ({ type, position, id }: { type: string; position: string; id?: string }) => (
-    <div data-testid={`handle-${type}-${position}${id ? `-${id}` : ''}`} />
-  ),
+  Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
+  Handle: ({
+    type,
+    position,
+    id,
+    children,
+  }: {
+    type: string
+    position: string
+    id?: string
+    children?: ReactNode
+  }) => <div data-testid={`handle-${type}-${position}${id ? `-${id}` : ''}`}>{children}</div>,
 }))
 
 const mockSetHoveredContext = vi.fn()
@@ -133,6 +142,55 @@ describe('ContextNode tooltip timing', () => {
       fireEvent.mouseLeave(node)
     })
     expect(findRichTooltip()).toBeNull()
+  })
+
+  function findConceptTooltip() {
+    return (
+      [...document.querySelectorAll('.fixed.pointer-events-none')].find((el) =>
+        el.textContent?.includes('Process customer orders')
+      ) ?? null
+    )
+  }
+
+  it('hides the concept tooltip while a directional stub is hovered (GH #37)', () => {
+    setupStoreMock(true)
+    renderContextNode(makeContext())
+
+    const node = screen.getByText('Orders').closest('div[style]')!.parentElement!
+
+    act(() => {
+      fireEvent.mouseEnter(node)
+    })
+    expect(findConceptTooltip()).not.toBeNull()
+
+    const topStub = document.querySelector('[data-context-stub="top"]')!
+    act(() => {
+      fireEvent.mouseEnter(topStub)
+    })
+    expect(findConceptTooltip()).toBeNull()
+  })
+
+  it('restores the concept tooltip when the stub is no longer hovered', () => {
+    setupStoreMock(true)
+    renderContextNode(makeContext())
+
+    const node = screen.getByText('Orders').closest('div[style]')!.parentElement!
+    act(() => {
+      fireEvent.mouseEnter(node)
+    })
+
+    const topStub = document.querySelector('[data-context-stub="top"]')!
+    act(() => {
+      fireEvent.mouseEnter(topStub)
+    })
+    expect(findConceptTooltip()).toBeNull()
+
+    // Cursor moves from the stub back onto the node body (relatedTarget = node),
+    // so the node stays hovered and the concept tooltip returns.
+    act(() => {
+      fireEvent.mouseLeave(topStub, { relatedTarget: node })
+    })
+    expect(findConceptTooltip()).not.toBeNull()
   })
 
   it('hides hover tooltip on mouseDown', () => {
