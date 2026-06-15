@@ -14,6 +14,7 @@ import {
   tangentBezierPath,
 } from '../../lib/edgeGeometry'
 import { boxesOverlap } from '../../lib/sharedKernelGeometry'
+import { Z_LAYERS } from '../../lib/zLayers'
 import {
   ARROW_MARKER_LENGTH,
   EDGE_ENDPOINT_GAP,
@@ -322,8 +323,13 @@ function RelationshipEdge({
 
     return createPortal(
       <div
-        className="fixed z-[9999] pointer-events-none"
-        style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
+        className="fixed pointer-events-none"
+        style={{
+          left: tooltipX,
+          top: tooltipY,
+          transform: 'translateY(-100%)',
+          zIndex: Z_LAYERS.tooltip,
+        }}
       >
         <div className="w-80 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
           <div className="font-semibold text-sm mb-1">{indicatorContent.title}</div>
@@ -456,8 +462,13 @@ function RelationshipEdge({
 
           return createPortal(
             <div
-              className="fixed z-[9999] pointer-events-none"
-              style={{ left: tooltipX, top: tooltipY, transform: 'translateY(-100%)' }}
+              className="fixed pointer-events-none"
+              style={{
+                left: tooltipX,
+                top: tooltipY,
+                transform: 'translateY(-100%)',
+                zIndex: Z_LAYERS.tooltip,
+              }}
             >
               <div className="w-80 p-3 bg-slate-800 dark:bg-slate-700 text-white rounded-lg shadow-lg text-left">
                 <div className="font-semibold text-sm mb-1">{patternContent.title}</div>

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { Z_LAYERS } from '../../lib/zLayers'
 import { AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import type { Issue, IssueSeverity } from '../../model/types'
 
@@ -103,8 +104,9 @@ export function IssueCounterPill({ issues, onSelect }: IssueCounterPillProps) {
         createPortal(
           <div
             data-testid="issue-counter-tooltip"
-            className="fixed z-[9999] pointer-events-none"
+            className="fixed pointer-events-none"
             style={{
+              zIndex: Z_LAYERS.tooltip,
               left: Math.max(8, Math.min(coords.x - 128, window.innerWidth - 264)),
               top: coords.y,
               transform: 'translateY(-100%)',

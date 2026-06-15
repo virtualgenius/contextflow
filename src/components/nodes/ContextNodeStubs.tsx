@@ -1,5 +1,6 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
+import { Z_LAYERS } from '../../lib/zLayers'
 import { Handle, Position } from 'reactflow'
 
 const STUB_DEFAULT_OPACITY = 0.2
@@ -156,8 +157,8 @@ function ContextStub({ side, parentHovered }: { side: Side; parentHovered: boole
     createPortal(
       <div
         ref={tooltipRef}
-        className="fixed z-[9999] pointer-events-none"
-        style={{ left: coords.left, top: coords.top }}
+        className="fixed pointer-events-none"
+        style={{ left: coords.left, top: coords.top, zIndex: Z_LAYERS.tooltip }}
       >
         <div
           className="px-2 py-1 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded shadow-lg"

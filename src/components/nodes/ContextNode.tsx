@@ -1,5 +1,6 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
+import { Z_LAYERS } from '../../lib/zLayers'
 import { NodeProps, Position, Handle } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { BoundedContext } from '../../model/types'
@@ -326,8 +327,8 @@ export function ContextNode({ data }: NodeProps) {
       {/* Context Menu */}
       {contextMenu && activeKeyframeId && project?.temporal && (
         <div
-          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1 z-50"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
+          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1"
+          style={{ left: contextMenu.x, top: contextMenu.y, zIndex: Z_LAYERS.popover }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -362,8 +363,9 @@ export function ContextNode({ data }: NodeProps) {
 
           return createPortal(
             <div
-              className="fixed z-[9999] pointer-events-none"
+              className="fixed pointer-events-none"
               style={{
+                zIndex: Z_LAYERS.tooltip,
                 left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
                 top: tooltipPos.y,
                 transform: 'translateY(-100%)',

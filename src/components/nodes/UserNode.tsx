@@ -1,5 +1,6 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
+import { Z_LAYERS } from '../../lib/zLayers'
 import { NodeProps, Position, Handle, useViewport } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { User as UserType } from '../../model/types'
@@ -103,8 +104,9 @@ export function UserNode({ data }: NodeProps) {
         hasTooltipContent &&
         createPortal(
           <div
-            className="fixed z-[9999] pointer-events-none"
+            className="fixed pointer-events-none"
             style={{
+              zIndex: Z_LAYERS.tooltip,
               left: Math.max(8, Math.min(tooltipPos.x - 128, window.innerWidth - 264)),
               top: tooltipPos.y,
               transform: 'translateY(-100%)',

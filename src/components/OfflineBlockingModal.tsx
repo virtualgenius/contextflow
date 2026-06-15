@@ -1,6 +1,7 @@
 import React from 'react'
 import { WifiOff, RefreshCw, Loader2 } from 'lucide-react'
 import { useCollabStore } from '../model/collabStore'
+import { Z_LAYERS } from '../lib/zLayers'
 
 export function OfflineBlockingModal() {
   const connectionState = useCollabStore((s) => s.connectionState)
@@ -43,7 +44,10 @@ export function OfflineBlockingModal() {
     : 'To access this shared project, you need to be connected to the internet.'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+      style={{ zIndex: Z_LAYERS.dialog }}
+    >
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[400px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-200 dark:border-neutral-700">

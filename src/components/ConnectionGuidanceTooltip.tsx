@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface ConnectionGuidanceTooltipProps {
   sourceType: 'user' | 'userNeed' | 'context'
@@ -131,8 +132,8 @@ export function ConnectionGuidanceTooltip({
   return (
     <div
       ref={ref}
-      className="fixed z-50 animate-in fade-in slide-in-from-top-2 duration-200"
-      style={{ left, top }}
+      className="fixed animate-in fade-in slide-in-from-top-2 duration-200"
+      style={{ left, top, zIndex: Z_LAYERS.popover }}
     >
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl border border-slate-200 dark:border-neutral-700 p-4 w-[280px]">
         {/* Diagram */}

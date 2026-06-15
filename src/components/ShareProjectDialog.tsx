@@ -3,6 +3,7 @@ import { X, Link2, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react'
 import { useCollabStore } from '../model/collabStore'
 import { useEditorStore } from '../model/store'
 import { trackEvent } from '../utils/analytics'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface ShareProjectDialogProps {
   projectId: string
@@ -73,7 +74,10 @@ export function ShareProjectDialog({ projectId, projectName, onClose }: SharePro
   // Pre-share confirmation screen
   if (showConfirmation) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black/50"
+        style={{ zIndex: Z_LAYERS.dialog }}
+      >
         <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[440px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-neutral-700">
@@ -156,7 +160,10 @@ export function ShareProjectDialog({ projectId, projectName, onClose }: SharePro
 
   // Share URL screen
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50"
+      style={{ zIndex: Z_LAYERS.dialog }}
+    >
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl w-[480px] max-w-[90vw] border border-slate-200 dark:border-neutral-700">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-neutral-700">

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useEditorStore } from '../model/store'
 import type { TemporalKeyframe } from '../model/types'
 import { dateToNumeric, findNearestKeyframe, shouldSnapToKeyframe } from '../lib/temporal'
+import { Z_LAYERS } from '../lib/zLayers'
 import { Copy, Trash2, X, Calendar, Play, Pause, HelpCircle } from 'lucide-react'
 import { InfoTooltip } from './InfoTooltip'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -475,8 +476,12 @@ export function TimeSlider() {
       {/* Context Menu */}
       {contextMenuKeyframe && (
         <div
-          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1 z-50"
-          style={{ left: contextMenuKeyframe.x, top: contextMenuKeyframe.y }}
+          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1"
+          style={{
+            left: contextMenuKeyframe.x,
+            top: contextMenuKeyframe.y,
+            zIndex: Z_LAYERS.popover,
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <button

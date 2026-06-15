@@ -89,7 +89,7 @@ describe('ContextNode tooltip timing', () => {
   })
 
   function findRichTooltip() {
-    return document.querySelector('.fixed.z-\\[9999\\].pointer-events-none')
+    return document.querySelector('.fixed.pointer-events-none')
   }
 
   it('shows hover tooltip instantly on mouseEnter when showHelpTooltips is enabled (no 500ms delay)', () => {

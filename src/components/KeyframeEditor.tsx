@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import type { TemporalKeyframe } from '../model/types'
+import { Z_LAYERS } from '../lib/zLayers'
 
 interface KeyframeEditorProps {
   keyframe: TemporalKeyframe
@@ -38,7 +39,8 @@ export function KeyframeEditor({ keyframe, onClose, onUpdate, onDelete }: Keyfra
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center"
+      style={{ zIndex: Z_LAYERS.dialog }}
       onClick={onClose}
     >
       <div
