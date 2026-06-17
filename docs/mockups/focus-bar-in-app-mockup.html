@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Bar & Focus Button (in-app) - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; }
+    svg text { user-select: none; }
+    svg .node { cursor: pointer; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-[1300px] mx-auto">
+    <p class="text-sm text-slate-600 mb-3 max-w-4xl">
+      The "what's near" slice inside the real app shell. <b>Select a context</b> on the canvas, then hit
+      <b>Focus</b> in the inspector. A <b>focus bar</b> appears over the canvas with a hop stepper; everything outside
+      the neighborhood dims. No direction, no patterns, no saved views &mdash; just proximity. Click <em>Order
+      Management</em> (or any node), then <em>Focus</em>.
+    </p>
+
+    <!-- ============ APP SHELL ============ -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style="height: 760px; display:flex; flex-direction:column;">
+
+      <!-- TopBar (matches the real header) -->
+      <header class="flex items-center gap-4 px-5 py-3 border-b border-slate-200 bg-white flex-shrink-0">
+        <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+        <span class="text-slate-400">&bull;</span>
+        <span class="text-sm text-slate-600 font-medium">ACME E-Commerce Platform</span>
+
+        <div class="ml-4 flex items-center gap-1 bg-slate-50 rounded-lg px-1.5 py-1">
+          <button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-white hover:shadow-sm">
+            <span class="text-slate-400">+</span> <span>Context</span>
+          </button>
+        </div>
+
+        <div class="ml-auto flex items-center gap-2">
+          <div class="flex items-center bg-slate-100 rounded-lg p-1">
+            <button class="px-3 py-1.5 text-xs font-medium rounded bg-white text-slate-900 shadow-sm">Context Map</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900">Value Stream</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900">Distillation</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900">Strategic</button>
+          </div>
+          <div class="w-px h-5 bg-slate-200"></div>
+          <button class="p-1.5 rounded text-slate-600 hover:bg-slate-100" title="Undo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          </button>
+          <button class="p-1.5 rounded text-slate-600 hover:bg-slate-100" title="Settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Body: canvas + inspector -->
+      <div class="flex-1 flex min-h-0">
+
+        <!-- Canvas region -->
+        <div class="relative flex-1 min-w-0 bg-[#fafbfc]">
+
+          <!-- ===== FOCUS BAR (overlay, only when focus active) ===== -->
+          <div id="focus-bar" class="absolute top-3 left-1/2 -translate-x-1/2 z-10 hidden items-center gap-2.5 bg-white border border-slate-200 rounded-lg shadow-md px-2.5 py-1.5 text-xs">
+            <span class="flex items-center gap-1.5 text-blue-600">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+              <span class="font-medium text-slate-500">Focused on</span>
+            </span>
+            <span id="focus-subject" class="inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-md px-2 py-0.5">
+              <span id="focus-dot" class="w-2.5 h-2.5 rounded-full"></span>
+              <span id="focus-subject-name">Order Management</span>
+            </span>
+
+            <div class="w-px h-5 bg-slate-200"></div>
+
+            <span class="text-slate-500 font-medium">Adjacency</span>
+            <div class="flex items-center bg-slate-100 rounded-md p-0.5" id="hop-seg">
+              <button data-depth="0" class="px-2 py-0.5 text-[11px] font-medium rounded text-slate-600">just this</button>
+              <button data-depth="1" class="px-2 py-0.5 text-[11px] font-medium rounded bg-white text-slate-900 shadow-sm">+1 hop</button>
+              <button data-depth="2" class="px-2 py-0.5 text-[11px] font-medium rounded text-slate-600">+2 hops</button>
+            </div>
+
+            <div class="w-px h-5 bg-slate-200"></div>
+
+            <span id="focus-count" class="text-slate-500 tabular-nums">8 of 19</span>
+
+            <button id="focus-clear" class="ml-0.5 p-1 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600" title="Clear focus">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <svg id="stage" viewBox="0 0 1180 720" class="w-full h-full"></svg>
+
+          <div class="absolute bottom-3 left-3 text-[11px] text-slate-400">
+            Team entry point (not wired here): clicking a team in the team sidebar focuses all of its contexts as the seed.
+          </div>
+        </div>
+
+        <!-- Inspector panel (matches the real right sidebar) -->
+        <aside class="w-[320px] flex-shrink-0 border-l border-slate-200 bg-white p-4 overflow-y-auto">
+          <!-- Inspector header: name + Focus button + close -->
+          <div class="flex items-start gap-1.5 -mt-1 -mr-1">
+            <div class="flex-1 min-w-0">
+              <input id="insp-name" type="text" value="Order Management"
+                class="w-full font-semibold text-sm text-slate-900 leading-tight bg-transparent border border-transparent hover:border-slate-300 rounded px-2 py-0.5 -ml-2 outline-none" />
+            </div>
+            <button id="focus-btn"
+              class="flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+              <span id="focus-btn-label">Focus</span>
+            </button>
+            <button class="p-1.5 rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors flex-shrink-0" title="Close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <textarea id="insp-purpose" rows="2" readonly
+            class="mt-3 w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none resize-none">Coordinates order lifecycle from placement through fulfillment.</textarea>
+
+          <div class="mt-3">
+            <div class="text-[11px] font-semibold text-slate-500 mb-2 uppercase tracking-wider">Team</div>
+            <div id="insp-team" class="text-[13px] text-slate-700 flex items-center gap-2">
+              <span id="insp-team-dot" class="w-2.5 h-2.5 rounded-full"></span>
+              <span id="insp-team-name">Fulfillment &amp; Logistics</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 leading-relaxed">
+            The <b>Focus</b> button seeds a proximity view on the selected context. It toggles: press again (or use the
+            focus bar's &times;) to clear. Focus is transient working state, like zoom &mdash; it isn't saved with the project.
+          </div>
+        </aside>
+
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-3 max-w-4xl">
+      Notes: the canvas, top bar, and inspector reuse the app's real Tailwind classes. The dimming reuses the same
+      treatment the app already applies to non-connected contexts when you select a group or relationship. Hop default
+      is <b>+1</b>. Everything here is the first slice only.
+    </p>
+  </div>
+
+  <script>
+    const TEAMS = {
+      'customer-experience': { name: 'Customer Experience', stroke: '#0284c7', fill: '#e0f2fe' },
+      'checkout':            { name: 'Checkout & Cart',     stroke: '#e11d48', fill: '#ffe4e6' },
+      'payments':            { name: 'Payments',            stroke: '#7c3aed', fill: '#ede9fe' },
+      'fulfillment':         { name: 'Fulfillment & Logistics', stroke: '#d97706', fill: '#fef3c7' },
+      'platform':            { name: 'Platform Engineering', stroke: '#4338ca', fill: '#e0e7ff' },
+      'data-engineering':    { name: 'Data Engineering',    stroke: '#059669', fill: '#d1fae5' },
+      'operations':          { name: 'Operations (Legacy)', stroke: '#57534e', fill: '#f5f5f4' },
+      'unassigned':          { name: 'unassigned / external', stroke: '#94a3b8', fill: '#f8fafc', dashed: true },
+    };
+
+    const NODE_W = 150, NODE_H = 48;
+
+    const NODES = [
+      { id: 'storefront',      label: 'Storefront',        team: 'customer-experience', x: 120,  y: 120, purpose: 'Customer-facing web and mobile entry point.' },
+      { id: 'cart',            label: 'Shopping Cart',     team: 'checkout',            x: 355,  y: 120, purpose: 'Holds selected items before checkout.' },
+      { id: 'checkout',        label: 'Checkout',          team: 'checkout',            x: 585,  y: 120, purpose: 'Places orders and collects payment intent.' },
+      { id: 'orders',          label: 'Order Management',  team: 'fulfillment',         x: 815,  y: 120, purpose: 'Coordinates order lifecycle from placement through fulfillment.' },
+      { id: 'customerService', label: 'Customer Service',  team: 'customer-experience', x: 1045, y: 120, purpose: 'Agent portal for order support.' },
+
+      { id: 'search',          label: 'Search & Discovery',team: 'customer-experience', x: 120,  y: 270, purpose: 'Product search and discovery.' },
+      { id: 'catalog',         label: 'Product Catalog',   team: 'customer-experience', x: 355,  y: 270, purpose: 'System of record for products.' },
+      { id: 'payment',         label: 'Payment Processing',team: 'payments',            x: 585,  y: 270, purpose: 'Authorizes and captures payments.' },
+      { id: 'inventory',       label: 'Inventory',         team: 'fulfillment',         x: 815,  y: 270, purpose: 'Tracks stock levels and reservations.' },
+      { id: 'notifications',   label: 'Notifications',     team: 'platform',            x: 1045, y: 270, purpose: 'Customer email/SMS notifications.' },
+
+      { id: 'identity',        label: 'Identity & Access', team: 'platform',            x: 120,  y: 430, purpose: 'Customer identity and access.' },
+      { id: 'recommendations', label: 'Recommendations',   team: 'data-engineering',    x: 345,  y: 430, purpose: 'Personalized product recommendations.' },
+      { id: 'taxCalculation',  label: 'Tax Calculation',   team: 'unassigned',          x: 525,  y: 430, purpose: 'Third-party tax calculation service.' },
+      { id: 'fraudDetection',  label: 'Fraud Detection',   team: 'unassigned',          x: 680,  y: 430, purpose: 'Third-party fraud scoring.' },
+      { id: 'shipping',        label: 'Shipping',          team: 'fulfillment',         x: 830,  y: 430, purpose: 'Carrier integration and label generation.' },
+      { id: 'analytics',       label: 'Analytics',         team: 'data-engineering',    x: 1045, y: 430, purpose: 'Reporting and data warehouse feeds.' },
+
+      { id: 'stripe',          label: 'Stripe Gateway',    team: 'unassigned',          x: 585,  y: 580, purpose: 'External payment gateway.' },
+      { id: 'warehouse',       label: 'Warehouse (Legacy)',team: 'operations',          x: 830,  y: 580, purpose: 'Legacy warehouse management system.' },
+      { id: 'carriers',        label: 'Shipping Carriers', team: 'unassigned',          x: 1010, y: 580, purpose: 'UPS / FedEx / USPS integrations.' },
+    ];
+
+    // undirected adjacency for the "what's near" slice (pattern ignored)
+    const EDGES = [
+      ['storefront', 'catalog'], ['storefront', 'search'], ['storefront', 'cart'],
+      ['storefront', 'identity'], ['storefront', 'recommendations'], ['search', 'catalog'],
+      ['cart', 'catalog'], ['cart', 'inventory'], ['checkout', 'cart'], ['checkout', 'payment'],
+      ['checkout', 'orders'], ['checkout', 'inventory'], ['checkout', 'taxCalculation'],
+      ['payment', 'stripe'], ['payment', 'fraudDetection'], ['orders', 'inventory'],
+      ['orders', 'shipping'], ['inventory', 'warehouse'], ['shipping', 'carriers'],
+      ['notifications', 'orders'], ['notifications', 'shipping'], ['customerService', 'orders'],
+      ['analytics', 'catalog'], ['analytics', 'orders'], ['analytics', 'warehouse'],
+      ['recommendations', 'catalog'], ['recommendations', 'orders'],
+    ];
+
+    const nodeById = Object.fromEntries(NODES.map((n) => [n.id, n]));
+    const state = { selectedId: 'orders', focus: null }; // focus = { id, depth }
+
+    function neighbors(id) {
+      const res = [];
+      EDGES.forEach(([s, t]) => { if (s === id) res.push(t); if (t === id) res.push(s); });
+      return res;
+    }
+    function neighborhood(id, depth) {
+      const dist = new Map([[id, 0]]);
+      let frontier = [id];
+      for (let d = 1; d <= depth; d++) {
+        const next = [];
+        frontier.forEach((nid) => neighbors(nid).forEach((nb) => {
+          if (!dist.has(nb)) { dist.set(nb, d); next.push(nb); }
+        }));
+        frontier = next;
+      }
+      return new Set(dist.keys());
+    }
+
+    function borderPoint(node, tx, ty) {
+      const dx = tx - node.x, dy = ty - node.y, hw = NODE_W / 2 + 3, hh = NODE_H / 2 + 3;
+      const s = Math.min(dx === 0 ? Infinity : hw / Math.abs(dx), dy === 0 ? Infinity : hh / Math.abs(dy));
+      return { x: node.x + dx * s, y: node.y + dy * s };
+    }
+
+    const stage = document.getElementById('stage');
+
+    function render() {
+      const set = state.focus ? neighborhood(state.focus.id, state.focus.depth) : null;
+      const inFocus = (id) => !set || set.has(id);
+
+      let svg = '<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker><marker id="arwd" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="#e2e8f0"/></marker></defs>';
+
+      EDGES.forEach(([s, t]) => {
+        const a = nodeById[s], b = nodeById[t];
+        const lit = inFocus(s) && inFocus(t);
+        const p1 = borderPoint(a, b.x, b.y), p2 = borderPoint(b, a.x, a.y);
+        svg += '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y +
+               '" stroke="' + (lit ? '#cbd5e1' : '#eef2f6') + '" stroke-width="' + (lit ? 1.8 : 1.4) +
+               '" marker-end="url(#' + (lit ? 'arw' : 'arwd') + ')" />';
+      });
+
+      NODES.forEach((n) => {
+        const team = TEAMS[n.team];
+        const focused = inFocus(n.id);
+        const selected = state.selectedId === n.id;
+        const seed = state.focus && state.focus.id === n.id;
+        const op = focused ? 1 : 0.14;
+        const fill = focused ? team.fill : '#f1f5f9';
+        const stroke = selected ? '#2563eb' : (focused ? team.stroke : '#cbd5e1');
+
+        svg += '<g class="node" data-id="' + n.id + '" opacity="' + op + '">';
+        if (seed) {
+          svg += '<rect x="' + (n.x - NODE_W / 2 - 5) + '" y="' + (n.y - NODE_H / 2 - 5) + '" width="' + (NODE_W + 10) +
+                 '" height="' + (NODE_H + 10) + '" rx="11" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3" />';
+        }
+        svg += '<rect x="' + (n.x - NODE_W / 2) + '" y="' + (n.y - NODE_H / 2) + '" width="' + NODE_W + '" height="' + NODE_H +
+               '" rx="8" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (selected ? 2.5 : 2) + '"' +
+               (team.dashed ? ' stroke-dasharray="6 4"' : '') + ' />';
+        svg += '<text x="' + n.x + '" y="' + (n.y - 2) + '" text-anchor="middle" font-size="12.5" font-weight="600" fill="' +
+               (focused ? '#0f172a' : '#94a3b8') + '">' + n.label + '</text>';
+        svg += '<text x="' + n.x + '" y="' + (n.y + 12) + '" text-anchor="middle" font-size="9" fill="' +
+               (focused ? team.stroke : '#cbd5e1') + '">' + team.name + '</text>';
+        svg += '</g>';
+      });
+
+      stage.innerHTML = svg;
+      stage.querySelectorAll('.node').forEach((el) =>
+        el.addEventListener('click', () => selectNode(el.getAttribute('data-id'))));
+
+      syncInspector();
+      syncFocusBar(set);
+    }
+
+    function selectNode(id) {
+      state.selectedId = id;
+      render();
+    }
+
+    function syncInspector() {
+      const n = nodeById[state.selectedId];
+      const team = TEAMS[n.team];
+      document.getElementById('insp-name').value = n.label;
+      document.getElementById('insp-purpose').value = n.purpose;
+      document.getElementById('insp-team-name').textContent = team.name;
+      document.getElementById('insp-team-dot').style.background = team.stroke;
+
+      const btn = document.getElementById('focus-btn');
+      const label = document.getElementById('focus-btn-label');
+      const isFocused = state.focus && state.focus.id === state.selectedId;
+      if (isFocused) {
+        btn.className = 'flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 transition-colors flex-shrink-0';
+        label.textContent = 'Focused';
+      } else {
+        btn.className = 'flex items-center gap-1.5 px-2 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors flex-shrink-0';
+        label.textContent = 'Focus';
+      }
+    }
+
+    function syncFocusBar(set) {
+      const bar = document.getElementById('focus-bar');
+      if (!state.focus) { bar.classList.add('hidden'); bar.classList.remove('flex'); return; }
+      bar.classList.remove('hidden'); bar.classList.add('flex');
+      const n = nodeById[state.focus.id];
+      document.getElementById('focus-subject-name').textContent = n.label;
+      document.getElementById('focus-dot').style.background = TEAMS[n.team].stroke;
+      document.getElementById('focus-count').textContent = set.size + ' of 19';
+      document.querySelectorAll('#hop-seg button').forEach((b) => {
+        const active = Number(b.getAttribute('data-depth')) === state.focus.depth;
+        b.className = 'px-2 py-0.5 text-[11px] font-medium rounded ' + (active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600');
+      });
+    }
+
+    document.getElementById('focus-btn').addEventListener('click', () => {
+      if (state.focus && state.focus.id === state.selectedId) state.focus = null;
+      else state.focus = { id: state.selectedId, depth: 1 };
+      render();
+    });
+    document.getElementById('focus-clear').addEventListener('click', () => { state.focus = null; render(); });
+    document.querySelectorAll('#hop-seg button').forEach((b) =>
+      b.addEventListener('click', () => { if (state.focus) { state.focus.depth = Number(b.getAttribute('data-depth')); render(); } }));
+
+    render();
+  </script>
+</body>
+</html>

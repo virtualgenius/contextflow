@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adjacency Filter on ACME E-Commerce - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f8fafc; }
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+    h2 { font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 6px 0; }
+    .note { font-size: 12px; color: #475569; background: #fef9c3; border-left: 3px solid #eab308; padding: 8px 12px; border-radius: 4px; margin-top: 10px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; font-size: 12.5px; color: #334155; margin-bottom: 12px; }
+    .controls .grp { display: flex; align-items: center; gap: 8px; }
+    .controls label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .controls select { border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 6px; font-size: 12.5px; background: white; }
+    .controls input[type="range"] { width: 100px; accent-color: #0f172a; }
+    .seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
+    .seg button { padding: 3px 9px; font-size: 12px; background: white; color: #475569; border: none; cursor: pointer; border-left: 1px solid #e2e8f0; }
+    .seg button:first-child { border-left: none; }
+    .seg button.active { background: #0f172a; color: white; }
+    .readout { font-size: 12px; color: #334155; background: #f1f5f9; border-radius: 6px; padding: 6px 12px; display: inline-flex; gap: 6px; align-items: center; }
+    .readout b { color: #0f172a; font-variant-numeric: tabular-nums; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 14px; font-size: 11px; color: #475569; margin-top: 10px; align-items: center; }
+    .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; vertical-align: -1px; margin-right: 4px; }
+    .clearbtn { padding: 4px 12px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; color: #334155; cursor: pointer; }
+    .clearbtn:hover { background: #f1f5f9; }
+    svg .node { cursor: pointer; }
+    svg text { user-select: none; }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <header>
+      <h1 class="text-2xl font-bold text-slate-900">Adjacency Filter &mdash; ACME E-Commerce Platform</h1>
+      <p class="text-sm text-slate-600 mt-1 max-w-5xl">
+        The real ACME sample map: 19 bounded contexts across 7 teams, with its actual relationship patterns. Two
+        symmetric patterns are present so direction filtering can be checked against them &mdash; a
+        <b style="color:#9333ea">shared kernel</b> (Search &amp; Catalog share the product model) and a
+        <b style="color:#0d9488">partnership</b> (Checkout &amp; Order Management). The rest are directional:
+        customer&ndash;supplier, a conformist (Inventory &rarr; legacy Warehouse), and an anti&ndash;corruption layer
+        (Payment &rarr; Stripe). Watch how <em>Depends on</em> follows the directional arrows one way but always
+        traverses the symmetric patterns both ways.
+      </p>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Focus team:</span>
+          <select id="team-select">
+            <option value="">(none)</option>
+            <option value="customer-experience">Customer Experience Squad</option>
+            <option value="checkout">Checkout &amp; Cart Team</option>
+            <option value="payments">Payments Team</option>
+            <option value="fulfillment">Fulfillment &amp; Logistics</option>
+            <option value="platform">Platform Engineering</option>
+            <option value="data-engineering">Data Engineering</option>
+            <option value="operations">Operations &amp; Legacy</option>
+          </select>
+        </div>
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Adjacency:</span>
+          <input type="range" id="depth-slider" min="0" max="3" value="1" />
+          <span id="depth-readout" class="font-medium text-slate-700" style="width:70px">1 hop</span>
+        </div>
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Direction:</span>
+          <div class="seg" id="dir-seg">
+            <button data-dir="both" class="active">Both</button>
+            <button data-dir="out">Depends on</button>
+            <button data-dir="in">Depended on by</button>
+          </div>
+        </div>
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Outside:</span>
+          <div class="seg" id="nonmatch-seg">
+            <button data-mode="dim" class="active">Dim</button>
+            <button data-mode="hide">Hide</button>
+          </div>
+        </div>
+        <label class="grp"><input type="checkbox" id="pattern-toggle" /> Show pattern labels</label>
+        <button class="clearbtn" id="clear-btn">Clear focus</button>
+      </div>
+
+      <svg id="stage" viewBox="0 0 1280 720" class="w-full bg-white border border-slate-200 rounded-lg" style="aspect-ratio: 1280 / 720;"></svg>
+
+      <div class="mt-3 flex items-center justify-between flex-wrap gap-3">
+        <span class="readout" id="readout">No focus &mdash; whole map shown (19 contexts)</span>
+        <div class="legend" id="team-legend"></div>
+      </div>
+      <div class="legend">
+        <span class="font-semibold text-slate-600">Relationships:</span>
+        <span><svg width="34" height="10"><line x1="2" y1="5" x2="26" y2="5" stroke="#64748b" stroke-width="2" marker-end="url(#lg-dir)"/><defs><marker id="lg-dir" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#64748b"/></marker></defs></svg> directional (arrow &rarr; upstream/supplier)</span>
+        <span><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="#0d9488" stroke-width="2" stroke-dasharray="5 4"/></svg> partnership (mutual)</span>
+        <span><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="#9333ea" stroke-width="2" stroke-dasharray="5 4"/></svg> shared kernel (mutual)</span>
+      </div>
+
+      <div class="note">
+        <strong>Try this:</strong> Focus team &rarr; <em>Fulfillment &amp; Logistics</em>, 1 hop, Both &mdash; the
+        fulfillment contexts plus everything touching them. Now switch Direction to <em>Depends on</em>: you keep only
+        what fulfillment <em>consumes</em> (its suppliers / upstream), but the Checkout&ndash;Orders
+        <b style="color:#0d9488">partnership</b> stays both ways because mutual patterns have no upstream. Then click
+        <em>Search &amp; Discovery</em> alone at 1 hop and flip direction &mdash; the
+        <b style="color:#9333ea">shared kernel</b> to Catalog never drops out, while its other links do. Toggle
+        <em>Dim vs Hide</em> to weigh keeping the map's shape against reclaiming the space.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why direction behaves differently per pattern</h2>
+      <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-5xl">
+        <li><strong>Directional patterns have an upstream and a downstream.</strong> Customer&ndash;supplier, conformist, and anti&ndash;corruption-layer all point from a consumer to the provider it relies on. "Depends on" walks toward the provider; "Depended on by" walks toward the consumers who would feel a change.</li>
+        <li><strong>Symmetric patterns do not.</strong> Partnership and shared kernel are mutual commitments &mdash; neither side is upstream. So direction filtering traverses them both ways regardless of the setting. This is the behavior the two symmetric edges here let you confirm.</li>
+        <li><strong>"Depends on" answers planning questions.</strong> From a team, it shows the blast-in radius: everything this team would need stable to ship. "Depended on by" shows the blast-out radius: who you'd have to coordinate with before changing your contracts.</li>
+        <li><strong>Unassigned / external contexts</strong> (Stripe, Carriers, Tax, Fraud) render with a dashed boundary. They still participate in adjacency &mdash; an external dependency is exactly the kind of thing a focused view should surface.</li>
+        <li><strong>Still one model.</strong> Every node and edge is the same ACME project; the focus is a view-time computation. Saving a configuration (e.g. "Fulfillment + depends-on, 2 hops") is the C4-style named lens, deliberately left out here so we settle the interaction first.</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    const TEAMS = {
+      'customer-experience': { name: 'Customer Experience', topo: 'stream-aligned',        stroke: '#0284c7', fill: '#e0f2fe' },
+      'checkout':            { name: 'Checkout & Cart',     topo: 'stream-aligned',        stroke: '#e11d48', fill: '#ffe4e6' },
+      'payments':            { name: 'Payments',            topo: 'complicated-subsystem', stroke: '#7c3aed', fill: '#ede9fe' },
+      'fulfillment':         { name: 'Fulfillment',         topo: 'stream-aligned',        stroke: '#d97706', fill: '#fef3c7' },
+      'platform':            { name: 'Platform Eng',        topo: 'platform',              stroke: '#4338ca', fill: '#e0e7ff' },
+      'data-engineering':    { name: 'Data Engineering',    topo: 'platform',              stroke: '#059669', fill: '#d1fae5' },
+      'operations':          { name: 'Operations (Legacy)', topo: 'enabling',              stroke: '#57534e', fill: '#f5f5f4' },
+      'unassigned':          { name: 'unassigned / external', topo: '',                    stroke: '#94a3b8', fill: '#f8fafc', dashed: true },
+    };
+
+    const PATTERNS = {
+      'customer-supplier':     { label: 'C/S',          symmetric: false, color: '#64748b' },
+      'conformist':            { label: 'conformist',   symmetric: false, color: '#64748b' },
+      'anti-corruption-layer': { label: 'ACL',          symmetric: false, color: '#64748b' },
+      'plain':                 { label: '',             symmetric: false, color: '#94a3b8' },
+      'partnership':           { label: 'partnership',  symmetric: true,  color: '#0d9488' },
+      'shared-kernel':         { label: 'shared kernel',symmetric: true,  color: '#9333ea' },
+    };
+
+    const NODE_W = 162, NODE_H = 52;
+
+    const NODES = [
+      { id: 'storefront',      label: 'Storefront',        team: 'customer-experience', x: 130,  y: 130 },
+      { id: 'cart',            label: 'Shopping Cart',     team: 'checkout',            x: 380,  y: 130 },
+      { id: 'checkout',        label: 'Checkout',          team: 'checkout',            x: 630,  y: 130 },
+      { id: 'orders',          label: 'Order Management',  team: 'fulfillment',         x: 880,  y: 130 },
+      { id: 'customerService', label: 'Customer Service',  team: 'customer-experience', x: 1130, y: 130 },
+
+      { id: 'search',          label: 'Search & Discovery',team: 'customer-experience', x: 130,  y: 280 },
+      { id: 'catalog',         label: 'Product Catalog',   team: 'customer-experience', x: 380,  y: 280 },
+      { id: 'payment',         label: 'Payment Processing',team: 'payments',            x: 630,  y: 280 },
+      { id: 'inventory',       label: 'Inventory',         team: 'fulfillment',         x: 880,  y: 280 },
+      { id: 'notifications',   label: 'Notifications',     team: 'platform',            x: 1130, y: 280 },
+
+      { id: 'identity',        label: 'Identity & Access', team: 'platform',            x: 130,  y: 440 },
+      { id: 'recommendations', label: 'Recommendations',   team: 'data-engineering',    x: 365,  y: 440 },
+      { id: 'taxCalculation',  label: 'Tax Calculation',   team: 'unassigned',          x: 555,  y: 440 },
+      { id: 'fraudDetection',  label: 'Fraud Detection',   team: 'unassigned',          x: 720,  y: 440 },
+      { id: 'shipping',        label: 'Shipping',          team: 'fulfillment',         x: 890,  y: 440 },
+      { id: 'analytics',       label: 'Analytics',         team: 'data-engineering',    x: 1130, y: 440 },
+
+      { id: 'stripe',          label: 'Stripe Gateway',    team: 'unassigned',          x: 630,  y: 600 },
+      { id: 'warehouse',       label: 'Warehouse (Legacy)',team: 'operations',          x: 890,  y: 600 },
+      { id: 'carriers',        label: 'Shipping Carriers', team: 'unassigned',          x: 1075, y: 600 },
+    ];
+
+    // [from, to, pattern]  from = consumer/downstream, to = provider/upstream (arrow -> to)
+    const EDGES = [
+      ['storefront', 'catalog', 'customer-supplier'],
+      ['storefront', 'search', 'customer-supplier'],
+      ['storefront', 'cart', 'customer-supplier'],
+      ['storefront', 'identity', 'plain'],
+      ['storefront', 'recommendations', 'customer-supplier'],
+      ['search', 'catalog', 'shared-kernel'],
+      ['cart', 'catalog', 'customer-supplier'],
+      ['cart', 'inventory', 'customer-supplier'],
+      ['checkout', 'cart', 'customer-supplier'],
+      ['checkout', 'payment', 'customer-supplier'],
+      ['checkout', 'orders', 'partnership'],
+      ['checkout', 'inventory', 'customer-supplier'],
+      ['checkout', 'taxCalculation', 'customer-supplier'],
+      ['payment', 'stripe', 'anti-corruption-layer'],
+      ['payment', 'fraudDetection', 'customer-supplier'],
+      ['orders', 'inventory', 'customer-supplier'],
+      ['orders', 'shipping', 'customer-supplier'],
+      ['inventory', 'warehouse', 'conformist'],
+      ['shipping', 'carriers', 'plain'],
+      ['notifications', 'orders', 'plain'],
+      ['notifications', 'shipping', 'plain'],
+      ['customerService', 'orders', 'customer-supplier'],
+      ['analytics', 'catalog', 'plain'],
+      ['analytics', 'orders', 'plain'],
+      ['analytics', 'warehouse', 'plain'],
+      ['recommendations', 'catalog', 'plain'],
+      ['recommendations', 'orders', 'plain'],
+    ];
+
+    const nodeById = Object.fromEntries(NODES.map((n) => [n.id, n]));
+
+    const state = { team: '', contextId: null, depth: 1, direction: 'both', nonmatch: 'dim', showPatterns: false };
+
+    function seedSet() {
+      if (state.contextId) return new Set([state.contextId]);
+      if (state.team) return new Set(NODES.filter((n) => n.team === state.team).map((n) => n.id));
+      return null;
+    }
+
+    function neighbors(id, dir) {
+      const res = [];
+      EDGES.forEach(([s, t, pat]) => {
+        if (PATTERNS[pat].symmetric) {
+          if (s === id) res.push(t);
+          if (t === id) res.push(s);
+          return;
+        }
+        if (dir !== 'in' && s === id) res.push(t);   // depends-on: consumer -> provider
+        if (dir !== 'out' && t === id) res.push(s);   // depended-on-by: provider -> consumer
+      });
+      return res;
+    }
+
+    function computeDistances(seed) {
+      const dist = new Map();
+      seed.forEach((id) => dist.set(id, 0));
+      let frontier = [...seed];
+      for (let d = 1; d <= state.depth; d++) {
+        const next = [];
+        frontier.forEach((id) => neighbors(id, state.direction).forEach((nb) => {
+          if (!dist.has(nb)) { dist.set(nb, d); next.push(nb); }
+        }));
+        frontier = next;
+      }
+      return dist;
+    }
+
+    function borderPoint(node, towardX, towardY) {
+      const dx = towardX - node.x, dy = towardY - node.y;
+      const hw = NODE_W / 2 + 4, hh = NODE_H / 2 + 4;
+      const sx = dx === 0 ? Infinity : hw / Math.abs(dx);
+      const sy = dy === 0 ? Infinity : hh / Math.abs(dy);
+      const s = Math.min(sx, sy);
+      return { x: node.x + dx * s, y: node.y + dy * s };
+    }
+
+    const stage = document.getElementById('stage');
+
+    function markerDefs() {
+      const mk = (id, color) => '<marker id="' + id + '" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="' + color + '" /></marker>';
+      return '<defs>' + mk('m-dir', '#64748b') + mk('m-dim', '#dbe2ea') + mk('m-partner', '#0d9488') + mk('m-sk', '#9333ea') + '</defs>';
+    }
+
+    function render() {
+      const seed = seedSet();
+      const dist = seed ? computeDistances(seed) : null;
+      const inFocus = (id) => !dist || dist.has(id);
+      const isSeed = (id) => seed && seed.has(id);
+      const hideOutside = state.nonmatch === 'hide';
+
+      let svg = markerDefs();
+
+      EDGES.forEach(([s, t, pat]) => {
+        const a = nodeById[s], b = nodeById[t];
+        const both = inFocus(s) && inFocus(t);
+        if (!both && hideOutside) return;
+        const meta = PATTERNS[pat];
+        const p1 = borderPoint(a, b.x, b.y);
+        const p2 = borderPoint(b, a.x, a.y);
+
+        let color, marker, dash, width, op;
+        if (!both) {
+          color = '#e7edf3'; marker = 'm-dim'; dash = meta.symmetric ? '5 4' : ''; width = 1.5; op = 0.9;
+        } else {
+          color = meta.color; dash = meta.symmetric ? '5 4' : ''; width = meta.symmetric ? 2.2 : 1.8; op = 1;
+          marker = pat === 'partnership' ? 'm-partner' : pat === 'shared-kernel' ? 'm-sk' : 'm-dir';
+        }
+        const startMarker = meta.symmetric ? ' marker-start="url(#' + marker + ')"' : '';
+        svg += '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y +
+               '" stroke="' + color + '" stroke-width="' + width + '" opacity="' + op + '"' +
+               (dash ? ' stroke-dasharray="' + dash + '"' : '') +
+               ' marker-end="url(#' + marker + ')"' + startMarker + ' />';
+
+        if (state.showPatterns && meta.label && (both || !hideOutside)) {
+          const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+          const lblOp = both ? 1 : 0.35;
+          const w = meta.label.length * 6 + 10;
+          svg += '<g opacity="' + lblOp + '">';
+          svg += '<rect x="' + (mx - w / 2) + '" y="' + (my - 8) + '" width="' + w + '" height="16" rx="4" fill="white" stroke="' + (both ? meta.color : '#e2e8f0') + '" stroke-width="1" />';
+          svg += '<text x="' + mx + '" y="' + (my + 3.5) + '" text-anchor="middle" font-size="9.5" font-weight="600" fill="' + (both ? meta.color : '#94a3b8') + '">' + meta.label + '</text>';
+          svg += '</g>';
+        }
+      });
+
+      NODES.forEach((n) => {
+        const team = TEAMS[n.team];
+        const focused = inFocus(n.id);
+        if (!focused && hideOutside) return;
+        const seedNode = isSeed(n.id);
+        const op = focused ? 1 : 0.13;
+        const fill = focused ? team.fill : '#f1f5f9';
+        const stroke = focused ? team.stroke : '#cbd5e1';
+
+        svg += '<g class="node" data-id="' + n.id + '" opacity="' + op + '">';
+        if (seedNode) {
+          svg += '<rect x="' + (n.x - NODE_W / 2 - 5) + '" y="' + (n.y - NODE_H / 2 - 5) +
+                 '" width="' + (NODE_W + 10) + '" height="' + (NODE_H + 10) +
+                 '" rx="12" fill="none" stroke="#0f172a" stroke-width="2" stroke-dasharray="4 3" />';
+        }
+        svg += '<rect x="' + (n.x - NODE_W / 2) + '" y="' + (n.y - NODE_H / 2) +
+               '" width="' + NODE_W + '" height="' + NODE_H + '" rx="8" fill="' + fill +
+               '" stroke="' + stroke + '" stroke-width="' + (seedNode ? 2.5 : 2) + '"' +
+               (team.dashed ? ' stroke-dasharray="6 4"' : '') + ' />';
+        svg += '<text x="' + n.x + '" y="' + (n.y - 3) + '" text-anchor="middle" font-size="13" font-weight="600" fill="' +
+               (focused ? '#0f172a' : '#94a3b8') + '">' + n.label + '</text>';
+        svg += '<text x="' + n.x + '" y="' + (n.y + 13) + '" text-anchor="middle" font-size="9.5" fill="' +
+               (focused ? team.stroke : '#cbd5e1') + '">' + team.name + '</text>';
+        svg += '</g>';
+      });
+
+      stage.innerHTML = svg;
+      wireNodes();
+      updateReadout(seed, dist);
+    }
+
+    function wireNodes() {
+      stage.querySelectorAll('.node').forEach((el) => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-id');
+          state.contextId = state.contextId === id ? null : id;
+          if (state.contextId) { state.team = ''; document.getElementById('team-select').value = ''; }
+          render();
+        });
+      });
+    }
+
+    function updateReadout(seed, dist) {
+      const el = document.getElementById('readout');
+      if (!seed) { el.innerHTML = 'No focus &mdash; whole map shown (19 contexts)'; return; }
+      const dirWord = state.direction === 'out' ? ', following <b>depends-on</b>'
+        : state.direction === 'in' ? ', following <b>depended-on-by</b>' : '';
+      const hops = state.depth === 0 ? 'seed only' : state.depth + ' hop' + (state.depth > 1 ? 's' : '');
+      const focusLabel = state.contextId
+        ? '<b>' + nodeById[state.contextId].label + '</b>'
+        : '<b>' + TEAMS[state.team].name + '</b> team';
+      el.innerHTML = 'Showing <b>' + dist.size + '</b> of <b>19</b> contexts &mdash; ' + focusLabel + ' + ' + hops + dirWord;
+    }
+
+    function buildLegend() {
+      const el = document.getElementById('team-legend');
+      el.innerHTML = Object.entries(TEAMS).filter(([k]) => k !== 'unassigned').map(([, t]) =>
+        '<span><span class="sw" style="background:' + t.stroke + '"></span>' + t.name +
+        '<span class="text-slate-400"> &middot; ' + t.topo + '</span></span>'
+      ).join('') + '<span><span class="sw" style="background:#94a3b8;border:1px dashed #64748b"></span>unassigned / external</span>';
+    }
+
+    document.getElementById('team-select').addEventListener('change', (e) => {
+      state.team = e.target.value; state.contextId = null; render();
+    });
+    document.getElementById('depth-slider').addEventListener('input', (e) => {
+      state.depth = Number(e.target.value);
+      document.getElementById('depth-readout').textContent = state.depth === 0 ? 'seed only' : state.depth + (state.depth > 1 ? ' hops' : ' hop');
+      render();
+    });
+    document.querySelectorAll('#dir-seg button').forEach((b) => b.addEventListener('click', () => {
+      document.querySelectorAll('#dir-seg button').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active'); state.direction = b.getAttribute('data-dir'); render();
+    }));
+    document.querySelectorAll('#nonmatch-seg button').forEach((b) => b.addEventListener('click', () => {
+      document.querySelectorAll('#nonmatch-seg button').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active'); state.nonmatch = b.getAttribute('data-mode'); render();
+    }));
+    document.getElementById('pattern-toggle').addEventListener('change', (e) => { state.showPatterns = e.target.checked; render(); });
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      state.team = ''; state.contextId = null; document.getElementById('team-select').value = ''; render();
+    });
+
+    buildLegend();
+    render();
+  </script>
+</body>
+</html>

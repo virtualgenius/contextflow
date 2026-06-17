@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus: Team & Context Entry Points - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; }
+    svg text { user-select: none; }
+    svg .node, svg .nt-btn { cursor: pointer; }
+    .team-card { cursor: pointer; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-[1360px] mx-auto">
+    <p class="text-sm text-slate-600 mb-3 max-w-4xl">
+      Both focus entry points, with the team goal back in front. On a team card (left), the <b>crosshair</b> focuses
+      that team's contexts (the rest of the card stays for managing the team); widen with the hop stepper to see
+      what's adjacent. Or <b>right-click a context</b> for
+      <b>Focus on this context</b> / <b>Focus on its team</b>. Turn focus off with <b>Exit focus</b> in the bar, or
+      press <b>Esc</b>.
+    </p>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style="height: 780px; display:flex; flex-direction:column;">
+
+      <!-- TopBar -->
+      <header class="flex items-center gap-4 px-5 py-3 border-b border-slate-200 bg-white flex-shrink-0">
+        <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+        <span class="text-slate-400">&bull;</span>
+        <span class="text-sm text-slate-600 font-medium">ACME E-Commerce Platform</span>
+        <div class="ml-auto flex items-center gap-2">
+          <div class="flex items-center bg-slate-100 rounded-lg p-1">
+            <button class="px-3 py-1.5 text-xs font-medium rounded bg-white text-slate-900 shadow-sm">Context Map</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900">Value Stream</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900">Distillation</button>
+            <button class="px-3 py-1.5 text-xs font-medium rounded text-slate-600 hover:text-slate-900">Strategic</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="flex-1 flex min-h-0">
+
+        <!-- ===== TEAM SIDEBAR (left) ===== -->
+        <aside class="w-[230px] flex-shrink-0 border-r border-slate-200 bg-white p-3 overflow-y-auto">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Teams</div>
+          <div id="team-list" class="space-y-2"></div>
+        </aside>
+
+        <!-- ===== CANVAS ===== -->
+        <div class="relative flex-1 min-w-0 bg-[#fafbfc]">
+
+          <!-- FOCUS BAR -->
+          <div id="focus-bar" class="absolute top-3 left-1/2 -translate-x-1/2 z-10 hidden items-center gap-2.5 bg-white border border-slate-200 rounded-lg shadow-md px-2.5 py-1.5 text-xs">
+            <span class="flex items-center gap-1.5 text-blue-600">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+              <span class="font-medium text-slate-500">Focused on</span>
+            </span>
+            <div class="relative">
+              <button id="focus-subject" class="inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-md px-2 py-0.5">
+                <span id="focus-kind-icon"></span>
+                <span id="focus-dot" class="w-2.5 h-2.5 rounded-full"></span>
+                <span id="focus-subject-name"></span>
+                <span id="focus-caret" class="hidden text-slate-400"></span>
+              </button>
+              <div id="team-switch-menu" class="hidden absolute left-0 top-full mt-1 min-w-[220px] bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20"></div>
+            </div>
+
+            <div class="w-px h-5 bg-slate-200"></div>
+            <span class="text-slate-500 font-medium">Show</span>
+            <div class="flex items-center bg-slate-100 rounded-md p-0.5" id="hop-seg">
+              <button data-depth="0" class="px-2 py-0.5 text-[11px] font-medium rounded"></button>
+              <button data-depth="1" class="px-2 py-0.5 text-[11px] font-medium rounded"></button>
+              <button data-depth="2" class="px-2 py-0.5 text-[11px] font-medium rounded"></button>
+            </div>
+
+            <div class="w-px h-5 bg-slate-200"></div>
+            <span id="focus-count" class="text-slate-500 tabular-nums"></span>
+
+            <button id="focus-exit" class="ml-1 flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Exit focus
+              <span class="ml-0.5 text-[10px] text-slate-400 border border-slate-300 rounded px-1 leading-tight">Esc</span>
+            </button>
+          </div>
+
+          <svg id="stage" viewBox="0 0 1180 720" class="w-full h-full"></svg>
+        </div>
+
+        <!-- ===== INSPECTOR (right) ===== -->
+        <aside class="w-[290px] flex-shrink-0 border-l border-slate-200 bg-white p-4 overflow-y-auto">
+          <div id="insp-body"></div>
+        </aside>
+
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-3 max-w-4xl">
+      Placement note: the context <b>Focus</b> actions live in the node's <b>right-click menu</b> (no new hover
+      chrome, so they don't compete with the connection stubs or the help tooltip already on the node). Team focus
+      lives on the team card. The focus bar is the one place focus turns off. When focused on a team, the team name in
+      the bar is a <b>switcher</b> (click it to hop to another team's focus, keeping the current hop depth) &mdash;
+      this is the alternative to auto-opening the sidebar. Hop default is <b>team's contexts</b> for a team,
+      <b>+1 hop</b> for a context. Parked for later: Rename, Delete, Mark external/legacy, Add to group, Connect from here.
+    </p>
+  </div>
+
+  <!-- Right-click context menu -->
+  <div id="ctx-menu" class="hidden fixed z-50 min-w-[210px] bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-[13px]"></div>
+
+  <script>
+    const TEAMS = {
+      'customer-experience': { name: 'Customer Experience', topo: 'stream-aligned',        stroke: '#0284c7', fill: '#e0f2fe' },
+      'checkout':            { name: 'Checkout & Cart',     topo: 'stream-aligned',        stroke: '#e11d48', fill: '#ffe4e6' },
+      'payments':            { name: 'Payments',            topo: 'complicated-subsystem', stroke: '#7c3aed', fill: '#ede9fe' },
+      'fulfillment':         { name: 'Fulfillment & Logistics', topo: 'stream-aligned',    stroke: '#d97706', fill: '#fef3c7' },
+      'platform':            { name: 'Platform Engineering', topo: 'platform',             stroke: '#4338ca', fill: '#e0e7ff' },
+      'data-engineering':    { name: 'Data Engineering',    topo: 'platform',              stroke: '#059669', fill: '#d1fae5' },
+      'operations':          { name: 'Operations & Legacy', topo: 'enabling',              stroke: '#57534e', fill: '#f5f5f4' },
+      'unassigned':          { name: 'unassigned / external', topo: '',                    stroke: '#94a3b8', fill: '#f8fafc', dashed: true },
+    };
+
+    const NODE_W = 148, NODE_H = 46;
+
+    const NODES = [
+      { id: 'storefront',      label: 'Storefront',        team: 'customer-experience', x: 120,  y: 115, purpose: 'Customer-facing web and mobile entry point.' },
+      { id: 'cart',            label: 'Shopping Cart',     team: 'checkout',            x: 350,  y: 115, purpose: 'Holds selected items before checkout.' },
+      { id: 'checkout',        label: 'Checkout',          team: 'checkout',            x: 580,  y: 115, purpose: 'Places orders and collects payment intent.' },
+      { id: 'orders',          label: 'Order Management',  team: 'fulfillment',         x: 810,  y: 115, purpose: 'Coordinates order lifecycle through fulfillment.' },
+      { id: 'customerService', label: 'Customer Service',  team: 'customer-experience', x: 1040, y: 115, purpose: 'Agent portal for order support.' },
+
+      { id: 'search',          label: 'Search & Discovery',team: 'customer-experience', x: 120,  y: 265, purpose: 'Product search and discovery.' },
+      { id: 'catalog',         label: 'Product Catalog',   team: 'customer-experience', x: 350,  y: 265, purpose: 'System of record for products.' },
+      { id: 'payment',         label: 'Payment Processing',team: 'payments',            x: 580,  y: 265, purpose: 'Authorizes and captures payments.' },
+      { id: 'inventory',       label: 'Inventory',         team: 'fulfillment',         x: 810,  y: 265, purpose: 'Tracks stock levels and reservations.' },
+      { id: 'notifications',   label: 'Notifications',     team: 'platform',            x: 1040, y: 265, purpose: 'Customer email/SMS notifications.' },
+
+      { id: 'identity',        label: 'Identity & Access', team: 'platform',            x: 120,  y: 420, purpose: 'Customer identity and access.' },
+      { id: 'recommendations', label: 'Recommendations',   team: 'data-engineering',    x: 345,  y: 420, purpose: 'Personalized product recommendations.' },
+      { id: 'taxCalculation',  label: 'Tax Calculation',   team: 'unassigned',          x: 520,  y: 420, purpose: 'Third-party tax calculation service.' },
+      { id: 'fraudDetection',  label: 'Fraud Detection',   team: 'unassigned',          x: 675,  y: 420, purpose: 'Third-party fraud scoring.' },
+      { id: 'shipping',        label: 'Shipping',          team: 'fulfillment',         x: 825,  y: 420, purpose: 'Carrier integration and label generation.' },
+      { id: 'analytics',       label: 'Analytics',         team: 'data-engineering',    x: 1040, y: 420, purpose: 'Reporting and data warehouse feeds.' },
+
+      { id: 'stripe',          label: 'Stripe Gateway',    team: 'unassigned',          x: 580,  y: 575, purpose: 'External payment gateway.' },
+      { id: 'warehouse',       label: 'Warehouse (Legacy)',team: 'operations',          x: 825,  y: 575, purpose: 'Legacy warehouse management system.' },
+      { id: 'carriers',        label: 'Shipping Carriers', team: 'unassigned',          x: 1010, y: 575, purpose: 'UPS / FedEx / USPS integrations.' },
+    ];
+
+    const EDGES = [
+      ['storefront', 'catalog'], ['storefront', 'search'], ['storefront', 'cart'],
+      ['storefront', 'identity'], ['storefront', 'recommendations'], ['search', 'catalog'],
+      ['cart', 'catalog'], ['cart', 'inventory'], ['checkout', 'cart'], ['checkout', 'payment'],
+      ['checkout', 'orders'], ['checkout', 'inventory'], ['checkout', 'taxCalculation'],
+      ['payment', 'stripe'], ['payment', 'fraudDetection'], ['orders', 'inventory'],
+      ['orders', 'shipping'], ['inventory', 'warehouse'], ['shipping', 'carriers'],
+      ['notifications', 'orders'], ['notifications', 'shipping'], ['customerService', 'orders'],
+      ['analytics', 'catalog'], ['analytics', 'orders'], ['analytics', 'warehouse'],
+      ['recommendations', 'catalog'], ['recommendations', 'orders'],
+    ];
+
+    const nodeById = Object.fromEntries(NODES.map((n) => [n.id, n]));
+    const contextsOfTeam = (teamId) => NODES.filter((n) => n.team === teamId).map((n) => n.id);
+    const orderedTeams = ['customer-experience', 'checkout', 'payments', 'fulfillment', 'platform', 'data-engineering', 'operations'];
+
+    // focus = { kind: 'team'|'context', id, depth }
+    const state = { selectedId: 'orders', focus: null };
+
+    function neighbors(id) {
+      const res = [];
+      EDGES.forEach(([s, t]) => { if (s === id) res.push(t); if (t === id) res.push(s); });
+      return res;
+    }
+    function neighborhood(seedIds, depth) {
+      const dist = new Map();
+      seedIds.forEach((id) => dist.set(id, 0));
+      let frontier = [...seedIds];
+      for (let d = 1; d <= depth; d++) {
+        const next = [];
+        frontier.forEach((nid) => neighbors(nid).forEach((nb) => {
+          if (!dist.has(nb)) { dist.set(nb, d); next.push(nb); }
+        }));
+        frontier = next;
+      }
+      return new Set(dist.keys());
+    }
+    function focusSeedIds() {
+      if (!state.focus) return null;
+      return state.focus.kind === 'team' ? contextsOfTeam(state.focus.id) : [state.focus.id];
+    }
+
+    function borderPoint(node, tx, ty) {
+      const dx = tx - node.x, dy = ty - node.y, hw = NODE_W / 2 + 3, hh = NODE_H / 2 + 3;
+      const s = Math.min(dx === 0 ? Infinity : hw / Math.abs(dx), dy === 0 ? Infinity : hh / Math.abs(dy));
+      return { x: node.x + dx * s, y: node.y + dy * s };
+    }
+
+    const CROSSHAIR = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px"><circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>';
+    const TEAM_GLYPH = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+    const BOX_GLYPH = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px"><rect x="4" y="6" width="16" height="12" rx="2"/></svg>';
+    const CROSSHAIR_SM = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>';
+    const TRASH_SM = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    const CHEVRON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:0"><polyline points="6 9 12 15 18 9"/></svg>';
+
+    const stage = document.getElementById('stage');
+
+    function render() {
+      const seeds = focusSeedIds();
+      const set = seeds ? neighborhood(seeds, state.focus.depth) : null;
+      const seedSet = seeds ? new Set(seeds) : null;
+      const inFocus = (id) => !set || set.has(id);
+
+      let svg = '<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker><marker id="arwd" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="#e2e8f0"/></marker></defs>';
+
+      EDGES.forEach(([s, t]) => {
+        const a = nodeById[s], b = nodeById[t];
+        const lit = inFocus(s) && inFocus(t);
+        const p1 = borderPoint(a, b.x, b.y), p2 = borderPoint(b, a.x, a.y);
+        svg += '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y +
+               '" stroke="' + (lit ? '#cbd5e1' : '#eef2f6') + '" stroke-width="' + (lit ? 1.8 : 1.4) +
+               '" marker-end="url(#' + (lit ? 'arw' : 'arwd') + ')" />';
+      });
+
+      NODES.forEach((n) => {
+        const team = TEAMS[n.team];
+        const focused = inFocus(n.id);
+        const selected = state.selectedId === n.id;
+        const isSeed = seedSet && seedSet.has(n.id);
+        const op = focused ? 1 : 0.13;
+        const fill = focused ? team.fill : '#f1f5f9';
+        const stroke = selected ? '#2563eb' : (focused ? team.stroke : '#cbd5e1');
+
+        svg += '<g class="node" data-id="' + n.id + '" opacity="' + op + '">';
+        if (isSeed) {
+          svg += '<rect x="' + (n.x - NODE_W / 2 - 5) + '" y="' + (n.y - NODE_H / 2 - 5) + '" width="' + (NODE_W + 10) +
+                 '" height="' + (NODE_H + 10) + '" rx="11" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3" />';
+        }
+        svg += '<rect x="' + (n.x - NODE_W / 2) + '" y="' + (n.y - NODE_H / 2) + '" width="' + NODE_W + '" height="' + NODE_H +
+               '" rx="8" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (selected ? 2.5 : 2) + '"' +
+               (team.dashed ? ' stroke-dasharray="6 4"' : '') + ' />';
+        svg += '<text x="' + n.x + '" y="' + (n.y - 1) + '" text-anchor="middle" font-size="12" font-weight="600" fill="' +
+               (focused ? '#0f172a' : '#94a3b8') + '">' + n.label + '</text>';
+        svg += '<text x="' + n.x + '" y="' + (n.y + 12) + '" text-anchor="middle" font-size="8.5" fill="' +
+               (focused ? team.stroke : '#cbd5e1') + '">' + team.name + '</text>';
+        svg += '</g>';
+      });
+
+      stage.innerHTML = svg;
+      stage.querySelectorAll('.node').forEach((el) => {
+        const id = el.getAttribute('data-id');
+        el.addEventListener('click', () => { state.selectedId = id; closeMenu(); render(); });
+        el.addEventListener('contextmenu', (e) => openContextMenu(e, id));
+      });
+
+      renderTeams();
+      renderInspector();
+      renderFocusBar(set);
+    }
+
+    function focusContext(id) {
+      if (state.focus && state.focus.kind === 'context' && state.focus.id === id) state.focus = null;
+      else state.focus = { kind: 'context', id, depth: 1 };
+      render();
+    }
+    function focusTeam(id) {
+      if (state.focus && state.focus.kind === 'team' && state.focus.id === id) state.focus = null;
+      else state.focus = { kind: 'team', id, depth: 0 };
+      render();
+    }
+
+    function renderTeams() {
+      const wrap = document.getElementById('team-list');
+      wrap.innerHTML = orderedTeams.map((tid) => {
+        const t = TEAMS[tid];
+        const count = contextsOfTeam(tid).length;
+        const active = state.focus && state.focus.kind === 'team' && state.focus.id === tid;
+        const focusBtnClass = active
+          ? 'text-blue-600 bg-blue-100'
+          : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50';
+        return '<div class="team-card border rounded p-2.5 transition-colors ' +
+          (active ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-200 hover:border-slate-300') +
+          '">' +
+          '<div class="flex items-center justify-between gap-1">' +
+            '<div class="flex items-center gap-2 min-w-0">' +
+              '<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + t.stroke + '"></span>' +
+              '<span class="font-medium text-[13px] text-slate-900 truncate">' + t.name + '</span>' +
+            '</div>' +
+            '<div class="flex items-center gap-0.5 flex-shrink-0">' +
+              '<button data-focus-team="' + tid + '" title="Focus on this team’s contexts" class="p-1 rounded ' + focusBtnClass + '">' + CROSSHAIR_SM + '</button>' +
+              '<button title="Delete team" class="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50">' + TRASH_SM + '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center justify-between mt-1.5">' +
+            '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded text-slate-500 bg-slate-200/60">' + t.topo + '</span>' +
+            '<span class="text-[11px] text-slate-500 tabular-nums">' + count + ' context' + (count > 1 ? 's' : '') + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      wrap.querySelectorAll('[data-focus-team]').forEach((el) =>
+        el.addEventListener('click', (e) => { e.stopPropagation(); focusTeam(el.getAttribute('data-focus-team')); }));
+    }
+
+    function renderInspector() {
+      const n = nodeById[state.selectedId];
+      const team = TEAMS[n.team];
+      document.getElementById('insp-body').innerHTML =
+        '<div class="flex items-start gap-1.5 -mt-1 -mr-1">' +
+          '<div class="flex-1 min-w-0"><div class="font-semibold text-sm text-slate-900 px-2 py-0.5 -ml-2">' + n.label + '</div></div>' +
+          '<button class="p-1.5 rounded text-slate-400 hover:bg-slate-100" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
+        '</div>' +
+        '<div class="mt-3 w-full text-xs text-slate-700 leading-normal bg-slate-50 border border-slate-200 rounded px-2 py-1">' + n.purpose + '</div>' +
+        '<div class="mt-3"><div class="text-[11px] font-semibold text-slate-500 mb-2 uppercase tracking-wider">Team</div>' +
+          '<div class="text-[13px] text-slate-700 flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background:' + team.stroke + '"></span>' + team.name + '</div></div>' +
+        '<div class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 leading-relaxed">Right-click this context on the canvas to focus it, or to focus its team. The inspector header stays uncluttered.</div>';
+    }
+
+    function renderFocusBar(set) {
+      const bar = document.getElementById('focus-bar');
+      if (!state.focus) { bar.classList.add('hidden'); bar.classList.remove('flex'); return; }
+      bar.classList.remove('hidden'); bar.classList.add('flex');
+
+      const isTeam = state.focus.kind === 'team';
+      const subj = isTeam ? TEAMS[state.focus.id] : nodeById[state.focus.id];
+      const color = isTeam ? TEAMS[state.focus.id].stroke : TEAMS[subj.team].stroke;
+      document.getElementById('focus-kind-icon').innerHTML = isTeam ? TEAM_GLYPH : BOX_GLYPH;
+      document.getElementById('focus-dot').style.background = color;
+      document.getElementById('focus-subject-name').textContent = isTeam ? subj.name : subj.label;
+      document.getElementById('focus-count').textContent = set.size + ' of 19 shown';
+
+      // Team-name switcher: only when focused on a team
+      const subjectBtn = document.getElementById('focus-subject');
+      const caret = document.getElementById('focus-caret');
+      const switchMenu = document.getElementById('team-switch-menu');
+      const baseBtn = 'inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-md px-2 py-0.5';
+      if (isTeam) {
+        caret.classList.remove('hidden');
+        caret.innerHTML = CHEVRON;
+        subjectBtn.className = baseBtn + ' hover:bg-slate-100 hover:border-slate-300 cursor-pointer';
+        subjectBtn.onclick = (e) => { e.stopPropagation(); switchMenu.classList.toggle('hidden'); };
+        switchMenu.innerHTML = orderedTeams.map((tid) => {
+          const t = TEAMS[tid];
+          const isCurrent = tid === state.focus.id;
+          const n = contextsOfTeam(tid).length;
+          return '<button data-switch="' + tid + '" class="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] ' +
+            (isCurrent ? 'bg-blue-50' : 'hover:bg-slate-100') + '">' +
+            '<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + t.stroke + '"></span>' +
+            '<span class="' + (isCurrent ? 'font-semibold text-slate-900' : 'text-slate-700') + ' truncate">' + t.name + '</span>' +
+            '<span class="ml-auto text-[11px] text-slate-400 tabular-nums">' + n + '</span>' +
+            (isCurrent ? '<span class="text-blue-600 ml-1">' + CROSSHAIR + '</span>' : '') +
+          '</button>';
+        }).join('');
+        switchMenu.querySelectorAll('[data-switch]').forEach((el) =>
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            switchMenu.classList.add('hidden');
+            state.focus = { kind: 'team', id: el.getAttribute('data-switch'), depth: state.focus.depth };
+            render();
+          }));
+      } else {
+        caret.classList.add('hidden');
+        subjectBtn.className = baseBtn + ' cursor-default';
+        subjectBtn.onclick = null;
+        switchMenu.classList.add('hidden');
+        switchMenu.innerHTML = '';
+      }
+
+      const labels = isTeam
+        ? { 0: "team's contexts", 1: '+ neighbors', 2: '+2 hops' }
+        : { 0: 'just this', 1: '+1 hop', 2: '+2 hops' };
+      document.querySelectorAll('#hop-seg button').forEach((b) => {
+        const d = Number(b.getAttribute('data-depth'));
+        b.textContent = labels[d];
+        const active = d === state.focus.depth;
+        b.className = 'px-2 py-0.5 text-[11px] font-medium rounded ' + (active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600');
+      });
+    }
+
+    const ctxMenu = document.getElementById('ctx-menu');
+    function closeMenu() { ctxMenu.classList.add('hidden'); }
+    function menuItem(act, icon, label, disabled, sub) {
+      if (disabled) {
+        return '<div class="px-3 py-1.5 flex items-center gap-2.5 text-slate-300 cursor-default">' + icon + '<span>' + label + '</span>' +
+          (sub ? '<span class="ml-auto text-[10px]">' + sub + '</span>' : '') + '</div>';
+      }
+      return '<button data-act="' + act + '" class="w-full text-left px-3 py-1.5 flex items-center gap-2.5 text-slate-700 hover:bg-slate-100">' + icon + '<span>' + label + '</span></button>';
+    }
+    function openContextMenu(e, nodeId) {
+      e.preventDefault();
+      state.selectedId = nodeId;
+      render();
+      const n = nodeById[nodeId];
+      const hasTeam = n.team !== 'unassigned';
+      let html = menuItem('focus-context', CROSSHAIR, 'Focus on this context', false);
+      html += hasTeam
+        ? menuItem('focus-team', CROSSHAIR, 'Focus on team: ' + TEAMS[n.team].name, false)
+        : menuItem('', CROSSHAIR, 'Focus on its team', true, 'no team');
+      html += '<div class="my-1 border-t border-slate-100"></div>';
+      html += menuItem('', BOX_GLYPH, 'Rename, Delete, Connect…', true, 'later');
+      ctxMenu.innerHTML = html;
+      ctxMenu.style.left = Math.min(e.clientX, window.innerWidth - 230) + 'px';
+      ctxMenu.style.top = e.clientY + 'px';
+      ctxMenu.classList.remove('hidden');
+      const fc = ctxMenu.querySelector('[data-act="focus-context"]');
+      if (fc) fc.addEventListener('click', () => { closeMenu(); focusContext(nodeId); });
+      const ft = ctxMenu.querySelector('[data-act="focus-team"]');
+      if (ft) ft.addEventListener('click', () => { closeMenu(); focusTeam(n.team); });
+    }
+
+    document.getElementById('focus-exit').addEventListener('click', () => { state.focus = null; render(); });
+    document.querySelectorAll('#hop-seg button').forEach((b) =>
+      b.addEventListener('click', () => { if (state.focus) { state.focus.depth = Number(b.getAttribute('data-depth')); render(); } }));
+    document.addEventListener('click', (e) => {
+      if (!ctxMenu.contains(e.target)) closeMenu();
+      const switchMenu = document.getElementById('team-switch-menu');
+      const subjectBtn = document.getElementById('focus-subject');
+      if (!switchMenu.contains(e.target) && !subjectBtn.contains(e.target)) switchMenu.classList.add('hidden');
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const switchMenu = document.getElementById('team-switch-menu');
+      if (!switchMenu.classList.contains('hidden')) { switchMenu.classList.add('hidden'); return; }
+      if (!ctxMenu.classList.contains('hidden')) { closeMenu(); return; }
+      if (state.focus) { state.focus = null; render(); }
+    });
+
+    render();
+  </script>
+</body>
+</html>

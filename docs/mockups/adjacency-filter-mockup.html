@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adjacency Filter / Focused View Mockup - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f8fafc; }
+    .panel { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+    h2 { font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 6px 0; }
+    .note { font-size: 12px; color: #475569; background: #fef9c3; border-left: 3px solid #eab308; padding: 8px 12px; border-radius: 4px; margin-top: 10px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; font-size: 12.5px; color: #334155; margin-bottom: 12px; }
+    .controls .grp { display: flex; align-items: center; gap: 8px; }
+    .controls label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .controls select { border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 6px; font-size: 12.5px; background: white; }
+    .controls input[type="range"] { width: 110px; accent-color: #0f172a; }
+    .seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
+    .seg button { padding: 3px 9px; font-size: 12px; background: white; color: #475569; border: none; cursor: pointer; border-left: 1px solid #e2e8f0; }
+    .seg button:first-child { border-left: none; }
+    .seg button.active { background: #0f172a; color: white; }
+    .readout { font-size: 12px; color: #334155; background: #f1f5f9; border-radius: 6px; padding: 6px 12px; display: inline-flex; gap: 6px; align-items: center; }
+    .readout b { color: #0f172a; font-variant-numeric: tabular-nums; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: #475569; margin-top: 10px; align-items: center; }
+    .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; vertical-align: -1px; margin-right: 4px; }
+    .clearbtn { padding: 4px 12px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; color: #334155; cursor: pointer; }
+    .clearbtn:hover { background: #f1f5f9; }
+    svg .node { cursor: pointer; }
+    svg text { user-select: none; }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <header>
+      <h1 class="text-2xl font-bold text-slate-900">Adjacency Filter &mdash; Focused View on One Map</h1>
+      <p class="text-sm text-slate-600 mt-1 max-w-4xl">
+        Non-destructive focus for large maps. Pick a focus (a whole team, or click a single context), choose how many
+        relationship hops to include, and everything outside that neighborhood fades back &mdash; the map keeps its
+        shape and spatial memory, you just stop having to read all of it at once. This is the "show me everything
+        adjacent to this team" interaction, on the single connected model rather than separate boards.
+      </p>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Focus on team:</span>
+          <select id="team-select">
+            <option value="">(none)</option>
+            <option value="payments">Payments</option>
+            <option value="catalog">Catalog</option>
+            <option value="fulfillment">Fulfillment</option>
+            <option value="platform">Platform</option>
+            <option value="growth">Growth</option>
+          </select>
+        </div>
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Adjacency:</span>
+          <input type="range" id="depth-slider" min="0" max="3" value="1" />
+          <span id="depth-readout" class="font-medium text-slate-700" style="width:74px">1 hop</span>
+        </div>
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Direction:</span>
+          <div class="seg" id="dir-seg">
+            <button data-dir="both" class="active">Both</button>
+            <button data-dir="out">Depends on</button>
+            <button data-dir="in">Depended on by</button>
+          </div>
+        </div>
+        <div class="grp">
+          <span class="font-semibold text-slate-700">Outside focus:</span>
+          <div class="seg" id="nonmatch-seg">
+            <button data-mode="dim" class="active">Dim</button>
+            <button data-mode="hide">Hide</button>
+          </div>
+        </div>
+        <button class="clearbtn" id="clear-btn">Clear focus</button>
+      </div>
+
+      <svg id="stage" viewBox="0 0 1160 700" class="w-full bg-white border border-slate-200 rounded-lg" style="aspect-ratio: 1160 / 700;"></svg>
+
+      <div class="mt-3 flex items-center justify-between flex-wrap gap-3">
+        <span class="readout" id="readout">No focus &mdash; whole map shown</span>
+        <div class="legend">
+          <span><span class="sw" style="background:#fb7185"></span>Payments</span>
+          <span><span class="sw" style="background:#f59e0b"></span>Catalog</span>
+          <span><span class="sw" style="background:#38bdf8"></span>Fulfillment</span>
+          <span><span class="sw" style="background:#a78bfa"></span>Platform</span>
+          <span><span class="sw" style="background:#34d399"></span>Growth</span>
+          <span class="ml-2 text-slate-400">|</span>
+          <span><span class="sw" style="background:#0f172a"></span>focus seed (ringed)</span>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Try it:</strong> set <em>Focus on team &rarr; Fulfillment</em> with <em>1 hop</em> &mdash; you get the
+        Fulfillment contexts plus only what directly touches them. Drag the <em>Adjacency</em> slider to 0 (just the
+        team), 2, then 3 to watch the neighborhood grow. Or <strong>click any single context</strong> to focus on it
+        alone. Flip <em>Direction</em> to "Depends on" vs "Depended on by" to follow relationships upstream or
+        downstream only. Toggle <em>Dim vs Hide</em> to feel the open design question: dim preserves the map you've
+        learned; hide reclaims the space.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What this is exercising</h2>
+      <ul class="text-xs text-slate-600 space-y-2 list-disc pl-5 max-w-4xl">
+        <li><strong>One connected model, many lenses.</strong> Nothing is duplicated or moved. The focus is a view-time computation over the existing contexts and relationships, so it can't drift out of sync the way a second map would.</li>
+        <li><strong>Seed set.</strong> A team focus seeds the neighborhood with every context owned by that team; a single-context focus seeds it with just that one. Adjacency then grows outward by relationship hops (breadth-first).</li>
+        <li><strong>Direction is the DDD-meaningful refinement.</strong> "Depends on" walks outgoing relationships (what this neighborhood consumes / is downstream of); "Depended on by" walks incoming (who would feel a change here). "Both" ignores direction and is the plain "what's near this team" answer.</li>
+        <li><strong>Dim vs Hide is the call to make.</strong> Dim (0 hops still readable in context) keeps spatial memory and shows the "edge" of the neighborhood; Hide declutters hardest for a 50+ context map but loses the surrounding shape. Both are one line of rendering difference.</li>
+        <li><strong>Edges follow their endpoints.</strong> A relationship is full-strength only when both ends are in the neighborhood, so the boundary of the focus reads cleanly.</li>
+        <li><strong>Natural next step (not shown):</strong> a focus configuration like this is exactly what a <em>saved named view</em> ("Payments neighbourhood") would persist, giving the C4-style "jump around" between scoped lenses.</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    const TEAMS = {
+      payments:    { name: 'Payments',    stroke: '#e11d48', fill: '#ffe4e6' },
+      catalog:     { name: 'Catalog',     stroke: '#d97706', fill: '#fef3c7' },
+      fulfillment: { name: 'Fulfillment', stroke: '#0284c7', fill: '#e0f2fe' },
+      platform:    { name: 'Platform',    stroke: '#7c3aed', fill: '#ede9fe' },
+      growth:      { name: 'Growth',      stroke: '#059669', fill: '#d1fae5' },
+    };
+
+    const NODE_W = 158, NODE_H = 54;
+
+    const NODES = [
+      { id: 'identity',   label: 'Identity',          team: 'platform',    x: 110,  y: 90  },
+      { id: 'search',     label: 'Search',            team: 'catalog',     x: 110,  y: 270 },
+      { id: 'recs',       label: 'Recommendations',   team: 'growth',      x: 110,  y: 450 },
+      { id: 'analytics',  label: 'Analytics',         team: 'platform',    x: 110,  y: 620 },
+      { id: 'catalog',    label: 'Product Catalog',   team: 'catalog',     x: 360,  y: 270 },
+      { id: 'pricing',    label: 'Pricing',           team: 'catalog',     x: 360,  y: 450 },
+      { id: 'promos',     label: 'Promotions',        team: 'growth',      x: 360,  y: 620 },
+      { id: 'checkout',   label: 'Checkout',          team: 'payments',    x: 610,  y: 120 },
+      { id: 'orders',     label: 'Order Management',  team: 'fulfillment', x: 610,  y: 340 },
+      { id: 'notify',     label: 'Notifications',     team: 'platform',    x: 610,  y: 560 },
+      { id: 'gateway',    label: 'Payments Gateway',  team: 'payments',    x: 860,  y: 120 },
+      { id: 'inventory',  label: 'Inventory',         team: 'fulfillment', x: 860,  y: 340 },
+      { id: 'shipping',   label: 'Shipping',          team: 'fulfillment', x: 860,  y: 560 },
+      { id: 'billing',    label: 'Billing',           team: 'payments',    x: 1060, y: 120 },
+    ];
+
+    // source -> target  (arrow points target; "out" walks source->target)
+    const EDGES = [
+      ['identity', 'checkout'],
+      ['identity', 'orders'],
+      ['checkout', 'gateway'],
+      ['checkout', 'pricing'],
+      ['checkout', 'orders'],
+      ['gateway', 'billing'],
+      ['orders', 'inventory'],
+      ['orders', 'shipping'],
+      ['orders', 'notify'],
+      ['catalog', 'search'],
+      ['catalog', 'pricing'],
+      ['recs', 'catalog'],
+      ['recs', 'analytics'],
+      ['promos', 'pricing'],
+      ['promos', 'checkout'],
+      ['search', 'analytics'],
+      ['billing', 'analytics'],
+      ['inventory', 'catalog'],
+    ];
+
+    const nodeById = Object.fromEntries(NODES.map((n) => [n.id, n]));
+
+    const state = {
+      team: '',
+      contextId: null,
+      depth: 1,
+      direction: 'both',
+      nonmatch: 'dim',
+    };
+
+    function seedSet() {
+      if (state.contextId) return new Set([state.contextId]);
+      if (state.team) return new Set(NODES.filter((n) => n.team === state.team).map((n) => n.id));
+      return null; // no focus
+    }
+
+    function neighbors(id, direction) {
+      const out = [];
+      EDGES.forEach(([s, t]) => {
+        if (direction !== 'in' && s === id) out.push(t);
+        if (direction !== 'out' && t === id) out.push(s);
+      });
+      return out;
+    }
+
+    function computeDistances(seed) {
+      const dist = new Map();
+      seed.forEach((id) => dist.set(id, 0));
+      let frontier = [...seed];
+      for (let d = 1; d <= state.depth; d++) {
+        const next = [];
+        frontier.forEach((id) => {
+          neighbors(id, state.direction).forEach((nb) => {
+            if (!dist.has(nb)) { dist.set(nb, d); next.push(nb); }
+          });
+        });
+        frontier = next;
+      }
+      return dist;
+    }
+
+    function borderPoint(node, towardX, towardY) {
+      const dx = towardX - node.x, dy = towardY - node.y;
+      const hw = NODE_W / 2, hh = NODE_H / 2;
+      const sx = dx === 0 ? Infinity : hw / Math.abs(dx);
+      const sy = dy === 0 ? Infinity : hh / Math.abs(dy);
+      const s = Math.min(sx, sy);
+      return { x: node.x + dx * s, y: node.y + dy * s };
+    }
+
+    const stage = document.getElementById('stage');
+
+    function render() {
+      const seed = seedSet();
+      const dist = seed ? computeDistances(seed) : null;
+      const inFocus = (id) => !dist || dist.has(id);
+      const isSeed = (id) => seed && seed.has(id);
+      const hideOutside = state.nonmatch === 'hide';
+
+      let svg = '';
+      svg += '<defs>';
+      svg += '<marker id="arw" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="#64748b" /></marker>';
+      svg += '<marker id="arw-dim" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="#cbd5e1" /></marker>';
+      svg += '</defs>';
+
+      // edges first (under nodes)
+      EDGES.forEach(([s, t]) => {
+        const a = nodeById[s], b = nodeById[t];
+        const both = inFocus(s) && inFocus(t);
+        if (!both && hideOutside) return;
+        const p1 = borderPoint(a, b.x, b.y);
+        const p2 = borderPoint(b, a.x, a.y);
+        const color = both ? '#94a3b8' : '#e2e8f0';
+        const marker = both ? 'arw' : 'arw-dim';
+        const opacity = both ? 1 : 0.7;
+        svg += '<line x1="' + p1.x + '" y1="' + p1.y + '" x2="' + p2.x + '" y2="' + p2.y +
+               '" stroke="' + color + '" stroke-width="' + (both ? 2 : 1.5) + '" opacity="' + opacity +
+               '" marker-end="url(#' + marker + ')" />';
+      });
+
+      // nodes
+      NODES.forEach((n) => {
+        const team = TEAMS[n.team];
+        const focused = inFocus(n.id);
+        if (!focused && hideOutside) return;
+        const seedNode = isSeed(n.id);
+        const op = focused ? 1 : 0.12;
+        const fill = focused ? team.fill : '#f1f5f9';
+        const stroke = focused ? team.stroke : '#cbd5e1';
+        const strokeW = seedNode ? 3 : 2;
+
+        svg += '<g class="node" data-id="' + n.id + '" opacity="' + op + '">';
+        if (seedNode) {
+          svg += '<rect x="' + (n.x - NODE_W / 2 - 4) + '" y="' + (n.y - NODE_H / 2 - 4) +
+                 '" width="' + (NODE_W + 8) + '" height="' + (NODE_H + 8) +
+                 '" rx="11" fill="none" stroke="#0f172a" stroke-width="2" stroke-dasharray="4 3" />';
+        }
+        svg += '<rect x="' + (n.x - NODE_W / 2) + '" y="' + (n.y - NODE_H / 2) +
+               '" width="' + NODE_W + '" height="' + NODE_H + '" rx="8" fill="' + fill +
+               '" stroke="' + stroke + '" stroke-width="' + strokeW + '" />';
+        svg += '<text x="' + n.x + '" y="' + (n.y - 4) + '" text-anchor="middle" font-size="13" font-weight="600" fill="' +
+               (focused ? '#0f172a' : '#94a3b8') + '">' + n.label + '</text>';
+        svg += '<text x="' + n.x + '" y="' + (n.y + 13) + '" text-anchor="middle" font-size="10" fill="' +
+               (focused ? team.stroke : '#cbd5e1') + '">' + team.name + '</text>';
+        svg += '</g>';
+      });
+
+      stage.innerHTML = svg;
+      wireNodes();
+      updateReadout(seed, dist);
+    }
+
+    function wireNodes() {
+      stage.querySelectorAll('.node').forEach((el) => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-id');
+          state.contextId = state.contextId === id ? null : id;
+          if (state.contextId) { state.team = ''; document.getElementById('team-select').value = ''; }
+          render();
+        });
+      });
+    }
+
+    function updateReadout(seed, dist) {
+      const el = document.getElementById('readout');
+      if (!seed) { el.innerHTML = 'No focus &mdash; whole map shown'; return; }
+      const shown = dist.size;
+      const dirWord = state.direction === 'out' ? ', following <b>depends-on</b>'
+        : state.direction === 'in' ? ', following <b>depended-on-by</b>' : '';
+      const hops = state.depth === 0 ? 'the seed only' : state.depth + ' hop' + (state.depth > 1 ? 's' : '');
+      let focusLabel;
+      if (state.contextId) focusLabel = '<b>' + nodeById[state.contextId].label + '</b>';
+      else focusLabel = '<b>' + TEAMS[state.team].name + '</b> team';
+      el.innerHTML = 'Showing <b>' + shown + '</b> of <b>' + NODES.length + '</b> contexts &mdash; ' +
+                     focusLabel + ' + ' + hops + dirWord;
+    }
+
+    document.getElementById('team-select').addEventListener('change', (e) => {
+      state.team = e.target.value;
+      state.contextId = null;
+      render();
+    });
+    document.getElementById('depth-slider').addEventListener('input', (e) => {
+      state.depth = Number(e.target.value);
+      const r = document.getElementById('depth-readout');
+      r.textContent = state.depth === 0 ? 'team only' : state.depth + (state.depth > 1 ? ' hops' : ' hop');
+      render();
+    });
+    document.querySelectorAll('#dir-seg button').forEach((b) => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('#dir-seg button').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active');
+        state.direction = b.getAttribute('data-dir');
+        render();
+      });
+    });
+    document.querySelectorAll('#nonmatch-seg button').forEach((b) => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('#nonmatch-seg button').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active');
+        state.nonmatch = b.getAttribute('data-mode');
+        render();
+      });
+    });
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      state.team = ''; state.contextId = null;
+      document.getElementById('team-select').value = '';
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
