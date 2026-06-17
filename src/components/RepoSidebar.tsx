@@ -3,6 +3,20 @@ import { ExternalLink, FolderGit2, Search, Trash2, X } from 'lucide-react'
 import type { Repo, Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 import { SimpleTooltip } from './SimpleTooltip'
+import { SidebarFilterChips, type FilterChipOption } from './SidebarFilterChips'
+import { trackEvent } from '../utils/analytics'
+
+type StatusFilter = 'all' | 'unassigned' | 'assigned'
+
+const STATUS_FILTER_OPTIONS: FilterChipOption<StatusFilter>[] = [
+  { value: 'all', label: 'All' },
+  { value: 'unassigned', label: 'Unassigned' },
+  { value: 'assigned', label: 'Assigned' },
+]
+
+function isRepoAssigned(repo: Repo, contexts: BoundedContext[]): boolean {
+  return contextNameForRepo(repo, contexts) !== null
+}
 
 interface RepoSidebarProps {
   repos: Repo[]
@@ -32,7 +46,13 @@ export function RepoSidebar({
   onSelectRepo,
 }: RepoSidebarProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('all')
   const [newRepoName, setNewRepoName] = React.useState('')
+
+  const handleStatusFilter = (value: StatusFilter) => {
+    setStatusFilter(value)
+    trackEvent('sidebar_filter_changed', null, { tab: 'repos', value })
+  }
 
   const handleAddRepo = () => {
     const trimmed = newRepoName.trim()
@@ -48,10 +68,16 @@ export function RepoSidebar({
   }
 
   const filteredRepos = React.useMemo(() => {
-    if (!searchQuery.trim()) return repos
-    const query = searchQuery.toLowerCase()
-    return repos.filter((r) => r.name.toLowerCase().includes(query))
-  }, [repos, searchQuery])
+    const query = searchQuery.trim().toLowerCase()
+    return repos.filter((r) => {
+      if (query && !r.name.toLowerCase().includes(query)) return false
+      if (statusFilter === 'assigned' && !isRepoAssigned(r, contexts)) return false
+      if (statusFilter === 'unassigned' && isRepoAssigned(r, contexts)) return false
+      return true
+    })
+  }, [repos, searchQuery, statusFilter, contexts])
+
+  const isFiltering = searchQuery.trim().length > 0 || statusFilter !== 'all'
 
   const { unassigned, assigned } = React.useMemo(() => {
     const unassignedList: Repo[] = []
@@ -221,15 +247,25 @@ export function RepoSidebar({
         </div>
       )}
 
-      {searchQuery.trim() && (
+      {repos.length > 1 && (
+        <div className="mb-2">
+          <SidebarFilterChips
+            options={STATUS_FILTER_OPTIONS}
+            active={statusFilter}
+            onChange={handleStatusFilter}
+          />
+        </div>
+      )}
+
+      {isFiltering && (
         <div className="text-[10px] text-slate-500 dark:text-neutral-400 mb-1">
           {filteredRepos.length} of {repos.length} repos
         </div>
       )}
 
-      {filteredRepos.length === 0 && searchQuery.trim() && (
+      {filteredRepos.length === 0 && isFiltering && (
         <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
-          No repos match your search
+          No repos match your filter
         </div>
       )}
 

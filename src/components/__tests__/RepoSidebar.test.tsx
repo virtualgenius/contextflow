@@ -144,6 +144,58 @@ describe('RepoSidebar', () => {
     })
   })
 
+  describe('status filter (slice D)', () => {
+    const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+
+    function renderRepos() {
+      render(
+        <RepoSidebar
+          repos={[
+            makeRepo({ id: 'repo-1', name: 'assigned-repo', contextId: 'ctx-1' }),
+            makeRepo({ id: 'repo-2', name: 'unassigned-repo' }),
+          ]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+    }
+
+    it('shows status filter chips when more than 1 repo', () => {
+      renderRepos()
+      expect(screen.getByRole('button', { name: 'Filter by All' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Filter by Unassigned' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Filter by Assigned' })).toBeInTheDocument()
+    })
+
+    it('does not show status filter chips with a single repo', () => {
+      render(<RepoSidebar repos={[makeRepo()]} teams={[]} contexts={[]} onRepoAssign={noop} />)
+      expect(screen.queryByRole('button', { name: 'Filter by Unassigned' })).not.toBeInTheDocument()
+    })
+
+    it('filters to unassigned repos', () => {
+      renderRepos()
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by Unassigned' }))
+      expect(screen.getByText('unassigned-repo')).toBeInTheDocument()
+      expect(screen.queryByText('assigned-repo')).not.toBeInTheDocument()
+    })
+
+    it('filters to assigned repos', () => {
+      renderRepos()
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by Assigned' }))
+      expect(screen.getByText('assigned-repo')).toBeInTheDocument()
+      expect(screen.queryByText('unassigned-repo')).not.toBeInTheDocument()
+    })
+
+    it('clears the status filter with All', () => {
+      renderRepos()
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by Assigned' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by All' }))
+      expect(screen.getByText('assigned-repo')).toBeInTheDocument()
+      expect(screen.getByText('unassigned-repo')).toBeInTheDocument()
+    })
+  })
+
   describe('selection (slice C1)', () => {
     it('calls onSelectRepo when clicking an unassigned repo card', () => {
       const onSelectRepo = vi.fn()
@@ -375,7 +427,7 @@ describe('RepoSidebar', () => {
       const input = screen.getByPlaceholderText('Filter repos...')
       fireEvent.change(input, { target: { value: 'xyz' } })
 
-      expect(screen.getByText('No repos match your search')).toBeInTheDocument()
+      expect(screen.getByText('No repos match your filter')).toBeInTheDocument()
     })
 
     it('clears search when clicking X button', () => {
@@ -498,7 +550,7 @@ describe('RepoSidebar', () => {
         />
       )
       expect(screen.getByText('Ready to assign')).toBeInTheDocument()
-      expect(screen.getByText('Assigned')).toBeInTheDocument()
+      expect(screen.getByText('Assigned', { selector: 'div' })).toBeInTheDocument()
     })
 
     it('does not show section headers when all repos are unassigned', () => {
@@ -514,7 +566,7 @@ describe('RepoSidebar', () => {
         />
       )
       expect(screen.queryByText('Ready to assign')).not.toBeInTheDocument()
-      expect(screen.queryByText('Assigned')).not.toBeInTheDocument()
+      expect(screen.queryByText('Assigned', { selector: 'div' })).not.toBeInTheDocument()
     })
 
     it('shows drag hint tooltip on unassigned repo cards', () => {

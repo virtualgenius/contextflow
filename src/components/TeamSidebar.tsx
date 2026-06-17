@@ -3,6 +3,18 @@ import { Crosshair, Search, Trash2, Users, X } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 import { SimpleTooltip } from './SimpleTooltip'
+import { SidebarFilterChips, type FilterChipOption } from './SidebarFilterChips'
+import { trackEvent } from '../utils/analytics'
+
+type TopologyFilter = 'all' | 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem'
+
+const TOPOLOGY_FILTER_OPTIONS: FilterChipOption<TopologyFilter>[] = [
+  { value: 'all', label: 'All' },
+  { value: 'stream-aligned', label: 'Stream' },
+  { value: 'platform', label: 'Platform' },
+  { value: 'enabling', label: 'Enabling' },
+  { value: 'complicated-subsystem', label: 'Subsystem' },
+]
 
 interface TeamSidebarProps {
   teams: Team[]
@@ -35,12 +47,23 @@ export function TeamSidebar({
 }: TeamSidebarProps) {
   const [newTeamName, setNewTeamName] = React.useState('')
   const [searchQuery, setSearchQuery] = React.useState('')
+  const [topologyFilter, setTopologyFilter] = React.useState<TopologyFilter>('all')
+
+  const handleTopologyFilter = (value: TopologyFilter) => {
+    setTopologyFilter(value)
+    trackEvent('sidebar_filter_changed', null, { tab: 'teams', value })
+  }
 
   const filteredTeams = React.useMemo(() => {
-    if (!searchQuery.trim()) return teams
-    const query = searchQuery.toLowerCase()
-    return teams.filter((t) => t.name.toLowerCase().includes(query))
-  }, [teams, searchQuery])
+    const query = searchQuery.trim().toLowerCase()
+    return teams.filter((t) => {
+      if (query && !t.name.toLowerCase().includes(query)) return false
+      if (topologyFilter !== 'all' && t.topologyType !== topologyFilter) return false
+      return true
+    })
+  }, [teams, searchQuery, topologyFilter])
+
+  const isFiltering = searchQuery.trim().length > 0 || topologyFilter !== 'all'
 
   const handleDragStart = (e: React.DragEvent, teamId: string) => {
     e.dataTransfer.setData('application/contextflow-team', teamId)
@@ -99,15 +122,25 @@ export function TeamSidebar({
         </div>
       )}
 
-      {searchQuery.trim() && (
+      {teams.length > 1 && (
+        <div className="mb-2">
+          <SidebarFilterChips
+            options={TOPOLOGY_FILTER_OPTIONS}
+            active={topologyFilter}
+            onChange={handleTopologyFilter}
+          />
+        </div>
+      )}
+
+      {isFiltering && (
         <div className="text-[10px] text-slate-500 dark:text-neutral-400 mb-1">
           {filteredTeams.length} of {teams.length} teams
         </div>
       )}
 
-      {filteredTeams.length === 0 && searchQuery.trim() && (
+      {filteredTeams.length === 0 && isFiltering && (
         <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
-          No teams match your search
+          No teams match your filter
         </div>
       )}
 

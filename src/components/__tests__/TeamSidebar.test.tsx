@@ -65,10 +65,10 @@ describe('TeamSidebar', () => {
           onDeleteTeam={noop}
         />
       )
-      expect(screen.getByText('Stream')).toBeInTheDocument()
-      expect(screen.getByText('Platform')).toBeInTheDocument()
-      expect(screen.getByText('Enabling')).toBeInTheDocument()
-      expect(screen.getByText('Subsystem')).toBeInTheDocument()
+      expect(screen.getByText('Stream', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.getByText('Platform', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.getByText('Enabling', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.getByText('Subsystem', { selector: 'span' })).toBeInTheDocument()
     })
 
     it('does not show badge when topology type is not set', () => {
@@ -183,6 +183,72 @@ describe('TeamSidebar', () => {
       const cards = container.querySelectorAll('[data-testid^="team-card-"]')
       expect(cards[0].className).toContain('ring-blue')
       expect(cards[1].className).not.toContain('ring-blue')
+    })
+  })
+
+  describe('topology filter (slice D)', () => {
+    const onSelectTeam = vi.fn()
+    const onFocusTeam = vi.fn()
+    const onAddTeam = vi.fn()
+    const onDeleteTeam = vi.fn()
+
+    function renderTeams(teams: Team[]) {
+      render(
+        <TeamSidebar
+          teams={teams}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+    }
+
+    it('shows topology filter chips when more than 1 team', () => {
+      renderTeams([
+        makeTeam({ id: 'team-1', topologyType: 'stream-aligned' }),
+        makeTeam({ id: 'team-2', name: 'Infra', topologyType: 'platform' }),
+      ])
+      expect(screen.getByRole('button', { name: 'Filter by All' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Filter by Stream' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Filter by Platform' })).toBeInTheDocument()
+    })
+
+    it('does not show topology filter chips with a single team', () => {
+      renderTeams([makeTeam()])
+      expect(screen.queryByRole('button', { name: 'Filter by Stream' })).not.toBeInTheDocument()
+    })
+
+    it('filters teams to the selected topology', () => {
+      renderTeams([
+        makeTeam({ id: 'team-1', name: 'Checkout', topologyType: 'stream-aligned' }),
+        makeTeam({ id: 'team-2', name: 'Infra', topologyType: 'platform' }),
+      ])
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by Platform' }))
+      expect(screen.getByText('Infra')).toBeInTheDocument()
+      expect(screen.queryByText('Checkout')).not.toBeInTheDocument()
+    })
+
+    it('clears the topology filter with All', () => {
+      renderTeams([
+        makeTeam({ id: 'team-1', name: 'Checkout', topologyType: 'stream-aligned' }),
+        makeTeam({ id: 'team-2', name: 'Infra', topologyType: 'platform' }),
+      ])
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by Platform' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by All' }))
+      expect(screen.getByText('Checkout')).toBeInTheDocument()
+      expect(screen.getByText('Infra')).toBeInTheDocument()
+    })
+
+    it('shows an empty message when no team matches the topology filter', () => {
+      renderTeams([
+        makeTeam({ id: 'team-1', name: 'Checkout', topologyType: 'stream-aligned' }),
+        makeTeam({ id: 'team-2', name: 'Infra', topologyType: 'stream-aligned' }),
+      ])
+      fireEvent.click(screen.getByRole('button', { name: 'Filter by Platform' }))
+      expect(screen.getByText(/no teams match/i)).toBeInTheDocument()
     })
   })
 
@@ -611,7 +677,7 @@ describe('TeamSidebar', () => {
       const input = screen.getByPlaceholderText('Filter teams...')
       fireEvent.change(input, { target: { value: 'xyz' } })
 
-      expect(screen.getByText('No teams match your search')).toBeInTheDocument()
+      expect(screen.getByText('No teams match your filter')).toBeInTheDocument()
     })
 
     it('clears search when clicking X button', () => {
