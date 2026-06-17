@@ -11,6 +11,7 @@ export type ClearedSelection = Pick<
   | 'selectedNeedContextConnectionId'
   | 'selectedStageIndex'
   | 'selectedTeamId'
+  | 'selectedRepoId'
   | 'selectedContextIds'
 >
 
@@ -29,5 +30,6 @@ export const CLEARED_SELECTION: ClearedSelection = {
   selectedNeedContextConnectionId: null,
   selectedStageIndex: null,
   selectedTeamId: null,
+  selectedRepoId: null,
   selectedContextIds: [],
 }

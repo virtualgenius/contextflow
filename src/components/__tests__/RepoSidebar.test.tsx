@@ -144,6 +144,56 @@ describe('RepoSidebar', () => {
     })
   })
 
+  describe('selection (slice C1)', () => {
+    it('calls onSelectRepo when clicking an unassigned repo card', () => {
+      const onSelectRepo = vi.fn()
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onSelectRepo={onSelectRepo}
+        />
+      )
+      fireEvent.click(screen.getByText('orders-service'))
+      expect(onSelectRepo).toHaveBeenCalledWith('repo-1')
+    })
+
+    it('calls onSelectRepo when clicking an assigned repo card', () => {
+      const onSelectRepo = vi.fn()
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1' })]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+          onSelectRepo={onSelectRepo}
+        />
+      )
+      fireEvent.click(screen.getByText('orders-service'))
+      expect(onSelectRepo).toHaveBeenCalledWith('repo-1')
+    })
+
+    it('shows a selected ring on the selected repo card', () => {
+      render(
+        <RepoSidebar
+          repos={[
+            makeRepo({ id: 'repo-1', name: 'orders-service' }),
+            makeRepo({ id: 'repo-2', name: 'payments-api' }),
+          ]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          selectedRepoId="repo-1"
+        />
+      )
+      expect(screen.getByTestId('repo-card-repo-1').className).toContain('ring-blue')
+      expect(screen.getByTestId('repo-card-repo-2').className).not.toContain('ring-blue')
+    })
+  })
+
   describe('add repo', () => {
     it('shows an Add repo input and button', () => {
       render(<RepoSidebar repos={[]} teams={[]} contexts={[]} onRepoAssign={noop} />)

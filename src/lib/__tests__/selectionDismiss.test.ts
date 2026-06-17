@@ -12,6 +12,7 @@ describe('CLEARED_SELECTION', () => {
     expect(CLEARED_SELECTION.selectedNeedContextConnectionId).toBeNull()
     expect(CLEARED_SELECTION.selectedStageIndex).toBeNull()
     expect(CLEARED_SELECTION.selectedTeamId).toBeNull()
+    expect(CLEARED_SELECTION.selectedRepoId).toBeNull()
   })
 
   it('clears the multi-selection list', () => {

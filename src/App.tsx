@@ -43,6 +43,7 @@ function Workspace() {
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
   const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
+  const selectedRepoId = useEditorStore((s) => s.selectedRepoId)
   const selectedContextIds = useEditorStore((s) => s.selectedContextIds)
   const clearContextSelection = useEditorStore((s) => s.clearContextSelection)
   const createGroup = useEditorStore((s) => s.createGroup)
@@ -52,6 +53,7 @@ function Workspace() {
   const deleteRepo = useEditorStore((s) => s.deleteRepo)
   const deleteTeam = useEditorStore((s) => s.deleteTeam)
   const setSelectedTeam = useEditorStore((s) => s.setSelectedTeam)
+  const setSelectedRepo = useEditorStore((s) => s.setSelectedRepo)
   const focus = useEditorStore((s) => s.focus)
   const setFocus = useEditorStore((s) => s.setFocus)
   const setFocusDepth = useEditorStore((s) => s.setFocusDepth)
@@ -134,7 +136,8 @@ function Workspace() {
     !!selectedUserNeedConnectionId ||
     !!selectedNeedContextConnectionId ||
     selectedStageIndex !== null ||
-    !!selectedTeamId
+    !!selectedTeamId ||
+    !!selectedRepoId
 
   const gridCols =
     showLeftSidebar && hasRightSidebar
@@ -317,6 +320,8 @@ function Workspace() {
                   }}
                   onAddRepo={(name) => addRepo(name, 'sidebar')}
                   onDeleteRepo={(repoId) => deleteRepo(repoId)}
+                  selectedRepoId={selectedRepoId}
+                  onSelectRepo={(repoId) => setSelectedRepo(repoId)}
                 />
               ) : (
                 <TeamSidebar
@@ -377,7 +382,8 @@ function Workspace() {
           selectedUserNeedConnectionId ||
           selectedNeedContextConnectionId ||
           selectedStageIndex !== null ||
-          selectedTeamId) && (
+          selectedTeamId ||
+          selectedRepoId) && (
           <aside className="border-l border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col min-h-0">
             <div className="flex-1 min-h-0 overflow-y-auto p-4 text-xs">
               <InspectorPanel />

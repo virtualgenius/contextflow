@@ -176,6 +176,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedNeedContextConnectionId: null,
   selectedStageIndex: null,
   selectedTeamId: null,
+  selectedRepoId: null,
   selectedContextIds: [],
   hoveredContextId: null,
   hoveredRelationshipId: null,
@@ -984,6 +985,45 @@ export const useEditorStore = create<EditorState>((set) => ({
         entity_type: 'repo',
         entity_id: repoId,
       })
+      return state.selectedRepoId === repoId ? { selectedRepoId: null } : {}
+    }),
+
+  setSelectedRepo: (repoId) =>
+    set((state) => {
+      if (repoId) {
+        const projectId = state.activeProjectId
+        const project = projectId ? state.projects[projectId] : null
+        trackEvent('repo_selected', project, {
+          entity_type: 'repo',
+          entity_id: repoId,
+        })
+      }
+      return createSelectionState(repoId, 'repo')
+    }),
+
+  updateRepo: (repoId, updates) =>
+    set((state) => {
+      getCollabMutations().updateRepo(repoId, updates)
+      const projectId = state.activeProjectId
+      const project = projectId ? state.projects[projectId] : null
+      if (project) {
+        const oldRepo = project.repos.find((r) => r.id === repoId)
+        if (oldRepo) {
+          if ('name' in updates && updates.name !== oldRepo.name) {
+            trackTextFieldEdit(project, 'repo', 'name', oldRepo.name, updates.name, 'inspector')
+          }
+          if ('remoteUrl' in updates && updates.remoteUrl !== oldRepo.remoteUrl) {
+            trackTextFieldEdit(
+              project,
+              'repo',
+              'remoteUrl',
+              oldRepo.remoteUrl,
+              updates.remoteUrl,
+              'inspector'
+            )
+          }
+        }
+      }
       return {}
     }),
 

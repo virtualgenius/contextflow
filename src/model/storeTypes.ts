@@ -51,6 +51,7 @@ export interface EditorState {
   selectedNeedContextConnectionId: string | null
   selectedStageIndex: number | null
   selectedTeamId: string | null
+  selectedRepoId: string | null
   selectedContextIds: string[]
   hoveredContextId: string | null
   hoveredRelationshipId: string | null
@@ -188,6 +189,11 @@ export interface EditorState {
   addTeam: (name: string) => string
   addRepo: (name: string, source?: string) => string
   deleteRepo: (repoId: string) => void
+  setSelectedRepo: (repoId: string | null) => void
+  updateRepo: (
+    repoId: string,
+    updates: Partial<{ name: string; remoteUrl: string; teamIds: string[] }>
+  ) => void
   deleteTeam: (teamId: string) => void
   addUser: (name: string) => void
   deleteUser: (userId: string) => void

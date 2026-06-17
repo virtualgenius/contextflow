@@ -11,6 +11,8 @@ interface RepoSidebarProps {
   onRepoAssign: (repoId: string, contextId: string) => void
   onAddRepo?: (name: string) => void
   onDeleteRepo?: (repoId: string) => void
+  selectedRepoId?: string | null
+  onSelectRepo?: (repoId: string) => void
 }
 
 function contextNameForRepo(repo: Repo, contexts: BoundedContext[]): string | null {
@@ -26,6 +28,8 @@ export function RepoSidebar({
   onRepoAssign: _onRepoAssign,
   onAddRepo,
   onDeleteRepo,
+  selectedRepoId,
+  onSelectRepo,
 }: RepoSidebarProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [newRepoName, setNewRepoName] = React.useState('')
@@ -87,16 +91,22 @@ export function RepoSidebar({
   const renderRepoCard = (repo: Repo, isAssigned: boolean) => {
     const repoTeams = getTeamsForRepo(repo)
     const ctxName = isAssigned ? contextNameForRepo(repo, contexts) : null
+    const isSelected = repo.id === selectedRepoId
 
     const card = (
       <div
         data-testid={`repo-card-${repo.id}`}
         draggable={!isAssigned}
         onDragStart={isAssigned ? undefined : (e) => handleDragStart(e, repo.id)}
-        className={`w-full bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded p-2.5 transition-colors ${
+        onClick={() => onSelectRepo?.(repo.id)}
+        className={`w-full bg-slate-50 dark:bg-neutral-900 border rounded p-2.5 transition-colors ${
+          isSelected
+            ? 'border-blue-400 dark:border-blue-500 ring-1 ring-blue-400 dark:ring-blue-500'
+            : 'border-slate-200 dark:border-neutral-700'
+        } ${
           isAssigned
-            ? 'cursor-default opacity-75 hover:opacity-100'
-            : 'cursor-move hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800'
+            ? 'cursor-pointer opacity-75 hover:opacity-100'
+            : 'cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800'
         }`}
       >
         {/* Row 1: name + status pill (top-right) */}

@@ -39,6 +39,7 @@ describe('InspectorHeader', () => {
       selectedNeedContextConnectionId: null,
       selectedStageIndex: null,
       selectedTeamId: null,
+      selectedRepoId: null,
       selectedContextIds: [],
     })
   })

@@ -8,6 +8,7 @@ import { UserNeedConnectionInspector } from './inspector/UserNeedConnectionInspe
 import { NeedContextConnectionInspector } from './inspector/NeedContextConnectionInspector'
 import { FlowStageInspector } from './inspector/FlowStageInspector'
 import { TeamInspector } from './inspector/TeamInspector'
+import { RepoInspector } from './inspector/RepoInspector'
 import { ContextInspector } from './inspector/ContextInspector'
 
 export function InspectorPanel() {
@@ -22,6 +23,7 @@ export function InspectorPanel() {
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const selectedStageIndex = useEditorStore((s) => s.selectedStageIndex)
   const selectedTeamId = useEditorStore((s) => s.selectedTeamId)
+  const selectedRepoId = useEditorStore((s) => s.selectedRepoId)
 
   if (!project) {
     return null
@@ -61,6 +63,9 @@ export function InspectorPanel() {
     }
     if (selectedTeamId) {
       return <TeamInspector project={project} teamId={selectedTeamId} />
+    }
+    if (selectedRepoId) {
+      return <RepoInspector project={project} repoId={selectedRepoId} />
     }
     if (selectedContextId) {
       return <ContextInspector project={project} contextId={selectedContextId} />
