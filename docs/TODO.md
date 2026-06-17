@@ -14,7 +14,7 @@
 ### v.1.0.0 - SAAS cloud edition (users, auth, pricing)
 
 - [ ] Implement milestone 1 of SAAS hosting (orgs & users etc) - SAAS_MONETIZATION_STRATEGY.md (for 1.0.0)
-- [ ] Repo management
+- [x] Repo management (0.12.0 Teams & Repos sidebar overhaul: repo add/select/delete, Repo inspector, context + owning-team assignment, status filtering)
 - [ ] Add about page? link to repo? link to VG.com
 - [ ] Update virtualgenius.com with fresh images & licensing/pricing
 - [ ] Add logo
