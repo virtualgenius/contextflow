@@ -17,6 +17,7 @@ import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
 import type { SpawnDirection, DraftEntity } from '../model/storeTypes'
 import { getHoverConnectedContextIds, shouldShowAddContextHint } from '../lib/canvasHelpers'
+import { computeFocusedContextIds, applyFocusDim } from '../lib/focus'
 import { entityDraftFlowPosition } from '../lib/entityDraftPlacement'
 import { isPointInCanvasBounds } from '../lib/canvasBounds'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
@@ -152,6 +153,7 @@ function CanvasContent() {
   const selectedNeedContextConnectionId = useEditorStore((s) => s.selectedNeedContextConnectionId)
   const hoveredContextId = useEditorStore((s) => s.hoveredContextId)
   const hoveredRelationshipId = useEditorStore((s) => s.hoveredRelationshipId)
+  const focus = useEditorStore((s) => s.focus)
   const viewMode = useEditorStore((s) => s.activeViewMode)
   const showGroups = useEditorStore((s) => s.showGroups)
   const showRelationships = useEditorStore((s) => s.showRelationships)
@@ -303,6 +305,12 @@ function CanvasContent() {
       project.relationships
     )
 
+    const focusedContextIds = computeFocusedContextIds(
+      focus,
+      project.contexts,
+      project.relationships
+    )
+
     const contextNodes = project.contexts.map((context) => {
       const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
 
@@ -331,6 +339,12 @@ function CanvasContent() {
         if (keyframes.length > 0) {
           opacity = getContextOpacity(context.id, currentDate, keyframes)
         }
+      }
+
+      // Focus dimming: fade contexts outside the focused subject's neighborhood,
+      // combined with any temporal opacity rather than overwriting it.
+      if (focusedContextIds) {
+        opacity = applyFocusDim(opacity, focusedContextIds.has(context.id))
       }
 
       return {
@@ -518,6 +532,7 @@ function CanvasContent() {
     selectedUserNeedConnectionId,
     selectedNeedContextConnectionId,
     hoveredContextId,
+    focus,
     viewMode,
     showGroups,
     currentDate,
@@ -1269,6 +1284,9 @@ function CanvasContent() {
         // creation, keep selection for chaining) takes precedence over clearing
         // the surrounding selection.
         if (isTextEntry) return
+        if (useEditorStore.getState().focus) {
+          useEditorStore.getState().clearFocus()
+        }
         useEditorStore.setState(CLEARED_SELECTION)
       }
       // Delete/Backspace: Delete selected connection edges

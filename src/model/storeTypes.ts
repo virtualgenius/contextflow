@@ -26,6 +26,16 @@ export type ContextDraft =
   | { kind: 'related'; sourceId: string; direction: SpawnDirection }
   | { kind: 'entity'; entity: DraftEntity }
 
+// A transient "focus" on a subject (a team or a single context) that fades
+// everything outside the subject's neighborhood. Not persisted (no localStorage,
+// not in Yjs); resets on project switch the same way selection does. `depth` is
+// the adjacency-hop radius; this slice always uses 0 (the subject only).
+export type FocusState = {
+  kind: 'team' | 'context'
+  id: string
+  depth: number
+} | null
+
 export interface EditorState {
   activeProjectId: string | null
   projects: Record<string, Project>
@@ -49,6 +59,9 @@ export interface EditorState {
   // One-shot request to focus and select a context's name field in the
   // inspector (set on double-click, cleared by the inspector once consumed).
   focusContextNameId: string | null
+
+  // The active focus subject, or null when nothing is focused.
+  focus: FocusState
 
   canvasView: {
     flow: { zoom: number; panX: number; panY: number }
@@ -106,6 +119,8 @@ export interface EditorState {
   toggleContextSelection: (contextId: string) => void
   clearContextSelection: () => void
   setHoveredContext: (contextId: string | null) => void
+  setFocus: (focus: FocusState) => void
+  clearFocus: () => void
   setHoveredRelationship: (relationshipId: string | null) => void
   setViewMode: (mode: ViewMode) => void
   setActiveProject: (projectId: string) => Promise<void>

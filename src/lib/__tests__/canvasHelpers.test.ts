@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   getHoverConnectedContextIds,
+  computeNeighborhood,
   getEdgeLabelInfo,
   shouldShowAddContextHint,
 } from '../canvasHelpers'
@@ -70,6 +71,57 @@ describe('getHoverConnectedContextIds', () => {
     ]
     const result = getHoverConnectedContextIds('a', rels)
     expect(result).toEqual(new Set(['b']))
+  })
+})
+
+describe('computeNeighborhood', () => {
+  it('returns only the seed set at depth 0', () => {
+    const rels = [makeRelationship('a', 'b'), makeRelationship('b', 'c')]
+    expect(computeNeighborhood(['a'], rels, 0)).toEqual(new Set(['a']))
+  })
+
+  it('returns multiple seeds at depth 0', () => {
+    const rels = [makeRelationship('a', 'b')]
+    expect(computeNeighborhood(['a', 'c'], rels, 0)).toEqual(new Set(['a', 'c']))
+  })
+
+  it('returns empty set for an empty seed set', () => {
+    const rels = [makeRelationship('a', 'b')]
+    expect(computeNeighborhood([], rels, 2).size).toBe(0)
+  })
+
+  it('includes seed plus direct neighbors at depth 1', () => {
+    const rels = [makeRelationship('a', 'b'), makeRelationship('c', 'a')]
+    expect(computeNeighborhood(['a'], rels, 1)).toEqual(new Set(['a', 'b', 'c']))
+  })
+
+  it('treats relationships as undirected', () => {
+    const rels = [makeRelationship('b', 'a')]
+    expect(computeNeighborhood(['a'], rels, 1)).toEqual(new Set(['a', 'b']))
+  })
+
+  it('expands breadth-first across multiple hops', () => {
+    const rels = [
+      makeRelationship('a', 'b'),
+      makeRelationship('b', 'c'),
+      makeRelationship('c', 'd'),
+    ]
+    expect(computeNeighborhood(['a'], rels, 2)).toEqual(new Set(['a', 'b', 'c']))
+    expect(computeNeighborhood(['a'], rels, 3)).toEqual(new Set(['a', 'b', 'c', 'd']))
+  })
+
+  it('does not loop forever on cycles', () => {
+    const rels = [
+      makeRelationship('a', 'b'),
+      makeRelationship('b', 'c'),
+      makeRelationship('c', 'a'),
+    ]
+    expect(computeNeighborhood(['a'], rels, 5)).toEqual(new Set(['a', 'b', 'c']))
+  })
+
+  it('grows from every seed in a multi-seed set', () => {
+    const rels = [makeRelationship('a', 'b'), makeRelationship('x', 'y')]
+    expect(computeNeighborhood(['a', 'x'], rels, 1)).toEqual(new Set(['a', 'b', 'x', 'y']))
   })
 })
 

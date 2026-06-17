@@ -39,6 +39,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -59,6 +60,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -76,6 +78,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -96,6 +99,7 @@ describe('TeamSidebar', () => {
           contexts={contexts}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -111,6 +115,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -125,6 +130,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -139,6 +145,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -153,6 +160,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId="team-1"
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -165,6 +173,7 @@ describe('TeamSidebar', () => {
 
   describe('interactions', () => {
     const onSelectTeam = vi.fn()
+    const onFocusTeam = vi.fn()
     const onAddTeam = vi.fn()
     const onDeleteTeam = vi.fn()
 
@@ -179,6 +188,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
@@ -194,6 +204,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
@@ -211,6 +222,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
@@ -228,6 +240,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
@@ -245,6 +258,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
@@ -262,14 +276,12 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
       )
-      const _deleteBtn = screen.getByRole('button', { name: '' })
-      // The trash icon button - find it by the SVG inside the team card
-      const card = screen.getByTestId('team-card-team-1')
-      const trashBtn = card.querySelector('button:last-of-type') as HTMLElement
+      const trashBtn = screen.getByRole('button', { name: 'Delete Platform Squad' })
       fireEvent.click(trashBtn)
       expect(onDeleteTeam).toHaveBeenCalledWith('team-1')
     })
@@ -282,12 +294,12 @@ describe('TeamSidebar', () => {
           contexts={[makeContext({ teamId: 'team-1' })]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
       )
-      const card = screen.getByTestId('team-card-team-1')
-      const trashBtn = card.querySelector('button:last-of-type') as HTMLElement
+      const trashBtn = screen.getByRole('button', { name: 'Delete Platform Squad' })
       fireEvent.click(trashBtn)
       expect(confirmSpy).toHaveBeenCalled()
       expect(onDeleteTeam).not.toHaveBeenCalled()
@@ -302,15 +314,80 @@ describe('TeamSidebar', () => {
           contexts={[makeContext({ teamId: 'team-1' })]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
       )
-      const card = screen.getByTestId('team-card-team-1')
-      const trashBtn = card.querySelector('button:last-of-type') as HTMLElement
+      const trashBtn = screen.getByRole('button', { name: 'Delete Platform Squad' })
       fireEvent.click(trashBtn)
       expect(onDeleteTeam).toHaveBeenCalledWith('team-1')
       confirmSpy.mockRestore()
+    })
+
+    it('shows the focus crosshair when a team owns contexts', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[makeContext({ teamId: 'team-1' })]}
+          selectedTeamId={null}
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+      expect(screen.getByRole('button', { name: 'Focus on Platform Squad' })).toBeInTheDocument()
+    })
+
+    it('hides the focus crosshair when a team owns no contexts', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+      expect(
+        screen.queryByRole('button', { name: 'Focus on Platform Squad' })
+      ).not.toBeInTheDocument()
+    })
+
+    it('calls onFocusTeam when clicking the crosshair', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[makeContext({ teamId: 'team-1' })]}
+          selectedTeamId={null}
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Focus on Platform Squad' }))
+      expect(onFocusTeam).toHaveBeenCalledWith('team-1')
+    })
+
+    it('does not select the team when clicking the crosshair', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[makeContext({ teamId: 'team-1' })]}
+          selectedTeamId={null}
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Focus on Platform Squad' }))
+      expect(onSelectTeam).not.toHaveBeenCalled()
+      expect(onDeleteTeam).not.toHaveBeenCalled()
     })
 
     it('does not trigger onSelectTeam when clicking delete button', () => {
@@ -320,12 +397,12 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
           onAddTeam={onAddTeam}
           onDeleteTeam={onDeleteTeam}
         />
       )
-      const card = screen.getByTestId('team-card-team-1')
-      const trashBtn = card.querySelector('button:last-of-type') as HTMLElement
+      const trashBtn = screen.getByRole('button', { name: 'Delete Platform Squad' })
       fireEvent.click(trashBtn)
       expect(onSelectTeam).not.toHaveBeenCalled()
     })
@@ -339,6 +416,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -354,6 +432,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -377,6 +456,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -395,6 +475,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -409,6 +490,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -427,6 +509,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -450,6 +533,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -470,6 +554,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -490,6 +575,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />
@@ -516,6 +602,7 @@ describe('TeamSidebar', () => {
           contexts={[]}
           selectedTeamId={null}
           onSelectTeam={noop}
+          onFocusTeam={noop}
           onAddTeam={noop}
           onDeleteTeam={noop}
         />

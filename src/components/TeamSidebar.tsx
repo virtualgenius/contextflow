@@ -1,5 +1,5 @@
 import React from 'react'
-import { Search, Trash2, X } from 'lucide-react'
+import { Crosshair, Search, Trash2, X } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -9,6 +9,7 @@ interface TeamSidebarProps {
   contexts: BoundedContext[]
   selectedTeamId: string | null
   onSelectTeam: (teamId: string) => void
+  onFocusTeam: (teamId: string) => void
   onAddTeam: (name: string) => void
   onDeleteTeam: (teamId: string) => void
 }
@@ -26,6 +27,7 @@ export function TeamSidebar({
   contexts,
   selectedTeamId,
   onSelectTeam,
+  onFocusTeam,
   onAddTeam,
   onDeleteTeam,
 }: TeamSidebarProps) {
@@ -117,24 +119,41 @@ export function TeamSidebar({
             >
               <div className="flex items-center justify-between">
                 <div className="font-medium text-slate-900 dark:text-slate-100">{team.name}</div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (count > 0) {
-                      if (
-                        !window.confirm(
-                          `Delete team "${team.name}"? ${count} context${count > 1 ? 's' : ''} will be unassigned.`
-                        )
-                      ) {
-                        return
+                <div className="flex items-center gap-0.5">
+                  {count > 0 && (
+                    <SimpleTooltip text="Focus on this team's contexts" position="top">
+                      <button
+                        aria-label={`Focus on ${team.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onFocusTeam(team.id)
+                        }}
+                        className="p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      >
+                        <Crosshair size={12} />
+                      </button>
+                    </SimpleTooltip>
+                  )}
+                  <button
+                    aria-label={`Delete ${team.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (count > 0) {
+                        if (
+                          !window.confirm(
+                            `Delete team "${team.name}"? ${count} context${count > 1 ? 's' : ''} will be unassigned.`
+                          )
+                        ) {
+                          return
+                        }
                       }
-                    }
-                    onDeleteTeam(team.id)
-                  }}
-                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                >
-                  <Trash2 size={12} />
-                </button>
+                      onDeleteTeam(team.id)
+                    }}
+                    className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 mt-1">

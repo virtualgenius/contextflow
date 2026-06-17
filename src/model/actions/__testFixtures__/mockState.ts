@@ -71,6 +71,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   isDragging: false,
   contextDraft: null,
   focusContextNameId: null,
+  focus: null,
   temporal: {
     currentDate: '2024',
     activeKeyframeId: null,
@@ -139,6 +140,8 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   toggleHelpTooltips: vi.fn(),
   clearActiveProject: vi.fn(),
   setHoveredContext: vi.fn(),
+  setFocus: vi.fn(),
+  clearFocus: vi.fn(),
   setHoveredRelationship: vi.fn(),
   setGroupOpacity: vi.fn(),
   setColorByMode: vi.fn(),

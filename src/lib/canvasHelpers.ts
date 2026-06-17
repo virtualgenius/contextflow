@@ -8,6 +8,42 @@ export function shouldShowAddContextHint(contextCount: number, hasOpenDraft: boo
 }
 
 /**
+ * Breadth-first expansion of a seed set across undirected relationships.
+ *
+ * Returns the set of context IDs within `depth` hops of any seed (inclusive of
+ * the seeds themselves). Depth 0 returns just the seed set. Relationship
+ * direction is ignored: a hop traverses either endpoint to the other.
+ */
+export function computeNeighborhood(
+  seedIds: Iterable<string>,
+  relationships: Relationship[],
+  depth: number
+): Set<string> {
+  const result = new Set<string>(seedIds)
+  let frontier = [...result]
+
+  for (let hop = 0; hop < depth; hop++) {
+    const next: string[] = []
+    for (const id of frontier) {
+      for (const rel of relationships) {
+        if (rel.fromContextId === id && !result.has(rel.toContextId)) {
+          result.add(rel.toContextId)
+          next.push(rel.toContextId)
+        }
+        if (rel.toContextId === id && !result.has(rel.fromContextId)) {
+          result.add(rel.fromContextId)
+          next.push(rel.fromContextId)
+        }
+      }
+    }
+    if (next.length === 0) break
+    frontier = next
+  }
+
+  return result
+}
+
+/**
  * Given a hovered context ID and a list of relationships,
  * return the set of context IDs connected to the hovered context.
  */
@@ -15,14 +51,11 @@ export function getHoverConnectedContextIds(
   hoveredContextId: string | null,
   relationships: Relationship[]
 ): Set<string> {
-  const connected = new Set<string>()
-  if (!hoveredContextId) return connected
+  if (!hoveredContextId) return new Set<string>()
 
-  for (const rel of relationships) {
-    if (rel.fromContextId === hoveredContextId) connected.add(rel.toContextId)
-    if (rel.toContextId === hoveredContextId) connected.add(rel.fromContextId)
-  }
-  return connected
+  const neighborhood = computeNeighborhood([hoveredContextId], relationships, 1)
+  neighborhood.delete(hoveredContextId)
+  return neighborhood
 }
 
 export interface EdgeLabelInfo {

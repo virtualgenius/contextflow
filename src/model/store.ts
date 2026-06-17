@@ -183,6 +183,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   isDragging: false,
   contextDraft: null,
   focusContextNameId: null,
+  focus: null,
 
   canvasView: {
     flow: { zoom: 1, panX: 0, panY: 0 },
@@ -291,6 +292,21 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   setHoveredContext: (contextId) => set({ hoveredContextId: contextId }),
 
+  setFocus: (focus) =>
+    set((state) => {
+      if (focus) {
+        const projectId = state.activeProjectId
+        const project = projectId ? state.projects[projectId] : null
+        trackEvent('focus_entered', project, {
+          focus_kind: focus.kind,
+          focus_depth: focus.depth,
+        })
+      }
+      return { focus }
+    }),
+
+  clearFocus: () => set({ focus: null }),
+
   setHoveredRelationship: (relationshipId) => set({ hoveredRelationshipId: relationshipId }),
 
   setViewMode: (mode) =>
@@ -361,6 +377,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       activeProjectId: projectId,
       activeViewMode: resolveViewModeForExistingProject(projectId),
       ...createSelectionState(null, 'context'),
+      focus: null,
       canUndo: false,
       canRedo: false,
     }))
@@ -938,7 +955,11 @@ export const useEditorStore = create<EditorState>((set) => ({
         entity_type: 'team',
         entity_id: teamId,
       })
-      return state.selectedTeamId === teamId ? { selectedTeamId: null } : {}
+      const clearedFocus =
+        state.focus?.kind === 'team' && state.focus.id === teamId ? { focus: null } : {}
+      return state.selectedTeamId === teamId
+        ? { selectedTeamId: null, ...clearedFocus }
+        : clearedFocus
     }),
 
   addUser: (name) =>
@@ -1521,6 +1542,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       },
       activeViewMode: 'flow',
       ...createSelectionState(null, 'context'),
+      focus: null,
       canUndo: false,
       canRedo: false,
     }),

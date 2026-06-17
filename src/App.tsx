@@ -6,6 +6,8 @@ import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { TeamSidebar } from './components/TeamSidebar'
+import { FocusBar, type FocusSubject } from './components/FocusBar'
+import { getTopologyColors } from './lib/teamColors'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
 import { OfflineBlockingModal } from './components/OfflineBlockingModal'
@@ -47,6 +49,9 @@ function Workspace() {
   const addTeam = useEditorStore((s) => s.addTeam)
   const deleteTeam = useEditorStore((s) => s.deleteTeam)
   const setSelectedTeam = useEditorStore((s) => s.setSelectedTeam)
+  const focus = useEditorStore((s) => s.focus)
+  const setFocus = useEditorStore((s) => s.setFocus)
+  const clearFocus = useEditorStore((s) => s.clearFocus)
 
   const { route, params } = useUrlRouter()
 
@@ -134,6 +139,22 @@ function Workspace() {
         : hasRightSidebar
           ? 'grid-cols-[1fr_320px]'
           : 'grid-cols-[1fr]'
+
+  const focusSubject: FocusSubject | null = React.useMemo(() => {
+    if (!focus || !project) return null
+    if (focus.kind === 'team') {
+      const team = project.teams.find((t) => t.id === focus.id)
+      if (!team) return null
+      return {
+        kind: 'team',
+        label: team.name,
+        color: getTopologyColors(team.topologyType).light.border,
+      }
+    }
+    const context = project.contexts.find((c) => c.id === focus.id)
+    if (!context) return null
+    return { kind: 'context', label: context.name, color: '#2563eb' }
+  }, [focus, project])
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed((prev) => {
@@ -277,6 +298,7 @@ function Workspace() {
                   contexts={project?.contexts || []}
                   selectedTeamId={selectedTeamId}
                   onSelectTeam={(teamId) => setSelectedTeam(teamId)}
+                  onFocusTeam={(teamId) => setFocus({ kind: 'team', id: teamId, depth: 0 })}
                   onAddTeam={(name) => addTeam(name)}
                   onDeleteTeam={(teamId) => deleteTeam(teamId)}
                 />
@@ -301,6 +323,7 @@ function Workspace() {
               </div>
             </button>
           )}
+          {focusSubject && <FocusBar subject={focusSubject} onExit={clearFocus} />}
           <CanvasArea />
         </section>
 
