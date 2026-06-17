@@ -41,6 +41,9 @@
         <label><input type="radio" name="memberset" value="5" checked /> 5 boxes</label>
         <label class="ml-4"><input type="checkbox" id="toggle-selected" /> Group selected (solid border)</label>
         <label><input type="checkbox" id="toggle-bounds" checked /> Show computed bounds</label>
+        <span class="ml-4 font-semibold text-slate-700">Label:</span>
+        <label><input type="radio" name="labelmode" value="band" checked /> top-member band (new)</label>
+        <label><input type="radio" name="labelmode" value="corner" /> bounding-box corner (current)</label>
         <span class="ml-auto flex items-center gap-2">Padding
           <input type="range" id="pad-slider" min="20" max="100" value="60" />
           <span class="pad-readout" id="pad-readout">60</span>
@@ -73,6 +76,10 @@
     const BLOB_FILL = '#10b981';
     const BORDER_COLOR = '#059669';
     const BLOB_OPACITY = 0.10;
+    const GROUP_LABEL = 'Customer-Facing Experience';
+    // Label sits in the padding band above the topmost member, where the
+    // dilated hull is reliably filled. Fraction of padding to lift it.
+    const LABEL_BAND_FRACTION = 0.5;
 
     const ALL_BOXES = [
       { id: 'a', x: 300, y: 190, w: 180, h: 90,  label: 'Order Management' },
@@ -88,6 +95,7 @@
     let padding = 60;
     let selected = false;
     let showBounds = true;
+    let labelMode = 'band';
 
     function activeBoxes() {
       return ALL_BOXES.filter((b) => memberIds.includes(b.id));
@@ -153,6 +161,18 @@
       return d + ' Z';
     }
 
+    // New approach: anchor to the topmost member, centered on it, lifted into
+    // the filled padding band just above its top edge.
+    function labelAnchorBand(boxes, p) {
+      const top = boxes.reduce((m, b) => (b.y - b.h / 2 < m.y - m.h / 2 ? b : m));
+      return { x: top.x, y: top.y - top.h / 2 - p * LABEL_BAND_FRACTION, anchor: 'middle' };
+    }
+
+    // Current app approach: fixed offset from the bounding-box top-left corner.
+    function labelAnchorCorner(bounds) {
+      return { x: bounds.minX + 16, y: bounds.minY + 18, anchor: 'start' };
+    }
+
     function blobBounds(hull, p) {
       const xs = hull.map((q) => q.x), ys = hull.map((q) => q.y);
       return {
@@ -183,6 +203,10 @@
         svg += '<text x="' + b.x + '" y="' + (b.y + 4) + '" text-anchor="middle" font-size="12" font-weight="600" fill="#0f172a">' + b.label + '</text>';
         svg += '</g>';
       });
+
+      const a = labelMode === 'corner' ? labelAnchorCorner(bounds) : labelAnchorBand(boxes, padding);
+      svg += '<text x="' + a.x + '" y="' + a.y + '" text-anchor="' + a.anchor + '" dominant-baseline="middle" font-size="13" font-weight="700" fill="' + BORDER_COLOR + '">' + GROUP_LABEL + '</text>';
+
       stage.innerHTML = svg;
       wireDrag();
     }
@@ -216,6 +240,9 @@
     });
     document.getElementById('toggle-selected').addEventListener('change', (e) => { selected = e.target.checked; render(); });
     document.getElementById('toggle-bounds').addEventListener('change', (e) => { showBounds = e.target.checked; render(); });
+    document.querySelectorAll('input[name="labelmode"]').forEach((r) => {
+      r.addEventListener('change', () => { labelMode = r.value; render(); });
+    });
     const padSlider = document.getElementById('pad-slider');
     padSlider.addEventListener('input', () => {
       padding = Number(padSlider.value);
