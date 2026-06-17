@@ -317,11 +317,20 @@ export interface TemporalKeyframe {
 - View switching
   - Uses Framer Motion to animate each node’s horizontal position when switching between Flow, Distillation, and Strategic views
 
-### `<RepoSidebar />`
-- Shows repos with no `contextId` (unassigned)
-- Shows `name`, `remoteUrl` (as clickable if present), team chips
-- Supports dragging a repo card onto a context bubble in `<CanvasArea />`
-  - Drop assigns `repo.contextId`
+### Left sidebar (`<RepoSidebar />` / `<TeamSidebar />`)
+The left panel is a tabbed Teams/Repos surface, always reachable (it renders even on an empty project so teams and repos can be set up before anything is placed on the canvas) and collapses to a floating control that names both tabs. Tabs lead with Teams, then Repos. Each panel is three pinned regions inside a flex column: a filter header (name search + filter chips), a scrolling card list, and a pinned add control. Cards are uniform full-width with a status/action element top-right and a delete affordance bottom-right.
+
+`<RepoSidebar />`:
+- Lists all repos, split into "Ready to assign" (no `contextId`) and "Assigned" sections; each card shows `name`, a status pill (amber `Unassigned` or the assigned context name), `remoteUrl` (clickable, truncated), and owning-team chips
+- Filter chips: All / Unassigned / Assigned; plus name search
+- Add a repo in place; delete a repo (confirmation only when assigned)
+- Click a card to select it (`selectedRepoId`) and open the Repo inspector
+- Drag an unassigned card onto a context in `<CanvasArea />` to assign `repo.contextId`
+
+`<TeamSidebar />`:
+- Lists teams as uniform cards with a topology badge, context count, a focus crosshair (hidden when the team owns no contexts), and delete
+- Filter chips by topology (All / Stream / Platform / Enabling / Subsystem); plus name search
+- Add a team in place; click a card to select it and open the Team inspector; drag onto a context to assign
 
 ### `<InspectorPanel />`
 When a context is selected:
@@ -348,6 +357,12 @@ When a context is selected:
 - Relationships:
   - list upstream/downstream neighbors
   - label with DDD pattern (“conformist”, “customer-supplier”, etc.)
+
+When a repo is selected (`<RepoInspector />`):
+- name and remote URL (editable; round-trip through Yjs)
+- assigned context (assign / unassign, reusing `repo_assigned_to_context` / `repo_unassigned`)
+- owning teams as colored chips with add and per-chip remove (edits `repo.teamIds`, the M:N repo↔team edge)
+- delete repository action
 
 When a relationship is selected:
 - pattern
@@ -397,6 +412,7 @@ interface EditorState {
   selectedNeedContextConnectionId: string | null;
   selectedStageIndex: number | null;
   selectedTeamId: string | null;
+  selectedRepoId: string | null;
   selectedContextIds: string[];       // multi-select
   hoveredContextId: string | null;
   isDragging: boolean;

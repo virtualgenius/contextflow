@@ -116,7 +116,7 @@ Big maps (50+ contexts, a dozen-plus teams) get hard to read. **Focus** is a non
   - Create/delete capability groups with organic blob-shaped rendering
   - Add existing contexts to groups individually or in batch operations
   - Create/edit/delete actors and user needs with full connection management
-- Repo sidebar with drag-to-assign functionality
+- **Teams & Repos panel** (tabbed, always reachable): set up teams and repos before touching the canvas, filter by topology or assignment status, add in place, and drag a card onto a context to assign it. Click a repo to open its inspector (name, remote URL, assigned context, owning teams). Filter and add controls stay pinned while the list scrolls
 - **CodeCohesion API integration** for live repository statistics and contributor data
 - Team and ownership details with clickable Jira board links
 - Inspector panel for editing context/relationship/group/actor/user need details

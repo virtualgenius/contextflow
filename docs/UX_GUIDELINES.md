@@ -134,7 +134,7 @@ Floating labels that render above nodes at the React Flow viewport level:
 | Area | Purpose | Notes |
 |-------|----------|-------|
 | **Top Bar** | View toggle, project switcher, flow stage editor, temporal controls | Light background, minimal icons |
-| **Left Sidebar** | Repos and Teams (tabbed) | Collapsible, scrollable. Repos tab shows CodeCohesion API stats when available. Teams tab supports drag-to-assign. |
+| **Left Sidebar** | Repos and Teams (tabbed, Teams first) | Always reachable (renders even on an empty project). Each tab: pinned filter header (name search + filter chips) and pinned add control, with only the card list scrolling between. Uniform full-width cards, in-place add, delete, and click-to-select an inspector. Collapses to a floating control naming both tabs. Repos show CodeCohesion API stats when available; both support drag-to-assign onto contexts. |
 | **Center Canvas** | Main map visualization | Infinite plane, pan/zoom enabled |
 | **Right Sidebar (Inspector)** | Entity details | Edit context/relationship/group/actor/user need properties |
 | **Background Grid** | View-specific axes | Subtle gridlines + axis labels. Changes based on current view. |
@@ -159,12 +159,14 @@ Floating labels that render above nodes at the React Flow viewport level:
 |------------|----------------|
 | **CanvasArea.tsx** | Render nodes (contexts/actors/user needs), relationships, and groups via React Flow |
 | **InspectorPanel.tsx** | Display and edit metadata for selected entity (context/relationship/group/actor/user need) |
-| **RepoSidebar.tsx** | Manage and assign repositories with drag-and-drop. Show CodeCohesion API stats. |
+| **RepoSidebar.tsx** | List, filter (by status), add, select, delete, and drag-assign repositories. Click a card to open the Repo inspector. Show CodeCohesion API stats. |
+| **RepoInspector.tsx** | Edit a selected repo: name, remote URL, assigned context, owning teams (chips), delete |
+| **SidebarFilterChips.tsx** | Shared filter-chip row for the Teams (topology) and Repos (status) panels |
 | **TopBar.tsx** | Global controls: view toggle, project switcher, flow stage editor, temporal mode toggle |
 | **TimelineSlider.tsx** | Keyframe management, scrubbing, and playback controls |
 | **App.tsx** | Layout composition, responsive sizing, and entity selection routing to Inspector |
 | **ProjectListPage.tsx** | Landing page with project list, creation, and example loading |
-| **TeamSidebar.tsx** | Team management with drag-and-drop assignment to contexts (left sidebar is tabbed: Repos/Teams) |
+| **TeamSidebar.tsx** | List, filter (by topology), add, select, delete, focus, and drag-assign teams (left sidebar is tabbed, Teams then Repos) |
 
 ## Tooltips
 

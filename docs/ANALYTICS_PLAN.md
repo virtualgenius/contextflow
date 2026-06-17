@@ -124,15 +124,18 @@
 - `repo_added` (detailed)
   - `entity_type`: 'repo'
   - `entity_id`: repo ID
-  - `metadata`: { `has_remote_url`: boolean, `url_platform`: 'github' | 'gitlab' | 'bitbucket' | 'other' | null, `team_count`: number, `contributor_count`: number }
+  - `source`: 'sidebar' | 'inspector' (where the repo was created from)
 - `repo_deleted` (detailed)
-  - `metadata`: { `was_assigned_to_context`: boolean, `had_teams`: boolean, `had_contributors`: boolean }
-- `repo_url_added` (detailed)
-  - `property_changed`: 'remoteUrl'
-  - `metadata`: { `platform`: 'github' | 'gitlab' | 'bitbucket' | 'other' }
-- `repo_url_removed` (detailed)
-  - `metadata`: { `had_platform`: 'github' | 'gitlab' | 'bitbucket' | 'other' }
-- `repo_assigned` / `repo_unassigned` - Track repo assignments
+  - `entity_type`: 'repo'
+  - `entity_id`: repo ID
+- `repo_selected` (detailed) - a repo card was clicked to open the Repo inspector
+  - `entity_type`: 'repo'
+  - `entity_id`: repo ID
+- `repo_assigned_to_context` / `repo_unassigned` - repo mapped to / detached from a bounded context
+  - `entity_type`: 'repo', `entity_id`: repo ID, `context_id`: context ID (on assign)
+- `repo_team_added` / `repo_team_removed` - an owning team added to / removed from a repo (the M:N repo↔team edge)
+  - `entity_type`: 'repo', `entity_id`: repo ID, `team_id`: team ID
+- Repo name and remote URL edits flow through `text_field_edited` (see below), not dedicated events.
 
 **Context Additional Properties:**
 - `context_boundary_integrity_changed` (detailed)
@@ -149,10 +152,17 @@
   - `old_value`: boolean
   - `new_value`: boolean
 
+**Sidebar navigation (Teams & Repos panel):**
+- `sidebar_tab_changed` - switched the left panel between the Teams and Repos tabs
+  - `tab`: 'repos' | 'teams'
+- `sidebar_filter_changed` - changed a filter chip in the panel
+  - `tab`: 'repos' | 'teams'
+  - `value`: topology type (teams) or 'all' | 'unassigned' | 'assigned' (repos)
+
 **Text Field Editing (PII-safe - char counts only):**
 - `text_field_edited` (detailed)
-  - `entity_type`: 'context' | 'relationship' | 'group' | 'actor' | 'need' | 'team'
-  - `field_name`: 'purpose' | 'notes' | 'boundaryNotes' | 'description' | 'communicationMode'
+  - `entity_type`: 'context' | 'relationship' | 'group' | 'actor' | 'need' | 'team' | 'repo'
+  - `field_name`: 'purpose' | 'notes' | 'boundaryNotes' | 'description' | 'communicationMode' | 'name' | 'remoteUrl'
   - `old_char_count`: number
   - `new_char_count`: number
   - `edit_type`: 'added_text' | 'deleted_text' | 'replaced_text' | 'cleared'
