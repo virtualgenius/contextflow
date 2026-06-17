@@ -6,11 +6,17 @@ interface SimpleTooltipProps {
   text: string
   children: ReactNode
   position?: 'top' | 'bottom' | 'left' | 'right'
+  className?: string
 }
 
 const TOOLTIP_OFFSET = 6
 
-export function SimpleTooltip({ text, children, position = 'bottom' }: SimpleTooltipProps) {
+export function SimpleTooltip({
+  text,
+  children,
+  position = 'bottom',
+  className = 'inline-flex',
+}: SimpleTooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [coords, setCoords] = useState({ x: 0, y: 0 })
   const triggerRef = useRef<HTMLSpanElement>(null)
@@ -83,7 +89,7 @@ export function SimpleTooltip({ text, children, position = 'bottom' }: SimpleToo
   return (
     <span
       ref={triggerRef}
-      className="inline-flex"
+      className={className}
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
     >

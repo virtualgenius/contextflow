@@ -278,7 +278,7 @@ function Workspace() {
       <main className={`flex-1 grid ${gridCols} overflow-hidden`}>
         {/* Left Sidebar - collapsible, with Repos/Teams tabs */}
         {showLeftSidebar && (
-          <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col min-h-0">
+          <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col min-h-0 min-w-0">
             {/* Tab bar - always show both tabs so either can be set up from empty */}
             <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
               <button
@@ -309,7 +309,7 @@ function Workspace() {
               </button>
             </div>
 
-            <div className="flex-1 min-h-0 text-xs">
+            <div className="flex-1 min-h-0 min-w-0 text-xs">
               {activeTab === 'repos' ? (
                 <RepoSidebar
                   repos={project?.repos || []}

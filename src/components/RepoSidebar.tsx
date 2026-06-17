@@ -137,7 +137,9 @@ export function RepoSidebar({
       >
         {/* Row 1: name + status pill (top-right) */}
         <div className="flex items-center justify-between gap-2">
-          <div className="font-medium text-slate-900 dark:text-slate-100 truncate">{repo.name}</div>
+          <div className="font-medium text-slate-900 dark:text-slate-100 truncate min-w-0">
+            {repo.name}
+          </div>
           {ctxName ? (
             <span className="flex-shrink-0 truncate max-w-[96px] text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-700 text-slate-600 dark:text-slate-300">
               {ctxName}
@@ -154,10 +156,10 @@ export function RepoSidebar({
             href={repo.remoteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mt-1"
+            className="text-blue-600 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mt-1 min-w-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <span className="truncate">{repo.remoteUrl}</span>
+            <span className="truncate min-w-0">{repo.remoteUrl}</span>
             <ExternalLink size={10} className="flex-shrink-0" />
           </a>
         )}
@@ -202,14 +204,19 @@ export function RepoSidebar({
     if (isAssigned) return <React.Fragment key={repo.id}>{card}</React.Fragment>
 
     return (
-      <SimpleTooltip key={repo.id} text="Drag onto a context to assign" position="right">
+      <SimpleTooltip
+        key={repo.id}
+        text="Drag onto a context to assign"
+        position="right"
+        className="block w-full min-w-0"
+      >
         {card}
       </SimpleTooltip>
     )
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full min-h-0 min-w-0">
       {/* Pinned filter chrome */}
       {repos.length > 1 && (
         <div className="px-3 pt-3 pb-2 border-b border-slate-100 dark:border-neutral-800 space-y-2">
@@ -242,7 +249,7 @@ export function RepoSidebar({
       )}
 
       {/* Scrollable card list */}
-      <div data-testid="repo-scroll" className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+      <div data-testid="repo-scroll" className="flex-1 min-w-0 overflow-y-auto px-3 py-2 space-y-2">
         {repos.length === 0 && (
           <div className="flex flex-col items-center text-center gap-2 px-4 py-8">
             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
