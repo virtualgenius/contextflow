@@ -209,46 +209,30 @@ export function RepoSidebar({
   }
 
   return (
-    <div className="space-y-2">
-      {repos.length === 0 && (
-        <div className="flex flex-col items-center text-center gap-2 px-4 py-8">
-          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
-            <FolderGit2 size={18} />
-          </div>
-          <div className="text-sm font-medium text-slate-600 dark:text-neutral-300">
-            No repos yet
-          </div>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
-            Add the repositories in your system, then drag each one onto the context it belongs to.
-          </p>
-        </div>
-      )}
-
+    <div className="flex flex-col h-full min-h-0">
+      {/* Pinned filter chrome */}
       {repos.length > 1 && (
-        <div className="relative mb-2">
-          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.stopPropagation()}
-            placeholder="Filter repos..."
-            className="w-full text-xs pl-7 pr-7 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-blue-400"
-          />
-          {searchQuery && (
-            <button
-              aria-label="clear"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-      )}
-
-      {repos.length > 1 && (
-        <div className="mb-2">
+        <div className="px-3 pt-3 pb-2 border-b border-slate-100 dark:border-neutral-800 space-y-2">
+          <div className="relative">
+            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder="Filter repos..."
+              className="w-full text-xs pl-7 pr-7 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-blue-400"
+            />
+            {searchQuery && (
+              <button
+                aria-label="clear"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
           <SidebarFilterChips
             options={STATUS_FILTER_OPTIONS}
             active={statusFilter}
@@ -257,51 +241,71 @@ export function RepoSidebar({
         </div>
       )}
 
-      {isFiltering && (
-        <div className="text-[10px] text-slate-500 dark:text-neutral-400 mb-1">
-          {filteredRepos.length} of {repos.length} repos
+      {/* Scrollable card list */}
+      <div data-testid="repo-scroll" className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+        {repos.length === 0 && (
+          <div className="flex flex-col items-center text-center gap-2 px-4 py-8">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+              <FolderGit2 size={18} />
+            </div>
+            <div className="text-sm font-medium text-slate-600 dark:text-neutral-300">
+              No repos yet
+            </div>
+            <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+              Add the repositories in your system, then drag each one onto the context it belongs
+              to.
+            </p>
+          </div>
+        )}
+
+        {isFiltering && (
+          <div className="text-[10px] text-slate-500 dark:text-neutral-400 mb-1">
+            {filteredRepos.length} of {repos.length} repos
+          </div>
+        )}
+
+        {filteredRepos.length === 0 && isFiltering && (
+          <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
+            No repos match your filter
+          </div>
+        )}
+
+        {hasBothSections && (
+          <div className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider pt-1">
+            Ready to assign
+          </div>
+        )}
+
+        {unassigned.map((repo) => renderRepoCard(repo, false))}
+
+        {hasBothSections && (
+          <div className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider pt-2">
+            Assigned
+          </div>
+        )}
+
+        {assigned.map((repo) => renderRepoCard(repo, true))}
+      </div>
+
+      {/* Pinned add repo input */}
+      <div className="border-t border-slate-200 dark:border-neutral-700 p-2.5">
+        <div className="flex gap-1.5">
+          <input
+            type="text"
+            value={newRepoName}
+            onChange={(e) => setNewRepoName(e.target.value)}
+            onKeyDown={handleAddKeyDown}
+            placeholder="Add repo..."
+            className="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-neutral-500"
+          />
+          <button
+            onClick={handleAddRepo}
+            disabled={!newRepoName.trim()}
+            className="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Add
+          </button>
         </div>
-      )}
-
-      {filteredRepos.length === 0 && isFiltering && (
-        <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">
-          No repos match your filter
-        </div>
-      )}
-
-      {hasBothSections && (
-        <div className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider pt-1">
-          Ready to assign
-        </div>
-      )}
-
-      {unassigned.map((repo) => renderRepoCard(repo, false))}
-
-      {hasBothSections && (
-        <div className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider pt-2">
-          Assigned
-        </div>
-      )}
-
-      {assigned.map((repo) => renderRepoCard(repo, true))}
-
-      {/* Add repo input */}
-      <div className="flex gap-1.5 pt-1">
-        <input
-          type="text"
-          value={newRepoName}
-          onChange={(e) => setNewRepoName(e.target.value)}
-          onKeyDown={handleAddKeyDown}
-          placeholder="Add repo..."
-          className="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-neutral-500"
-        />
-        <button
-          onClick={handleAddRepo}
-          disabled={!newRepoName.trim()}
-          className="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          Add
-        </button>
       </div>
     </div>
   )

@@ -186,6 +186,26 @@ describe('TeamSidebar', () => {
     })
   })
 
+  describe('pinned chrome (slice E)', () => {
+    it('keeps the filter search and the add control outside the scrolling card list', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam({ id: 'team-1' }), makeTeam({ id: 'team-2', name: 'Core' })]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onFocusTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      const scroll = screen.getByTestId('team-scroll')
+      expect(scroll.className).toContain('overflow-y-auto')
+      expect(scroll.contains(screen.getByPlaceholderText('Filter teams...'))).toBe(false)
+      expect(scroll.contains(screen.getByPlaceholderText('Add team...'))).toBe(false)
+    })
+  })
+
   describe('topology filter (slice D)', () => {
     const onSelectTeam = vi.fn()
     const onFocusTeam = vi.fn()

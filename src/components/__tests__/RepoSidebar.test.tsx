@@ -144,6 +144,24 @@ describe('RepoSidebar', () => {
     })
   })
 
+  describe('pinned chrome (slice E)', () => {
+    it('keeps the filter search and the add control outside the scrolling card list', () => {
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1' }), makeRepo({ id: 'repo-2', name: 'payments-api' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onAddRepo={vi.fn()}
+        />
+      )
+      const scroll = screen.getByTestId('repo-scroll')
+      expect(scroll.className).toContain('overflow-y-auto')
+      expect(scroll.contains(screen.getByPlaceholderText('Filter repos...'))).toBe(false)
+      expect(scroll.contains(screen.getByPlaceholderText('Add repo...'))).toBe(false)
+    })
+  })
+
   describe('status filter (slice D)', () => {
     const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
 
