@@ -13,7 +13,8 @@ import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
 import { OfflineBlockingModal } from './components/OfflineBlockingModal'
 import { useCollabStore } from './model/collabStore'
-import { Users, X, ChevronRight } from 'lucide-react'
+import { Users, X, ChevronRight, FolderGit2 } from 'lucide-react'
+import { SimpleTooltip } from './components/SimpleTooltip'
 import { trackEvent } from './utils/analytics'
 import { useUrlRouter } from './hooks/useUrlRouter'
 
@@ -213,6 +214,13 @@ function Workspace() {
     trackEvent('sidebar_tab_changed', null, { tab })
   }
 
+  // Reopen the collapsed sidebar straight to a chosen tab.
+  const openSidebarToTab = (tab: 'repos' | 'teams') => {
+    setIsSidebarCollapsed(false)
+    localStorage.setItem('contextflow.sidebar.collapsed', 'false')
+    handleTabChange(tab)
+  }
+
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-neutral-900 dark:text-neutral-100">
       <TopBar />
@@ -341,21 +349,45 @@ function Workspace() {
 
         {/* Canvas Area */}
         <section className="relative bg-slate-100 dark:bg-neutral-800">
-          {/* Show button when sidebar is collapsed */}
+          {/* Reopen control when sidebar is collapsed: names both tabs, click either to reopen to it */}
           {isSidebarCollapsed && (
-            <button
-              onClick={toggleSidebar}
-              className="absolute left-2 top-2 z-10 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded px-2 py-1.5 text-xs text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:text-slate-700 dark:hover:text-slate-300 shadow-sm"
-            >
-              <div className="flex items-center gap-1">
-                <ChevronRight size={10} strokeWidth={2} />
-                <span className="font-medium">
-                  {activeTab === 'repos'
-                    ? `Repos (${project?.repos?.length ?? 0})`
-                    : `Teams (${project?.teams?.length ?? 0})`}
-                </span>
-              </div>
-            </button>
+            <div className="absolute left-2 top-2 z-10 flex items-stretch text-xs bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded shadow-sm overflow-hidden">
+              <SimpleTooltip text="Expand sidebar" position="bottom">
+                <button
+                  onClick={toggleSidebar}
+                  aria-label="Expand sidebar"
+                  className="px-1.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                >
+                  <ChevronRight size={12} strokeWidth={2} />
+                </button>
+              </SimpleTooltip>
+              <SimpleTooltip text="Open Teams" position="bottom">
+                <button
+                  onClick={() => openSidebarToTab('teams')}
+                  aria-label="Open Teams"
+                  className="px-2 py-1.5 flex items-center gap-1.5 border-l border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                >
+                  <Users size={12} className="text-slate-400" />
+                  <span className="text-slate-600 dark:text-slate-300">
+                    <span className="font-medium text-slate-700 dark:text-slate-200">Teams</span>{' '}
+                    {project?.teams?.length ?? 0}
+                  </span>
+                </button>
+              </SimpleTooltip>
+              <SimpleTooltip text="Open Repos" position="bottom">
+                <button
+                  onClick={() => openSidebarToTab('repos')}
+                  aria-label="Open Repos"
+                  className="px-2 py-1.5 flex items-center gap-1.5 border-l border-slate-200 dark:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                >
+                  <FolderGit2 size={12} className="text-slate-400" />
+                  <span className="text-slate-600 dark:text-slate-300">
+                    <span className="font-medium text-slate-700 dark:text-slate-200">Repos</span>{' '}
+                    {project?.repos?.length ?? 0}
+                  </span>
+                </button>
+              </SimpleTooltip>
+            </div>
           )}
           {focusSubject && focus && (
             <FocusBar
