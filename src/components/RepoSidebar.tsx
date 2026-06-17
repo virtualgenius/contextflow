@@ -1,5 +1,5 @@
 import React from 'react'
-import { ExternalLink, Search, X } from 'lucide-react'
+import { ExternalLink, FolderGit2, Search, X } from 'lucide-react'
 import type { Repo, Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -128,6 +128,20 @@ export function RepoSidebar({
 
   return (
     <div className="space-y-2">
+      {repos.length === 0 && (
+        <div className="flex flex-col items-center text-center gap-2 px-4 py-8">
+          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+            <FolderGit2 size={18} />
+          </div>
+          <div className="text-sm font-medium text-slate-600 dark:text-neutral-300">
+            No repos yet
+          </div>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+            Add the repositories in your system, then drag each one onto the context it belongs to.
+          </p>
+        </div>
+      )}
+
       {repos.length > 1 && (
         <div className="relative mb-2">
           <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />

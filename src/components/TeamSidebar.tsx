@@ -1,5 +1,5 @@
 import React from 'react'
-import { Crosshair, Search, Trash2, X } from 'lucide-react'
+import { Crosshair, Search, Trash2, Users, X } from 'lucide-react'
 import type { Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -63,7 +63,17 @@ export function TeamSidebar({
   return (
     <div className="space-y-2">
       {teams.length === 0 && (
-        <div className="text-xs text-slate-500 dark:text-neutral-400 italic py-2">No teams yet</div>
+        <div className="flex flex-col items-center text-center gap-2 px-4 py-8">
+          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+            <Users size={18} />
+          </div>
+          <div className="text-sm font-medium text-slate-600 dark:text-neutral-300">
+            No teams yet
+          </div>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+            Add the teams in your system, then drag each one onto the context it owns.
+          </p>
+        </div>
       )}
 
       {teams.length > 1 && (

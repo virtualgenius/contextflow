@@ -138,6 +138,21 @@ describe('TeamSidebar', () => {
       expect(screen.getByText('No teams yet')).toBeInTheDocument()
     })
 
+    it('shows an empty-state hint when no teams exist', () => {
+      render(
+        <TeamSidebar
+          teams={[]}
+          contexts={[]}
+          selectedTeamId={null}
+          onSelectTeam={noop}
+          onFocusTeam={noop}
+          onAddTeam={noop}
+          onDeleteTeam={noop}
+        />
+      )
+      expect(screen.getByText(/drag each one onto the context/i)).toBeInTheDocument()
+    })
+
     it('shows add team input even in empty state', () => {
       render(
         <TeamSidebar

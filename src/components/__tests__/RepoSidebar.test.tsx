@@ -29,6 +29,19 @@ function makeContext(overrides: Partial<BoundedContext> = {}): BoundedContext {
 const noop = vi.fn()
 
 describe('RepoSidebar', () => {
+  describe('empty state', () => {
+    it('shows an empty-state message and hint when there are no repos', () => {
+      render(<RepoSidebar repos={[]} teams={[]} contexts={[]} onRepoAssign={noop} />)
+      expect(screen.getByText('No repos yet')).toBeInTheDocument()
+      expect(screen.getByText(/drag each one onto the context/i)).toBeInTheDocument()
+    })
+
+    it('does not show the empty state when repos exist', () => {
+      render(<RepoSidebar repos={[makeRepo()]} teams={[]} contexts={[]} onRepoAssign={noop} />)
+      expect(screen.queryByText('No repos yet')).not.toBeInTheDocument()
+    })
+  })
+
   describe('rendering', () => {
     it('renders repo names', () => {
       render(

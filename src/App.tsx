@@ -112,8 +112,9 @@ function Workspace() {
 
   const hasRepos = (project?.repos?.length ?? 0) > 0
   const hasTeams = (project?.teams?.length ?? 0) > 0
-  const hasLeftSidebarContent = hasRepos || hasTeams
-  const showLeftSidebar = hasLeftSidebarContent && !isSidebarCollapsed
+  // The sidebar is always reachable so teams/repos can be set up before anything
+  // is assigned to a context; it hides only when the user collapses it.
+  const showLeftSidebar = !isSidebarCollapsed
 
   // Auto-select appropriate tab when content changes
   const activeTab =
@@ -273,51 +274,35 @@ function Workspace() {
         {/* Left Sidebar - collapsible, with Repos/Teams tabs */}
         {showLeftSidebar && (
           <aside className="border-r border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col">
-            {/* Tab bar - only show when both tabs have content */}
-            {hasRepos && hasTeams ? (
-              <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
-                <button
-                  onClick={() => handleTabChange('repos')}
-                  className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-                    activeTab === 'repos'
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                      : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
-                  }`}
-                >
-                  Repos ({project?.repos?.length ?? 0})
-                </button>
-                <button
-                  onClick={() => handleTabChange('teams')}
-                  className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-                    activeTab === 'teams'
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                      : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
-                  }`}
-                >
-                  Teams ({project?.teams?.length ?? 0})
-                </button>
-                <button
-                  onClick={toggleSidebar}
-                  className="px-2 py-2 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                >
-                  <X size={12} strokeWidth={2} />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-4 pb-2">
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
-                  {activeTab === 'repos'
-                    ? `Repos (${project?.repos?.length ?? 0})`
-                    : `Teams (${project?.teams?.length ?? 0})`}
-                </div>
-                <button
-                  onClick={toggleSidebar}
-                  className="p-1 hover:bg-slate-100 dark:hover:bg-neutral-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                >
-                  <X size={12} strokeWidth={2} />
-                </button>
-              </div>
-            )}
+            {/* Tab bar - always show both tabs so either can be set up from empty */}
+            <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
+              <button
+                onClick={() => handleTabChange('repos')}
+                className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                  activeTab === 'repos'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                Repos ({project?.repos?.length ?? 0})
+              </button>
+              <button
+                onClick={() => handleTabChange('teams')}
+                className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                  activeTab === 'teams'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                Teams ({project?.teams?.length ?? 0})
+              </button>
+              <button
+                onClick={toggleSidebar}
+                className="px-2 py-2 hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <X size={12} strokeWidth={2} />
+              </button>
+            </div>
 
             <div className="flex-1 px-4 pb-4 text-xs overflow-y-auto">
               {activeTab === 'repos' ? (
@@ -348,7 +333,7 @@ function Workspace() {
         {/* Canvas Area */}
         <section className="relative bg-slate-100 dark:bg-neutral-800">
           {/* Show button when sidebar is collapsed */}
-          {hasLeftSidebarContent && isSidebarCollapsed && (
+          {isSidebarCollapsed && (
             <button
               onClick={toggleSidebar}
               className="absolute left-2 top-2 z-10 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded px-2 py-1.5 text-xs text-slate-500 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:text-slate-700 dark:hover:text-slate-300 shadow-sm"
@@ -356,7 +341,9 @@ function Workspace() {
               <div className="flex items-center gap-1">
                 <ChevronRight size={10} strokeWidth={2} />
                 <span className="font-medium">
-                  {hasRepos ? `Repos (${project?.repos?.length ?? 0})` : 'Teams'}
+                  {activeTab === 'repos'
+                    ? `Repos (${project?.repos?.length ?? 0})`
+                    : `Teams (${project?.teams?.length ?? 0})`}
                 </span>
               </div>
             </button>
