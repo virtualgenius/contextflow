@@ -1,6 +1,6 @@
 {
   "name": "contextflow",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Visual DDD context mapper with Value Stream, Distillation, and Strategic views",
   "type": "module",
   "private": false,

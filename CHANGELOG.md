@@ -4,6 +4,17 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.12.0] - 2026-06-17
+
+- The Teams and Repos panel is now always reachable, even on a brand-new project, so you can set up your teams and repositories before placing anything on the canvas; empty tabs explain what to add and why
+- Add a repository straight from the Repos panel, the same way you add a team, instead of only through a context
+- Team and repo cards now share one consistent full-width layout, with delete in the bottom-right of each card and repo deletion guarded by a confirmation only when the repo is assigned
+- Click a repository to open a Repo inspector: rename it, set its remote URL, choose the context it maps to, manage its owning teams as chips, or delete it
+- Filter teams by topology type and repositories by assignment status with quick chips, alongside the existing name search
+- The filter and add controls now stay pinned while only the card list scrolls, so long lists stay easy to work with
+
+---
+
 ## [0.11.0] - 2026-06-17
 
 - Focus a team to read just its world: click the crosshair on a team card and that team's contexts stay lit while everything else dims, with a focus bar naming the team; click the crosshair again (or press Esc, or use Exit focus) to clear
