@@ -8,6 +8,7 @@ interface TeamSidebarProps {
   teams: Team[]
   contexts: BoundedContext[]
   selectedTeamId: string | null
+  focusedTeamId?: string | null
   onSelectTeam: (teamId: string) => void
   onFocusTeam: (teamId: string) => void
   onAddTeam: (name: string) => void
@@ -26,6 +27,7 @@ export function TeamSidebar({
   teams,
   contexts,
   selectedTeamId,
+  focusedTeamId,
   onSelectTeam,
   onFocusTeam,
   onAddTeam,
@@ -102,6 +104,7 @@ export function TeamSidebar({
       {filteredTeams.map((team) => {
         const count = contextCountForTeam(team.id, contexts)
         const isSelected = team.id === selectedTeamId
+        const isFocused = team.id === focusedTeamId
         const badgeColors = team.topologyType ? getTopologyColors(team.topologyType).light : null
 
         return (
@@ -121,14 +124,24 @@ export function TeamSidebar({
                 <div className="font-medium text-slate-900 dark:text-slate-100">{team.name}</div>
                 <div className="flex items-center gap-0.5">
                   {count > 0 && (
-                    <SimpleTooltip text="Focus on this team's contexts" position="top">
+                    <SimpleTooltip
+                      text={isFocused ? 'Exit focus' : "Focus on this team's contexts"}
+                      position="top"
+                    >
                       <button
-                        aria-label={`Focus on ${team.name}`}
+                        aria-label={
+                          isFocused ? `Exit focus on ${team.name}` : `Focus on ${team.name}`
+                        }
+                        aria-pressed={isFocused}
                         onClick={(e) => {
                           e.stopPropagation()
                           onFocusTeam(team.id)
                         }}
-                        className="p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        className={`p-1 rounded transition-colors ${
+                          isFocused
+                            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                            : 'text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400'
+                        }`}
                       >
                         <Crosshair size={12} />
                       </button>

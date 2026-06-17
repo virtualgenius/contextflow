@@ -42,6 +42,16 @@ export function applyFocusDim(baseOpacity: number, isInFocus: boolean): number {
 }
 
 /**
+ * The next focus state when the team focus button is clicked. Clicking the
+ * already-focused team toggles focus off (returns null); any other click focuses
+ * that team at the team default depth (0).
+ */
+export function toggleTeamFocus(current: FocusState, teamId: string): FocusState {
+  if (current?.kind === 'team' && current.id === teamId) return null
+  return { kind: 'team', id: teamId, depth: 0 }
+}
+
+/**
  * Whether a relationship edge should dim under the current focus. An edge reads
  * at full strength only when BOTH its endpoints are in the neighborhood, so the
  * focus boundary stays legible; it dims if either endpoint is out of focus. No

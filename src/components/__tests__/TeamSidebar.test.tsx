@@ -373,6 +373,40 @@ describe('TeamSidebar', () => {
       expect(onFocusTeam).toHaveBeenCalledWith('team-1')
     })
 
+    it('marks the crosshair as active and offers exit when its team is focused', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[makeContext({ teamId: 'team-1' })]}
+          selectedTeamId={null}
+          focusedTeamId="team-1"
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+      const btn = screen.getByRole('button', { name: 'Exit focus on Platform Squad' })
+      expect(btn).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('still calls onFocusTeam (toggle off) when clicking the focused team crosshair', () => {
+      render(
+        <TeamSidebar
+          teams={[makeTeam()]}
+          contexts={[makeContext({ teamId: 'team-1' })]}
+          selectedTeamId={null}
+          focusedTeamId="team-1"
+          onSelectTeam={onSelectTeam}
+          onFocusTeam={onFocusTeam}
+          onAddTeam={onAddTeam}
+          onDeleteTeam={onDeleteTeam}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Exit focus on Platform Squad' }))
+      expect(onFocusTeam).toHaveBeenCalledWith('team-1')
+    })
+
     it('does not select the team when clicking the crosshair', () => {
       render(
         <TeamSidebar

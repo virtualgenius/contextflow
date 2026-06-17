@@ -5,6 +5,7 @@ import {
   applyFocusDim,
   isEdgeDimmedByFocus,
   countFocusedContexts,
+  toggleTeamFocus,
   FOCUS_DIM_OPACITY,
 } from '../focus'
 import type { BoundedContext, Relationship } from '../../model/types'
@@ -108,6 +109,32 @@ describe('isEdgeDimmedByFocus', () => {
 
   it('dims an edge when neither endpoint is in focus', () => {
     expect(isEdgeDimmedByFocus(new Set(['c']), 'a', 'b')).toBe(true)
+  })
+})
+
+describe('toggleTeamFocus', () => {
+  it('focuses a team at depth 0 when nothing is focused', () => {
+    expect(toggleTeamFocus(null, 't1')).toEqual({ kind: 'team', id: 't1', depth: 0 })
+  })
+
+  it('switches to a different team when another team is focused', () => {
+    expect(toggleTeamFocus({ kind: 'team', id: 't2', depth: 1 }, 't1')).toEqual({
+      kind: 'team',
+      id: 't1',
+      depth: 0,
+    })
+  })
+
+  it('toggles focus off when the same team is clicked again', () => {
+    expect(toggleTeamFocus({ kind: 'team', id: 't1', depth: 0 }, 't1')).toBeNull()
+  })
+
+  it('focuses the team when a context is focused, even on a context from that team', () => {
+    expect(toggleTeamFocus({ kind: 'context', id: 't1', depth: 1 }, 't1')).toEqual({
+      kind: 'team',
+      id: 't1',
+      depth: 0,
+    })
   })
 })
 

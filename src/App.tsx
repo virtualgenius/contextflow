@@ -7,7 +7,7 @@ import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { TeamSidebar } from './components/TeamSidebar'
 import { FocusBar, type FocusSubject, type FocusTeamOption } from './components/FocusBar'
-import { computeFocusedContextIds, countFocusedContexts } from './lib/focus'
+import { computeFocusedContextIds, countFocusedContexts, toggleTeamFocus } from './lib/focus'
 import { getTopologyColors } from './lib/teamColors'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
@@ -183,6 +183,16 @@ function Workspace() {
     setFocus({ kind: 'team', id: teamId, depth: focus?.depth ?? 0 })
   }
 
+  // Clicking a team's focus crosshair toggles: focus that team, or exit focus if
+  // it is already the focused team.
+  const handleToggleTeamFocus = (teamId: string) => {
+    const next = toggleTeamFocus(focus, teamId)
+    if (next) setFocus(next)
+    else clearFocus()
+  }
+
+  const focusedTeamId = focus?.kind === 'team' ? focus.id : null
+
   const toggleSidebar = () => {
     setIsSidebarCollapsed((prev) => {
       const newValue = !prev
@@ -324,8 +334,9 @@ function Workspace() {
                   teams={project?.teams || []}
                   contexts={project?.contexts || []}
                   selectedTeamId={selectedTeamId}
+                  focusedTeamId={focusedTeamId}
                   onSelectTeam={(teamId) => setSelectedTeam(teamId)}
-                  onFocusTeam={(teamId) => setFocus({ kind: 'team', id: teamId, depth: 0 })}
+                  onFocusTeam={(teamId) => handleToggleTeamFocus(teamId)}
                   onAddTeam={(name) => addTeam(name)}
                   onDeleteTeam={(teamId) => deleteTeam(teamId)}
                 />
