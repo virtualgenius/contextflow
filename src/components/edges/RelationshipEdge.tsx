@@ -15,6 +15,7 @@ import {
 } from '../../lib/edgeGeometry'
 import { boxesOverlap } from '../../lib/sharedKernelGeometry'
 import { Z_LAYERS } from '../../lib/zLayers'
+import { FOCUS_DIM_OPACITY } from '../../lib/focus'
 import {
   ARROW_MARKER_LENGTH,
   EDGE_ENDPOINT_GAP,
@@ -265,13 +266,16 @@ function RelationshipEdge({
         ? '#475569'
         : '#cbd5e1'
   const strokeWidth = isEmphasized ? EDGE_STROKE_WIDTH.selected : EDGE_STROKE_WIDTH.default
+  // Dim the whole edge when focus excludes either endpoint, so the focus
+  // boundary reads cleanly. Mirrors the out-of-focus context node treatment.
+  const edgeOpacity = data?.focusDimmed ? FOCUS_DIM_OPACITY : 1
 
   const renderIndicatorBox = (
     key: SideIndicatorKey,
     config: NonNullable<typeof upstreamConfig>,
     boxPos: { x: number; y: number }
   ) => (
-    <g key={key}>
+    <g key={key} opacity={edgeOpacity}>
       {/* Invisible hit area for easier hovering */}
       <rect
         x={boxPos.x - config.boxWidth / 2 - 4}
@@ -363,6 +367,7 @@ function RelationshipEdge({
             stroke: edgeColor,
             strokeWidth: strokeWidth,
             fill: 'none',
+            opacity: edgeOpacity,
             transition: EDGE_TRANSITION,
           }}
           markerEnd={`url(#${markerId})`}
@@ -379,6 +384,7 @@ function RelationshipEdge({
             stroke: edgeColor,
             strokeWidth: strokeWidth,
             fill: 'none',
+            opacity: edgeOpacity,
             transition: EDGE_TRANSITION,
           }}
           markerEnd={isSymmetric ? undefined : `url(#${markerId})`}

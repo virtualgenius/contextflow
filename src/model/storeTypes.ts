@@ -120,6 +120,7 @@ export interface EditorState {
   clearContextSelection: () => void
   setHoveredContext: (contextId: string | null) => void
   setFocus: (focus: FocusState) => void
+  setFocusDepth: (depth: number) => void
   clearFocus: () => void
   setHoveredRelationship: (relationshipId: string | null) => void
   setViewMode: (mode: ViewMode) => void

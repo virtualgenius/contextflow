@@ -3,6 +3,8 @@ import {
   focusSeedContextIds,
   computeFocusedContextIds,
   applyFocusDim,
+  isEdgeDimmedByFocus,
+  countFocusedContexts,
   FOCUS_DIM_OPACITY,
 } from '../focus'
 import type { BoundedContext, Relationship } from '../../model/types'
@@ -88,5 +90,39 @@ describe('applyFocusDim', () => {
 
   it('preserves a reduced opacity when in focus', () => {
     expect(applyFocusDim(0.5, true)).toBe(0.5)
+  })
+})
+
+describe('isEdgeDimmedByFocus', () => {
+  it('never dims when there is no focus', () => {
+    expect(isEdgeDimmedByFocus(null, 'a', 'b')).toBe(false)
+  })
+
+  it('keeps an edge full-strength when both endpoints are in focus', () => {
+    expect(isEdgeDimmedByFocus(new Set(['a', 'b']), 'a', 'b')).toBe(false)
+  })
+
+  it('dims an edge when only one endpoint is in focus', () => {
+    expect(isEdgeDimmedByFocus(new Set(['a']), 'a', 'b')).toBe(true)
+  })
+
+  it('dims an edge when neither endpoint is in focus', () => {
+    expect(isEdgeDimmedByFocus(new Set(['c']), 'a', 'b')).toBe(true)
+  })
+})
+
+describe('countFocusedContexts', () => {
+  const contexts = [makeContext('a'), makeContext('b'), makeContext('c')]
+
+  it('counts all contexts when there is no focus', () => {
+    expect(countFocusedContexts(null, contexts)).toBe(3)
+  })
+
+  it('counts only contexts whose ids are in the focus set', () => {
+    expect(countFocusedContexts(new Set(['a', 'b']), contexts)).toBe(2)
+  })
+
+  it('ignores focus ids that are not real contexts', () => {
+    expect(countFocusedContexts(new Set(['a', 'ghost']), contexts)).toBe(1)
   })
 })

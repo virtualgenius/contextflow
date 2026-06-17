@@ -17,7 +17,7 @@ import { CLEARED_SELECTION } from '../lib/selectionDismiss'
 import type { BoundedContext, UserNeedConnection, NeedContextConnection } from '../model/types'
 import type { SpawnDirection, DraftEntity } from '../model/storeTypes'
 import { getHoverConnectedContextIds, shouldShowAddContextHint } from '../lib/canvasHelpers'
-import { computeFocusedContextIds, applyFocusDim } from '../lib/focus'
+import { computeFocusedContextIds, applyFocusDim, isEdgeDimmedByFocus } from '../lib/focus'
 import { entityDraftFlowPosition } from '../lib/entityDraftPlacement'
 import { isPointInCanvasBounds } from '../lib/canvasBounds'
 import { interpolatePosition, getContextOpacity } from '../lib/temporal'
@@ -559,6 +559,12 @@ function CanvasContent() {
     // Filter relationships based on view mode and visibility toggle.
     // Hovered or selected edges get bumped above their neighbors so the line
     // the user is interacting with renders in front of crossing relationships.
+    const focusedContextIds = computeFocusedContextIds(
+      focus,
+      project.contexts,
+      project.relationships
+    )
+
     const relationshipEdges =
       showsContextMapElements(viewMode) && showRelationships
         ? project.relationships.map((rel) => {
@@ -569,7 +575,14 @@ function CanvasContent() {
               source: rel.fromContextId,
               target: rel.toContextId,
               type: 'relationship',
-              data: { relationship: rel },
+              data: {
+                relationship: rel,
+                focusDimmed: isEdgeDimmedByFocus(
+                  focusedContextIds,
+                  rel.fromContextId,
+                  rel.toContextId
+                ),
+              },
               animated: false,
               zIndex: isEmphasized ? CANVAS_Z.relationshipEmphasized : CANVAS_Z.relationship,
             }
@@ -605,7 +618,7 @@ function CanvasContent() {
         : []
 
     return [...relationshipEdges, ...userNeedConnectionEdges, ...needContextConnectionEdges]
-  }, [project, viewMode, showRelationships, hoveredRelationshipId, selectedRelationshipId])
+  }, [project, viewMode, showRelationships, hoveredRelationshipId, selectedRelationshipId, focus])
 
   // Handle edge click
   const onEdgeClick = useCallback(

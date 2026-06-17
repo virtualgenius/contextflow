@@ -7,6 +7,7 @@ import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { TeamSidebar } from './components/TeamSidebar'
 import { FocusBar, type FocusSubject } from './components/FocusBar'
+import { computeFocusedContextIds, countFocusedContexts } from './lib/focus'
 import { getTopologyColors } from './lib/teamColors'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
 import { ProjectListPage } from './components/ProjectListPage'
@@ -51,6 +52,7 @@ function Workspace() {
   const setSelectedTeam = useEditorStore((s) => s.setSelectedTeam)
   const focus = useEditorStore((s) => s.focus)
   const setFocus = useEditorStore((s) => s.setFocus)
+  const setFocusDepth = useEditorStore((s) => s.setFocusDepth)
   const clearFocus = useEditorStore((s) => s.clearFocus)
 
   const { route, params } = useUrlRouter()
@@ -154,6 +156,12 @@ function Workspace() {
     const context = project.contexts.find((c) => c.id === focus.id)
     if (!context) return null
     return { kind: 'context', label: context.name, color: '#2563eb' }
+  }, [focus, project])
+
+  const focusedCount = React.useMemo(() => {
+    if (!focus || !project) return 0
+    const focusedIds = computeFocusedContextIds(focus, project.contexts, project.relationships)
+    return countFocusedContexts(focusedIds, project.contexts)
   }, [focus, project])
 
   const toggleSidebar = () => {
@@ -323,7 +331,16 @@ function Workspace() {
               </div>
             </button>
           )}
-          {focusSubject && <FocusBar subject={focusSubject} onExit={clearFocus} />}
+          {focusSubject && focus && (
+            <FocusBar
+              subject={focusSubject}
+              depth={focus.depth}
+              onDepthChange={setFocusDepth}
+              visibleCount={focusedCount}
+              totalCount={project?.contexts.length ?? 0}
+              onExit={clearFocus}
+            />
+          )}
           <CanvasArea />
         </section>
 

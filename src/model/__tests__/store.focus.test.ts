@@ -47,6 +47,17 @@ describe('Store - Focus State', () => {
     expect(useEditorStore.getState().selectedTeamId).toBeNull()
   })
 
+  it('setFocusDepth changes the depth of the active focus', () => {
+    useEditorStore.getState().setFocus({ kind: 'team', id: 'team-1', depth: 0 })
+    useEditorStore.getState().setFocusDepth(2)
+    expect(useEditorStore.getState().focus).toEqual({ kind: 'team', id: 'team-1', depth: 2 })
+  })
+
+  it('setFocusDepth is a no-op when there is no focus', () => {
+    useEditorStore.getState().setFocusDepth(1)
+    expect(useEditorStore.getState().focus).toBeNull()
+  })
+
   it('clears focus when the focused team is deleted', () => {
     const state = useEditorStore.getState()
     const teamId = state.addTeam('Focused Team')

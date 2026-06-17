@@ -40,3 +40,30 @@ export function computeFocusedContextIds(
 export function applyFocusDim(baseOpacity: number, isInFocus: boolean): number {
   return isInFocus ? baseOpacity : baseOpacity * FOCUS_DIM_OPACITY
 }
+
+/**
+ * Whether a relationship edge should dim under the current focus. An edge reads
+ * at full strength only when BOTH its endpoints are in the neighborhood, so the
+ * focus boundary stays legible; it dims if either endpoint is out of focus. No
+ * focus means no dimming.
+ */
+export function isEdgeDimmedByFocus(
+  focusedContextIds: Set<string> | null,
+  sourceId: string,
+  targetId: string
+): boolean {
+  if (!focusedContextIds) return false
+  return !(focusedContextIds.has(sourceId) && focusedContextIds.has(targetId))
+}
+
+/**
+ * How many of the project's contexts are currently in focus (fully visible).
+ * The "N" in the focus bar's "N of M shown" count.
+ */
+export function countFocusedContexts(
+  focusedContextIds: Set<string> | null,
+  contexts: BoundedContext[]
+): number {
+  if (!focusedContextIds) return contexts.length
+  return contexts.filter((c) => focusedContextIds.has(c.id)).length
+}

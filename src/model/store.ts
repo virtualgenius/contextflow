@@ -305,6 +305,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       return { focus }
     }),
 
+  setFocusDepth: (depth) =>
+    set((state) => {
+      if (!state.focus || state.focus.depth === depth) return {}
+      const projectId = state.activeProjectId
+      const project = projectId ? state.projects[projectId] : null
+      trackEvent('focus_depth_changed', project, {
+        focus_kind: state.focus.kind,
+        focus_depth: depth,
+      })
+      return { focus: { ...state.focus, depth } }
+    }),
+
   clearFocus: () => set({ focus: null }),
 
   setHoveredRelationship: (relationshipId) => set({ hoveredRelationshipId: relationshipId }),

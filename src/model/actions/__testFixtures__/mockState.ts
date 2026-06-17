@@ -141,6 +141,7 @@ export const createMockState = (projectOverrides?: Partial<Project>): EditorStat
   clearActiveProject: vi.fn(),
   setHoveredContext: vi.fn(),
   setFocus: vi.fn(),
+  setFocusDepth: vi.fn(),
   clearFocus: vi.fn(),
   setHoveredRelationship: vi.fn(),
   setGroupOpacity: vi.fn(),
