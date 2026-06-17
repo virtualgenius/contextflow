@@ -42,6 +42,75 @@ describe('RepoSidebar', () => {
     })
   })
 
+  describe('add repo', () => {
+    it('shows an Add repo input and button', () => {
+      render(<RepoSidebar repos={[]} teams={[]} contexts={[]} onRepoAssign={noop} />)
+      expect(screen.getByPlaceholderText('Add repo...')).toBeInTheDocument()
+      expect(screen.getByText('Add')).toBeInTheDocument()
+    })
+
+    it('calls onAddRepo when typing a name and pressing Enter', () => {
+      const onAddRepo = vi.fn()
+      render(
+        <RepoSidebar
+          repos={[]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onAddRepo={onAddRepo}
+        />
+      )
+      const input = screen.getByPlaceholderText('Add repo...')
+      fireEvent.change(input, { target: { value: 'new-service' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onAddRepo).toHaveBeenCalledWith('new-service')
+    })
+
+    it('calls onAddRepo when clicking Add', () => {
+      const onAddRepo = vi.fn()
+      render(
+        <RepoSidebar
+          repos={[]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onAddRepo={onAddRepo}
+        />
+      )
+      const input = screen.getByPlaceholderText('Add repo...')
+      fireEvent.change(input, { target: { value: 'new-service' } })
+      fireEvent.click(screen.getByText('Add'))
+      expect(onAddRepo).toHaveBeenCalledWith('new-service')
+    })
+
+    it('clears the input after adding', () => {
+      render(
+        <RepoSidebar repos={[]} teams={[]} contexts={[]} onRepoAssign={noop} onAddRepo={vi.fn()} />
+      )
+      const input = screen.getByPlaceholderText('Add repo...') as HTMLInputElement
+      fireEvent.change(input, { target: { value: 'new-service' } })
+      fireEvent.click(screen.getByText('Add'))
+      expect(input.value).toBe('')
+    })
+
+    it('does not call onAddRepo with an empty/whitespace name', () => {
+      const onAddRepo = vi.fn()
+      render(
+        <RepoSidebar
+          repos={[]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onAddRepo={onAddRepo}
+        />
+      )
+      const input = screen.getByPlaceholderText('Add repo...')
+      fireEvent.change(input, { target: { value: '   ' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onAddRepo).not.toHaveBeenCalled()
+    })
+  })
+
   describe('rendering', () => {
     it('renders repo names', () => {
       render(

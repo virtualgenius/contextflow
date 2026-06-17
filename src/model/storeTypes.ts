@@ -186,7 +186,7 @@ export interface EditorState {
     }>
   ) => void
   addTeam: (name: string) => string
-  addRepo: (name: string) => string
+  addRepo: (name: string, source?: string) => string
   deleteTeam: (teamId: string) => void
   addUser: (name: string) => void
   deleteUser: (userId: string) => void

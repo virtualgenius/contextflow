@@ -937,7 +937,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     return newTeam.id
   },
 
-  addRepo: (name) => {
+  addRepo: (name, source = 'inspector') => {
     const state = useEditorStore.getState()
     const projectId = state.activeProjectId
     const project = projectId ? state.projects[projectId] : null
@@ -953,6 +953,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     trackEvent('repo_added', project, {
       entity_type: 'repo',
       entity_id: newRepo.id,
+      source,
     })
 
     return newRepo.id

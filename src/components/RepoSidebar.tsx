@@ -9,6 +9,7 @@ interface RepoSidebarProps {
   teams: Team[]
   contexts: BoundedContext[]
   onRepoAssign: (repoId: string, contextId: string) => void
+  onAddRepo?: (name: string) => void
 }
 
 function contextNameForRepo(repo: Repo, contexts: BoundedContext[]): string | null {
@@ -22,8 +23,23 @@ export function RepoSidebar({
   teams,
   contexts,
   onRepoAssign: _onRepoAssign,
+  onAddRepo,
 }: RepoSidebarProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
+  const [newRepoName, setNewRepoName] = React.useState('')
+
+  const handleAddRepo = () => {
+    const trimmed = newRepoName.trim()
+    if (!trimmed) return
+    onAddRepo?.(trimmed)
+    setNewRepoName('')
+  }
+
+  const handleAddKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddRepo()
+    }
+  }
 
   const filteredRepos = React.useMemo(() => {
     if (!searchQuery.trim()) return repos
@@ -192,6 +208,25 @@ export function RepoSidebar({
       )}
 
       {assigned.map((repo) => renderRepoCard(repo, true))}
+
+      {/* Add repo input */}
+      <div className="flex gap-1.5 pt-1">
+        <input
+          type="text"
+          value={newRepoName}
+          onChange={(e) => setNewRepoName(e.target.value)}
+          onKeyDown={handleAddKeyDown}
+          placeholder="Add repo..."
+          className="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-neutral-500"
+        />
+        <button
+          onClick={handleAddRepo}
+          disabled={!newRepoName.trim()}
+          className="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          Add
+        </button>
+      </div>
     </div>
   )
 }

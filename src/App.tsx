@@ -48,6 +48,7 @@ function Workspace() {
   const createGroup = useEditorStore((s) => s.createGroup)
   const loadSharedProject = useEditorStore((s) => s.loadSharedProject)
   const addTeam = useEditorStore((s) => s.addTeam)
+  const addRepo = useEditorStore((s) => s.addRepo)
   const deleteTeam = useEditorStore((s) => s.deleteTeam)
   const setSelectedTeam = useEditorStore((s) => s.setSelectedTeam)
   const focus = useEditorStore((s) => s.focus)
@@ -313,6 +314,7 @@ function Workspace() {
                   onRepoAssign={(_repoId, _contextId) => {
                     // Will be implemented with drag-and-drop
                   }}
+                  onAddRepo={(name) => addRepo(name, 'sidebar')}
                 />
               ) : (
                 <TeamSidebar
