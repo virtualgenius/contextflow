@@ -4,7 +4,7 @@ import { Z_LAYERS } from '../../lib/zLayers'
 import { NodeProps, Position, Handle } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { BoundedContext } from '../../model/types'
-import { Archive, CloudFog } from 'lucide-react'
+import { Archive, CloudFog, Crosshair } from 'lucide-react'
 import { getContextTooltipLines } from '../../lib/contextTooltip'
 import { coordinateSpaceFor } from '../../lib/canvasViewModel'
 import { getContextNodeBorderStyle, OWNERSHIP_FILL_COLORS } from '../../lib/nodeStyles'
@@ -19,6 +19,12 @@ import { IssueCounterPill } from './IssueCounterPill'
 // the top arrow stays visible from the start instead of being covered (GH #37).
 const CONCEPT_TOOLTIP_TOP_GAP = 8
 export const CONCEPT_TOOLTIP_STUB_CLEARANCE = STUB_OFFSET + STUB_SIZE / 2 + CONCEPT_TOOLTIP_TOP_GAP
+
+// Keep the right-click menu on-screen when opened near a viewport edge. Height
+// covers the tallest case (two focus items plus a keyframe item).
+const CONTEXT_MENU_WIDTH = 220
+const CONTEXT_MENU_MAX_HEIGHT = 130
+const CONTEXT_MENU_MARGIN = 8
 
 // Custom node component
 export function ContextNode({ data }: NodeProps) {
@@ -42,6 +48,7 @@ export function ContextNode({ data }: NodeProps) {
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const setHoveredContext = useEditorStore((s) => s.setHoveredContext)
   const setSelectedContext = useEditorStore((s) => s.setSelectedContext)
+  const setFocus = useEditorStore((s) => s.setFocus)
   const isHoveredByRelationship = data.isHoveredByRelationship as boolean
   const nodeRef = React.useRef<HTMLDivElement>(null)
   // Tiny grace period before clearing hover lets the cursor traverse the air
@@ -54,7 +61,7 @@ export function ContextNode({ data }: NodeProps) {
     context.codeSize?.bucket === 'tiny' || context.codeSize?.bucket === 'small'
 
   // Get team name if assigned
-  const _team = context.teamId && project?.teams?.find((t) => t.id === context.teamId)
+  const team = context.teamId ? project?.teams?.find((t) => t.id === context.teamId) : undefined
 
   // Calculate tooltip position from node bounds
   const getTooltipPosition = () => {
@@ -66,27 +73,52 @@ export function ContextNode({ data }: NodeProps) {
     }
   }
 
-  // Handle context menu
+  // Right-click opens the menu in every view and selects the node so the
+  // inspector follows. Keyframe items inside the menu remain gated to Strategic
+  // View with an active keyframe; the focus items are always available. The
+  // position is clamped so the menu stays on-screen near a viewport edge.
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-
-    // Only show context menu in Strategic View with an active keyframe
-    const isEditingKeyframe =
-      viewMode === 'strategic' && project?.temporal?.enabled && activeKeyframeId
-    if (!isEditingKeyframe) return
-
-    setContextMenu({ x: e.clientX, y: e.clientY })
+    setSelectedContext(context.id)
+    const x = Math.min(e.clientX, window.innerWidth - CONTEXT_MENU_WIDTH - CONTEXT_MENU_MARGIN)
+    const y = Math.min(
+      e.clientY,
+      window.innerHeight - CONTEXT_MENU_MAX_HEIGHT - CONTEXT_MENU_MARGIN
+    )
+    setContextMenu({ x: Math.max(CONTEXT_MENU_MARGIN, x), y: Math.max(CONTEXT_MENU_MARGIN, y) })
   }
 
-  // Close context menu
+  // Close context menu on outside click, Esc, or a right-click elsewhere. The
+  // contextmenu listener runs in the capture phase so opening a menu on another
+  // node closes this one first (node handlers stopPropagation, so a bubble-phase
+  // listener would never see a sibling node's right-click).
   React.useEffect(() => {
-    const handleClick = () => setContextMenu(null)
-    if (contextMenu) {
-      window.addEventListener('click', handleClick)
-      return () => window.removeEventListener('click', handleClick)
+    if (!contextMenu) return
+    const close = () => setContextMenu(null)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenu(null)
+    }
+    window.addEventListener('click', close)
+    window.addEventListener('contextmenu', close, true)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('click', close)
+      window.removeEventListener('contextmenu', close, true)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [contextMenu])
+
+  const handleFocusOnContext = () => {
+    setFocus({ kind: 'context', id: context.id, depth: 1 })
+    setContextMenu(null)
+  }
+
+  const handleFocusOnTeam = () => {
+    if (!context.teamId) return
+    setFocus({ kind: 'team', id: context.teamId, depth: 0 })
+    setContextMenu(null)
+  }
 
   // Handle hide/show in keyframe
   const handleToggleVisibility = () => {
@@ -326,25 +358,48 @@ export function ContextNode({ data }: NodeProps) {
         )}
       </div>
 
-      {/* Context Menu */}
-      {contextMenu && activeKeyframeId && project?.temporal && (
-        <div
-          className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1"
-          style={{ left: contextMenu.x, top: contextMenu.y, zIndex: Z_LAYERS.popover }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={handleToggleVisibility}
-            className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700"
+      {/* Context Menu. Portalled to the body so its fixed position is relative
+          to the viewport, not React Flow's transformed (panned/zoomed) pane. */}
+      {contextMenu &&
+        createPortal(
+          <div
+            className="fixed bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md shadow-lg py-1 min-w-[180px]"
+            style={{ left: contextMenu.x, top: contextMenu.y, zIndex: Z_LAYERS.popover }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {(() => {
-              const keyframe = project.temporal.keyframes.find((kf) => kf.id === activeKeyframeId)
-              const isVisible = keyframe?.activeContextIds.includes(context.id)
-              return isVisible ? 'Hide in this keyframe' : 'Show in this keyframe'
-            })()}
-          </button>
-        </div>
-      )}
+            <button
+              onClick={handleFocusOnContext}
+              className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+            >
+              <Crosshair size={14} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              Focus on this context
+            </button>
+            {team && (
+              <button
+                onClick={handleFocusOnTeam}
+                className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+              >
+                <Crosshair size={14} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                Focus on team: {team.name}
+              </button>
+            )}
+            {activeKeyframeId && project?.temporal && (
+              <button
+                onClick={handleToggleVisibility}
+                className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700"
+              >
+                {(() => {
+                  const keyframe = project.temporal.keyframes.find(
+                    (kf) => kf.id === activeKeyframeId
+                  )
+                  const isVisible = keyframe?.activeContextIds.includes(context.id)
+                  return isVisible ? 'Hide in this keyframe' : 'Show in this keyframe'
+                })()}
+              </button>
+            )}
+          </div>,
+          document.body
+        )}
 
       {/* Rich tooltip on hover. Suppressed while a stub is hovered so the
          stub's own guidance owns the space above the box (GH #37). */}

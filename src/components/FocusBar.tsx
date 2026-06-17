@@ -54,7 +54,9 @@ export function FocusBar({
 
       <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded-md px-2 py-0.5">
         <span
-          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+          className={`w-2.5 h-2.5 flex-shrink-0 ${
+            subject.kind === 'context' ? 'rounded-[2px]' : 'rounded-full'
+          }`}
           style={{ backgroundColor: subject.color }}
         />
         <span>{subject.label}</span>
