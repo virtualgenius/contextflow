@@ -112,7 +112,7 @@ function Workspace() {
   const [sidebarTab, setSidebarTab] = React.useState<'repos' | 'teams'>(() => {
     const stored = localStorage.getItem('contextflow.sidebarTab')
     if (stored === 'repos' || stored === 'teams') return stored
-    return 'repos'
+    return 'teams'
   })
 
   const hasRepos = (project?.repos?.length ?? 0) > 0
@@ -290,16 +290,6 @@ function Workspace() {
             {/* Tab bar - always show both tabs so either can be set up from empty */}
             <div className="flex items-center border-b border-slate-200 dark:border-neutral-700">
               <button
-                onClick={() => handleTabChange('repos')}
-                className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-                  activeTab === 'repos'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
-              >
-                Repos ({project?.repos?.length ?? 0})
-              </button>
-              <button
                 onClick={() => handleTabChange('teams')}
                 className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
                   activeTab === 'teams'
@@ -308,6 +298,16 @@ function Workspace() {
                 }`}
               >
                 Teams ({project?.teams?.length ?? 0})
+              </button>
+              <button
+                onClick={() => handleTabChange('repos')}
+                className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                  activeTab === 'repos'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                    : 'text-slate-500 dark:text-neutral-400 hover:text-slate-700 dark:hover:text-slate-300'
+                }`}
+              >
+                Repos ({project?.repos?.length ?? 0})
               </button>
               <button
                 onClick={toggleSidebar}
