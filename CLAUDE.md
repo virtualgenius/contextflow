@@ -50,9 +50,16 @@ Do not stop at "port 5173 returns 200" — that is the HTML shell, not a working
 
 **Local hooks** (husky) run automatically:
 - **Pre-commit**: Prettier auto-formats staged `src/` files (via lint-staged), then runs `npm run typecheck` and `npm run lint`
-- **Pre-push**: `npm run typecheck` and `npm run lint` (safety net, same checks as pre-commit)
+- **Pre-push**: `npm run typecheck`, `npm run lint`, and `npm run check:release` (safety net)
 
-**CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, build.
+**CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, check:release, build.
+
+**`npm run check:release`** (`scripts/check-release.mjs`) keeps release-facing docs from drifting:
+1. `package.json` version matches the top `CHANGELOG.md` entry (with a real date, no "Unreleased" section)
+2. every analytics event fired in `src/` is listed in [docs/ANALYTICS_EVENTS.md](docs/ANALYTICS_EVENTS.md) (so a new `trackEvent`/`trackPropertyChange` must be documented in the same change)
+3. every relative markdown link in living docs resolves (archived `docs/done/` and `docs/PLAN-*` are skipped)
+
+Judgment-level doc updates (UX prose, README screenshots, ARCHITECTURE data model) are not script-enforced; update them with the change per the Definition of Done.
 
 ## Deployment
 

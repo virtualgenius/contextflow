@@ -123,7 +123,7 @@ Yes. Share a project URL and your team opens it in their browser. No CLI, no ins
 
 ## Licensing
 
-ContextFlow is currently free for all users, including enterprise teams. Commercial licensing with tiered plans (Free, Pro, Team, Enterprise) is planned. Early adopters who start using ContextFlow now will benefit from shaping the product before paid tiers take effect. See [SAAS_MONETIZATION_STRATEGY.md](SAAS_MONETIZATION_STRATEGY.md) for details on planned pricing and tiers.
+ContextFlow is currently free for all users, including enterprise teams. Commercial licensing with tiered plans (Free, Pro, Team, Enterprise) is planned. Early adopters who start using ContextFlow now will benefit from shaping the product before paid tiers take effect. See the private SAAS_MONETIZATION_STRATEGY.md planning doc (not in this repo) for details on planned pricing and tiers.
 
 ---
 
@@ -142,7 +142,7 @@ In priority order (from SAAS_MONETIZATION_STRATEGY.md):
 
 ## Related Docs
 
-- [CLOUD_SYNC_PLAN.md](CLOUD_SYNC_PLAN.md) - Technical design for collaboration, including risk assessment (Appendix D)
-- [SAAS_MONETIZATION_STRATEGY.md](SAAS_MONETIZATION_STRATEGY.md) - Enterprise features research, pricing tiers
-- [FOUNDING_PARTNERS_PLAN.md](FOUNDING_PARTNERS_PLAN.md) - Early customer validation approach
+- CLOUD_SYNC_PLAN.md - Technical design for collaboration, including risk assessment (Appendix D) (private planning doc, not in this repo)
+- SAAS_MONETIZATION_STRATEGY.md - Enterprise features research, pricing tiers (private planning doc, not in this repo)
+- FOUNDING_PARTNERS_PLAN.md - Early customer validation approach (private planning doc, not in this repo)
 - [VISION.md](VISION.md) - Product positioning and collaboration philosophy

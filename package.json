@@ -43,6 +43,7 @@
     "format:check": "prettier --check src/",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
+    "check:release": "node scripts/check-release.mjs",
     "perf": "tsx scripts/measure-perf.ts",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",

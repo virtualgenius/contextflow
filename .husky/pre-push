@@ -1,1 +1,1 @@
-npm run typecheck && npm run lint
+npm run typecheck && npm run lint && npm run check:release
