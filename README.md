@@ -25,7 +25,10 @@ ContextFlow helps teams map and edit their system architecture as it actually ex
 - **Capability groups** as organic blob-shaped visual clusters using Catmull-Rom smoothing
 - **Temporal evolution** showing how your architecture changes over time with keyframes and timeline playback
 
-The key differentiator: **three models of your sociotechnical system**.
+New projects open in a neutral **Context Map View** for building and reading the map; from there you switch live into any of **three analytical models of your sociotechnical system**.
+
+### Context Map View
+**The default working view**: Just the bounded contexts and their relationships, with the value-stream scaffolding hidden so you can build, read, and rearrange the map without lane structure getting in the way. Add contexts on the canvas (double-click, the **N** key, or the toolbar), grow related contexts with the arrow keys, and **focus** on a team or a single context to dim everything outside its neighborhood (see Reading large maps below).
 
 ### Value Stream View
 **Context mapping**: Shows how value and data move left-to-right through your system. Map bounded contexts and visualize how work flows between them. Stages are configurable per project (e.g., "Discovery → Selection → Purchase → Fulfillment → Post-Sale" for e-commerce, or "Ingest → Normalize → Analyze → Publish" for data pipelines).
@@ -58,13 +61,21 @@ Most architecture diagrams show the system you wish you had. ContextFlow helps y
 
 Each view is a different analytical model of the same bounded contexts, relationships, teams, and repos:
 
-**Value Stream View** (context mapping) — Start here. Map contexts and how work flows through your system. Resonates with delivery teams and product owners: "Here's how value moves through our pipeline."
+**Value Stream View** (context mapping) — Map contexts and how work flows through your system. Resonates with delivery teams and product owners: "Here's how value moves through our pipeline."
 
 **Distillation View** (domain classification) — Classify your contexts. Use Nick Tune's Core Domain Chart to identify core vs supporting vs generic domains. Prioritize strategic investment: "What should we excel at vs what should we commoditize?"
 
 **Strategic View** (Wardley mapping) — Complete the strategic picture. Position contexts on the evolution axis with actors and user needs. Resonates with leadership and architects: "Here's what's core vs commodity, where we're exposed, and what we should buy vs build."
 
 All three views analyze the same system — different lenses, different strategic insights.
+
+### Reading large maps
+
+Big maps (50+ contexts, a dozen-plus teams) get hard to read. **Focus** is a non-destructive lens that dims everything outside what you care about, keeping the map's shape and positions intact:
+- Focus a **team** (crosshair on its sidebar card) to light up just the contexts it owns; click the crosshair again to exit.
+- Focus a **single context** by right-clicking it.
+- Widen the view by **adjacency hops** from the focus bar to bring in neighbors, with a running "N of M shown" count.
+- Hop between teams from the focus bar without opening the sidebar. Focus never changes saved data; it is transient working state, like zoom.
 
 ### Built for practitioners
 
@@ -83,7 +94,10 @@ All three views analyze the same system — different lenses, different strategi
 **Current:**
 - Visual canvas with pan/zoom and fit-to-map
 - Bounded context nodes with strategic classification, boundary integrity, size, legacy/external badges
-- DDD relationship patterns rendered as directed edges with pattern-specific styling
+- DDD relationship patterns rendered as directed edges with pattern-specific styling, including two-sided roles (Open Host Service / Published Language upstream, Anti-Corruption Layer / Conformist downstream) shown as edge indicators
+- **Context Map View** (the default working view) for building and reading the map without value-stream scaffolding
+- On-canvas context creation (double-click, the N key, or the toolbar) and growing related contexts with the arrow keys or a node's directional stubs
+- **Focus lens** for reading large maps: focus a team (sidebar crosshair) or a single context (right-click), widen by adjacency hops, switch teams from the focus bar, and a running "N of M shown" count; out-of-focus contexts and edges dim without changing any data
 - **Value Stream View** for context mapping with editable flow stages (rename, reposition, add/delete via TopBar)
 - **Distillation View** with Nick Tune's Core Domain Chart for domain classification (Business Differentiation vs Model Complexity)
 - **Strategic View** for Wardley mapping with three-layer value chain structure:
@@ -133,7 +147,8 @@ The app includes multiple example projects:
 **Note:** All sample project data is invented for demonstration purposes, except cBioPortal which is adapted from the [public repository](https://github.com/cBioPortal/cbioportal) and documentation but does not represent the actual project structure or strategic decisions.
 
 **Try it out:**
-- Start in Value Stream View to map contexts and visualize flow
+- Start in Context Map View to add contexts (double-click, N, or the toolbar) and connect them
+- Assign teams, then focus a team (crosshair on its sidebar card) or right-click a context to focus it; widen by adjacency hops and step back out with Esc
 - Switch to Distillation View to classify contexts using the Core Domain Chart
 - Move to Strategic View to add actors, user needs, and complete Wardley mapping
 - Use the timeline slider to create keyframes and visualize temporal evolution

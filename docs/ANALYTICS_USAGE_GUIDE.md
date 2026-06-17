@@ -94,6 +94,13 @@ Your analytics plan has all 5 slices implemented (Product Validation, Feature Ad
 - Is repo assignment valuable enough to keep?
 - Are external contexts being used correctly?
 
+**Focus lens adoption (tracked with their own events, not `feature_first_used`):**
+- `focus_entered` — a focus was started; `focus_kind` is `team` or `context`, `focus_depth` is the adjacency-hop radius
+- `focus_depth_changed` — the user widened/narrowed the neighborhood from the focus bar
+- `focus_team_switched` — the user hopped to another team from the focus bar
+
+Filter to `focus_entered` to measure how many projects/sessions use Focus at all; `focus_depth_changed` and `focus_team_switched` show whether people go beyond the initial focus.
+
 ---
 
 ## How to Track First-Time Users

@@ -87,6 +87,14 @@ describe('KeyboardShortcutsModal', () => {
     expect(screen.getByText('Canvas')).toBeInTheDocument()
   })
 
+  it('documents the focus shortcuts in their own section', () => {
+    render(<KeyboardShortcutsModal onClose={() => {}} />)
+
+    expect(screen.getByText('Focus')).toBeInTheDocument()
+    expect(screen.getByText('Focus on a context')).toBeInTheDocument()
+    expect(screen.getByText('Exit focus')).toBeInTheDocument()
+  })
+
   it('documents the context-adding shortcuts in their own section', () => {
     render(<KeyboardShortcutsModal onClose={() => {}} />)
 

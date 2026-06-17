@@ -401,6 +401,11 @@ interface EditorState {
   hoveredContextId: string | null;
   isDragging: boolean;
 
+  // Transient UI state (not persisted, not in Yjs; cleared on project switch)
+  contextDraft: ContextDraft | null;  // in-flight on-canvas context name entry
+  focusContextNameId: string | null;  // one-shot: focus a context's name field in the inspector
+  focus: { kind: 'team' | 'context'; id: string; depth: number } | null;  // focus lens (dim out-of-neighborhood)
+
   canvasView: {
     flow: { zoom: number; panX: number; panY: number };
     strategic: { zoom: number; panX: number; panY: number };

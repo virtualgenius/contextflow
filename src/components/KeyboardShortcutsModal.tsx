@@ -51,6 +51,14 @@ function buildSections(): ShortcutSection[] {
       ],
     },
     {
+      title: 'Focus',
+      note: 'Click the crosshair on a team card to focus its contexts. Focus dims everything outside the neighborhood without changing any data.',
+      shortcuts: [
+        { label: 'Focus on a context', keys: ['Right-click'] },
+        { label: 'Exit focus', keys: ['Esc'] },
+      ],
+    },
+    {
       title: 'Canvas',
       shortcuts: [
         { label: 'Zoom', keys: ['Scroll / Pinch'] },

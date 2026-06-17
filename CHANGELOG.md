@@ -4,6 +4,15 @@ All notable changes to ContextFlow will be documented in this file.
 
 ---
 
+## [0.11.0] - 2026-06-17
+
+- Focus a team to read just its world: click the crosshair on a team card and that team's contexts stay lit while everything else dims, with a focus bar naming the team; click the crosshair again (or press Esc, or use Exit focus) to clear
+- Widen the focus outward by adjacency hops from the focus bar, stepping from the seed to its neighbors and beyond, with a running "N of M shown" count; relationships dim unless both ends are in focus, so the boundary stays clear
+- Focus a single context by right-clicking it and choosing "Focus on this context", or jump straight to its team with "Focus on team"
+- Switch between teams without leaving the canvas: the team name in the focus bar is a dropdown of teams, keeping your current hop depth as you hop
+
+---
+
 ## [0.10.3] - 2026-06-15
 
 - The empty canvas now welcomes you with a Buckminster Fuller quote above the prompt to add your first bounded context
