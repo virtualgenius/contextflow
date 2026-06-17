@@ -6,7 +6,7 @@ import { InspectorPanel } from './components/InspectorPanel'
 import { TopBar } from './components/TopBar'
 import { RepoSidebar } from './components/RepoSidebar'
 import { TeamSidebar } from './components/TeamSidebar'
-import { FocusBar, type FocusSubject } from './components/FocusBar'
+import { FocusBar, type FocusSubject, type FocusTeamOption } from './components/FocusBar'
 import { computeFocusedContextIds, countFocusedContexts } from './lib/focus'
 import { getTopologyColors } from './lib/teamColors'
 import { GroupCreateDialog } from './components/GroupCreateDialog'
@@ -163,6 +163,25 @@ function Workspace() {
     const focusedIds = computeFocusedContextIds(focus, project.contexts, project.relationships)
     return countFocusedContexts(focusedIds, project.contexts)
   }, [focus, project])
+
+  // Teams a focused user can hop between: only those owning at least one context
+  // (focusing an empty team would dim the whole map for nothing).
+  const focusTeamOptions: FocusTeamOption[] = React.useMemo(() => {
+    if (!project) return []
+    return (project.teams ?? [])
+      .map((team) => ({
+        id: team.id,
+        name: team.name,
+        color: getTopologyColors(team.topologyType).light.border,
+        count: project.contexts.filter((c) => c.teamId === team.id).length,
+      }))
+      .filter((team) => team.count > 0)
+  }, [project])
+
+  const handleSwitchFocusTeam = (teamId: string) => {
+    trackEvent('focus_team_switched', project ?? null, { team_id: teamId })
+    setFocus({ kind: 'team', id: teamId, depth: focus?.depth ?? 0 })
+  }
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed((prev) => {
@@ -339,6 +358,9 @@ function Workspace() {
               visibleCount={focusedCount}
               totalCount={project?.contexts.length ?? 0}
               onExit={clearFocus}
+              teamOptions={focusTeamOptions}
+              currentTeamId={focus.kind === 'team' ? focus.id : undefined}
+              onSwitchTeam={handleSwitchFocusTeam}
             />
           )}
           <CanvasArea />

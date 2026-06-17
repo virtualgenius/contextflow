@@ -96,16 +96,22 @@ export function ContextNode({ data }: NodeProps) {
   React.useEffect(() => {
     if (!contextMenu) return
     const close = () => setContextMenu(null)
+    // Capture phase + stopPropagation so Esc closes only this menu and does not
+    // also reach the canvas-level Esc that exits focus: one key, one action.
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setContextMenu(null)
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        e.preventDefault()
+        setContextMenu(null)
+      }
     }
     window.addEventListener('click', close)
     window.addEventListener('contextmenu', close, true)
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', handleKeyDown, true)
     return () => {
       window.removeEventListener('click', close)
       window.removeEventListener('contextmenu', close, true)
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keydown', handleKeyDown, true)
     }
   }, [contextMenu])
 
