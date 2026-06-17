@@ -1,5 +1,5 @@
 import React from 'react'
-import { ExternalLink, FolderGit2, Search, X } from 'lucide-react'
+import { ExternalLink, FolderGit2, Search, Trash2, X } from 'lucide-react'
 import type { Repo, Team, BoundedContext } from '../model/types'
 import { getTopologyColors, TOPOLOGY_LABELS } from '../lib/teamColors'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -10,6 +10,7 @@ interface RepoSidebarProps {
   contexts: BoundedContext[]
   onRepoAssign: (repoId: string, contextId: string) => void
   onAddRepo?: (name: string) => void
+  onDeleteRepo?: (repoId: string) => void
 }
 
 function contextNameForRepo(repo: Repo, contexts: BoundedContext[]): string | null {
@@ -24,6 +25,7 @@ export function RepoSidebar({
   contexts,
   onRepoAssign: _onRepoAssign,
   onAddRepo,
+  onDeleteRepo,
 }: RepoSidebarProps) {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [newRepoName, setNewRepoName] = React.useState('')
@@ -72,6 +74,16 @@ export function RepoSidebar({
     e.dataTransfer.effectAllowed = 'move'
   }
 
+  const handleDeleteRepo = (e: React.MouseEvent, repo: Repo, isAssigned: boolean) => {
+    e.stopPropagation()
+    if (isAssigned) {
+      if (!window.confirm(`Delete repo "${repo.name}"? It will be removed from its context.`)) {
+        return
+      }
+    }
+    onDeleteRepo?.(repo.id)
+  }
+
   const renderRepoCard = (repo: Repo, isAssigned: boolean) => {
     const repoTeams = getTeamsForRepo(repo)
     const ctxName = isAssigned ? contextNameForRepo(repo, contexts) : null
@@ -81,20 +93,32 @@ export function RepoSidebar({
         data-testid={`repo-card-${repo.id}`}
         draggable={!isAssigned}
         onDragStart={isAssigned ? undefined : (e) => handleDragStart(e, repo.id)}
-        className={`bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded p-2.5 transition-colors ${
+        className={`w-full bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 rounded p-2.5 transition-colors ${
           isAssigned
-            ? 'cursor-default opacity-75'
+            ? 'cursor-default opacity-75 hover:opacity-100'
             : 'cursor-move hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-neutral-800'
         }`}
       >
-        <div className="font-medium text-slate-900 dark:text-slate-100 mb-1">{repo.name}</div>
+        {/* Row 1: name + status pill (top-right) */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="font-medium text-slate-900 dark:text-slate-100 truncate">{repo.name}</div>
+          {ctxName ? (
+            <span className="flex-shrink-0 truncate max-w-[96px] text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-700 text-slate-600 dark:text-slate-300">
+              {ctxName}
+            </span>
+          ) : (
+            <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700">
+              Unassigned
+            </span>
+          )}
+        </div>
 
         {repo.remoteUrl && (
           <a
             href={repo.remoteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mb-2"
+            className="text-blue-600 dark:text-blue-400 text-[11px] flex items-center gap-1 hover:underline mt-1"
             onClick={(e) => e.stopPropagation()}
           >
             <span className="truncate">{repo.remoteUrl}</span>
@@ -102,34 +126,40 @@ export function RepoSidebar({
           </a>
         )}
 
-        {ctxName && (
-          <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-200 dark:bg-neutral-700 text-slate-600 dark:text-slate-300 mb-1">
-            {ctxName}
-          </span>
-        )}
-
-        {repoTeams.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
+        {/* Row 2: team ownership badges (left) + delete (bottom-right) */}
+        <div className="flex items-end justify-between gap-2 mt-1.5">
+          <div className="flex flex-wrap gap-1">
             {repoTeams.map((team) => {
               const colors = getTopologyColors(team.topologyType)
               const label = team.topologyType ? TOPOLOGY_LABELS[team.topologyType] : undefined
               return (
-                <span
+                <SimpleTooltip
                   key={team.id}
-                  className="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                  style={{
-                    backgroundColor: colors.light.bg,
-                    color: colors.light.text,
-                    border: `1px solid ${colors.light.border}`,
-                  }}
-                  title={label ? `${team.name} (${label})` : team.name}
+                  text={label ? `${team.name} (${label})` : team.name}
+                  position="top"
                 >
-                  {team.name}
-                </span>
+                  <span
+                    className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                    style={{
+                      backgroundColor: colors.light.bg,
+                      color: colors.light.text,
+                      border: `1px solid ${colors.light.border}`,
+                    }}
+                  >
+                    {team.name}
+                  </span>
+                </SimpleTooltip>
               )
             })}
           </div>
-        )}
+          <button
+            aria-label={`Delete ${repo.name}`}
+            onClick={(e) => handleDeleteRepo(e, repo, isAssigned)}
+            className="p-1 rounded flex-shrink-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
       </div>
     )
 

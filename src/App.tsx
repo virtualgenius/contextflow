@@ -49,6 +49,7 @@ function Workspace() {
   const loadSharedProject = useEditorStore((s) => s.loadSharedProject)
   const addTeam = useEditorStore((s) => s.addTeam)
   const addRepo = useEditorStore((s) => s.addRepo)
+  const deleteRepo = useEditorStore((s) => s.deleteRepo)
   const deleteTeam = useEditorStore((s) => s.deleteTeam)
   const setSelectedTeam = useEditorStore((s) => s.setSelectedTeam)
   const focus = useEditorStore((s) => s.focus)
@@ -315,6 +316,7 @@ function Workspace() {
                     // Will be implemented with drag-and-drop
                   }}
                   onAddRepo={(name) => addRepo(name, 'sidebar')}
+                  onDeleteRepo={(repoId) => deleteRepo(repoId)}
                 />
               ) : (
                 <TeamSidebar

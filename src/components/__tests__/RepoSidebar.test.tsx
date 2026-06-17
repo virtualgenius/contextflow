@@ -42,6 +42,108 @@ describe('RepoSidebar', () => {
     })
   })
 
+  describe('uniform cards (slice B)', () => {
+    function makeTeam(overrides: Partial<import('../../model/types').Team> = {}) {
+      return {
+        id: 'team-1',
+        name: 'Platform Squad',
+        topologyType: 'platform' as const,
+        ...overrides,
+      }
+    }
+
+    it('shows an Unassigned status pill on unassigned repos', () => {
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+        />
+      )
+      expect(screen.getByText('Unassigned')).toBeInTheDocument()
+    })
+
+    it('shows the context name as the status pill on assigned repos', () => {
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', contextId: 'ctx-1' })]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+        />
+      )
+      expect(screen.getByText('Orders')).toBeInTheDocument()
+      expect(screen.queryByText('Unassigned')).not.toBeInTheDocument()
+    })
+
+    it('deletes an unassigned repo without confirmation', () => {
+      const onDeleteRepo = vi.fn()
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onDeleteRepo={onDeleteRepo}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Delete orders-service' }))
+      expect(confirmSpy).not.toHaveBeenCalled()
+      expect(onDeleteRepo).toHaveBeenCalledWith('repo-1')
+      confirmSpy.mockRestore()
+    })
+
+    it('confirms before deleting an assigned repo', () => {
+      const onDeleteRepo = vi.fn()
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+      const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service', contextId: 'ctx-1' })]}
+          teams={[]}
+          contexts={contexts}
+          onRepoAssign={noop}
+          onDeleteRepo={onDeleteRepo}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Delete orders-service' }))
+      expect(confirmSpy).toHaveBeenCalled()
+      expect(onDeleteRepo).not.toHaveBeenCalled()
+      confirmSpy.mockRestore()
+    })
+
+    it('does not select/assign when clicking delete', () => {
+      const onDeleteRepo = vi.fn()
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', name: 'orders-service' })]}
+          teams={[]}
+          contexts={[]}
+          onRepoAssign={noop}
+          onDeleteRepo={onDeleteRepo}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Delete orders-service' }))
+      expect(onDeleteRepo).toHaveBeenCalledWith('repo-1')
+    })
+
+    it('renders team ownership badges without a native title attribute', () => {
+      render(
+        <RepoSidebar
+          repos={[makeRepo({ id: 'repo-1', teamIds: ['team-1'] })]}
+          teams={[makeTeam()]}
+          contexts={[]}
+          onRepoAssign={noop}
+        />
+      )
+      const badge = screen.getByText('Platform Squad')
+      expect(badge).not.toHaveAttribute('title')
+    })
+  })
+
   describe('add repo', () => {
     it('shows an Add repo input and button', () => {
       render(<RepoSidebar repos={[]} teams={[]} contexts={[]} onRepoAssign={noop} />)

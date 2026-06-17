@@ -975,6 +975,18 @@ export const useEditorStore = create<EditorState>((set) => ({
         : clearedFocus
     }),
 
+  deleteRepo: (repoId) =>
+    set((state) => {
+      const projectId = state.activeProjectId
+      const project = projectId ? state.projects[projectId] : null
+      getCollabMutations().deleteRepo(repoId)
+      trackEvent('repo_deleted', project, {
+        entity_type: 'repo',
+        entity_id: repoId,
+      })
+      return {}
+    }),
+
   addUser: (name) =>
     set((state) => {
       const projectId = state.activeProjectId
