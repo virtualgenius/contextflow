@@ -584,7 +584,7 @@ describe('TeamSidebar', () => {
   })
 
   describe('drag hint tooltip', () => {
-    it('shows drag hint tooltip on team cards', () => {
+    it('shows a click-and-drag hint tooltip on team cards', () => {
       render(
         <TeamSidebar
           teams={[makeTeam()]}
@@ -598,7 +598,9 @@ describe('TeamSidebar', () => {
       )
       const card = screen.getByTestId('team-card-team-1')
       fireEvent.mouseEnter(card)
-      expect(screen.getByText('Drag onto a context to assign')).toBeInTheDocument()
+      expect(
+        screen.getByText('Click to edit, or drag onto a context to assign')
+      ).toBeInTheDocument()
     })
   })
 

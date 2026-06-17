@@ -153,7 +153,7 @@ export function TeamSidebar({
           return (
             <SimpleTooltip
               key={team.id}
-              text="Drag onto a context to assign"
+              text="Click to edit, or drag onto a context to assign"
               position="right"
               className="block w-full min-w-0"
             >

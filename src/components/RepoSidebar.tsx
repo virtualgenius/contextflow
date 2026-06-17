@@ -201,12 +201,22 @@ export function RepoSidebar({
       </div>
     )
 
-    if (isAssigned) return <React.Fragment key={repo.id}>{card}</React.Fragment>
+    if (isAssigned)
+      return (
+        <SimpleTooltip
+          key={repo.id}
+          text="Click to edit"
+          position="right"
+          className="block w-full min-w-0"
+        >
+          {card}
+        </SimpleTooltip>
+      )
 
     return (
       <SimpleTooltip
         key={repo.id}
-        text="Drag onto a context to assign"
+        text="Click to edit, or drag onto a context to assign"
         position="right"
         className="block w-full min-w-0"
       >

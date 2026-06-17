@@ -587,7 +587,7 @@ describe('RepoSidebar', () => {
       expect(screen.queryByText('Assigned', { selector: 'div' })).not.toBeInTheDocument()
     })
 
-    it('shows drag hint tooltip on unassigned repo cards', () => {
+    it('shows a click-and-drag hint tooltip on unassigned repo cards', () => {
       render(
         <RepoSidebar
           repos={[makeRepo({ id: 'repo-1', name: 'orders-service' })]}
@@ -598,10 +598,12 @@ describe('RepoSidebar', () => {
       )
       const card = screen.getByTestId('repo-card-repo-1')
       fireEvent.mouseEnter(card)
-      expect(screen.getByText('Drag onto a context to assign')).toBeInTheDocument()
+      expect(
+        screen.getByText('Click to edit, or drag onto a context to assign')
+      ).toBeInTheDocument()
     })
 
-    it('does not show drag hint tooltip on assigned repo cards', () => {
+    it('shows a click-to-edit hint without the drag hint on assigned repo cards', () => {
       const contexts = [makeContext({ id: 'ctx-1', name: 'Orders' })]
       render(
         <RepoSidebar
@@ -613,7 +615,8 @@ describe('RepoSidebar', () => {
       )
       const card = screen.getByTestId('repo-card-repo-1')
       fireEvent.mouseEnter(card)
-      expect(screen.queryByText('Drag onto a context to assign')).not.toBeInTheDocument()
+      expect(screen.getByText('Click to edit')).toBeInTheDocument()
+      expect(screen.queryByText(/drag onto a context/i)).not.toBeInTheDocument()
     })
 
     it('treats repo with contextId pointing to deleted context as unassigned', () => {
