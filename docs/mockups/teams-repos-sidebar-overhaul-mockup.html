@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teams &amp; Repos Sidebar Overhaul - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; }
+    /* fixed sidebar width matches the real app's grid-cols-[240px_1fr_...] */
+    .sidebar { width: 240px; }
+    .scroll-area::-webkit-scrollbar { width: 8px; }
+    .scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-[1320px] mx-auto">
+    <h1 class="text-xl font-semibold text-slate-800 mb-1">Teams &amp; Repos Sidebar Overhaul</h1>
+    <p class="text-sm text-slate-600 mb-5 max-w-4xl">
+      Target: <b>0.12.0</b>. Goals: cards <b>fill the full sidebar width</b> at a consistent height; the panel is
+      <b>always reachable</b> (so you can set up teams/repos before touching the canvas); <b>repos are selectable</b>
+      with their own inspector; filter by <b>type</b> (teams) and <b>status</b> (repos); filter row pins to the top and
+      the add control pins to the bottom, so only the card list scrolls.
+    </p>
+
+    <!-- ============================================================ -->
+    <!-- ROW 1: the four sidebar states, side by side                 -->
+    <!-- ============================================================ -->
+    <div class="flex flex-wrap gap-6 items-start mb-10">
+
+      <!-- ---------- A. TEAMS tab, populated ---------- -->
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">A &middot; Teams tab</div>
+        <div class="sidebar bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col" style="height: 560px;">
+          <!-- tab bar -->
+          <div class="flex items-center border-b border-slate-200">
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700">Repos (5)</button>
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600">Teams (4)</button>
+            <button class="px-2 py-2 text-slate-400 hover:text-slate-600">&#10005;</button>
+          </div>
+
+          <!-- sticky filter region -->
+          <div class="px-3 pt-3 pb-2 border-b border-slate-100">
+            <div class="relative mb-2">
+              <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">&#9906;</span>
+              <input type="text" placeholder="Filter teams..." class="w-full text-xs pl-7 pr-2 py-1.5 rounded border border-slate-200 bg-white text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500" />
+            </div>
+            <!-- type filter chips -->
+            <div class="flex flex-wrap gap-1">
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-blue-300 bg-blue-50 text-blue-700">All</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500 hover:border-slate-300">Stream</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500 hover:border-slate-300">Platform</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500 hover:border-slate-300">Enabling</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500 hover:border-slate-300">Subsystem</button>
+            </div>
+          </div>
+
+          <!-- scrollable cards: full width, uniform height -->
+          <div class="scroll-area flex-1 overflow-y-auto px-3 py-2 space-y-2">
+            <!-- selected card: focus top-right, delete bottom-right -->
+            <div class="w-full border border-blue-400 ring-1 ring-blue-400 rounded p-2.5 bg-white cursor-move">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">Checkout Squad</div>
+                <button class="p-1 rounded bg-blue-100 text-blue-600 flex-shrink-0" title="Exit focus">&#9678;</button>
+              </div>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium rounded" style="background:#FFEDB8;color:#92600a;border:1px solid #FFD966;">Stream</span>
+                  <span class="text-[11px] text-slate-500">3 contexts</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+            <!-- regular cards -->
+            <div class="w-full border border-slate-200 rounded p-2.5 bg-slate-50 hover:bg-white hover:border-blue-400 cursor-move">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">Platform Core</div>
+                <button class="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 flex-shrink-0" title="Focus">&#9678;</button>
+              </div>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium rounded" style="background:#B7CDF1;color:#1a4b8c;border:1px solid #6D9EEB;">Platform</span>
+                  <span class="text-[11px] text-slate-500">5 contexts</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+            <div class="w-full border border-slate-200 rounded p-2.5 bg-slate-50 hover:bg-white hover:border-blue-400 cursor-move">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">Developer Experience</div>
+                <button class="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 flex-shrink-0" title="Focus">&#9678;</button>
+              </div>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium rounded" style="background:#DFBDCF;color:#6b3a5c;border:1px solid #D09CB7;">Enabling</span>
+                  <span class="text-[11px] text-slate-500">1 context</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+            <!-- a team with no topology + no contexts: focus hidden (no valid action), delete still present -->
+            <div class="w-full border border-slate-200 rounded p-2.5 bg-slate-50 hover:bg-white hover:border-blue-400 cursor-move">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">Unassigned Team</div>
+              </div>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium rounded border border-slate-200 text-slate-400">No type</span>
+                  <span class="text-[11px] text-slate-400">0 contexts</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- sticky add control -->
+          <div class="border-t border-slate-200 p-2.5">
+            <div class="flex gap-1.5">
+              <input type="text" placeholder="Add team..." class="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 bg-white outline-none focus:border-blue-500 placeholder:text-slate-400" />
+              <button class="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- B. REPOS tab, populated ---------- -->
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">B &middot; Repos tab (repo selected)</div>
+        <div class="sidebar bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col" style="height: 560px;">
+          <div class="flex items-center border-b border-slate-200">
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600">Repos (5)</button>
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700">Teams (4)</button>
+            <button class="px-2 py-2 text-slate-400 hover:text-slate-600">&#10005;</button>
+          </div>
+
+          <div class="px-3 pt-3 pb-2 border-b border-slate-100">
+            <div class="relative mb-2">
+              <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">&#9906;</span>
+              <input type="text" placeholder="Filter repos..." class="w-full text-xs pl-7 pr-2 py-1.5 rounded border border-slate-200 bg-white text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500" />
+            </div>
+            <!-- status filter chips -->
+            <div class="flex flex-wrap gap-1">
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-blue-300 bg-blue-50 text-blue-700">All</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500 hover:border-slate-300">Unassigned</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500 hover:border-slate-300">Assigned</button>
+            </div>
+          </div>
+
+          <div class="scroll-area flex-1 overflow-y-auto px-3 py-2 space-y-2">
+            <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pt-0.5">Ready to assign</div>
+            <!-- selected repo card (now clickable) -->
+            <div class="w-full border border-blue-400 ring-1 ring-blue-400 rounded p-2.5 bg-white cursor-pointer">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">checkout-service</div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">Unassigned</span>
+              </div>
+              <a href="#" class="text-blue-600 text-[11px] flex items-center gap-1 hover:underline mt-1 truncate">github.com/acme/checkout-service &#8599;</a>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background:#FFEDB8;color:#92600a;border:1px solid #FFD966;">Checkout Squad</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+            <div class="w-full border border-slate-200 rounded p-2.5 bg-slate-50 hover:bg-white hover:border-blue-400 cursor-pointer">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">payments-gateway</div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">Unassigned</span>
+              </div>
+              <a href="#" class="text-blue-600 text-[11px] flex items-center gap-1 hover:underline mt-1 truncate">github.com/acme/payments-gateway &#8599;</a>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background:#B7CDF1;color:#1a4b8c;border:1px solid #6D9EEB;">Platform Core</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+
+            <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider pt-2">Assigned</div>
+            <div class="w-full border border-slate-200 rounded p-2.5 bg-slate-50 opacity-75 cursor-pointer hover:opacity-100">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">order-management</div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600 flex-shrink-0 truncate max-w-[96px]">Order Mgmt</span>
+              </div>
+              <a href="#" class="text-blue-600 text-[11px] flex items-center gap-1 hover:underline mt-1 truncate">github.com/acme/order-management &#8599;</a>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background:#FFEDB8;color:#92600a;border:1px solid #FFD966;">Checkout Squad</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-200 p-2.5">
+            <div class="flex gap-1.5">
+              <input type="text" placeholder="Add repo..." class="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 bg-white outline-none focus:border-blue-500 placeholder:text-slate-400" />
+              <button class="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- C. Empty state (always reachable) ---------- -->
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">C &middot; Empty (new project)</div>
+        <div class="sidebar bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col" style="height: 560px;">
+          <div class="flex items-center border-b border-slate-200">
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600">Repos (0)</button>
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700">Teams (0)</button>
+            <button class="px-2 py-2 text-slate-400 hover:text-slate-600">&#10005;</button>
+          </div>
+          <div class="flex-1 flex flex-col items-center justify-center text-center px-5 gap-3">
+            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-lg">&#128193;</div>
+            <div class="text-sm font-medium text-slate-600">No repos yet</div>
+            <p class="text-xs text-slate-500 leading-relaxed">Add the repositories in your system, then drag each one onto the context it belongs to.</p>
+          </div>
+          <div class="border-t border-slate-200 p-2.5">
+            <div class="flex gap-1.5">
+              <input type="text" placeholder="Add repo..." class="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 bg-white outline-none focus:border-blue-500 placeholder:text-slate-400" />
+              <button class="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white">Add</button>
+            </div>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2 sidebar leading-relaxed">The panel now shows even at zero, so first-time setup of teams/repos has a home.</p>
+      </div>
+
+      <!-- ---------- D. Repo inspector (right panel) ---------- -->
+      <div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">D &middot; Repo inspector (new)</div>
+        <div class="bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col" style="width: 320px; height: 560px;">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+            <div class="text-sm font-semibold text-slate-800">Repository</div>
+            <button class="text-slate-400 hover:text-slate-600">&#10005;</button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Name</label>
+              <input type="text" value="checkout-service" class="w-full mt-1 text-sm px-2 py-1.5 rounded border border-slate-200 outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Remote URL</label>
+              <input type="text" value="github.com/acme/checkout-service" class="w-full mt-1 text-sm px-2 py-1.5 rounded border border-slate-200 outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Assigned context</label>
+              <div class="mt-1 flex items-center gap-2">
+                <span class="text-xs text-slate-400 italic">Not assigned</span>
+                <button class="text-[11px] text-blue-600 hover:underline ml-auto">Assign...</button>
+              </div>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Owning teams</label>
+              <div class="mt-1.5 flex flex-wrap gap-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium flex items-center gap-1" style="background:#FFEDB8;color:#92600a;border:1px solid #FFD966;">Checkout Squad <span class="cursor-pointer">&#10005;</span></span>
+                <button class="px-1.5 py-0.5 rounded-full text-[10px] border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600">+ team</button>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100">
+              <button class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1">&#128465; Delete repository</button>
+            </div>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2 leading-relaxed" style="width:320px;">Clicking a repo card now opens this, matching how teams and contexts behave.</p>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ROW 2: in-app shell, repos tab + repo inspector together     -->
+    <!-- ============================================================ -->
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">In context: left sidebar + canvas + repo inspector</div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style="height: 520px; display:flex; flex-direction:column;">
+      <header class="flex items-center gap-3 px-5 py-3 border-b border-slate-200 flex-shrink-0">
+        <span class="font-semibold text-slate-800">ContextFlow</span>
+        <span class="text-slate-400">&bull;</span>
+        <span class="text-sm text-slate-600 font-medium">ACME E-Commerce Platform</span>
+      </header>
+      <div class="flex-1 flex min-h-0">
+        <!-- left sidebar (repos) -->
+        <aside class="sidebar border-r border-slate-200 flex flex-col flex-shrink-0">
+          <div class="flex items-center border-b border-slate-200">
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600">Repos (5)</button>
+            <button class="flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Teams (4)</button>
+            <button class="px-2 py-2 text-slate-400">&#10005;</button>
+          </div>
+          <div class="px-3 pt-3 pb-2 border-b border-slate-100">
+            <div class="relative mb-2">
+              <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">&#9906;</span>
+              <input type="text" placeholder="Filter repos..." class="w-full text-xs pl-7 pr-2 py-1.5 rounded border border-slate-200 outline-none focus:border-blue-500" />
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-blue-300 bg-blue-50 text-blue-700">All</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500">Unassigned</button>
+              <button class="px-1.5 py-0.5 text-[10px] font-medium rounded-full border border-slate-200 text-slate-500">Assigned</button>
+            </div>
+          </div>
+          <div class="scroll-area flex-1 overflow-y-auto px-3 py-2 space-y-2">
+            <div class="w-full border border-blue-400 ring-1 ring-blue-400 rounded p-2.5 bg-white cursor-pointer">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">checkout-service</div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">Unassigned</span>
+              </div>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background:#FFEDB8;color:#92600a;border:1px solid #FFD966;">Checkout Squad</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+            <div class="w-full border border-slate-200 rounded p-2.5 bg-slate-50 hover:bg-white hover:border-blue-400 cursor-pointer">
+              <div class="flex items-center justify-between gap-2">
+                <div class="font-medium text-slate-900 truncate">payments-gateway</div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">Unassigned</span>
+              </div>
+              <div class="flex items-end justify-between gap-2 mt-1.5">
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background:#B7CDF1;color:#1a4b8c;border:1px solid #6D9EEB;">Platform Core</span>
+                </div>
+                <button class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Delete">&#128465;</button>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-slate-200 p-2.5">
+            <div class="flex gap-1.5">
+              <input type="text" placeholder="Add repo..." class="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 outline-none focus:border-blue-500" />
+              <button class="px-2 py-1.5 text-xs font-medium rounded bg-blue-600 text-white">Add</button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- canvas -->
+        <div class="relative flex-1 min-w-0 bg-[#fafbfc] flex items-center justify-center">
+          <svg width="320" height="180">
+            <rect x="40" y="60" width="110" height="56" rx="8" fill="#fff" stroke="#cbd5e1" />
+            <text x="95" y="92" text-anchor="middle" font-size="11" fill="#475569">Order Mgmt</text>
+            <rect x="190" y="60" width="110" height="56" rx="8" fill="#fff" stroke="#cbd5e1" />
+            <text x="245" y="92" text-anchor="middle" font-size="11" fill="#475569">Checkout</text>
+          </svg>
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 text-[11px] text-slate-400">Drag a repo card onto a context to assign it</div>
+        </div>
+
+        <!-- right inspector (repo) -->
+        <aside class="border-l border-slate-200 flex flex-col flex-shrink-0" style="width:320px;">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+            <div class="text-sm font-semibold text-slate-800">Repository</div>
+            <button class="text-slate-400 hover:text-slate-600">&#10005;</button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Name</label>
+              <input type="text" value="checkout-service" class="w-full mt-1 text-sm px-2 py-1.5 rounded border border-slate-200 outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Remote URL</label>
+              <input type="text" value="github.com/acme/checkout-service" class="w-full mt-1 text-sm px-2 py-1.5 rounded border border-slate-200 outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Owning teams</label>
+              <div class="mt-1.5 flex flex-wrap gap-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background:#FFEDB8;color:#92600a;border:1px solid #FFD966;">Checkout Squad</span>
+                <button class="px-1.5 py-0.5 rounded-full text-[10px] border border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600">+ team</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- design notes -->
+    <div class="mt-6 max-w-4xl text-sm text-slate-600 space-y-2">
+      <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider">What changed</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li><b>Full-width, uniform cards.</b> Every card is <code>w-full</code> with a two-row layout (name + actions, then badges + meta), so teams and repos read as the same component family at the same height.</li>
+        <li><b>Always-reachable panel.</b> The sidebar (with its Add control) renders even at zero teams/repos, so you can set up your teams and repos up front instead of discovering them through a context.</li>
+        <li><b>Pinned chrome, scrolling list.</b> Filter row pins to the top, Add control pins to the bottom; only the card list scrolls.</li>
+        <li><b>Repos are selectable.</b> A repo card opens a Repo inspector (name, remote URL, owning teams, assigned context, delete), matching teams and contexts.</li>
+        <li><b>Filter by type / status.</b> Teams filter by topology; repos filter by assigned/unassigned, alongside the existing name search.</li>
+        <li><b>In-place Add repo.</b> Repos can be created from the sidebar, not only from a context inspector.</li>
+      </ul>
+      <p class="text-xs text-slate-400 pt-2">Colors use the real topology palette from <code>src/lib/teamColors.ts</code>. Dark mode omitted from the mockup; the implementation keeps the existing dark variants. Glyphs are placeholders for lucide icons (Crosshair, Trash2, ExternalLink, Search).</p>
+    </div>
+
+  </div>
+</body>
+</html>
