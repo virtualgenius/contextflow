@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspace: one shareable container holding many maps - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; }
+    .frame { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 2px rgba(15,23,42,.06); overflow: hidden; }
+    .avatar { width: 22px; height: 22px; border-radius: 9999px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: 2px solid #fff; }
+    .stack .avatar + .avatar { margin-left: -8px; }
+    .dot { width: 8px; height: 8px; border-radius: 9999px; display: inline-block; }
+    .opt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: 8px; }
+    .rec { color: #1d4ed8; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-[1360px] mx-auto">
+    <h1 class="text-xl font-semibold text-slate-800 mb-1">Workspace: one shareable container holding many maps</h1>
+    <p class="text-sm text-slate-600 mb-2 max-w-4xl">
+      GitHub #44. One URL for a class or an organisation. Participants open it, add their own map, and the instructor can open any map from one place.
+      Maps keep their own <code>/p/:id</code> URL. The container has its own <code>/w/:id</code> URL. Fully open, same as today's share model.
+    </p>
+    <p class="text-xs text-slate-500 mb-8 max-w-4xl">
+      Each section shows two or three options. Option marked <span class="rec font-semibold">recommended</span> is Della's pick; the reasons sit under each option.
+      Placeholder naming throughout is "workspace"; see the naming question in the plan.
+    </p>
+
+    <!-- ============================================================ -->
+    <!-- 1. HOME PAGE ENTRY                                           -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">1. Where a workspace is created (home page)</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+
+      <!-- Option A -->
+      <div>
+        <div class="opt">A &middot; Two buttons + a Workspaces section <span class="rec">&middot; recommended</span></div>
+        <div class="frame" style="width: 560px;">
+          <div class="border-b border-slate-200 bg-white px-6 py-4">
+            <div class="font-semibold text-lg text-slate-800">ContextFlow</div>
+            <div class="text-sm text-slate-500 mt-0.5">See how your bounded contexts, teams, and value flow connect</div>
+          </div>
+          <div class="px-6 py-6">
+            <div class="flex items-center gap-2 mb-3">
+              <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">+ New Project</button>
+              <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md">&#9638; New Workspace</button>
+            </div>
+            <div class="relative mb-4">
+              <input type="text" placeholder="Search projects..." class="w-full text-sm pl-9 pr-3 py-2 rounded-md border border-slate-200 bg-white" />
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">&#9906;</span>
+            </div>
+
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Workspaces</div>
+            <div class="space-y-2 mb-5">
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-slate-900">KanDDDinsky 2026 &middot; Context Mapping Hands-On</div>
+                  <div class="text-xs text-slate-500 mt-0.5">12 maps &middot; opened 2 hours ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-slate-900">AppFolio Leasing</div>
+                  <div class="text-xs text-slate-500 mt-0.5">4 maps &middot; opened 3 weeks ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+            </div>
+
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Projects</div>
+            <div class="space-y-2">
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white">
+                <div class="text-sm font-medium text-slate-900">Elan Extended Warranty (my copy)</div>
+                <div class="text-xs text-slate-500 mt-0.5">8 contexts &middot; edited yesterday</div>
+              </div>
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white">
+                <div class="text-sm font-medium text-slate-900">Denver Water gage pilot</div>
+                <div class="text-xs text-slate-500 mt-0.5">14 contexts &middot; edited 5 days ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[560px] space-y-1 list-disc pl-4">
+          <li>Workspaces sit above projects because that is where a returning instructor is heading.</li>
+          <li>"Workspaces" is a list of ones this browser has opened (stored locally), so a participant sees the class workspace here after their first visit.</li>
+          <li>Search stays on projects only. One control, no mode.</li>
+        </ul>
+      </div>
+
+      <!-- Option B -->
+      <div>
+        <div class="opt">B &middot; Tabs: Projects | Workspaces</div>
+        <div class="frame" style="width: 560px;">
+          <div class="border-b border-slate-200 bg-white px-6 py-4">
+            <div class="font-semibold text-lg text-slate-800">ContextFlow</div>
+            <div class="text-sm text-slate-500 mt-0.5">See how your bounded contexts, teams, and value flow connect</div>
+          </div>
+          <div class="px-6 py-6">
+            <div class="flex items-center border-b border-slate-200 mb-4">
+              <button class="px-3 py-2 text-sm font-medium text-slate-500">Projects</button>
+              <button class="px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 -mb-px">Workspaces</button>
+            </div>
+            <div class="flex items-center gap-2 mb-3">
+              <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">+ New Workspace</button>
+            </div>
+            <div class="space-y-2">
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-slate-900">KanDDDinsky 2026 &middot; Context Mapping Hands-On</div>
+                  <div class="text-xs text-slate-500 mt-0.5">12 maps &middot; opened 2 hours ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-slate-900">AppFolio Leasing</div>
+                  <div class="text-xs text-slate-500 mt-0.5">4 maps &middot; opened 3 weeks ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+            </div>
+            <div class="mt-6 text-xs text-slate-400 italic">Projects tab unchanged from today.</div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[560px] space-y-1 list-disc pl-4">
+          <li>Cleaner when someone has many of both.</li>
+          <li>Costs a mode: a first-time visitor on the Projects tab never learns workspaces exist.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 2. WORKSPACE PAGE                                            -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">2. The workspace page (what a participant sees at the shared URL)</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+
+      <!-- Option A: list -->
+      <div>
+        <div class="opt">A &middot; List, same width and rhythm as the project list</div>
+        <div class="frame" style="width: 600px;">
+          <div class="border-b border-slate-200 bg-white px-6 py-3 flex items-center gap-3">
+            <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+            <span class="text-slate-300">&bull;</span>
+            <span class="text-sm text-slate-600 font-medium">KanDDDinsky 2026 &middot; Context Mapping Hands-On</span>
+            <div class="ml-auto flex items-center gap-2">
+              <button class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md whitespace-nowrap">&#128279; Copy link</button>
+            </div>
+          </div>
+          <div class="px-6 py-5">
+            <div class="flex items-center justify-between mb-3">
+              <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">+ New map</button>
+              <span class="text-xs text-slate-500">12 maps</span>
+            </div>
+            <div class="space-y-2">
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div class="min-w-0">
+                  <div class="text-sm font-medium text-slate-900 truncate">Table 3 &middot; Ticketing</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Anna K. &middot; 9 contexts &middot; edited just now</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div class="min-w-0">
+                  <div class="text-sm font-medium text-slate-900 truncate">Insurance claims</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Jonas &middot; 6 contexts &middot; edited 2 min ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+              <div class="w-full px-4 py-3 rounded-lg border border-blue-500 bg-blue-50 flex items-center justify-between">
+                <div class="min-w-0">
+                  <div class="text-sm font-medium text-slate-900 truncate">Elan warranty (starter)</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Paul &middot; 8 contexts &middot; edited 40 min ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+              <div class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between">
+                <div class="min-w-0">
+                  <div class="text-sm font-medium text-slate-900 truncate">Untitled map</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Mei &middot; 0 contexts &middot; created 1 min ago</div>
+                </div>
+                <span class="text-xs text-slate-400">&#8250;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[600px] space-y-1 list-disc pl-4">
+          <li>Reuses the project-list component and rhythm; least new UI.</li>
+          <li>Weak on a projector: 12 rows of small text, no sense of activity.</li>
+          <li>"N contexts" needs the map's own doc; the list only knows the registry. Shown here as a question, not a promise.</li>
+        </ul>
+      </div>
+
+      <!-- Option B: cards with presence -->
+      <div>
+        <div class="opt">B &middot; Card grid with live presence <span class="rec">&middot; recommended</span></div>
+        <div class="frame" style="width: 700px;">
+          <div class="border-b border-slate-200 bg-white px-6 py-3 flex items-center gap-3">
+            <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+            <span class="text-slate-300">&bull;</span>
+            <span class="text-sm text-slate-600 font-medium">KanDDDinsky 2026 &middot; Context Mapping Hands-On</span>
+            <div class="ml-auto flex items-center gap-3">
+              <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="stack flex">
+                  <span class="avatar" style="background:#2563eb">PR</span>
+                  <span class="avatar" style="background:#059669">AK</span>
+                  <span class="avatar" style="background:#d97706">JO</span>
+                  <span class="avatar" style="background:#7c3aed">ME</span>
+                </span>
+                <span>+9 here</span>
+              </div>
+              <button class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md whitespace-nowrap">&#128279; Copy link</button>
+            </div>
+          </div>
+          <div class="px-6 py-5">
+            <div class="flex items-center justify-between mb-3">
+              <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">+ New map</button>
+              <div class="flex items-center gap-2 text-xs text-slate-500">
+                <span>Sort:</span>
+                <button class="px-2 py-0.5 rounded-full border border-blue-300 bg-blue-50 text-blue-700 font-medium">Active</button>
+                <button class="px-2 py-0.5 rounded-full border border-slate-200">Name</button>
+                <button class="px-2 py-0.5 rounded-full border border-slate-200">Newest</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <!-- card: active -->
+              <div class="rounded-lg border border-slate-200 bg-white p-3 flex flex-col gap-2 hover:border-blue-400">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="text-sm font-medium text-slate-900 leading-tight">Table 3 &middot; Ticketing</div>
+                  <span class="dot bg-emerald-500 mt-1.5 shrink-0" title="someone is editing"></span>
+                </div>
+                <div class="text-xs text-slate-500">Anna K. &middot; edited just now</div>
+                <div class="flex items-center justify-between mt-auto pt-1">
+                  <span class="stack flex"><span class="avatar" style="background:#059669">AK</span><span class="avatar" style="background:#dc2626">TL</span></span>
+                  <span class="text-[11px] text-slate-500">2 here</span>
+                </div>
+              </div>
+              <div class="rounded-lg border border-slate-200 bg-white p-3 flex flex-col gap-2 hover:border-blue-400">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="text-sm font-medium text-slate-900 leading-tight">Insurance claims</div>
+                  <span class="dot bg-emerald-500 mt-1.5 shrink-0"></span>
+                </div>
+                <div class="text-xs text-slate-500">Jonas &middot; edited 2 min ago</div>
+                <div class="flex items-center justify-between mt-auto pt-1">
+                  <span class="stack flex"><span class="avatar" style="background:#d97706">JO</span></span>
+                  <span class="text-[11px] text-slate-500">1 here</span>
+                </div>
+              </div>
+              <div class="rounded-lg border border-blue-500 bg-blue-50 p-3 flex flex-col gap-2">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="text-sm font-medium text-slate-900 leading-tight">Elan warranty (starter)</div>
+                  <span class="dot bg-emerald-500 mt-1.5 shrink-0"></span>
+                </div>
+                <div class="text-xs text-slate-500">Paul &middot; edited 40 min ago</div>
+                <div class="flex items-center justify-between mt-auto pt-1">
+                  <span class="stack flex"><span class="avatar" style="background:#2563eb">PR</span><span class="avatar" style="background:#0891b2">SB</span><span class="avatar" style="background:#7c3aed">ME</span></span>
+                  <span class="text-[11px] text-slate-500">3 here</span>
+                </div>
+              </div>
+              <div class="rounded-lg border border-slate-200 bg-white p-3 flex flex-col gap-2 hover:border-blue-400">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="text-sm font-medium text-slate-900 leading-tight">Untitled map</div>
+                  <span class="dot bg-slate-300 mt-1.5 shrink-0"></span>
+                </div>
+                <div class="text-xs text-slate-500">Mei &middot; created 1 min ago</div>
+                <div class="flex items-center justify-between mt-auto pt-1">
+                  <span class="text-[11px] text-slate-400">nobody here</span>
+                </div>
+              </div>
+              <div class="rounded-lg border border-slate-200 bg-white p-3 flex flex-col gap-2 hover:border-blue-400">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="text-sm font-medium text-slate-900 leading-tight">Fleet maintenance</div>
+                  <span class="dot bg-slate-300 mt-1.5 shrink-0"></span>
+                </div>
+                <div class="text-xs text-slate-500">Dominic &middot; edited 25 min ago</div>
+                <div class="flex items-center justify-between mt-auto pt-1">
+                  <span class="text-[11px] text-slate-400">nobody here</span>
+                </div>
+              </div>
+              <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 flex items-center justify-center text-xs text-slate-400">+ 7 more</div>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[700px] space-y-1 list-disc pl-4">
+          <li>Built for the projector: the instructor scans who is where and which tables are quiet.</li>
+          <li>Presence (avatars, green dot, "N here") is slice b; slice a ships the same cards without the presence row.</li>
+          <li>"Sort: Active" surfaces tables that just changed. Only the registry's <code>updatedAt</code> is needed; no per-map doc load.</li>
+          <li>Thumbnails deliberately absent (deferred facilitator dashboard); a card grid leaves room for them later.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 3. NAME PROMPT                                               -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">3. Getting a participant's name (so the instructor knows whose map is whose)</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+
+      <!-- Option A: modal on join -->
+      <div>
+        <div class="opt">A &middot; Modal on first open of a workspace link</div>
+        <div class="frame relative" style="width: 520px; height: 340px;">
+          <div class="absolute inset-0 bg-black/40"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-xl w-[400px] border border-slate-200">
+              <div class="px-4 py-3 border-b border-slate-200">
+                <h3 class="text-base font-semibold text-slate-900">Join "KanDDDinsky 2026 &middot; Context Mapping Hands-On"</h3>
+              </div>
+              <div class="p-4 space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1.5">Your name</label>
+                  <input type="text" placeholder="e.g., Anna K." class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" />
+                  <p class="text-[11px] text-slate-500 mt-1.5">Shown next to maps you create and to others in this workspace. Stored only in this browser.</p>
+                </div>
+                <div class="flex justify-end gap-2 pt-1">
+                  <button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded">Join</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[520px] space-y-1 list-disc pl-4">
+          <li>Every participant is named before they see anything; presence is complete from the first minute.</li>
+          <li>A gate on a link someone was just handed. Fine in a classroom, abrupt for an architect opening a colleague's workspace.</li>
+        </ul>
+      </div>
+
+      <!-- Option B: ask when it matters -->
+      <div>
+        <div class="opt">B &middot; Ask only when the name is needed (creating a map) <span class="rec">&middot; recommended</span></div>
+        <div class="frame relative" style="width: 520px; height: 340px;">
+          <div class="border-b border-slate-200 bg-white px-5 py-3 flex items-center gap-3">
+            <span class="font-semibold text-sm text-slate-800">ContextFlow</span>
+            <span class="text-slate-300">&bull;</span>
+            <span class="text-xs text-slate-600 font-medium">KanDDDinsky 2026 &middot; Context Mapping Hands-On</span>
+          </div>
+          <div class="px-5 py-4">
+            <div class="flex items-center gap-2 mb-3">
+              <button class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md">+ New map</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 opacity-40">
+              <div class="rounded-lg border border-slate-200 bg-white p-2 h-16"></div>
+              <div class="rounded-lg border border-slate-200 bg-white p-2 h-16"></div>
+              <div class="rounded-lg border border-slate-200 bg-white p-2 h-16"></div>
+            </div>
+          </div>
+          <div class="absolute inset-0 bg-black/40"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-xl w-[400px] border border-slate-200">
+              <div class="px-4 py-3 border-b border-slate-200">
+                <h3 class="text-base font-semibold text-slate-900">New map</h3>
+              </div>
+              <div class="p-4 space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1.5">Map name</label>
+                  <input type="text" placeholder="e.g., Table 3 &middot; Ticketing" class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1.5">Your name</label>
+                  <input type="text" placeholder="e.g., Anna K." class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" />
+                  <p class="text-[11px] text-slate-500 mt-1.5">Shown on your map's card so the instructor can find it. Remembered in this browser.</p>
+                </div>
+                <div class="flex justify-end gap-2 pt-1">
+                  <button class="px-3 py-1.5 text-sm text-slate-700">Cancel</button>
+                  <button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded">Create map</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[520px] space-y-1 list-disc pl-4">
+          <li>No gate on the link. Browsing and opening maps needs no name.</li>
+          <li>Name is captured at the moment it has an obvious purpose; the field is pre-filled on later visits.</li>
+          <li>Presence for unnamed visitors shows as "Guest"; a small "Set your name" link in the header covers people who only ever open others' maps.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 4. EDITOR TOP BAR                                            -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">4. Inside a map that belongs to a workspace (editor top bar)</h2>
+    <div class="space-y-6 mb-12">
+
+      <!-- Option A: breadcrumb -->
+      <div>
+        <div class="opt">A &middot; Breadcrumb in the existing name slot <span class="rec">&middot; recommended</span></div>
+        <div class="frame" style="width: 1180px;">
+          <div class="flex items-center gap-4 px-5 py-3 bg-white">
+            <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+            <span class="text-slate-400">&bull;</span>
+            <button class="text-sm text-blue-600 font-medium hover:underline whitespace-nowrap">KanDDDinsky 2026 &middot; Context Mapping Hands-On</button>
+            <span class="text-slate-400">&#8250;</span>
+            <span class="text-sm text-slate-600 font-medium whitespace-nowrap">Table 3 &middot; Ticketing</span>
+            <div class="ml-4 flex items-center gap-1 bg-slate-50 rounded-lg px-1.5 py-1">
+              <button class="px-2 py-1 text-xs text-slate-700">+ Context</button>
+            </div>
+            <div class="ml-auto flex items-center gap-2 text-xs text-slate-500">
+              <span class="px-2 py-1 border border-slate-200 rounded">Context Map</span>
+              <span class="px-2 py-1">Value Stream</span>
+              <span class="px-2 py-1">Distillation</span>
+              <span class="px-2 py-1">Strategic</span>
+              <span class="ml-3">&#8599; Share</span>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[1000px] space-y-1 list-disc pl-4">
+          <li>The workspace name is the link back. No new button; the slot already exists.</li>
+          <li>Works for anyone who lands on the map's own <code>/p/:id</code> link too, because the map records which workspace it belongs to.</li>
+          <li>Long names truncate at the same 220px the project name already uses; the workspace name gets the first cut.</li>
+        </ul>
+      </div>
+
+      <!-- Option B: back pill -->
+      <div>
+        <div class="opt">B &middot; Back pill left of the map name</div>
+        <div class="frame" style="width: 1180px;">
+          <div class="flex items-center gap-4 px-5 py-3 bg-white">
+            <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+            <button class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 bg-slate-100 rounded-full">&#8592; Workspace</button>
+            <span class="text-sm text-slate-600 font-medium whitespace-nowrap">Table 3 &middot; Ticketing</span>
+            <div class="ml-4 flex items-center gap-1 bg-slate-50 rounded-lg px-1.5 py-1">
+              <button class="px-2 py-1 text-xs text-slate-700">+ Context</button>
+            </div>
+            <div class="ml-auto flex items-center gap-2 text-xs text-slate-500">
+              <span class="px-2 py-1 border border-slate-200 rounded">Context Map</span>
+              <span class="px-2 py-1">Value Stream</span>
+              <span class="px-2 py-1">Distillation</span>
+              <span class="px-2 py-1">Strategic</span>
+              <span class="ml-3">&#8599; Share</span>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[1000px] space-y-1 list-disc pl-4">
+          <li>Saves horizontal room on long workspace names.</li>
+          <li>Loses the workspace name from the bar, which is the thing a projector audience needs to see.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 5. Create workspace dialog (single option)                    -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">5. Create workspace, then share (one flow, no options)</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+      <div>
+        <div class="opt">Step 1 &middot; name it</div>
+        <div class="bg-white rounded-lg shadow-xl w-[400px] border border-slate-200">
+          <div class="px-4 py-3 border-b border-slate-200">
+            <h3 class="text-base font-semibold text-slate-900">New Workspace</h3>
+          </div>
+          <div class="p-4 space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Workspace name</label>
+              <input type="text" placeholder="e.g., KanDDDinsky 2026 &middot; Context Mapping Hands-On" class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" />
+            </div>
+            <div class="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <span class="text-amber-500 text-sm">&#9888;</span>
+              <p class="text-xs text-amber-800">Anyone with the workspace link can see every map in it, open any map, and add new ones. Same rules as sharing a project today.</p>
+            </div>
+            <div class="flex justify-end gap-2 pt-1">
+              <button class="px-3 py-1.5 text-sm text-slate-700">Cancel</button>
+              <button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="opt">Step 2 &middot; empty workspace, link ready</div>
+        <div class="frame" style="width: 620px;">
+          <div class="border-b border-slate-200 bg-white px-6 py-3 flex items-center gap-3">
+            <span class="font-semibold text-base text-slate-800">ContextFlow</span>
+            <span class="text-slate-300">&bull;</span>
+            <span class="text-sm text-slate-600 font-medium">KanDDDinsky 2026 &middot; Context Mapping Hands-On</span>
+            <button class="ml-auto px-2.5 py-1 text-xs font-medium text-white bg-blue-600 rounded-md whitespace-nowrap">&#128279; Copy link</button>
+          </div>
+          <div class="px-6 py-8 text-center">
+            <div class="text-sm font-medium text-slate-800 mb-1">No maps yet</div>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto mb-4">Share the link with your participants. Each person adds their own map here, and you can open any of them from this page.</p>
+            <div class="inline-flex items-center gap-2 text-xs text-slate-600 bg-slate-100 border border-slate-200 rounded-md px-3 py-1.5 font-mono">contextflow.virtualgenius.com/w/7f3a...c21e <span class="text-blue-600 font-sans font-medium">Copy</span></div>
+            <div class="mt-5"><button class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md">+ New map</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-400 mt-10">docs/mockups/workspace-mockup.html &middot; GitHub #44 &middot; placeholder naming: "workspace"</p>
+  </div>
+</body>
+</html>
