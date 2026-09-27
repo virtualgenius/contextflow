@@ -67,6 +67,7 @@ Judgment-level doc updates (UX prose, README screenshots, ARCHITECTURE data mode
 
 - URL: https://contextflow.virtualgenius.com
 - Check deploy status: `gh run list --limit 3`
+- Usage report for the production collab worker (rooms, connections, Durable Object activity): `scripts/cf-usage.py [--days N] [--staging]`. Reuses the wrangler login; run `npx wrangler login` if it reports an expired token.
 
 **Staging** is a manual deploy to Cloudflare Pages, for testing before pushing to main:
 
