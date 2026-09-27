@@ -27,6 +27,7 @@ API = "https://api.cloudflare.com/client/v4"
 WRANGLER_CONFIG = Path.home() / "Library/Preferences/.wrangler/config/default.toml"
 SCRIPTS = {"production": "contextflow-collab", "staging": "contextflow-collab-staging"}
 DEFAULT_DAYS = 30
+MAX_DAYS = 31  # Cloudflare analytics rejects ranges wider than 4 weeks 4 days on this plan
 PAGE_LIMIT = 1000
 MICROSECONDS_PER_SECOND = 1_000_000
 BUILT_IN_ROOMS = 3  # acme-ecommerce, cbioportal, elan-warranty share one global room each
@@ -144,10 +145,12 @@ def print_report(env: str, script: str, days: int, rooms: tuple[int, int], rows:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--days", type=int, default=DEFAULT_DAYS)
+    parser.add_argument("--days", type=int, default=DEFAULT_DAYS, help=f"1..{MAX_DAYS}; the analytics API caps the range")
     parser.add_argument("--staging", action="store_true", help="report on the staging worker instead of production")
     args = parser.parse_args()
 
+    if not 1 <= args.days <= MAX_DAYS:
+        sys.exit(f"--days must be between 1 and {MAX_DAYS} (Cloudflare analytics range cap)")
     env = "staging" if args.staging else "production"
     script = SCRIPTS[env]
     token = read_wrangler_token()
