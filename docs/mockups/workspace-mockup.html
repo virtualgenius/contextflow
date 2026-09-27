@@ -28,6 +28,155 @@
     </p>
 
     <!-- ============================================================ -->
+    <!-- 0. HOW WORKSPACES RELATE TO MAPS                             -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-1">0. How a workspace relates to maps: four models other tools use</h2>
+    <p class="text-xs text-slate-600 mb-4 max-w-4xl">
+      Same question for a class and for an organisation: what is the thing that holds many maps, and can a map be in more than one of them?
+      Boxes are maps, the rounded frame is the container, dashed boxes are bounded contexts inside a map.
+    </p>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-4">
+
+      <!-- Model A: flat container -->
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">A &middot; Flat container <span class="rec">&middot; v1</span></div>
+        <svg viewBox="0 0 300 168" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <rect x="10" y="14" width="280" height="150" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="22" y="34" fill="#1d4ed8" font-weight="600">Workspace: KanDDDinsky hands-on</text>
+          <g fill="#ffffff" stroke="#64748b">
+            <rect x="24" y="52" width="76" height="46" rx="4"/>
+            <rect x="112" y="52" width="76" height="46" rx="4"/>
+            <rect x="200" y="52" width="76" height="46" rx="4"/>
+            <rect x="24" y="108" width="76" height="46" rx="4"/>
+            <rect x="112" y="108" width="76" height="46" rx="4"/>
+          </g>
+          <g fill="#334155">
+            <text x="30" y="70">Table 1</text><text x="118" y="70">Table 2</text><text x="206" y="70">Table 3</text>
+            <text x="30" y="126">Table 4</text><text x="118" y="126">Starter</text>
+          </g>
+          <g fill="none" stroke="#94a3b8" stroke-dasharray="3 2">
+            <rect x="30" y="76" width="18" height="12" rx="2"/><rect x="52" y="76" width="18" height="12" rx="2"/><rect x="74" y="76" width="18" height="12" rx="2"/>
+            <rect x="118" y="76" width="18" height="12" rx="2"/><rect x="140" y="76" width="18" height="12" rx="2"/>
+            <rect x="206" y="76" width="18" height="12" rx="2"/><rect x="228" y="76" width="18" height="12" rx="2"/><rect x="250" y="76" width="18" height="12" rx="2"/>
+            <rect x="30" y="132" width="18" height="12" rx="2"/><rect x="52" y="132" width="18" height="12" rx="2"/>
+            <rect x="118" y="132" width="18" height="12" rx="2"/><rect x="140" y="132" width="18" height="12" rx="2"/><rect x="162" y="132" width="18" height="12" rx="2"/>
+          </g>
+          <rect x="200" y="108" width="76" height="46" rx="4" fill="none" stroke="#cbd5e1" stroke-dasharray="4 3"/>
+          <text x="214" y="135" fill="#94a3b8">+ New map</text>
+        </svg>
+        <div class="text-[11px] text-slate-500 mt-1">Maps are independent. Each map lives in at most one workspace.</div>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>As in: a Miro team, a Figma project, an Excalidraw+ workspace, a Google Drive folder.</li>
+          <li>Class: exactly right. Org: fine for "one map per team", weak on the seams between teams.</li>
+          <li>Cheapest to build: registry of map ids and names. This is what the beads describe.</li>
+        </ul>
+      </div>
+
+      <!-- Model B: two-level hierarchy -->
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">B &middot; Organisation &rsaquo; workspaces &rsaquo; maps</div>
+        <svg viewBox="0 0 300 168" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <rect x="6" y="10" width="288" height="160" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="18" y="28" fill="#475569" font-weight="600">Organisation: AppFolio</text>
+          <rect x="16" y="40" width="128" height="120" rx="8" fill="#eff6ff" stroke="#93c5fd"/>
+          <text x="24" y="56" fill="#1d4ed8" font-weight="600">Leasing</text>
+          <rect x="156" y="40" width="128" height="120" rx="8" fill="#eff6ff" stroke="#93c5fd"/>
+          <text x="164" y="56" fill="#1d4ed8" font-weight="600">Payments</text>
+          <g fill="#ffffff" stroke="#64748b">
+            <rect x="24" y="66" width="52" height="36" rx="4"/><rect x="84" y="66" width="52" height="36" rx="4"/>
+            <rect x="24" y="110" width="52" height="36" rx="4"/>
+            <rect x="164" y="66" width="52" height="36" rx="4"/><rect x="224" y="66" width="52" height="36" rx="4"/>
+          </g>
+          <g fill="#334155" font-size="10">
+            <text x="28" y="80">Apps</text><text x="88" y="80">Screening</text><text x="28" y="124">Move-in</text>
+            <text x="168" y="80">Ledger</text><text x="228" y="80">Payouts</text>
+          </g>
+        </svg>
+        <div class="text-[11px] text-slate-500 mt-1">Nesting. A department holds its teams' maps under one roof.</div>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>As in: Notion teamspaces, Confluence spaces, Jira projects, IcePanel organisation &rsaquo; landscapes.</li>
+          <li>Org: matches the org chart, and that is the problem: the map should show reality, not the org chart.</li>
+          <li>Class: never needed. Adds a level of UI nobody asked for yet. Skip unless a customer asks.</li>
+        </ul>
+      </div>
+
+      <!-- Model C: collections / many-to-many -->
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">C &middot; Collections (a map can be in many)</div>
+        <svg viewBox="0 0 300 168" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <rect x="10" y="14" width="130" height="66" rx="8" fill="#eff6ff" stroke="#93c5fd"/>
+          <text x="18" y="30" fill="#1d4ed8" font-weight="600">Collection: Q4 review</text>
+          <rect x="160" y="14" width="130" height="66" rx="8" fill="#fef3c7" stroke="#fcd34d"/>
+          <text x="168" y="30" fill="#92400e" font-weight="600">Collection: Platform</text>
+          <g fill="#ffffff" stroke="#64748b">
+            <rect x="24" y="112" width="60" height="40" rx="4"/>
+            <rect x="120" y="112" width="60" height="40" rx="4"/>
+            <rect x="216" y="112" width="60" height="40" rx="4"/>
+          </g>
+          <g fill="#334155" font-size="10">
+            <text x="34" y="136">Leasing</text><text x="128" y="136">Payments</text><text x="228" y="136">Identity</text>
+          </g>
+          <g stroke="#3b82f6" stroke-width="1.5" fill="none">
+            <path d="M60 80 L54 112"/><path d="M90 80 L150 112"/>
+          </g>
+          <g stroke="#d97706" stroke-width="1.5" fill="none">
+            <path d="M210 80 L150 112"/><path d="M240 80 L246 112"/>
+          </g>
+        </svg>
+        <div class="text-[11px] text-slate-500 mt-1">Maps stand alone; a collection is a saved list. Payments is in both.</div>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>As in: playlists, Google Drive labels, GitHub Projects across repos, Linear views.</li>
+          <li>Org: nice for "show leadership these five maps". Class: pointless, every map is in one place.</li>
+          <li>Costs the breadcrumb (which collection is "home"?) and makes "your map" ambiguous. Not v1.</li>
+        </ul>
+      </div>
+
+      <!-- Model D: one model, many views -->
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">D &middot; One org map, team maps are views of it</div>
+        <svg viewBox="0 0 300 168" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <rect x="10" y="14" width="280" height="150" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="22" y="34" fill="#1d4ed8" font-weight="600">Workspace: AppFolio landscape (one model)</text>
+          <!-- shared contexts -->
+          <g fill="#ffffff" stroke="#64748b">
+            <rect x="34" y="60" width="52" height="26" rx="4"/><rect x="100" y="60" width="52" height="26" rx="4"/>
+            <rect x="166" y="60" width="52" height="26" rx="4"/><rect x="232" y="60" width="44" height="26" rx="4"/>
+            <rect x="40" y="110" width="52" height="26" rx="4"/><rect x="104" y="110" width="52" height="26" rx="4"/><rect x="200" y="110" width="52" height="26" rx="4"/>
+          </g>
+          <g fill="#334155" font-size="9">
+            <text x="40" y="77">Applicant</text><text x="106" y="77">Screening</text><text x="172" y="77">Ledger</text><text x="238" y="77">Payout</text>
+            <text x="46" y="127">Move-in</text><text x="112" y="127">Billing</text><text x="206" y="127">Identity</text>
+          </g>
+          <g stroke="#94a3b8" fill="none"><path d="M86 73 L100 73"/><path d="M152 73 L166 73"/><path d="M218 73 L232 73"/><path d="M92 123 L104 123"/><path d="M156 123 L200 123"/></g>
+          <!-- view lenses -->
+          <rect x="26" y="50" width="136" height="96" rx="8" fill="none" stroke="#2563eb" stroke-dasharray="5 3" stroke-width="1.5"/>
+          <text x="30" y="158" fill="#2563eb" font-size="10">Leasing view</text>
+          <rect x="164" y="50" width="120" height="96" rx="8" fill="none" stroke="#d97706" stroke-dasharray="5 3" stroke-width="1.5"/>
+          <text x="206" y="158" fill="#d97706" font-size="10">Payments view</text>
+        </svg>
+        <div class="text-[11px] text-slate-500 mt-1">Contexts are shared; each team map is a lens. Seams stay visible.</div>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>As in: C4 / Structurizr (one workspace, many views), IcePanel landscape, GitHub #36 "focused map views".</li>
+          <li>Org: the real prize. Screening &rarr; Ledger is a relationship between two teams, and only this model can show it.</li>
+          <li>Class: wrong shape; tables must not share contexts. Big change to the doc model (contexts across docs). Not v1.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg border border-slate-200 p-4 mb-12 max-w-4xl">
+      <div class="text-sm font-semibold text-slate-800 mb-1">Where this lands</div>
+      <p class="text-xs text-slate-600 mb-2">
+        Build <b>A</b> now: it is what the class needs on Oct 14 and what an architect needs on day one ("one map per team, one link for the org").
+        Keep the door open to <b>D</b>, which is where the enterprise value is: the registry already holds map ids, so a later "landscape" map can reference
+        contexts in team maps by (mapId, contextId) and draw the cross-team relationships without moving anything. That is the natural follow-up to #36 and #44 together.
+      </p>
+      <p class="text-xs text-slate-600">
+        Skip <b>B</b> (org-chart nesting) unless a customer asks; the whole point of a context map is to show reality, not reporting lines.
+        Skip <b>C</b> (many-to-many) because it makes "your map" and "back to workspace" ambiguous, which is exactly what a participant should never have to think about.
+      </p>
+    </div>
+
+    <!-- ============================================================ -->
     <!-- 1. HOME PAGE ENTRY                                           -->
     <!-- ============================================================ -->
     <h2 class="text-base font-semibold text-slate-800 mb-3">1. Where a workspace is created (home page)</h2>
