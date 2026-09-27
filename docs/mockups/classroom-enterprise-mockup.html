@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classroom and enterprise readiness - ContextFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; }
+    .frame { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 2px rgba(15,23,42,.06); overflow: hidden; }
+    .opt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #64748b; margin-bottom: 8px; }
+    .rec { color: #1d4ed8; }
+    .node { position: absolute; width: 120px; height: 64px; border: 2px solid #64748b; border-radius: 8px; background: #fff; font-size: 11px; padding: 6px 8px; color: #0f172a; }
+    .node small { display: block; color: #64748b; font-size: 10px; }
+    .cursor { position: absolute; font-size: 10px; }
+    .cursor svg { display: block; }
+    .cursor span { position: absolute; left: 12px; top: 12px; white-space: nowrap; color: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+    .avatar { width: 22px; height: 22px; border-radius: 9999px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: 2px solid #fff; }
+    .stack .avatar + .avatar { margin-left: -8px; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-[1360px] mx-auto">
+    <h1 class="text-xl font-semibold text-slate-800 mb-1">Classroom and enterprise readiness</h1>
+    <p class="text-sm text-slate-600 mb-2 max-w-4xl">
+      Four new UI surfaces from the readiness epic. Everything else in that epic (sample-id fix, local-only mode, headcount, the three classroom bugs) has an existing mockup or needs none.
+    </p>
+    <p class="text-xs text-slate-500 mb-8 max-w-4xl">Options per section; <span class="rec font-semibold">recommended</span> is Della's pick with the reason under each.</p>
+
+    <!-- ============================================================ -->
+    <!-- 1. TEMPLATE PICKER IN THE WORKSPACE "NEW MAP" DIALOG          -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">1. Starting a map from a template inside a workspace</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+      <div>
+        <div class="opt">A &middot; "Start from" dropdown in the New map dialog</div>
+        <div class="bg-white rounded-lg shadow-xl w-[420px] border border-slate-200">
+          <div class="px-4 py-3 border-b border-slate-200"><h3 class="text-base font-semibold text-slate-900">New map</h3></div>
+          <div class="p-4 space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1.5">Start from</label>
+              <select class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white text-slate-900">
+                <option>Blank map</option>
+                <option selected>Elan Extended Warranty (workspace starter)</option>
+                <option>ACME E-Commerce Platform</option>
+                <option>cBioPortal Demo Map</option>
+              </select>
+            </div>
+            <div><label class="block text-xs font-medium text-slate-700 mb-1.5">Map name</label><input type="text" value="Table 3 &middot; Elan warranty" class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" /></div>
+            <div><label class="block text-xs font-medium text-slate-700 mb-1.5">Your name</label><input type="text" value="Anna K." class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" /></div>
+            <div class="flex justify-end gap-2 pt-1"><button class="px-3 py-1.5 text-sm text-slate-700">Cancel</button><button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded">Create map</button></div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[420px] space-y-1 list-disc pl-4">
+          <li>One extra control; the map name pre-fills from the template so a participant types nothing but their name.</li>
+          <li>Every template is always visible, so participants can pick the wrong one on a projector-driven instruction.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="opt">B &middot; Workspace starter set by the instructor; the dialog shows two choices <span class="rec">&middot; recommended</span></div>
+        <div class="flex gap-4 items-start">
+          <div class="bg-white rounded-lg shadow-xl w-[420px] border border-slate-200">
+            <div class="px-4 py-3 border-b border-slate-200"><h3 class="text-base font-semibold text-slate-900">New map</h3></div>
+            <div class="p-4 space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <button class="text-left rounded-lg border-2 border-blue-500 bg-blue-50 p-3">
+                  <div class="text-sm font-medium text-slate-900">Workspace starter</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Elan Extended Warranty &middot; 8 contexts</div>
+                </button>
+                <button class="text-left rounded-lg border border-slate-200 p-3 hover:border-slate-300">
+                  <div class="text-sm font-medium text-slate-900">Blank map</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Start from nothing</div>
+                </button>
+              </div>
+              <div><label class="block text-xs font-medium text-slate-700 mb-1.5">Map name</label><input type="text" value="Elan warranty &middot; Table 3" class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" /></div>
+              <div><label class="block text-xs font-medium text-slate-700 mb-1.5">Your name</label><input type="text" value="Anna K." class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white" /></div>
+              <div class="flex justify-end gap-2 pt-1"><button class="px-3 py-1.5 text-sm text-slate-700">Cancel</button><button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded">Create map</button></div>
+            </div>
+          </div>
+          <div class="frame" style="width: 360px;">
+            <div class="border-b border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700">Workspace settings (instructor)</div>
+            <div class="p-4 space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1.5">Starter map for new maps</label>
+                <select class="w-full text-sm px-3 py-2 rounded-md border border-slate-200 bg-white text-slate-900">
+                  <option>None (blank)</option>
+                  <option selected>Elan Extended Warranty (built-in)</option>
+                  <option>ACME E-Commerce Platform (built-in)</option>
+                  <option>Leasing kickoff (a map in this workspace)</option>
+                </select>
+                <p class="text-[11px] text-slate-500 mt-1.5">Any built-in example, or any map already in this workspace. Each participant gets their own copy.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[800px] space-y-1 list-disc pl-4">
+          <li>The instructor decides once; every table sees the same two buttons. On a projector that is the whole instruction: "click Workspace starter".</li>
+          <li>"A map in this workspace" as a starter is what makes it enterprise-useful: an architect seeds the org's context map and each team copies it.</li>
+          <li>Copy semantics: same as Duplicate today (new ids for everything), so nothing links back to the starter.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 2. EXPORT THE MAP AS AN IMAGE                                -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">2. Export the map as an image</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+      <div>
+        <div class="opt">A &middot; One-click "Export image" next to Export project (PNG of the whole map, current view)</div>
+        <div class="frame" style="width: 560px;">
+          <div class="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-slate-200">
+            <span class="font-semibold text-sm text-slate-800">ContextFlow</span><span class="text-slate-300">&bull;</span><span class="text-xs text-slate-600">Table 3 &middot; Elan warranty</span>
+            <div class="ml-auto flex items-center gap-2 text-xs text-slate-500">
+              <span class="px-2 py-1 border border-slate-200 rounded">&#8599; Share</span>
+              <span class="px-2 py-1 border border-blue-300 bg-blue-50 text-blue-700 rounded font-medium">&#128444; Export image</span>
+              <span class="px-2 py-1 border border-slate-200 rounded">&#11015; Export JSON</span>
+            </div>
+          </div>
+          <div class="p-4 text-xs text-slate-500">Downloads <code>table-3-elan-warranty.png</code> immediately: the canvas as currently shown, fitted to all contexts, 2x resolution, white background, no sidebars or toolbar.</div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[560px] space-y-1 list-disc pl-4">
+          <li>Zero decisions. Right for a participant at the end of a session.</li>
+          <li>No way to get a transparent or SVG version for a slide, and no way to include the legend.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="opt">B &middot; Small export dialog with three choices <span class="rec">&middot; recommended</span></div>
+        <div class="bg-white rounded-lg shadow-xl w-[420px] border border-slate-200">
+          <div class="px-4 py-3 border-b border-slate-200"><h3 class="text-base font-semibold text-slate-900">Export image</h3></div>
+          <div class="p-4 space-y-3">
+            <div>
+              <div class="text-xs font-medium text-slate-700 mb-1.5">What</div>
+              <div class="flex gap-2">
+                <button class="flex-1 text-sm px-3 py-2 rounded-md border-2 border-blue-500 bg-blue-50 text-slate-900">Whole map</button>
+                <button class="flex-1 text-sm px-3 py-2 rounded-md border border-slate-200 text-slate-700">What I see now</button>
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-medium text-slate-700 mb-1.5">Format</div>
+              <div class="flex gap-2">
+                <button class="flex-1 text-sm px-3 py-2 rounded-md border-2 border-blue-500 bg-blue-50 text-slate-900">PNG, 2x</button>
+                <button class="flex-1 text-sm px-3 py-2 rounded-md border border-slate-200 text-slate-700">SVG</button>
+              </div>
+            </div>
+            <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked /> White background (off = transparent)</label>
+            <label class="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked /> Include the color legend</label>
+            <div class="flex justify-end gap-2 pt-1"><button class="px-3 py-1.5 text-sm text-slate-700">Cancel</button><button class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded">Download</button></div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[420px] space-y-1 list-disc pl-4">
+          <li>Covers the slide deck (SVG or transparent PNG) and the handout (PNG with legend) without a settings page.</li>
+          <li>Defaults are option A, so the fast path is still two clicks.</li>
+          <li>Export always renders in the current view (Context Map, Value Stream, Distillation, Strategic) with that view's scaffolding, since that is what the person is looking at.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 3. VIEW-ONLY LINK                                            -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">3. View-only share link</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+      <div>
+        <div class="opt">Share dialog with two links (one flow)</div>
+        <div class="bg-white rounded-lg shadow-xl w-[460px] border border-slate-200">
+          <div class="px-4 py-3 border-b border-slate-200"><h3 class="text-base font-semibold text-slate-900">Share "Table 3 &middot; Elan warranty"</h3></div>
+          <div class="p-4 space-y-4">
+            <div>
+              <div class="text-xs font-medium text-slate-700 mb-1">Edit link</div>
+              <div class="flex gap-2"><input readonly value="contextflow.virtualgenius.com/p/f054fdc0-021a-44b6-abc4-ae9346775e40" class="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 bg-slate-50 font-mono" /><button class="px-2.5 py-1 text-xs font-medium text-white bg-blue-600 rounded">Copy</button></div>
+              <p class="text-[11px] text-slate-500 mt-1">Anyone with this link can view and edit.</p>
+            </div>
+            <div>
+              <div class="text-xs font-medium text-slate-700 mb-1">View-only link</div>
+              <div class="flex gap-2"><input readonly value="contextflow.virtualgenius.com/v/f054fdc0-021a-44b6-abc4-ae9346775e40" class="flex-1 text-xs px-2 py-1.5 rounded border border-slate-200 bg-slate-50 font-mono" /><button class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded">Copy</button></div>
+              <p class="text-[11px] text-slate-500 mt-1">Opens the map without editing controls. Someone who knows the edit link can still edit; this is a courtesy lock, not access control.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="opt">What the viewer sees</div>
+        <div class="frame" style="width: 640px;">
+          <div class="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-slate-200">
+            <span class="font-semibold text-sm text-slate-800">ContextFlow</span><span class="text-slate-300">&bull;</span><span class="text-xs text-slate-600">Table 3 &middot; Elan warranty</span>
+            <span class="ml-2 px-2 py-0.5 text-[11px] font-medium rounded-full bg-amber-50 text-amber-800 border border-amber-200">&#128065; View only</span>
+            <div class="ml-auto flex items-center gap-2 text-xs text-slate-500">
+              <span class="px-2 py-1 border border-slate-200 rounded">Context Map</span><span class="px-2 py-1">Value Stream</span><span class="px-2 py-1">Distillation</span><span class="px-2 py-1">Strategic</span>
+              <span class="px-2 py-1 border border-slate-200 rounded ml-3">&#128444; Export image</span>
+            </div>
+          </div>
+          <div class="relative h-[180px] bg-white">
+            <div class="node" style="left:24px;top:30px">Claims<small>core</small></div>
+            <div class="node" style="left:200px;top:30px">Policy<small>supporting</small></div>
+            <div class="node" style="left:376px;top:90px">Payments<small>generic &middot; external</small></div>
+            <div class="absolute left-[400px] top-[36px] text-[11px] text-slate-500 border border-slate-200 rounded px-2 py-1 bg-slate-50">Inspector: read-only fields, no delete</div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[640px] space-y-1 list-disc pl-4">
+          <li>Add buttons, drag, connect, delete and inspector edits are all off; view switching, focus, zoom and export stay on.</li>
+          <li>Honest label in the dialog: v1 is enforced in the browser only. Server-side enforcement needs a token in the room and comes with accounts.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 4. NAMES AND CURSORS INSIDE A MAP                            -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-3">4. Who is in this map, and where</h2>
+    <div class="flex flex-wrap gap-6 items-start mb-12">
+      <div>
+        <div class="opt">A &middot; Named cursors plus an avatar stack in the top bar <span class="rec">&middot; recommended</span></div>
+        <div class="frame" style="width: 720px;">
+          <div class="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-slate-200">
+            <span class="font-semibold text-sm text-slate-800">ContextFlow</span><span class="text-slate-300">&bull;</span><span class="text-xs text-blue-600">KanDDDinsky hands-on</span><span class="text-slate-400 text-xs">&rsaquo;</span><span class="text-xs text-slate-600">Table 3 &middot; Elan warranty</span>
+            <div class="ml-auto flex items-center gap-3">
+              <span class="stack flex"><span class="avatar" style="background:#2563eb">AK</span><span class="avatar" style="background:#059669">JO</span><span class="avatar" style="background:#d97706">PR</span></span>
+              <span class="text-[11px] text-slate-500">3 here</span>
+              <span class="px-2 py-1 border border-slate-200 rounded text-xs text-slate-500">&#8599; Share</span>
+            </div>
+          </div>
+          <div class="relative h-[220px] bg-white">
+            <div class="node" style="left:40px;top:40px">Claims<small>core</small></div>
+            <div class="node" style="left:260px;top:40px;border-color:#059669;box-shadow:0 0 0 2px #05966933">Policy<small>supporting</small></div>
+            <div class="node" style="left:480px;top:120px">Payments<small>generic &middot; external</small></div>
+            <div class="cursor" style="left:300px;top:70px"><svg width="14" height="18" viewBox="0 0 14 18"><path d="M1 1 L13 9 L7 10 L4 17 Z" fill="#059669" stroke="#fff"/></svg><span style="background:#059669">Jonas</span></div>
+            <div class="cursor" style="left:520px;top:150px"><svg width="14" height="18" viewBox="0 0 14 18"><path d="M1 1 L13 9 L7 10 L4 17 Z" fill="#d97706" stroke="#fff"/></svg><span style="background:#d97706">Paul</span></div>
+            <div class="absolute left-[40px] bottom-[10px] text-[11px] text-slate-500">Jonas is dragging Policy: the node carries his color while he holds it.</div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[720px] space-y-1 list-disc pl-4">
+          <li>Cursors are the standard everyone knows from Miro and Figma; on a projector they show a table working together.</li>
+          <li>The name is the same display name the workspace asks for; a visitor with none shows as "Guest". Colors follow the workspace presence palette so the same person is the same color everywhere.</li>
+          <li>Cursor positions travel over awareness, not the document: nothing is stored, and nothing changes the map.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="opt">B &middot; Avatars only, no cursors</div>
+        <div class="frame" style="width: 420px;">
+          <div class="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-slate-200">
+            <span class="font-semibold text-sm text-slate-800">ContextFlow</span><span class="text-slate-300">&bull;</span><span class="text-xs text-slate-600">Table 3</span>
+            <div class="ml-auto flex items-center gap-2"><span class="stack flex"><span class="avatar" style="background:#2563eb">AK</span><span class="avatar" style="background:#059669">JO</span></span><span class="text-[11px] text-slate-500">2 here</span></div>
+          </div>
+          <div class="h-[100px] bg-white"></div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-3 max-w-[420px] space-y-1 list-disc pl-4">
+          <li>Cheaper, and enough to answer "am I alone in here".</li>
+          <li>Does nothing for "who just moved that", which is the question people actually ask in a shared map.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-xs text-slate-400 mt-10">docs/mockups/classroom-enterprise-mockup.html</p>
+  </div>
+</body>
+</html>
