@@ -166,14 +166,151 @@
     <div class="bg-white rounded-lg border border-slate-200 p-4 mb-12 max-w-4xl">
       <div class="text-sm font-semibold text-slate-800 mb-1">Where this lands</div>
       <p class="text-xs text-slate-600 mb-2">
-        Build <b>A</b> now: it is what the class needs on Oct 14 and what an architect needs on day one ("one map per team, one link for the org").
-        Keep the door open to <b>D</b>, which is where the enterprise value is: the registry already holds map ids, so a later "landscape" map can reference
-        contexts in team maps by (mapId, contextId) and draw the cross-team relationships without moving anything. That is the natural follow-up to #36 and #44 together.
+        Build <b>A</b> for the class and keep the door open to <b>D</b>, which is where the enterprise value is. Section 0b below is the resolved shape of D: one graph per workspace, maps as views, and a copy-versus-include policy that makes the classroom the trivial case rather than a conflict.
       </p>
       <p class="text-xs text-slate-600">
         Skip <b>B</b> (org-chart nesting) unless a customer asks; the whole point of a context map is to show reality, not reporting lines.
         Skip <b>C</b> (many-to-many) because it makes "your map" and "back to workspace" ambiguous, which is exactly what a participant should never have to think about.
       </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 0b. ONE GRAPH PER WORKSPACE, ONE POLICY SWITCH                -->
+    <!-- ============================================================ -->
+    <h2 class="text-base font-semibold text-slate-800 mb-1">0b. Direction: one graph per workspace, maps are views, one policy switch</h2>
+    <p class="text-xs text-slate-600 mb-4 max-w-4xl">
+      Resolves the class-versus-organisation tension from model D. Contexts and relationships live once, in the workspace graph. A map holds only what is map-specific.
+      Whether a new map <b>copies</b> or <b>includes</b> the starter's contexts is a workspace policy, and that one switch is the whole difference between a classroom and an org.
+    </p>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">Where each thing lives</div>
+        <svg viewBox="0 0 320 230" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <rect x="8" y="10" width="304" height="100" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="18" y="28" fill="#1d4ed8" font-weight="600">Workspace graph (one document)</text>
+          <g fill="#fff" stroke="#64748b"><rect x="18" y="38" width="64" height="26" rx="4"/><rect x="90" y="38" width="76" height="26" rx="4"/><rect x="174" y="38" width="56" height="26" rx="4"/><rect x="238" y="38" width="62" height="26" rx="4"/></g>
+          <g fill="#334155" font-size="10"><text x="26" y="55">contexts</text><text x="98" y="55">relationships</text><text x="183" y="55">teams</text><text x="247" y="55">repos</text></g>
+          <text x="18" y="86" fill="#475569" font-size="10">identity, names, purpose, patterns, upstream and downstream,</text>
+          <text x="18" y="99" fill="#475569" font-size="10">ownership, headcount, issues. One id, one place.</text>
+          <rect x="8" y="124" width="146" height="96" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+          <text x="16" y="141" fill="#475569" font-weight="600">Map: Leasing team</text>
+          <g fill="#475569" font-size="10"><text x="16" y="158">includes: ids [c1, c2, c4]</text><text x="16" y="172">positions per view</text><text x="16" y="186">groups, flow stages</text><text x="16" y="200">users, needs, keyframes</text><text x="16" y="214">relationship visibility</text></g>
+          <rect x="166" y="124" width="146" height="96" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+          <text x="174" y="141" fill="#475569" font-weight="600">Map: Payments team</text>
+          <g fill="#475569" font-size="10"><text x="174" y="158">includes: ids [c4, c5, c6]</text><text x="174" y="172">positions per view</text><text x="174" y="186">groups, flow stages</text><text x="174" y="200">users, needs, keyframes</text><text x="174" y="214">relationship visibility</text></g>
+          <g stroke="#94a3b8" fill="none" stroke-dasharray="3 2"><path d="M80 124 L80 110"/><path d="M240 124 L240 110"/></g>
+        </svg>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>A map is a selection of context ids plus layout. Delete means "remove from this map"; deleting from the workspace is a separate, louder action.</li>
+          <li>A map shows a relationship when both ends are included. One end off the map becomes a stub on the context (see the org example).</li>
+          <li>Temporal keyframes stay layout-only, per map.</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">Organisation &middot; policy: new maps <span class="rec">include</span> the starter's contexts</div>
+        <svg viewBox="0 0 320 230" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <text x="8" y="14" fill="#1d4ed8" font-weight="600" font-size="10">Workspace graph: AppFolio landscape</text>
+          <g fill="#fff" stroke="#64748b"><rect x="8" y="22" width="52" height="22" rx="4"/><rect x="70" y="22" width="56" height="22" rx="4"/><rect x="136" y="22" width="48" height="22" rx="4"/><rect x="194" y="22" width="50" height="22" rx="4"/><rect x="254" y="22" width="58" height="22" rx="4"/></g>
+          <g fill="#334155" font-size="9"><text x="12" y="37">Applicant</text><text x="74" y="37">Screening</text><text x="141" y="37">Ledger</text><text x="199" y="37">Payout</text><text x="259" y="37">Identity</text></g>
+          <g stroke="#64748b" fill="none"><path d="M60 33 L70 33"/><path d="M126 33 L136 33"/><path d="M184 33 L194 33"/><path d="M244 33 L254 33"/></g>
+          <rect x="8" y="60" width="150" height="150" rx="8" fill="#f8fafc" stroke="#2563eb" stroke-dasharray="5 3"/>
+          <text x="16" y="76" fill="#2563eb" font-weight="600" font-size="10">Map: Leasing team</text>
+          <g fill="#fff" stroke="#64748b"><rect x="18" y="90" width="52" height="24" rx="4"/><rect x="88" y="90" width="56" height="24" rx="4"/></g>
+          <g fill="#334155" font-size="9"><text x="22" y="106">Applicant</text><text x="92" y="106">Screening</text></g>
+          <path d="M70 102 L88 102" stroke="#64748b"/>
+          <rect x="88" y="124" width="56" height="18" rx="9" fill="#fef3c7" stroke="#f59e0b"/>
+          <text x="96" y="136" fill="#92400e" font-size="9">1 off-map &rarr;</text>
+          <text x="18" y="166" fill="#475569" font-size="9">Same Screening id as in the</text>
+          <text x="18" y="178" fill="#475569" font-size="9">Payments map. Its Ledger link</text>
+          <text x="18" y="190" fill="#475569" font-size="9">shows here as a stub.</text>
+          <rect x="166" y="60" width="146" height="150" rx="8" fill="#f8fafc" stroke="#d97706" stroke-dasharray="5 3"/>
+          <text x="174" y="76" fill="#b45309" font-weight="600" font-size="10">Map: Payments team</text>
+          <g fill="#fff" stroke="#64748b"><rect x="176" y="90" width="56" height="24" rx="4"/><rect x="246" y="90" width="48" height="24" rx="4"/><rect x="176" y="130" width="50" height="24" rx="4"/></g>
+          <g fill="#334155" font-size="9"><text x="180" y="106">Screening</text><text x="252" y="106">Ledger</text><text x="181" y="146">Payout</text></g>
+          <g stroke="#64748b" fill="none"><path d="M232 102 L246 102"/><path d="M226 142 L250 114"/></g>
+          <text x="176" y="176" fill="#475569" font-size="9">Rename Screening here and</text>
+          <text x="176" y="188" fill="#475569" font-size="9">Leasing sees it. One fact.</text>
+          <rect x="86" y="88" width="60" height="28" rx="5" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+          <rect x="174" y="88" width="60" height="28" rx="5" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="8" y="226" fill="#64748b" font-size="9">Blue outline: the same context id included in two maps.</text>
+        </svg>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>Architect seeds the landscape; each team map includes a subset. Headcount, ownership and the seams roll up because the ids are shared.</li>
+          <li>The off-map stub is the first thing a team map tells you about its neighbours.</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">Classroom &middot; policy: new maps <span class="rec">copy</span> the starter's contexts</div>
+        <svg viewBox="0 0 320 230" class="w-full h-auto" font-family="ui-sans-serif, system-ui" font-size="11">
+          <text x="8" y="14" fill="#1d4ed8" font-weight="600" font-size="10">Workspace graph: KanDDDinsky hands-on</text>
+          <text x="8" y="30" fill="#475569" font-size="9">Starter (Elan): Claims, Policy, Payments. Copied per table, new ids.</text>
+          <g>
+            <rect x="8" y="42" width="96" height="120" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="5 3"/>
+            <text x="14" y="57" fill="#475569" font-weight="600" font-size="10">Table 1</text>
+            <g fill="#fff" stroke="#64748b"><rect x="14" y="66" width="40" height="20" rx="4"/><rect x="60" y="66" width="38" height="20" rx="4"/><rect x="14" y="100" width="46" height="20" rx="4"/></g>
+            <g fill="#334155" font-size="8"><text x="18" y="79">Claims</text><text x="65" y="79">Policy</text><text x="18" y="113">Payments</text></g>
+            <g stroke="#64748b" fill="none"><path d="M54 76 L60 76"/><path d="M34 86 L34 100"/></g>
+            <text x="14" y="140" fill="#64748b" font-size="8">ids c11, c12, c13</text>
+            <text x="14" y="152" fill="#64748b" font-size="8">+ Fraud (c14)</text>
+          </g>
+          <g>
+            <rect x="112" y="42" width="96" height="120" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="5 3"/>
+            <text x="118" y="57" fill="#475569" font-weight="600" font-size="10">Table 2</text>
+            <g fill="#fff" stroke="#64748b"><rect x="118" y="66" width="40" height="20" rx="4"/><rect x="164" y="66" width="38" height="20" rx="4"/><rect x="118" y="100" width="46" height="20" rx="4"/></g>
+            <g fill="#334155" font-size="8"><text x="122" y="79">Claims</text><text x="169" y="79">Policy</text><text x="122" y="113">Payments</text></g>
+            <g stroke="#64748b" fill="none"><path d="M158 76 L164 76"/><path d="M138 86 L138 100"/><path d="M164 110 L183 86"/></g>
+            <text x="118" y="140" fill="#64748b" font-size="8">ids c21, c22, c23</text>
+            <text x="118" y="152" fill="#64748b" font-size="8">+ Policy &rarr; Payments</text>
+          </g>
+          <g>
+            <rect x="216" y="42" width="96" height="120" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="5 3"/>
+            <text x="222" y="57" fill="#475569" font-weight="600" font-size="10">Table 3</text>
+            <g fill="#fff" stroke="#64748b"><rect x="222" y="66" width="40" height="20" rx="4"/><rect x="268" y="66" width="38" height="20" rx="4"/></g>
+            <g fill="#334155" font-size="8"><text x="226" y="79">Claims</text><text x="273" y="79">Policy</text></g>
+            <path d="M262 76 L268 76" stroke="#64748b"/>
+            <text x="222" y="140" fill="#64748b" font-size="8">ids c31, c32</text>
+            <text x="222" y="152" fill="#64748b" font-size="8">Payments removed</text>
+          </g>
+          <text x="8" y="184" fill="#475569" font-size="9">Three Claims in one graph: none shared, none related.</text>
+          <text x="8" y="198" fill="#64748b" font-size="9">Team and repo ids survive the copy.</text>
+        </svg>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1 list-disc pl-4">
+          <li>The classroom is the policy's trivial case: nothing is included twice, so nothing is shared.</li>
+          <li>Pickers default to "contexts in this map", so a table never sees the others'. The instructor's compare view puts tables side by side and never merges.</li>
+          <li>Same storage and code paths as the org; only the copy-versus-include switch and the picker scoping differ.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-12">
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">The one switch, and what it decides</div>
+        <table class="w-full text-xs">
+          <thead><tr class="text-left text-slate-500"><th class="py-1 pr-3">Concern</th><th class="py-1 pr-3">Classroom (copy)</th><th class="py-1">Organisation (include)</th></tr></thead>
+          <tbody class="text-slate-700 align-top">
+            <tr class="border-t border-slate-100"><td class="py-1.5 pr-3">New map from starter</td><td class="py-1.5 pr-3">new context ids, new relationship ids</td><td class="py-1.5">same ids, map includes them</td></tr>
+            <tr class="border-t border-slate-100"><td class="py-1.5 pr-3">Teams and repos</td><td class="py-1.5 pr-3">ids kept on copy, listed per map</td><td class="py-1.5">workspace list, shared by every map</td></tr>
+            <tr class="border-t border-slate-100"><td class="py-1.5 pr-3">"Add existing context" picker</td><td class="py-1.5 pr-3">this map only</td><td class="py-1.5">this map, expand to workspace</td></tr>
+            <tr class="border-t border-slate-100"><td class="py-1.5 pr-3">Relationship with one end off-map</td><td class="py-1.5 pr-3">never occurs</td><td class="py-1.5">stub on the context, click to include</td></tr>
+            <tr class="border-t border-slate-100"><td class="py-1.5 pr-3">Workspace-level view</td><td class="py-1.5 pr-3">compare maps side by side</td><td class="py-1.5">landscape: union of all maps</td></tr>
+            <tr class="border-t border-slate-100"><td class="py-1.5 pr-3">Rename a context</td><td class="py-1.5 pr-3">changes one table's map</td><td class="py-1.5">changes every map that includes it</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="bg-white rounded-lg border border-slate-200 p-4">
+        <div class="opt">Where the complexity lands (shape, not size)</div>
+        <ul class="text-xs text-slate-700 space-y-1.5 list-disc pl-4">
+          <li><b>Two documents per open map.</b> One action can write to both (add a related context: context in the graph, position in the map). Undo needs one owner or a documented scope.</li>
+          <li><b>Deletion and dangling ids.</b> Remove-from-map versus delete-from-workspace, and a map that includes an id the graph no longer has.</li>
+          <li><b>Shared kernel by overlap.</b> The gesture is geometric and per map; the fact is semantic and shared. Rendering follows the fact.</li>
+          <li><b>Concurrent semantic edits.</b> Team A's rename appears on Team B's map. Correct, and the first place an org asks for graph permissions separate from map permissions.</li>
+          <li><b>Standalone maps.</b> A map outside a workspace becomes a workspace with one map: a migration of every existing document, samples included.</li>
+          <li><b>Not chosen: linked contexts</b> (a context born in one map, referenced by another). Two kinds of context, an owner that can vanish under its links, and relationships with two homes. Same mistake as per-map relationships.</li>
+        </ul>
+      </div>
     </div>
 
     <!-- ============================================================ -->
