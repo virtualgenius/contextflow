@@ -120,6 +120,56 @@
   </table>
   </div>
 
+  <h2>Acceptance coverage by feature</h2>
+  <p class="lede">There is no separate acceptance suite. Behavior-level coverage lives in the component tests (what a user sees and clicks) and the store and integration tests (what happens to the model). This is that coverage, grouped by product feature. Counts are approximate groupings of the 1,976 tests.</p>
+  <figure>
+    <svg viewBox="0 0 720 330" role="img" aria-label="Horizontal bars of test counts per feature area">
+      <g font-size="12">
+        <text x="190" y="30" text-anchor="end">Yjs sync layer</text>
+        <rect x="200" y="18" width="450" height="16" rx="3" class="band4"/><text x="657" y="30" class="muted">610</text>
+        <text x="190" y="60" text-anchor="end">Contexts and inspector</text>
+        <rect x="200" y="48" width="261" height="16" rx="3" class="band3"/><text x="468" y="60" class="muted">326</text>
+        <text x="190" y="90" text-anchor="end">Projects and collab state</text>
+        <rect x="200" y="78" width="231" height="16" rx="3" class="band3"/><text x="438" y="90" class="muted">289</text>
+        <text x="190" y="120" text-anchor="end">Relationships and DDD patterns</text>
+        <rect x="200" y="108" width="145" height="16" rx="3" class="band3"/><text x="352" y="120" class="muted">181</text>
+        <text x="190" y="150" text-anchor="end">Shell: settings, help, analytics</text>
+        <rect x="200" y="138" width="138" height="16" rx="3" class="band2"/><text x="345" y="150" class="muted">172</text>
+        <text x="190" y="180" text-anchor="end">Teams and repos panel</text>
+        <rect x="200" y="168" width="94" height="16" rx="3" class="band2"/><text x="301" y="180" class="muted">117</text>
+        <text x="190" y="210" text-anchor="end">Views, flow stages, user needs</text>
+        <rect x="200" y="198" width="92" height="16" rx="3" class="band2"/><text x="299" y="210" class="muted">115</text>
+        <text x="190" y="240" text-anchor="end">Focus lens</text>
+        <rect x="200" y="228" width="36" height="16" rx="3" class="band1"/><text x="243" y="240" class="muted">45</text>
+        <text x="190" y="270" text-anchor="end">Temporal evolution</text>
+        <rect x="200" y="258" width="30" height="16" rx="3" class="band1"/><text x="237" y="270" class="muted">37</text>
+        <text x="190" y="300" text-anchor="end">Canvas interaction</text>
+        <rect x="200" y="288" width="2" height="16" rx="1" style="fill: var(--amber);"/><text x="209" y="300" class="muted">0 at component level</text>
+      </g>
+    </svg>
+    <figcaption>The sync layer dominates by design. The bottom three rows are where user-facing behavior is thinnest relative to how much of the product they represent.</figcaption>
+  </figure>
+
+  <div class="wide">
+  <table>
+    <thead><tr><th>Feature</th><th>What the tests assert</th><th>Coverage</th></tr></thead>
+    <tbody>
+      <tr><td>Real-time collaboration</td><td>Edits on one simulated browser appear on the other for every entity type, including concurrent edits. Mutations are refused outside collab mode. Offline and reconnecting states show the blocking modal with retry. Share dialog connects and surfaces the URL.</td><td><span class="pill yes">strong</span></td></tr>
+      <tr><td>Undo and redo</td><td>Top bar buttons enable and disable in step with the Yjs undo manager, including keyboard-driven undo. Remote edits never enable Undo. Store-level undo covers contexts, relationships, groups, flow stages, connections, keyframes.</td><td><span class="pill yes">strong</span></td></tr>
+      <tr><td>Relationships and DDD patterns</td><td>Each pattern renders its own edge style. Two-sided roles (OHS, PL, ACL, Conformist) draw the right indicator box at the right end with correct geometry. Double-click flips direction except for symmetric patterns. Shared kernel renders as a hatched overlap and auto-separates when the pattern changes. Inspector picker hides Shared Kernel and Separate Ways as options on purpose.</td><td><span class="pill yes">strong</span></td></tr>
+      <tr><td>Creating and editing contexts</td><td>Double-click, N key, and toolbar all open an inline draft that routes to the right entity on commit and creates nothing on Escape. Inspector edits name, purpose, ownership, role, code size, boundary, issues. External contexts cannot take a team or repo. Badges, issue counters, tooltips, and hover stubs lay out correctly.</td><td><span class="pill yes">strong</span></td></tr>
+      <tr><td>Focus lens</td><td>Focus a team from the sidebar crosshair or a context from the right-click menu. Depth segments widen by hops. Team switcher in the focus bar swaps focus. Deleting the focused team clears focus. Adjacency math is unit tested.</td><td><span class="pill yes">strong</span></td></tr>
+      <tr><td>Teams and repos panel</td><td>Add in place, filter by topology or assignment status, delete with confirmation only when something is assigned, drag a card onto a context to assign. Repo inspector edits name, URL, assigned context, owning teams.</td><td><span class="pill yes">strong</span></td></tr>
+      <tr><td>Projects</td><td>Create, rename, duplicate, delete, pick the next project after delete, import as new with ID regeneration and conflict detection. Built-in samples persist once and are never overwritten. Cloud migration of legacy local projects.</td><td><span class="pill yes">strong</span>, dialogs untested</td></tr>
+      <tr><td>Views and value stream</td><td>View mode persists per project. Flow stages enforce unique names and positions. User needs land in the largest gap. User-need and need-context connections support CRUD and undo. Visiting Context Map leaves value-stream data intact. Core Domain Chart and evolution classification math is unit tested.</td><td><span class="pill no">partial</span></td></tr>
+      <tr><td>Import and export</td><td>JSON round-trips minimal, full, and sample projects through a Y.Doc. Malformed input is rejected with a reason. Conflict check flags an existing ID.</td><td><span class="pill no">partial</span>, file picker and download untested</td></tr>
+      <tr><td>Temporal evolution</td><td>Keyframe helpers interpolate positions and classification between keyframes. Keyframe CRUD tracks analytics. Right-click menu offers keyframe items only while editing one.</td><td><span class="pill no">thin</span></td></tr>
+      <tr><td>Groups</td><td>Add contexts singly or in batch, undo both. Blob hull geometry is unit tested.</td><td><span class="pill no">thin</span></td></tr>
+      <tr><td>Canvas interaction</td><td>Pure helpers for bounds, fit, positions, and draft placement are tested. The canvas component itself is not.</td><td><span class="pill no">none</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
   <h2>Two-browser sync simulation</h2>
   <figure>
     <svg viewBox="0 0 720 190" role="img" aria-label="Two simulated browsers exchanging Yjs updates">
@@ -198,10 +248,20 @@
 
   <h2>Gaps worth knowing about</h2>
   <div class="callout">
+    <p style="margin:0 0 4px"><b>Pipeline</b></p>
     <ul>
       <li><b>Tests are not enforced anywhere automated.</b> The suite takes about five seconds, so adding <code>npm run test:run</code> to the pre-push hook and the CI build job is a one-line change each.</li>
       <li><b>Worker integration test fails when the local worker is down.</b> Two tests expect a server on port 8787 and fail instead of skipping. Run <code>npm run dev:local</code> first, or they read as red.</li>
       <li><b>No browser-level tests.</b> Real WebSocket sync, offline and reconnect, file import, and canvas drag are only verified by hand. The Playwright plan in <code>docs/TESTING_STRATEGY.md</code> was never implemented.</li>
+    </ul>
+    <p style="margin:12px 0 4px"><b>Acceptance coverage</b></p>
+    <ul>
+      <li><b>The canvas has no component test.</b> Pan, zoom, fit-to-map, drag to reposition, multi-select and group drag, drag-to-connect, and the N and arrow-key shortcuts all live in <code>CanvasArea.tsx</code>, which no test renders. This is the most-used surface in the product and the one where a React Flow upgrade would break silently.</li>
+      <li><b>Temporal evolution UI is untested.</b> The timeline slider, keyframe editor, and keyframe manager have no tests. Only the interpolation helpers do, so a broken slider would still pass.</li>
+      <li><b>Value Stream and Strategic views are tested at the store, not on screen.</b> The user and user-need nodes, the three connection edge types, and every view overlay (distillation regions, evolution bands, stage boundaries, axis labels) have no component tests.</li>
+      <li><b>Four dialogs are untested:</b> project create, project delete, group create, and import conflict. The actions behind them are covered, so the gap is wiring, not logic.</li>
+      <li><b>Two features have no test at all:</b> the light and dark theme toggle, and the live CodeCohesion repository statistics fetch.</li>
+      <li><b>Most component tests check wiring, not outcomes.</b> The dominant shape is "calls onX when clicked" against a mocked store. The handful of true outer-loop tests (undo buttons driven by real Yjs, Context Map preserving value-stream data, two-browser sync, add-related-context) are the strongest tests in the repo and the pattern worth extending.</li>
     </ul>
   </div>
 
