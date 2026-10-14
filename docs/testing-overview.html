@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ContextFlow Testing Overview</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --ink: #1c1c1a;
+    --muted: #5f5f58;
+    --line: #e2e1da;
+    --accent: #C8342C;
+    --amber: #b8860b;
+    --blue: #2f5f9e;
+    --tint-1: #f3efe6;
+    --tint-2: #e8e2d2;
+    --tint-3: #d9d0b8;
+    --tint-4: #c9bc9c;
+    --ok-bg: #eef3ea;
+    --warn-bg: #fbf3e2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --surface: #1f1f1c; --ink: #ecebe6; --muted: #a8a79f; --line: #34332f;
+      --accent: #e0574f; --amber: #d9a630; --blue: #7fa6dc;
+      --tint-1: #26251f; --tint-2: #2f2d25; --tint-3: #3a372b; --tint-4: #474332;
+      --ok-bg: #22291f; --warn-bg: #2e2816;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --surface: #1f1f1c; --ink: #ecebe6; --muted: #a8a79f; --line: #34332f;
+    --accent: #e0574f; --amber: #d9a630; --blue: #7fa6dc;
+    --tint-1: #26251f; --tint-2: #2f2d25; --tint-3: #3a372b; --tint-4: #474332;
+    --ok-bg: #22291f; --warn-bg: #2e2816;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; margin: 40px 0 12px; }
+  p.lede { color: var(--muted); margin: 0 0 24px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 1.6rem; line-height: 1.1; }
+  .stat span { color: var(--muted); font-size: 0.85rem; }
+  figure { margin: 16px 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: inherit; fill: var(--ink); }
+  svg .muted { fill: var(--muted); }
+  svg .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+  svg .band1 { fill: var(--tint-1); } svg .band2 { fill: var(--tint-2); } svg .band3 { fill: var(--tint-3); } svg .band4 { fill: var(--tint-4); }
+  svg .wire { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+  svg .gap { stroke: var(--amber); stroke-dasharray: 5 4; }
+  svg .ydoc { fill: var(--surface); stroke: var(--blue); stroke-width: 2; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 0.93rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--tint-1); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  code { font: 0.86em ui-monospace, Menlo, monospace; background: var(--tint-1); padding: 1px 5px; border-radius: 4px; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+  .yes { background: var(--ok-bg); color: var(--ink); }
+  .no { background: var(--warn-bg); color: var(--amber); }
+  .callout { border-left: 4px solid var(--amber); background: var(--warn-bg); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout ul { margin: 6px 0 0; padding-left: 20px; }
+  @media (max-width: 600px) { .wide { display: block; overflow-x: auto; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>ContextFlow Testing Overview</h1>
+  <p class="lede">How the app is tested, which gates a change passes through, and where the gaps are. Measured on the current main branch, October 14, 2026.</p>
+
+  <div class="stats">
+    <div class="stat"><b>1,976</b><span>tests</span></div>
+    <div class="stat"><b>127</b><span>test files</span></div>
+    <div class="stat"><b>~5 s</b><span>full local run</span></div>
+    <div class="stat"><b>Vitest</b><span>runner, jsdom</span></div>
+  </div>
+
+  <h2>Test pyramid</h2>
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="Test pyramid with five bands">
+      <polygon class="band1" points="360,20 470,80 250,80"/>
+      <polygon class="band2" points="250,80 470,80 540,140 180,140"/>
+      <polygon class="band3" points="180,140 540,140 610,200 110,200"/>
+      <polygon class="band4" points="110,200 610,200 680,270 40,270"/>
+      <text x="360" y="58" text-anchor="middle" font-size="13" font-weight="600">Worker tests</text>
+      <text x="360" y="116" text-anchor="middle" font-size="13" font-weight="600">Integration (store + Yjs, two-browser sync)</text>
+      <text x="360" y="176" text-anchor="middle" font-size="13" font-weight="600">Component tests (React Testing Library)</text>
+      <text x="360" y="232" text-anchor="middle" font-size="13" font-weight="600">Unit tests: pure logic + Yjs sync mutations</text>
+      <text x="360" y="252" text-anchor="middle" font-size="12" class="muted">lib, model, actions, migrations, sync layer</text>
+      <text x="500" y="58" font-size="12" class="muted">2 files</text>
+      <text x="560" y="116" font-size="12" class="muted">4 files</text>
+      <text x="625" y="176" font-size="12" class="muted">42 files</text>
+      
+      <text x="660" y="252" font-size="12" class="muted">79 files</text>
+      <line x1="40" y1="290" x2="680" y2="290" class="wire gap"/>
+      <text x="360" y="285" text-anchor="middle" font-size="12" class="muted">Browser end-to-end (Playwright): planned in TESTING_STRATEGY.md, not built</text>
+    </svg>
+    <figcaption>Almost everything runs in one Vitest process under jsdom. The sync layer is the heaviest single area because collaboration correctness is where past bugs clustered.</figcaption>
+  </figure>
+
+  <h2>What each layer checks</h2>
+  <div class="wide">
+  <table>
+    <thead><tr><th>Layer</th><th>What it proves</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Pure logic unit</td><td>Layout math, geometry, import/export, validation, migrations. No DOM, no side effects.</td><td><code>src/lib</code>, <code>src/model</code></td></tr>
+      <tr><td>Yjs sync unit</td><td>Every entity type (context, relationship, group, flow, team, user need, keyframe) round-trips through the Yjs mutation and sync functions.</td><td><code>src/model/sync</code> (28 files)</td></tr>
+      <tr><td>Integration</td><td>Two in-memory Y.Docs wired together simulate two browsers. Edits on one side appear on the other, including concurrent edits. Store + collab wiring and undo behave end to end.</td><td><code>twoBrowserSync.integration</code>, <code>storeCollabIntegration</code></td></tr>
+      <tr><td>Architectural guard</td><td>Reads <code>store.ts</code> as text and fails if any mutation writes project data directly to Zustand instead of through Yjs. Exists because that bug shipped twice.</td><td><code>noYjsBypass.test.ts</code></td></tr>
+      <tr><td>Component</td><td>Inspector panel, sidebars, top bar, dialogs, nodes and edges render and respond to interaction in jsdom.</td><td><code>src/components/**/__tests__</code></td></tr>
+      <tr><td>Worker</td><td>Cloudflare collab worker: unit test of the server, plus a live integration test that hits <code>localhost:8787</code>.</td><td><code>workers/__tests__</code></td></tr>
+      <tr><td>Mutation testing</td><td>Stryker mutates the sync layer and reports which mutants the tests fail to catch. Run on demand, not in CI.</td><td><code>npm run mutate</code></td></tr>
+      <tr><td>Release gate</td><td>Version matches CHANGELOG, every analytics event is in the catalog, every doc link resolves.</td><td><code>scripts/check-release.mjs</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Two-browser sync simulation</h2>
+  <figure>
+    <svg viewBox="0 0 720 190" role="img" aria-label="Two simulated browsers exchanging Yjs updates">
+      <rect x="30" y="40" width="200" height="110" rx="10" class="box"/>
+      <text x="130" y="66" text-anchor="middle" font-size="13" font-weight="600">Browser A (simulated)</text>
+      <rect x="55" y="80" width="150" height="50" rx="8" class="ydoc"/>
+      <text x="130" y="101" text-anchor="middle" font-size="12">Y.Doc + store</text>
+      <text x="130" y="119" text-anchor="middle" font-size="11" class="muted">addContext("Billing")</text>
+
+      <rect x="490" y="40" width="200" height="110" rx="10" class="box"/>
+      <text x="590" y="66" text-anchor="middle" font-size="13" font-weight="600">Browser B (simulated)</text>
+      <rect x="515" y="80" width="150" height="50" rx="8" class="ydoc"/>
+      <text x="590" y="101" text-anchor="middle" font-size="12">Y.Doc + store</text>
+      <text x="590" y="119" text-anchor="middle" font-size="11" class="muted">expect "Billing" present</text>
+
+      <path d="M232 92 L488 92" class="wire"/>
+      <path d="M480 86 L488 92 L480 98" class="wire"/>
+      <path d="M488 118 L232 118" class="wire"/>
+      <path d="M240 112 L232 118 L240 124" class="wire"/>
+      <text x="360" y="84" text-anchor="middle" font-size="11" class="muted">Y.encodeStateAsUpdate</text>
+      <text x="360" y="136" text-anchor="middle" font-size="11" class="muted">Y.applyUpdate</text>
+      <text x="360" y="172" text-anchor="middle" font-size="12" class="muted">No network, no server: the CRDT merge itself is what gets tested, in milliseconds.</text>
+    </svg>
+    <figcaption>Covers context, relationship, flow stage, user, user need, team, group and temporal mutations, plus concurrent edits from both sides.</figcaption>
+  </figure>
+
+  <h2>Gates a change passes through</h2>
+  <figure>
+    <svg viewBox="0 0 720 230" role="img" aria-label="Pipeline of checks from commit to deploy">
+      <rect x="20" y="30" width="150" height="80" rx="10" class="box"/>
+      <text x="95" y="52" text-anchor="middle" font-size="13" font-weight="600">pre-commit</text>
+      <text x="95" y="74" text-anchor="middle" font-size="12" class="muted">prettier (staged)</text>
+      <text x="95" y="92" text-anchor="middle" font-size="12" class="muted">typecheck, lint</text>
+
+      <rect x="200" y="30" width="150" height="80" rx="10" class="box"/>
+      <text x="275" y="52" text-anchor="middle" font-size="13" font-weight="600">pre-push</text>
+      <text x="275" y="74" text-anchor="middle" font-size="12" class="muted">typecheck, lint</text>
+      <text x="275" y="92" text-anchor="middle" font-size="12" class="muted">release check</text>
+
+      <rect x="380" y="30" width="150" height="80" rx="10" class="box"/>
+      <text x="455" y="52" text-anchor="middle" font-size="13" font-weight="600">GitHub CI</text>
+      <text x="455" y="70" text-anchor="middle" font-size="12" class="muted">typecheck, lint, format</text>
+      <text x="455" y="86" text-anchor="middle" font-size="12" class="muted">release check, build</text>
+      <text x="455" y="102" text-anchor="middle" font-size="12" class="muted">DCO sign-off (PRs)</text>
+
+      <rect x="560" y="30" width="140" height="80" rx="10" class="box"/>
+      <text x="630" y="52" text-anchor="middle" font-size="13" font-weight="600">Deploy</text>
+      <text x="630" y="74" text-anchor="middle" font-size="12" class="muted">GitHub Pages</text>
+      <text x="630" y="92" text-anchor="middle" font-size="12" class="muted">main only</text>
+
+      <path d="M170 70 L198 70" class="wire"/><path d="M192 65 L198 70 L192 75" class="wire"/>
+      <path d="M350 70 L378 70" class="wire"/><path d="M372 65 L378 70 L372 75" class="wire"/>
+      <path d="M530 70 L558 70" class="wire"/><path d="M552 65 L558 70 L552 75" class="wire"/>
+
+      <rect x="20" y="140" width="680" height="60" rx="10" class="box" style="stroke: var(--amber); stroke-dasharray: 6 4;"/>
+      <text x="360" y="164" text-anchor="middle" font-size="13" font-weight="600">Unit test suite: developer runs <tspan font-family="ui-monospace, Menlo, monospace">npm test</tspan> locally</text>
+      <text x="360" y="186" text-anchor="middle" font-size="12" class="muted">No hook or CI job runs the 1,976 tests. A green CI badge means it compiled and linted, not that tests passed.</text>
+    </svg>
+  </figure>
+
+  <div class="wide">
+  <table>
+    <thead><tr><th>Check</th><th>pre-commit</th><th>pre-push</th><th>CI</th></tr></thead>
+    <tbody>
+      <tr><td>Prettier format</td><td><span class="pill yes">yes</span></td><td></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>TypeScript typecheck</td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>ESLint</td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>Release docs check</td><td></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>Production build</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>Unit + integration tests</td><td><span class="pill no">no</span></td><td><span class="pill no">no</span></td><td><span class="pill no">no</span></td></tr>
+      <tr><td>Browser E2E</td><td><span class="pill no">none</span></td><td><span class="pill no">none</span></td><td><span class="pill no">none</span></td></tr>
+      <tr><td>Mutation testing</td><td colspan="3">On demand only (<code>npm run mutate</code>, or the <code>/mutate</code> skill during dev sessions)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Gaps worth knowing about</h2>
+  <div class="callout">
+    <ul>
+      <li><b>Tests are not enforced anywhere automated.</b> The suite takes about five seconds, so adding <code>npm run test:run</code> to the pre-push hook and the CI build job is a one-line change each.</li>
+      <li><b>Worker integration test fails when the local worker is down.</b> Two tests expect a server on port 8787 and fail instead of skipping. Run <code>npm run dev:local</code> first, or they read as red.</li>
+      <li><b>No browser-level tests.</b> Real WebSocket sync, offline and reconnect, file import, and canvas drag are only verified by hand. The Playwright plan in <code>docs/TESTING_STRATEGY.md</code> was never implemented.</li>
+    </ul>
+  </div>
+
+  <h2>Running it</h2>
+  <div class="wide">
+  <table>
+    <thead><tr><th>Command</th><th>What you get</th></tr></thead>
+    <tbody>
+      <tr><td><code>npm test</code></td><td>Vitest in watch mode</td></tr>
+      <tr><td><code>npm run test:run</code></td><td>Single full run, about five seconds</td></tr>
+      <tr><td><code>npm run test:ui</code></td><td>Vitest browser UI for exploring results</td></tr>
+      <tr><td><code>npm run mutate</code></td><td>Stryker on the sync layer, HTML report in <code>reports/mutation/</code></td></tr>
+      <tr><td><code>npm run check:release</code></td><td>Version, analytics catalog, and doc-link checks</td></tr>
+      <tr><td><code>npm run perf</code></td><td>Bundle size against <code>docs/PERFORMANCE_BASELINE.md</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</main>
+</body>
+</html>
