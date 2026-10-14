@@ -52,7 +52,9 @@ Do not stop at "port 5173 returns 200" — that is the HTML shell, not a working
 - **Pre-commit**: Prettier auto-formats staged `src/` files (via lint-staged), then runs `npm run typecheck` and `npm run lint`
 - **Pre-push**: `npm run typecheck`, `npm run lint`, and `npm run check:release` (safety net)
 
-**CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, check:release, build.
+**CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, check:release, test:coverage, build. The coverage report is uploaded as a workflow artifact.
+
+**Coverage** (`npm run test:coverage`, V8 provider) writes `coverage/` (gitignored) with text, HTML, and lcov output. Thresholds are scoped, not global: `src/model/sync/**` and `src/model/store.ts` fail the run if they drop below the floors in `vite.config.ts`. Everything else is reported only. The worker integration test skips itself when no collab worker answers on 8787.
 
 **`npm run check:release`** (`scripts/check-release.mjs`) keeps release-facing docs from drifting:
 1. `package.json` version matches the top `CHANGELOG.md` entry (with a real date, no "Unreleased" section)
@@ -154,7 +156,7 @@ npm run mutate:changed                                      # Incremental (only 
 
 To target one file (must install vitest 3 first, as Stryker is incompatible with Vitest 4):
 ```bash
-npm install --no-save vitest@3.2.4 && npx stryker run --mutate "src/model/sync/contextMutations.ts"; npm install --no-save vitest@4.0.6
+npm install --no-save vitest@3.2.4 && npx stryker run --mutate "src/model/sync/contextMutations.ts"; npm install
 ```
 
 Or use the `/mutate` skill during dev sessions.

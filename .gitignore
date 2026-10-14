@@ -42,3 +42,6 @@ reports/analysis/
 .env.test.local
 .env.production.local
 
+
+# Test coverage
+coverage/

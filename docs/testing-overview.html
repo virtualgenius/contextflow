@@ -212,8 +212,8 @@
       <rect x="380" y="30" width="150" height="80" rx="10" class="box"/>
       <text x="455" y="52" text-anchor="middle" font-size="13" font-weight="600">GitHub CI</text>
       <text x="455" y="70" text-anchor="middle" font-size="12" class="muted">typecheck, lint, format</text>
-      <text x="455" y="86" text-anchor="middle" font-size="12" class="muted">release check, build</text>
-      <text x="455" y="102" text-anchor="middle" font-size="12" class="muted">DCO sign-off (PRs)</text>
+      <text x="455" y="86" text-anchor="middle" font-size="12" class="muted">release check, tests + coverage</text>
+      <text x="455" y="102" text-anchor="middle" font-size="12" class="muted">build, DCO sign-off (PRs)</text>
 
       <rect x="560" y="30" width="140" height="80" rx="10" class="box"/>
       <text x="630" y="52" text-anchor="middle" font-size="13" font-weight="600">Deploy</text>
@@ -224,9 +224,9 @@
       <path d="M350 70 L378 70" class="wire"/><path d="M372 65 L378 70 L372 75" class="wire"/>
       <path d="M530 70 L558 70" class="wire"/><path d="M552 65 L558 70 L552 75" class="wire"/>
 
-      <rect x="20" y="140" width="680" height="60" rx="10" class="box" style="stroke: var(--amber); stroke-dasharray: 6 4;"/>
-      <text x="360" y="164" text-anchor="middle" font-size="13" font-weight="600">Unit test suite: developer runs <tspan font-family="ui-monospace, Menlo, monospace">npm test</tspan> locally</text>
-      <text x="360" y="186" text-anchor="middle" font-size="12" class="muted">No hook or CI job runs the 1,976 tests. A green CI badge means it compiled and linted, not that tests passed.</text>
+      <rect x="20" y="140" width="680" height="60" rx="10" class="box"/>
+      <text x="360" y="164" text-anchor="middle" font-size="13" font-weight="600">Coverage floors gate the sync layer and store.ts only</text>
+      <text x="360" y="186" text-anchor="middle" font-size="12" class="muted">Sync layer: 85% lines, 80% branches, 70% functions. store.ts: 65 / 45 / 60. Everything else is reported, not gated.</text>
     </svg>
   </figure>
 
@@ -239,7 +239,8 @@
       <tr><td>ESLint</td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
       <tr><td>Release docs check</td><td></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
       <tr><td>Production build</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
-      <tr><td>Unit + integration tests</td><td><span class="pill no">no</span></td><td><span class="pill no">no</span></td><td><span class="pill no">no</span></td></tr>
+      <tr><td>Unit + integration tests</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>Coverage report + scoped floors</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
       <tr><td>Browser E2E</td><td><span class="pill no">none</span></td><td><span class="pill no">none</span></td><td><span class="pill no">none</span></td></tr>
       <tr><td>Mutation testing</td><td colspan="3">On demand only (<code>npm run mutate</code>, or the <code>/mutate</code> skill during dev sessions)</td></tr>
     </tbody>
@@ -250,8 +251,8 @@
   <div class="callout">
     <p style="margin:0 0 4px"><b>Pipeline</b></p>
     <ul>
-      <li><b>Tests are not enforced anywhere automated.</b> The suite takes about five seconds, so adding <code>npm run test:run</code> to the pre-push hook and the CI build job is a one-line change each.</li>
-      <li><b>Worker integration test fails when the local worker is down.</b> Two tests expect a server on port 8787 and fail instead of skipping. Run <code>npm run dev:local</code> first, or they read as red.</li>
+      <li><b>Tests run in CI but not in the git hooks.</b> A push with a failing test still leaves the laptop. The suite takes about five seconds, so adding <code>npm run test:run</code> to the pre-push hook is a one-line change.</li>
+      <li><b>Worker integration test skips without a live worker.</b> Two tests need a server on port 8787 and now skip rather than fail when none answers. Run <code>npm run dev:local</code> to exercise them.</li>
       <li><b>No browser-level tests.</b> Real WebSocket sync, offline and reconnect, file import, and canvas drag are only verified by hand. The Playwright plan in <code>docs/TESTING_STRATEGY.md</code> was never implemented.</li>
     </ul>
     <p style="margin:12px 0 4px"><b>Acceptance coverage</b></p>
@@ -273,6 +274,7 @@
       <tr><td><code>npm test</code></td><td>Vitest in watch mode</td></tr>
       <tr><td><code>npm run test:run</code></td><td>Single full run, about five seconds</td></tr>
       <tr><td><code>npm run test:ui</code></td><td>Vitest browser UI for exploring results</td></tr>
+      <tr><td><code>npm run test:coverage</code></td><td>Full run plus V8 coverage, HTML report in <code>coverage/index.html</code>, fails if the sync layer or store.ts drop below their floors</td></tr>
       <tr><td><code>npm run mutate</code></td><td>Stryker on the sync layer, HTML report in <code>reports/mutation/</code></td></tr>
       <tr><td><code>npm run check:release</code></td><td>Version, analytics catalog, and doc-link checks</td></tr>
       <tr><td><code>npm run perf</code></td><td>Bundle size against <code>docs/PERFORMANCE_BASELINE.md</code></td></tr>
