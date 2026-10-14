@@ -65,6 +65,13 @@ jobs:
         if: github.event_name == 'push'
         run: cp dist/index.html dist/404.html
 
+      - name: Publish testing overview with fresh coverage data
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p dist/testing
+          cp docs/testing-overview.html dist/testing/index.html
+          cp docs/testing-overview.html docs/testing-acceptance-catalog.html docs/testing-data.js dist/testing/
+
       - name: Setup Pages
         if: github.event_name == 'push'
         uses: actions/configure-pages@v4

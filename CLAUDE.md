@@ -56,6 +56,8 @@ Do not stop at "port 5173 returns 200" — that is the HTML shell, not a working
 
 **Coverage** (`npm run test:coverage`, V8 provider) writes `coverage/` (gitignored) with text, HTML, and lcov output. Thresholds are scoped, not global: `src/model/sync/**` and `src/model/store.ts` fail the run if they drop below the floors in `vite.config.ts`. Everything else is reported only. The worker integration test skips itself when no collab worker answers on 8787.
 
+**Testing overview pages** (`docs/testing-overview.html`, `docs/testing-acceptance-catalog.html`) are static and read `docs/testing-data.js`, which `scripts/testing-report.mjs` generates from the lcov report and the test files as the last step of `test:coverage` (or alone via `npm run test:report`). The data file is gitignored; never commit it. CI publishes the pages with fresh data to `/testing/` on the production site. Feature categories for the catalog live in `CATEGORIES` in the script.
+
 **`npm run check:release`** (`scripts/check-release.mjs`) keeps release-facing docs from drifting:
 1. `package.json` version matches the top `CHANGELOG.md` entry (with a real date, no "Unreleased" section)
 2. every analytics event fired in `src/` is listed in [docs/ANALYTICS_EVENTS.md](docs/ANALYTICS_EVENTS.md) (so a new `trackEvent`/`trackPropertyChange` must be documented in the same change)

@@ -45,3 +45,4 @@ reports/analysis/
 
 # Test coverage
 coverage/
+docs/testing-data.js
