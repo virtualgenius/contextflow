@@ -65,6 +65,41 @@
   .no { background: var(--warn-bg); color: var(--amber); }
   .callout { border-left: 4px solid var(--amber); background: var(--warn-bg); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
   .callout ul { margin: 6px 0 0; padding-left: 20px; }
+
+  .viz-root { position: relative; }
+  .viz-filters { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; font-size: 0.9rem; color: var(--muted); }
+  .viz-filters select { margin-left: 6px; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+  .viz-card { margin: 12px 0; }
+  .viz-scroll { overflow-x: auto; }
+  .viz-scroll svg { min-width: 560px; }
+  .viz-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; flex-wrap: wrap; }
+  .viz-legend { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+  .viz-legend-sep { margin: 0 -2px; }
+  .viz-ramp { width: 90px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #cde2fb, #3987e5, #0d366b); }
+  .viz-key { width: 2px; height: 14px; background: var(--amber); display: inline-block; }
+  .viz-area-box { fill: none; stroke: var(--line); stroke-width: 1; }
+  .viz-area-label, .viz-row-label, .viz-axis-title, .viz-value { font-size: 11px; fill: var(--muted); }
+  .viz-axis-title { font-weight: 600; fill: var(--ink); }
+  .viz-row-label { fill: var(--ink); }
+  .viz-value { font-variant-numeric: tabular-nums; }
+  .viz-tile { stroke: none; cursor: default; transition: opacity 120ms; outline: none; }
+  .viz-tile:hover, .viz-tile:focus { opacity: 0.78; stroke: var(--ink); stroke-width: 1.5; }
+  .viz-tile-label { font-size: 10px; pointer-events: none; fill: #0b0b0b; }
+  .viz-tile-label[data-dark="1"] { fill: #ffffff; }
+  .viz-bar { fill: #2a78d6; }
+  .viz-hit { fill: transparent; }
+  .viz-bar-row { outline: none; cursor: default; }
+  .viz-bar-row:hover .viz-bar, .viz-bar-row:focus .viz-bar { fill: #1c5cab; }
+  .viz-baseline { stroke: var(--line); stroke-width: 1; }
+  .viz-floor { stroke: var(--amber); stroke-width: 2; }
+  .viz-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 0.8rem; line-height: 1.35; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-width: 320px; }
+  .viz-tip-value { font-weight: 700; font-size: 0.95rem; }
+  .viz-table { margin: 8px 0 0; font-size: 0.9rem; }
+  .viz-table summary { cursor: pointer; color: var(--muted); margin-bottom: 8px; }
+  .viz-table td.num, .viz-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .viz-bar { fill: #3987e5; } :root:not([data-theme="light"]) .viz-bar-row:hover .viz-bar, :root:not([data-theme="light"]) .viz-bar-row:focus .viz-bar { fill: #6da7ec; } :root:not([data-theme="light"]) .viz-ramp { background: linear-gradient(90deg, #104281, #3987e5, #86b6ef); } }
+  :root[data-theme="dark"] .viz-bar { fill: #3987e5; }
+  :root[data-theme="dark"] .viz-ramp { background: linear-gradient(90deg, #104281, #3987e5, #86b6ef); }
   @media (max-width: 600px) { .wide { display: block; overflow-x: auto; } }
 </style>
 </head>
@@ -169,6 +204,235 @@
     </tbody>
   </table>
   </div>
+
+
+
+
+
+  <h2 id="coverage-map">Coverage and tests by area</h2>
+  <p class="lede">Measured by the V8 coverage run on October 14, 2026. Every source file is a tile, sized by lines of code and shaded by how much of it the tests execute. The bars below compare each area's coverage with how many tests live there. Hover or focus any tile or bar for its numbers.</p>
+  <div class="viz-root" id="viz">
+    <div class="viz-filters" role="group" aria-label="Chart filters">
+      <label>Metric <select id="viz-metric"><option value="l">Lines</option><option value="b">Branches</option><option value="f">Functions</option></select></label>
+      <label>Area <select id="viz-area"><option value="">All areas</option></select></label>
+      <label>Sort bars by <select id="viz-sort"><option value="cov">Coverage</option><option value="tests">Tests</option><option value="size">Lines of code</option></select></label>
+    </div>
+    <figure class="viz-card">
+      <div class="viz-head"><span>Source files by coverage</span><span class="viz-legend"><span class="viz-ramp" aria-hidden="true"></span><span>0%</span><span class="viz-legend-sep">to</span><span>100%</span></span></span></div>
+      <svg id="viz-treemap" viewBox="0 0 720 420" role="img" aria-label="Treemap of source files sized by lines of code and shaded by coverage"></svg>
+      <figcaption id="viz-treemap-caption"></figcaption>
+    </figure>
+    <figure class="viz-card">
+      <div class="viz-head"><span>Coverage and test count per area</span><span class="viz-legend"><span class="viz-key" aria-hidden="true"></span><span>floor for the gated sync layer</span></span></div>
+      <div class="viz-scroll"><svg id="viz-bars" role="img" aria-label="Paired bar charts of coverage percent and test count per area"></svg></div>
+    </figure>
+    <div id="viz-tip" class="viz-tip" role="status" aria-live="polite" hidden></div>
+    <details class="viz-table">
+      <summary>Table view of the same numbers</summary>
+      <div class="wide"><table>
+        <thead><tr><th>Area</th><th class="num">Files</th><th class="num">Lines</th><th class="num">Branches</th><th class="num">Functions</th><th class="num">Tests</th></tr></thead>
+        <tbody>
+<tr><td>components</td><td class="num">32</td><td class="num">29%</td><td class="num">28%</td><td class="num">32%</td><td class="num">177</td></tr>
+<tr><td>model/sync</td><td class="num">24</td><td class="num">89%</td><td class="num">88%</td><td class="num">75%</td><td class="num">610</td></tr>
+<tr><td>model</td><td class="num">16</td><td class="num">74%</td><td class="num">59%</td><td class="num">69%</td><td class="num">346</td></tr>
+<tr><td>lib</td><td class="num">23</td><td class="num">84%</td><td class="num">77%</td><td class="num">90%</td><td class="num">356</td></tr>
+<tr><td>components/inspector</td><td class="num">14</td><td class="num">70%</td><td class="num">57%</td><td class="num">64%</td><td class="num">134</td></tr>
+<tr><td>components/nodes</td><td class="num">8</td><td class="num">75%</td><td class="num">56%</td><td class="num">70%</td><td class="num">74</td></tr>
+<tr><td>components/overlays</td><td class="num">11</td><td class="num">21%</td><td class="num">27%</td><td class="num">25%</td><td class="num">15</td></tr>
+<tr><td>components/edges</td><td class="num">5</td><td class="num">49%</td><td class="num">63%</td><td class="num">36%</td><td class="num">29</td></tr>
+<tr><td>model/migrations</td><td class="num">4</td><td class="num">67%</td><td class="num">85%</td><td class="num">55%</td><td class="num">58</td></tr>
+<tr><td>model/actions</td><td class="num">3</td><td class="num">100%</td><td class="num">89%</td><td class="num">100%</td><td class="num">120</td></tr>
+<tr><td>src</td><td class="num">2</td><td class="num">1%</td><td class="num">0%</td><td class="num">0%</td><td class="num">0</td></tr>
+<tr><td>utils</td><td class="num">1</td><td class="num">85%</td><td class="num">70%</td><td class="num">89%</td><td class="num">39</td></tr>
+<tr><td>components/settings</td><td class="num">5</td><td class="num">64%</td><td class="num">55%</td><td class="num">65%</td><td class="num">13</td></tr>
+<tr><td>hooks</td><td class="num">3</td><td class="num">26%</td><td class="num">39%</td><td class="num">12%</td><td class="num">0</td></tr>
+<tr><td>workers</td><td class="num">1</td><td class="num">42%</td><td class="num">50%</td><td class="num">25%</td><td class="num">5</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </div>
+  <script type="application/json" id="viz-data">{"files":[{"path":"src/App.tsx","name":"App.tsx","area":"src","lf":123,"lh":0,"bf":135,"bh":0,"ff":66,"fh":0,"tests":0},{"path":"src/config.ts","name":"config.ts","area":"src","lf":1,"lh":1,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/components/CanvasArea.tsx","name":"CanvasArea.tsx","area":"components","lf":476,"lh":0,"bf":401,"bh":0,"ff":144,"fh":0,"tests":0},{"path":"src/components/CanvasWelcomeCard.tsx","name":"CanvasWelcomeCard.tsx","area":"components","lf":1,"lh":1,"bf":0,"bh":0,"ff":1,"fh":1,"tests":4},{"path":"src/components/CloudStatusIndicator.tsx","name":"CloudStatusIndicator.tsx","area":"components","lf":6,"lh":0,"bf":6,"bh":0,"ff":3,"fh":0,"tests":0},{"path":"src/components/ConnectionGuidanceTooltip.tsx","name":"ConnectionGuidanceTooltip.tsx","area":"components","lf":31,"lh":0,"bf":20,"bh":0,"ff":8,"fh":0,"tests":0},{"path":"src/components/FocusBar.tsx","name":"FocusBar.tsx","area":"components","lf":35,"lh":34,"bf":19,"bh":18,"ff":14,"fh":12,"tests":14},{"path":"src/components/GettingStartedGuideModal.tsx","name":"GettingStartedGuideModal.tsx","area":"components","lf":5,"lh":5,"bf":0,"bh":0,"ff":5,"fh":5,"tests":8},{"path":"src/components/GroupCreateDialog.tsx","name":"GroupCreateDialog.tsx","area":"components","lf":15,"lh":0,"bf":8,"bh":0,"ff":8,"fh":0,"tests":0},{"path":"src/components/HelpPopover.tsx","name":"HelpPopover.tsx","area":"components","lf":9,"lh":9,"bf":2,"bh":1,"ff":5,"fh":5,"tests":5},{"path":"src/components/ImportConflictDialog.tsx","name":"ImportConflictDialog.tsx","area":"components","lf":1,"lh":0,"bf":0,"bh":0,"ff":1,"fh":0,"tests":0},{"path":"src/components/InfoTooltip.tsx","name":"InfoTooltip.tsx","area":"components","lf":45,"lh":36,"bf":21,"bh":18,"ff":8,"fh":8,"tests":0},{"path":"src/components/InspectorPanel.tsx","name":"InspectorPanel.tsx","area":"components","lf":37,"lh":31,"bf":24,"bh":17,"ff":14,"fh":14,"tests":6},{"path":"src/components/KeyboardShortcutsModal.tsx","name":"KeyboardShortcutsModal.tsx","area":"components","lf":15,"lh":15,"bf":12,"bh":12,"ff":7,"fh":7,"tests":11},{"path":"src/components/KeyframeEditor.tsx","name":"KeyframeEditor.tsx","area":"components","lf":19,"lh":0,"bf":10,"bh":0,"ff":6,"fh":0,"tests":0},{"path":"src/components/KeyframeManager.tsx","name":"KeyframeManager.tsx","area":"components","lf":54,"lh":0,"bf":28,"bh":0,"ff":22,"fh":0,"tests":0},{"path":"src/components/OfflineBlockingModal.tsx","name":"OfflineBlockingModal.tsx","area":"components","lf":21,"lh":21,"bf":29,"bh":29,"ff":7,"fh":7,"tests":18},{"path":"src/components/PatternsGuideModal.tsx","name":"PatternsGuideModal.tsx","area":"components","lf":29,"lh":0,"bf":18,"bh":0,"ff":14,"fh":0,"tests":0},{"path":"src/components/ProjectCreateDialog.tsx","name":"ProjectCreateDialog.tsx","area":"components","lf":8,"lh":0,"bf":2,"bh":0,"ff":3,"fh":0,"tests":0},{"path":"src/components/ProjectDeleteDialog.tsx","name":"ProjectDeleteDialog.tsx","area":"components","lf":1,"lh":0,"bf":0,"bh":0,"ff":1,"fh":0,"tests":0},{"path":"src/components/ProjectListContent.tsx","name":"ProjectListContent.tsx","area":"components","lf":82,"lh":44,"bf":52,"bh":32,"ff":29,"fh":11,"tests":6},{"path":"src/components/ProjectListPage.tsx","name":"ProjectListPage.tsx","area":"components","lf":14,"lh":11,"bf":2,"bh":0,"ff":10,"fh":9,"tests":3},{"path":"src/components/RelationshipCreateDialog.tsx","name":"RelationshipCreateDialog.tsx","area":"components","lf":34,"lh":0,"bf":16,"bh":0,"ff":13,"fh":0,"tests":0},{"path":"src/components/RepoSidebar.tsx","name":"RepoSidebar.tsx","area":"components","lf":70,"lh":65,"bf":63,"bh":57,"ff":26,"fh":22,"tests":42},{"path":"src/components/ShareProjectDialog.tsx","name":"ShareProjectDialog.tsx","area":"components","lf":41,"lh":27,"bf":14,"bh":11,"ff":10,"fh":6,"tests":7},{"path":"src/components/SharedKernelConfirmDialog.tsx","name":"SharedKernelConfirmDialog.tsx","area":"components","lf":1,"lh":1,"bf":0,"bh":0,"ff":1,"fh":1,"tests":4},{"path":"src/components/SidebarFilterChips.tsx","name":"SidebarFilterChips.tsx","area":"components","lf":4,"lh":4,"bf":2,"bh":2,"ff":3,"fh":3,"tests":0},{"path":"src/components/SimpleTooltip.tsx","name":"SimpleTooltip.tsx","area":"components","lf":41,"lh":31,"bf":16,"bh":13,"ff":6,"fh":5,"tests":0},{"path":"src/components/StubConnectionLine.tsx","name":"StubConnectionLine.tsx","area":"components","lf":13,"lh":0,"bf":17,"bh":0,"ff":4,"fh":0,"tests":0},{"path":"src/components/Switch.tsx","name":"Switch.tsx","area":"components","lf":3,"lh":2,"bf":9,"bh":7,"ff":3,"fh":2,"tests":0},{"path":"src/components/TeamSidebar.tsx","name":"TeamSidebar.tsx","area":"components","lf":46,"lh":45,"bf":50,"bh":48,"ff":19,"fh":18,"tests":40},{"path":"src/components/TimeSlider.tsx","name":"TimeSlider.tsx","area":"components","lf":189,"lh":0,"bf":103,"bh":0,"ff":51,"fh":0,"tests":0},{"path":"src/components/TopBar.tsx","name":"TopBar.tsx","area":"components","lf":131,"lh":45,"bf":92,"bh":28,"ff":54,"fh":23,"tests":9},{"path":"src/components/ValueChainGuideModal.tsx","name":"ValueChainGuideModal.tsx","area":"components","lf":9,"lh":0,"bf":0,"bh":0,"ff":3,"fh":0,"tests":0},{"path":"src/components/edges/NeedContextConnectionEdge.tsx","name":"NeedContextConnectionEdge.tsx","area":"components/edges","lf":22,"lh":0,"bf":19,"bh":0,"ff":7,"fh":0,"tests":0},{"path":"src/components/edges/RelationshipEdge.tsx","name":"RelationshipEdge.tsx","area":"components/edges","lf":105,"lh":82,"bf":131,"bh":115,"ff":27,"fh":16,"tests":29},{"path":"src/components/edges/UserConnectionEdge.tsx","name":"UserConnectionEdge.tsx","area":"components/edges","lf":17,"lh":0,"bf":14,"bh":0,"ff":4,"fh":0,"tests":0},{"path":"src/components/edges/UserNeedConnectionEdge.tsx","name":"UserNeedConnectionEdge.tsx","area":"components/edges","lf":22,"lh":0,"bf":19,"bh":0,"ff":7,"fh":0,"tests":0},{"path":"src/components/edges/index.ts","name":"index.ts","area":"components/edges","lf":0,"lh":0,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/components/inspector/ContextInspector.tsx","name":"ContextInspector.tsx","area":"components/inspector","lf":128,"lh":88,"bf":119,"bh":65,"ff":77,"fh":50,"tests":35},{"path":"src/components/inspector/ContextRepoCard.tsx","name":"ContextRepoCard.tsx","area":"components/inspector","lf":66,"lh":28,"bf":67,"bh":18,"ff":24,"fh":5,"tests":0},{"path":"src/components/inspector/FlowStageInspector.tsx","name":"FlowStageInspector.tsx","area":"components/inspector","lf":34,"lh":29,"bf":36,"bh":25,"ff":18,"fh":13,"tests":5},{"path":"src/components/inspector/GroupInspector.tsx","name":"GroupInspector.tsx","area":"components/inspector","lf":25,"lh":0,"bf":10,"bh":0,"ff":19,"fh":0,"tests":0},{"path":"src/components/inspector/IssueSeverityButton.tsx","name":"IssueSeverityButton.tsx","area":"components/inspector","lf":4,"lh":4,"bf":4,"bh":4,"ff":1,"fh":1,"tests":0},{"path":"src/components/inspector/NeedContextConnectionInspector.tsx","name":"NeedContextConnectionInspector.tsx","area":"components/inspector","lf":17,"lh":13,"bf":14,"bh":7,"ff":10,"fh":8,"tests":4},{"path":"src/components/inspector/RelationshipGroup.tsx","name":"RelationshipGroup.tsx","area":"components/inspector","lf":5,"lh":1,"bf":6,"bh":1,"ff":4,"fh":1,"tests":0},{"path":"src/components/inspector/RelationshipInspector.tsx","name":"RelationshipInspector.tsx","area":"components/inspector","lf":68,"lh":60,"bf":67,"bh":51,"ff":29,"fh":25,"tests":34},{"path":"src/components/inspector/RepoInspector.tsx","name":"RepoInspector.tsx","area":"components/inspector","lf":31,"lh":31,"bf":14,"bh":12,"ff":21,"fh":21,"tests":12},{"path":"src/components/inspector/TeamInspector.tsx","name":"TeamInspector.tsx","area":"components/inspector","lf":19,"lh":18,"bf":34,"bh":27,"ff":14,"fh":13,"tests":10},{"path":"src/components/inspector/UserInspector.tsx","name":"UserInspector.tsx","area":"components/inspector","lf":23,"lh":0,"bf":12,"bh":0,"ff":17,"fh":0,"tests":0},{"path":"src/components/inspector/UserNeedConnectionInspector.tsx","name":"UserNeedConnectionInspector.tsx","area":"components/inspector","lf":17,"lh":13,"bf":14,"bh":6,"ff":10,"fh":8,"tests":4},{"path":"src/components/inspector/UserNeedInspector.tsx","name":"UserNeedInspector.tsx","area":"components/inspector","lf":33,"lh":29,"bf":14,"bh":9,"ff":24,"fh":20,"tests":7},{"path":"src/components/inspector/inspectorShared.tsx","name":"inspectorShared.tsx","area":"components/inspector","lf":57,"lh":57,"bf":36,"bh":32,"ff":15,"fh":15,"tests":0},{"path":"src/components/nodes/ContextDraftNode.tsx","name":"ContextDraftNode.tsx","area":"components/nodes","lf":66,"lh":62,"bf":36,"bh":30,"ff":21,"fh":18,"tests":12},{"path":"src/components/nodes/ContextNode.tsx","name":"ContextNode.tsx","area":"components/nodes","lf":133,"lh":108,"bf":108,"bh":76,"ff":38,"fh":30,"tests":60},{"path":"src/components/nodes/ContextNodeStubs.tsx","name":"ContextNodeStubs.tsx","area":"components/nodes","lf":72,"lh":72,"bf":32,"bh":32,"ff":12,"fh":12,"tests":0},{"path":"src/components/nodes/GroupNode.tsx","name":"GroupNode.tsx","area":"components/nodes","lf":24,"lh":0,"bf":26,"bh":0,"ff":7,"fh":0,"tests":0},{"path":"src/components/nodes/IssueCounterPill.tsx","name":"IssueCounterPill.tsx","area":"components/nodes","lf":25,"lh":24,"bf":8,"bh":7,"ff":9,"fh":8,"tests":0},{"path":"src/components/nodes/UserNeedNode.tsx","name":"UserNeedNode.tsx","area":"components/nodes","lf":16,"lh":0,"bf":18,"bh":0,"ff":5,"fh":0,"tests":0},{"path":"src/components/nodes/UserNode.tsx","name":"UserNode.tsx","area":"components/nodes","lf":17,"lh":0,"bf":30,"bh":0,"ff":5,"fh":0,"tests":0},{"path":"src/components/nodes/index.ts","name":"index.ts","area":"components/nodes","lf":0,"lh":0,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/components/overlays/CanvasBoundary.tsx","name":"CanvasBoundary.tsx","area":"components/overlays","lf":8,"lh":0,"bf":1,"bh":0,"ff":1,"fh":0,"tests":0},{"path":"src/components/overlays/DistillationRegions.tsx","name":"DistillationRegions.tsx","area":"components/overlays","lf":36,"lh":0,"bf":20,"bh":0,"ff":6,"fh":0,"tests":0},{"path":"src/components/overlays/EvolutionBands.tsx","name":"EvolutionBands.tsx","area":"components/overlays","lf":12,"lh":0,"bf":0,"bh":0,"ff":3,"fh":0,"tests":0},{"path":"src/components/overlays/IssueLabelsOverlay.tsx","name":"IssueLabelsOverlay.tsx","area":"components/overlays","lf":24,"lh":0,"bf":20,"bh":0,"ff":4,"fh":0,"tests":0},{"path":"src/components/overlays/ProblemSpaceBand.tsx","name":"ProblemSpaceBand.tsx","area":"components/overlays","lf":3,"lh":0,"bf":0,"bh":0,"ff":1,"fh":0,"tests":0},{"path":"src/components/overlays/SharedKernelOverlay.tsx","name":"SharedKernelOverlay.tsx","area":"components/overlays","lf":56,"lh":48,"bf":37,"bh":32,"ff":16,"fh":14,"tests":15},{"path":"src/components/overlays/StageBoundaryLines.tsx","name":"StageBoundaryLines.tsx","area":"components/overlays","lf":11,"lh":0,"bf":2,"bh":0,"ff":3,"fh":0,"tests":0},{"path":"src/components/overlays/StageLabels.tsx","name":"StageLabels.tsx","area":"components/overlays","lf":47,"lh":0,"bf":13,"bh":0,"ff":16,"fh":0,"tests":0},{"path":"src/components/overlays/TeamLabelsOverlay.tsx","name":"TeamLabelsOverlay.tsx","area":"components/overlays","lf":28,"lh":0,"bf":27,"bh":0,"ff":5,"fh":0,"tests":0},{"path":"src/components/overlays/YAxisLabels.tsx","name":"YAxisLabels.tsx","area":"components/overlays","lf":7,"lh":0,"bf":0,"bh":0,"ff":2,"fh":0,"tests":0},{"path":"src/components/overlays/index.ts","name":"index.ts","area":"components/overlays","lf":0,"lh":0,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/components/settings/SettingsDisplay.tsx","name":"SettingsDisplay.tsx","area":"components/settings","lf":3,"lh":0,"bf":4,"bh":0,"ff":2,"fh":0,"tests":0},{"path":"src/components/settings/SettingsHelp.tsx","name":"SettingsHelp.tsx","area":"components/settings","lf":12,"lh":11,"bf":8,"bh":7,"ff":7,"fh":6,"tests":5},{"path":"src/components/settings/SettingsIntegrations.tsx","name":"SettingsIntegrations.tsx","area":"components/settings","lf":7,"lh":0,"bf":0,"bh":0,"ff":3,"fh":0,"tests":0},{"path":"src/components/settings/SettingsPopover.tsx","name":"SettingsPopover.tsx","area":"components/settings","lf":8,"lh":8,"bf":2,"bh":1,"ff":4,"fh":4,"tests":4},{"path":"src/components/settings/SettingsViewOptions.tsx","name":"SettingsViewOptions.tsx","area":"components/settings","lf":26,"lh":17,"bf":6,"bh":3,"ff":24,"fh":16,"tests":4},{"path":"src/hooks/useCloudMigration.ts","name":"useCloudMigration.ts","area":"hooks","lf":19,"lh":0,"bf":6,"bh":0,"ff":13,"fh":0,"tests":0},{"path":"src/hooks/useTheme.ts","name":"useTheme.ts","area":"hooks","lf":15,"lh":13,"bf":10,"bh":7,"ff":5,"fh":3,"tests":0},{"path":"src/hooks/useUrlRouter.ts","name":"useUrlRouter.ts","area":"hooks","lf":16,"lh":0,"bf":2,"bh":0,"ff":8,"fh":0,"tests":0},{"path":"src/lib/addContextGeometry.ts","name":"addContextGeometry.ts","area":"lib","lf":41,"lh":41,"bf":23,"bh":22,"ff":8,"fh":8,"tests":16},{"path":"src/lib/blobPositioning.ts","name":"blobPositioning.ts","area":"lib","lf":11,"lh":11,"bf":0,"bh":0,"ff":8,"fh":8,"tests":7},{"path":"src/lib/blobShape.ts","name":"blobShape.ts","area":"lib","lf":66,"lh":58,"bf":35,"bh":18,"ff":9,"fh":7,"tests":35},{"path":"src/lib/canvasBounds.ts","name":"canvasBounds.ts","area":"lib","lf":3,"lh":3,"bf":5,"bh":5,"ff":1,"fh":1,"tests":6},{"path":"src/lib/canvasConstants.ts","name":"canvasConstants.ts","area":"lib","lf":12,"lh":12,"bf":2,"bh":2,"ff":1,"fh":1,"tests":3},{"path":"src/lib/canvasHelpers.ts","name":"canvasHelpers.ts","area":"lib","lf":35,"lh":35,"bf":34,"bh":30,"ff":7,"fh":7,"tests":29},{"path":"src/lib/canvasViewModel.ts","name":"canvasViewModel.ts","area":"lib","lf":9,"lh":9,"bf":8,"bh":8,"ff":5,"fh":5,"tests":9},{"path":"src/lib/contextTooltip.ts","name":"contextTooltip.ts","area":"lib","lf":57,"lh":56,"bf":43,"bh":42,"ff":5,"fh":5,"tests":30},{"path":"src/lib/distillationGrid.ts","name":"distillationGrid.ts","area":"lib","lf":36,"lh":36,"bf":16,"bh":16,"ff":8,"fh":8,"tests":14},{"path":"src/lib/edgeGeometry.ts","name":"edgeGeometry.ts","area":"lib","lf":99,"lh":99,"bf":46,"bh":43,"ff":11,"fh":11,"tests":41},{"path":"src/lib/edgeUtils.ts","name":"edgeUtils.ts","area":"lib","lf":24,"lh":23,"bf":32,"bh":31,"ff":4,"fh":4,"tests":26},{"path":"src/lib/entityDraftPlacement.ts","name":"entityDraftPlacement.ts","area":"lib","lf":10,"lh":10,"bf":10,"bh":7,"ff":2,"fh":2,"tests":5},{"path":"src/lib/focus.ts","name":"focus.ts","area":"lib","lf":15,"lh":15,"bf":18,"bh":18,"ff":9,"fh":9,"tests":23},{"path":"src/lib/inspectorHelpers.ts","name":"inspectorHelpers.ts","area":"lib","lf":17,"lh":17,"bf":13,"bh":13,"ff":13,"fh":13,"tests":14},{"path":"src/lib/nodeStyles.ts","name":"nodeStyles.ts","area":"lib","lf":15,"lh":15,"bf":26,"bh":25,"ff":2,"fh":2,"tests":23},{"path":"src/lib/positionUtils.ts","name":"positionUtils.ts","area":"lib","lf":29,"lh":29,"bf":11,"bh":11,"ff":2,"fh":2,"tests":16},{"path":"src/lib/selectionDismiss.ts","name":"selectionDismiss.ts","area":"lib","lf":1,"lh":1,"bf":0,"bh":0,"ff":0,"fh":0,"tests":2},{"path":"src/lib/sharedKernelGeometry.ts","name":"sharedKernelGeometry.ts","area":"lib","lf":7,"lh":7,"bf":4,"bh":4,"ff":2,"fh":2,"tests":8},{"path":"src/lib/sharedKernelOverlapPlan.ts","name":"sharedKernelOverlapPlan.ts","area":"lib","lf":41,"lh":41,"bf":43,"bh":41,"ff":10,"fh":10,"tests":23},{"path":"src/lib/sharedKernelSeparation.ts","name":"sharedKernelSeparation.ts","area":"lib","lf":33,"lh":33,"bf":27,"bh":25,"ff":5,"fh":5,"tests":13},{"path":"src/lib/teamColors.ts","name":"teamColors.ts","area":"lib","lf":3,"lh":3,"bf":4,"bh":4,"ff":1,"fh":1,"tests":9},{"path":"src/lib/temporal.ts","name":"temporal.ts","area":"lib","lf":96,"lh":2,"bf":75,"bh":0,"ff":10,"fh":0,"tests":0},{"path":"src/lib/zLayers.ts","name":"zLayers.ts","area":"lib","lf":1,"lh":1,"bf":0,"bh":0,"ff":0,"fh":0,"tests":4},{"path":"src/model/builtInProjects.ts","name":"builtInProjects.ts","area":"model","lf":65,"lh":57,"bf":52,"bh":34,"ff":19,"fh":16,"tests":37},{"path":"src/model/classification.ts","name":"classification.ts","area":"model","lf":18,"lh":18,"bf":12,"bh":12,"ff":2,"fh":2,"tests":34},{"path":"src/model/collabStore.ts","name":"collabStore.ts","area":"model","lf":84,"lh":69,"bf":32,"bh":22,"ff":19,"fh":15,"tests":41},{"path":"src/model/conceptDefinitions.ts","name":"conceptDefinitions.ts","area":"model","lf":44,"lh":44,"bf":16,"bh":14,"ff":2,"fh":2,"tests":0},{"path":"src/model/keyframes.ts","name":"keyframes.ts","area":"model","lf":5,"lh":5,"bf":12,"bh":12,"ff":1,"fh":1,"tests":5},{"path":"src/model/patternDefinitions.ts","name":"patternDefinitions.ts","area":"model","lf":8,"lh":3,"bf":0,"bh":0,"ff":7,"fh":1,"tests":0},{"path":"src/model/persistence.ts","name":"persistence.ts","area":"model","lf":69,"lh":38,"bf":39,"bh":28,"ff":26,"fh":9,"tests":10},{"path":"src/model/projectUtils.ts","name":"projectUtils.ts","area":"model","lf":22,"lh":6,"bf":34,"bh":11,"ff":5,"fh":4,"tests":0},{"path":"src/model/stageBoundaries.ts","name":"stageBoundaries.ts","area":"model","lf":21,"lh":20,"bf":20,"bh":18,"ff":10,"fh":10,"tests":26},{"path":"src/model/stagePosition.ts","name":"stagePosition.ts","area":"model","lf":11,"lh":11,"bf":4,"bh":4,"ff":4,"fh":4,"tests":17},{"path":"src/model/store.ts","name":"store.ts","area":"model","lf":686,"lh":486,"bf":382,"bh":190,"ff":206,"fh":138,"tests":128},{"path":"src/model/storeTypes.ts","name":"storeTypes.ts","area":"model","lf":0,"lh":0,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/model/templateProjects.ts","name":"templateProjects.ts","area":"model","lf":5,"lh":5,"bf":4,"bh":4,"ff":3,"fh":3,"tests":7},{"path":"src/model/types.ts","name":"types.ts","area":"model","lf":0,"lh":0,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/model/validation.ts","name":"validation.ts","area":"model","lf":18,"lh":18,"bf":18,"bh":18,"ff":5,"fh":5,"tests":21},{"path":"src/model/viewModePersistence.ts","name":"viewModePersistence.ts","area":"model","lf":17,"lh":17,"bf":12,"bh":11,"ff":6,"fh":6,"tests":8},{"path":"src/model/actions/keyframeHelpers.ts","name":"keyframeHelpers.ts","area":"model/actions","lf":24,"lh":24,"bf":7,"bh":7,"ff":10,"fh":10,"tests":32},{"path":"src/model/actions/projectActions.ts","name":"projectActions.ts","area":"model/actions","lf":106,"lh":106,"bf":82,"bh":71,"ff":45,"fh":45,"tests":72},{"path":"src/model/actions/projectHelpers.ts","name":"projectHelpers.ts","area":"model/actions","lf":7,"lh":7,"bf":14,"bh":14,"ff":3,"fh":3,"tests":16},{"path":"src/model/migrations/cloudMigration.ts","name":"cloudMigration.ts","area":"model/migrations","lf":70,"lh":65,"bf":38,"bh":29,"ff":11,"fh":11,"tests":30},{"path":"src/model/migrations/cloudUploader.ts","name":"cloudUploader.ts","area":"model/migrations","lf":42,"lh":0,"bf":0,"bh":0,"ff":13,"fh":0,"tests":0},{"path":"src/model/migrations/migrateActorToUser.ts","name":"migrateActorToUser.ts","area":"model/migrations","lf":13,"lh":13,"bf":10,"bh":10,"ff":2,"fh":2,"tests":15},{"path":"src/model/migrations/migrateLegacyPerSidePattern.ts","name":"migrateLegacyPerSidePattern.ts","area":"model/migrations","lf":19,"lh":19,"bf":12,"bh":12,"ff":3,"fh":3,"tests":13},{"path":"src/model/sync/connectionMutations.ts","name":"connectionMutations.ts","area":"model/sync","lf":51,"lh":51,"bf":22,"bh":22,"ff":13,"fh":13,"tests":32},{"path":"src/model/sync/contextMutations.ts","name":"contextMutations.ts","area":"model/sync","lf":129,"lh":89,"bf":67,"bh":32,"ff":22,"fh":16,"tests":40},{"path":"src/model/sync/contextSync.ts","name":"contextSync.ts","area":"model/sync","lf":95,"lh":95,"bf":44,"bh":43,"ff":12,"fh":12,"tests":11},{"path":"src/model/sync/flowMutations.ts","name":"flowMutations.ts","area":"model/sync","lf":29,"lh":29,"bf":18,"bh":18,"ff":6,"fh":6,"tests":26},{"path":"src/model/sync/flowSync.ts","name":"flowSync.ts","area":"model/sync","lf":20,"lh":20,"bf":12,"bh":12,"ff":3,"fh":3,"tests":7},{"path":"src/model/sync/groupMutations.ts","name":"groupMutations.ts","area":"model/sync","lf":51,"lh":51,"bf":26,"bh":24,"ff":12,"fh":12,"tests":29},{"path":"src/model/sync/groupSync.ts","name":"groupSync.ts","area":"model/sync","lf":23,"lh":23,"bf":8,"bh":8,"ff":3,"fh":3,"tests":7},{"path":"src/model/sync/index.ts","name":"index.ts","area":"model/sync","lf":0,"lh":0,"bf":0,"bh":0,"ff":0,"fh":0,"tests":0},{"path":"src/model/sync/keyframeMutations.ts","name":"keyframeMutations.ts","area":"model/sync","lf":61,"lh":61,"bf":32,"bh":29,"ff":12,"fh":12,"tests":35},{"path":"src/model/sync/metadataMutations.ts","name":"metadataMutations.ts","area":"model/sync","lf":111,"lh":111,"bf":58,"bh":55,"ff":23,"fh":23,"tests":54},{"path":"src/model/sync/metadataSync.ts","name":"metadataSync.ts","area":"model/sync","lf":81,"lh":81,"bf":24,"bh":24,"ff":9,"fh":9,"tests":13},{"path":"src/model/sync/migrateYjsRelationships.ts","name":"migrateYjsRelationships.ts","area":"model/sync","lf":45,"lh":45,"bf":28,"bh":27,"ff":8,"fh":8,"tests":16},{"path":"src/model/sync/projectMutations.ts","name":"projectMutations.ts","area":"model/sync","lf":2,"lh":2,"bf":0,"bh":0,"ff":1,"fh":1,"tests":3},{"path":"src/model/sync/projectSync.ts","name":"projectSync.ts","area":"model/sync","lf":76,"lh":75,"bf":20,"bh":19,"ff":11,"fh":11,"tests":7},{"path":"src/model/sync/relationshipMutations.ts","name":"relationshipMutations.ts","area":"model/sync","lf":40,"lh":40,"bf":30,"bh":27,"ff":8,"fh":8,"tests":29},{"path":"src/model/sync/relationshipSync.ts","name":"relationshipSync.ts","area":"model/sync","lf":29,"lh":29,"bf":20,"bh":20,"ff":3,"fh":3,"tests":9},{"path":"src/model/sync/schema.ts","name":"schema.ts","area":"model/sync","lf":3,"lh":3,"bf":0,"bh":0,"ff":3,"fh":3,"tests":39},{"path":"src/model/sync/strategicSync.ts","name":"strategicSync.ts","area":"model/sync","lf":90,"lh":90,"bf":28,"bh":28,"ff":16,"fh":16,"tests":14},{"path":"src/model/sync/syncManager.ts","name":"syncManager.ts","area":"model/sync","lf":23,"lh":22,"bf":8,"bh":7,"ff":6,"fh":6,"tests":9},{"path":"src/model/sync/undoManager.ts","name":"undoManager.ts","area":"model/sync","lf":19,"lh":19,"bf":0,"bh":0,"ff":13,"fh":13,"tests":22},{"path":"src/model/sync/useCollabMode.ts","name":"useCollabMode.ts","area":"model/sync","lf":67,"lh":51,"bf":12,"bh":8,"ff":60,"fh":47,"tests":18},{"path":"src/model/sync/useCollabStore.ts","name":"useCollabStore.ts","area":"model/sync","lf":165,"lh":86,"bf":20,"bh":11,"ff":123,"fh":45,"tests":32},{"path":"src/model/sync/userMutations.ts","name":"userMutations.ts","area":"model/sync","lf":39,"lh":39,"bf":18,"bh":18,"ff":9,"fh":9,"tests":27},{"path":"src/model/sync/userNeedMutations.ts","name":"userNeedMutations.ts","area":"model/sync","lf":39,"lh":39,"bf":18,"bh":18,"ff":9,"fh":9,"tests":27},{"path":"src/utils/analytics.ts","name":"analytics.ts","area":"utils","lf":86,"lh":73,"bf":54,"bh":38,"ff":19,"fh":17,"tests":39},{"path":"workers/server.ts","name":"server.ts","area":"workers","lf":24,"lh":10,"bf":8,"bh":4,"ff":4,"fh":1,"tests":3}],"areas":[{"area":"components","lf":1486,"lh":427,"bf":1036,"bh":293,"ff":503,"fh":159,"files":32,"tests":177},{"area":"model/sync","lf":1288,"lh":1151,"bf":513,"bh":450,"ff":385,"fh":288,"files":24,"tests":610},{"area":"model","lf":1073,"lh":797,"bf":637,"bh":378,"ff":315,"fh":216,"files":16,"tests":346},{"area":"lib","lf":661,"lh":557,"bf":475,"bh":365,"ff":123,"fh":111,"files":23,"tests":356},{"area":"components/inspector","lf":527,"lh":371,"bf":447,"bh":257,"ff":283,"fh":180,"files":14,"tests":134},{"area":"components/nodes","lf":353,"lh":266,"bf":258,"bh":145,"ff":97,"fh":68,"files":8,"tests":74},{"area":"components/overlays","lf":232,"lh":48,"bf":120,"bh":32,"ff":57,"fh":14,"files":11,"tests":15},{"area":"components/edges","lf":166,"lh":82,"bf":183,"bh":115,"ff":45,"fh":16,"files":5,"tests":29},{"area":"model/migrations","lf":144,"lh":97,"bf":60,"bh":51,"ff":29,"fh":16,"files":4,"tests":58},{"area":"model/actions","lf":137,"lh":137,"bf":103,"bh":92,"ff":58,"fh":58,"files":3,"tests":120},{"area":"src","lf":124,"lh":1,"bf":135,"bh":0,"ff":66,"fh":0,"files":2,"tests":0},{"area":"utils","lf":86,"lh":73,"bf":54,"bh":38,"ff":19,"fh":17,"files":1,"tests":39},{"area":"components/settings","lf":56,"lh":36,"bf":20,"bh":11,"ff":40,"fh":26,"files":5,"tests":13},{"area":"hooks","lf":50,"lh":13,"bf":18,"bh":7,"ff":26,"fh":3,"files":3,"tests":0},{"area":"workers","lf":24,"lh":10,"bf":8,"bh":4,"ff":4,"fh":1,"files":1,"tests":5}]}</script>
+  <script>
+  (function () {
+    var DATA = JSON.parse(document.getElementById('viz-data').textContent);
+    var RAMP = ['#cde2fb','#b7d3f6','#9ec5f4','#86b6ef','#6da7ec','#5598e7','#3987e5','#2a78d6','#256abf','#1c5cab','#184f95','#104281','#0d366b'];
+    var FLOORS = { 'model/sync': { l: 85, b: 80, f: 70 } };
+    var METRIC = { l: ['lh','lf','lines'], b: ['bh','bf','branches'], f: ['fh','ff','functions'] };
+    var SVG = 'http://www.w3.org/2000/svg';
+    var metricSel = document.getElementById('viz-metric');
+    var areaSel = document.getElementById('viz-area');
+    var sortSel = document.getElementById('viz-sort');
+    var tip = document.getElementById('viz-tip');
+    var treemap = document.getElementById('viz-treemap');
+    var bars = document.getElementById('viz-bars');
+
+    DATA.areas.forEach(function (a) {
+      var o = document.createElement('option'); o.value = a.area; o.textContent = a.area; areaSel.appendChild(o);
+    });
+
+    function isDark() {
+      var t = document.documentElement.getAttribute('data-theme');
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function ratio(o, m) { var k = METRIC[m]; return o[k[1]] ? o[k[0]] / o[k[1]] : null; }
+    function shade(r) {
+      if (r === null) return 'var(--line)';
+      var i = Math.round(r * (RAMP.length - 1));
+      // Dark mode: low coverage recedes toward the dark surface, high coverage is the salient light step.
+      return isDark() ? RAMP[Math.max(3, RAMP.length - 1 - i)] : RAMP[i];
+    }
+    function el(tag, attrs, parent) {
+      var e = document.createElementNS(SVG, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (parent) parent.appendChild(e);
+      return e;
+    }
+    function fmtPct(r) { return r === null ? 'n/a' : Math.round(r * 100) + '%'; }
+
+    function showTip(lines, evt) {
+      while (tip.firstChild) tip.removeChild(tip.firstChild);
+      lines.forEach(function (l, i) {
+        var d = document.createElement('div');
+        if (i === 0) d.className = 'viz-tip-value';
+        d.textContent = l; tip.appendChild(d);
+      });
+      tip.hidden = false;
+      moveTip(evt);
+    }
+    function moveTip(evt) {
+      var root = document.getElementById('viz').getBoundingClientRect();
+      var x = (evt.clientX || root.left + 20) - root.left + 14;
+      var y = (evt.clientY || root.top + 20) - root.top + 14;
+      if (x + tip.offsetWidth > root.width - 8) x = x - tip.offsetWidth - 28;
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    }
+    function hideTip() { tip.hidden = true; }
+    function focusPoint(e) { var b = e.getBoundingClientRect(); return { clientX: b.left + b.width / 2, clientY: b.top + b.height / 2 }; }
+
+    // Squarified treemap (Bruls, Huizing, van Wijk).
+    function squarify(items, x, y, w, h, gap) {
+      var out = [], total = items.reduce(function (s, i) { return s + i.size; }, 0);
+      if (!total || w <= 0 || h <= 0) return out;
+      var rest = items.slice(), cx = x, cy = y, cw = w, ch = h;
+      while (rest.length) {
+        var area = cw * ch, scale = area / rest.reduce(function (s, i) { return s + i.size; }, 0);
+        var row = [], rowSum = 0, side = Math.min(cw, ch), best = Infinity;
+        while (rest.length) {
+          var cand = rest[0], candSum = rowSum + cand.size * scale;
+          var mx = Math.max.apply(null, row.concat([cand]).map(function (i) { return i.size * scale; }));
+          var mn = Math.min.apply(null, row.concat([cand]).map(function (i) { return i.size * scale; }));
+          var worst = Math.max((side * side * mx) / (candSum * candSum), (candSum * candSum) / (side * side * mn));
+          if (worst > best) break;
+          row.push(rest.shift()); rowSum = candSum; best = worst;
+        }
+        var thick = rowSum / side, off = 0;
+        row.forEach(function (i) {
+          var len = (i.size * scale) / thick;
+          var r = cw >= ch ? { x: cx, y: cy + off, w: thick, h: len } : { x: cx + off, y: cy, w: len, h: thick };
+          out.push({ item: i, x: r.x + gap / 2, y: r.y + gap / 2, w: Math.max(0, r.w - gap), h: Math.max(0, r.h - gap) });
+          off += len;
+        });
+        if (cw >= ch) { cx += thick; cw -= thick; } else { cy += thick; ch -= thick; }
+      }
+      return out;
+    }
+
+    function renderTreemap() {
+      var m = metricSel.value, areaFilter = areaSel.value;
+      while (treemap.firstChild) treemap.removeChild(treemap.firstChild);
+      var areas = DATA.areas.filter(function (a) { return (!areaFilter || a.area === areaFilter) && a.lf > 0; })
+        .map(function (a) { return { size: a.lf, area: a }; });
+      var W = 720, H = 420;
+      squarify(areas, 0, 0, W, H, 4).forEach(function (ar) {
+        var g = el('g', { class: 'viz-area-group' }, treemap);
+        el('rect', { x: ar.x, y: ar.y, width: ar.w, height: ar.h, class: 'viz-area-box' }, g);
+        var files = DATA.files.filter(function (f) { return f.area === ar.item.area.area && f.lf > 0; })
+          .map(function (f) { return { size: f.lf, file: f }; }).sort(function (a, b) { return b.size - a.size; });
+        var labelH = ar.w > 60 && ar.h > 26 ? 16 : 0;
+        squarify(files, ar.x + 2, ar.y + 2 + labelH, ar.w - 4, ar.h - 4 - labelH, 2).forEach(function (t) {
+          var f = t.item.file, r = ratio(f, m);
+          var rect = el('rect', { x: t.x, y: t.y, width: t.w, height: t.h, rx: 2, fill: shade(r), class: 'viz-tile', tabindex: 0 }, g);
+          var lines = [fmtPct(r) + ' ' + METRIC[m][2] + ' covered', f.path, f[METRIC[m][0]] + ' of ' + f[METRIC[m][1]] + ' ' + METRIC[m][2] + ', ' + f.lf + ' lines of code', (f.tests ? f.tests + ' tests name this file' : 'no test names this file')];
+          rect.addEventListener('pointerenter', function (e) { showTip(lines, e); });
+          rect.addEventListener('pointermove', moveTip);
+          rect.addEventListener('pointerleave', hideTip);
+          rect.addEventListener('focus', function () { showTip(lines, focusPoint(rect)); });
+          rect.addEventListener('blur', hideTip);
+          var label = f.name.replace(/\.(tsx?|ts)$/, '');
+          if (t.w > label.length * 6 + 8 && t.h > 16) {
+            var tx = el('text', { x: t.x + 4, y: t.y + 12, class: 'viz-tile-label', 'data-dark': (r !== null && (isDark() ? r < 0.5 : r > 0.5)) ? '1' : '0' }, g);
+            tx.textContent = label;
+          }
+        });
+        if (labelH) {
+          var at = el('text', { x: ar.x + 5, y: ar.y + 12, class: 'viz-area-label' }, g);
+          var full = ar.item.area.area;
+          at.textContent = full.length * 6.5 > ar.w - 10 ? full.split('/').pop() : full;
+        }
+      });
+      var shown = areas.length, filesShown = DATA.files.filter(function (f) { return (!areaFilter || f.area === areaFilter) && f.lf > 0; }).length;
+      document.getElementById('viz-treemap-caption').textContent = filesShown + ' files in ' + shown + (shown === 1 ? ' area' : ' areas') + '. ' + (isDark() ? 'Lighter' : 'Darker') + ' tiles have more of their ' + METRIC[m][2] + ' executed by tests. Tile area is lines of code.';
+    }
+
+    function roundedBar(x, y, w, h, r) {
+      if (w <= 0) return '';
+      r = Math.min(r, w, h / 2);
+      return 'M' + x + ' ' + y + ' h' + (w - r) + ' a' + r + ' ' + r + ' 0 0 1 ' + r + ' ' + r + ' v' + (h - 2 * r) + ' a' + r + ' ' + r + ' 0 0 1 -' + r + ' ' + r + ' h-' + (w - r) + ' z';
+    }
+
+    function renderBars() {
+      var m = metricSel.value, areaFilter = areaSel.value, sort = sortSel.value;
+      while (bars.firstChild) bars.removeChild(bars.firstChild);
+      var rows = DATA.areas.filter(function (a) { return !areaFilter || a.area === areaFilter; }).slice();
+      rows.sort(function (a, b) {
+        if (sort === 'tests') return b.tests - a.tests;
+        if (sort === 'size') return b.lf - a.lf;
+        return (ratio(b, m) || 0) - (ratio(a, m) || 0);
+      });
+      var ROW = 26, TOP = 28, LABEL_W = 150, GAP = 36, W = 720, BAR = 14;
+      var panelW = (W - LABEL_W - GAP - 50) / 2, x1 = LABEL_W, x2 = LABEL_W + panelW + GAP;
+      var H = TOP + rows.length * ROW + 10;
+      bars.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var maxTests = Math.max(1, Math.max.apply(null, rows.map(function (r) { return r.tests; })));
+      var t1 = el('text', { x: x1, y: 14, class: 'viz-axis-title' }, bars); t1.textContent = 'Coverage, ' + METRIC[m][2];
+      var t2 = el('text', { x: x2, y: 14, class: 'viz-axis-title' }, bars); t2.textContent = 'Tests in area';
+      el('line', { x1: x1, y1: TOP - 4, x2: x1, y2: H - 8, class: 'viz-baseline' }, bars);
+      el('line', { x1: x2, y1: TOP - 4, x2: x2, y2: H - 8, class: 'viz-baseline' }, bars);
+      rows.forEach(function (a, i) {
+        var y = TOP + i * ROW, r = ratio(a, m);
+        var lab = el('text', { x: LABEL_W - 8, y: y + BAR - 3, class: 'viz-row-label', 'text-anchor': 'end' }, bars);
+        lab.textContent = a.area;
+        var g = el('g', { class: 'viz-bar-row', tabindex: 0 }, bars);
+        el('rect', { x: 0, y: y - 5, width: W, height: ROW - 2, class: 'viz-hit' }, g);
+        var w1 = r === null ? 0 : r * panelW;
+        el('path', { d: roundedBar(x1, y, w1, BAR, 4), class: 'viz-bar' }, g);
+        var v1 = el('text', { x: x1 + w1 + 6, y: y + BAR - 3, class: 'viz-value' }, g); v1.textContent = fmtPct(r);
+        var floor = FLOORS[a.area];
+        if (floor) {
+          var fx = x1 + (floor[m] / 100) * panelW;
+          el('line', { x1: fx, y1: y - 3, x2: fx, y2: y + BAR + 3, class: 'viz-floor' }, g);
+        }
+        var w2 = (a.tests / maxTests) * panelW;
+        el('path', { d: roundedBar(x2, y, w2, BAR, 4), class: 'viz-bar' }, g);
+        var v2 = el('text', { x: x2 + w2 + 6, y: y + BAR - 3, class: 'viz-value' }, g); v2.textContent = a.tests;
+        var lines = [fmtPct(r) + ' ' + METRIC[m][2] + ' covered', a.area + ', ' + a.files + ' files, ' + a.lf + ' lines of code', a[METRIC[m][0]] + ' of ' + a[METRIC[m][1]] + ' ' + METRIC[m][2], a.tests + ' tests live in this area'];
+        if (floor) lines.push('CI floor for ' + METRIC[m][2] + ': ' + floor[m] + '%');
+        g.addEventListener('pointerenter', function (e) { showTip(lines, e); });
+        g.addEventListener('pointermove', moveTip);
+        g.addEventListener('pointerleave', hideTip);
+        g.addEventListener('focus', function () { showTip(lines, focusPoint(g)); });
+        g.addEventListener('blur', hideTip);
+      });
+    }
+
+    function render() { renderTreemap(); renderBars(); }
+    [metricSel, areaSel, sortSel].forEach(function (s) { s.addEventListener('change', render); });
+    if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+    render();
+  })();
+  </script>
 
   <h2>Two-browser sync simulation</h2>
   <figure>

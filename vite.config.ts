@@ -26,6 +26,7 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/components/ui/**',
         'src/main.tsx',
+        '**/__testFixtures__/**',
       ],
       // Gate only the data-critical paths. Measured Oct 14, 2026:
       // sync layer 89/88/75, store.ts 71/50/67 (lines/branches/functions).
