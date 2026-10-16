@@ -50,7 +50,7 @@ Do not stop at "port 5173 returns 200" — that is the HTML shell, not a working
 
 **Local hooks** (husky) run automatically:
 - **Pre-commit**: Prettier auto-formats staged `src/` files (via lint-staged), then runs `npm run typecheck`, `npm run lint`, and `npm run check:contrast:palette`
-- **Pre-push**: `npm run typecheck`, `npm run lint`, and `npm run check:release` (safety net)
+- **Pre-push**: `npm run typecheck`, `npm run lint`, `npm run check:release`, and `npm run test:run` (the full unit suite, about five seconds)
 
 **CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, check:release, test:coverage, build, check:contrast. The coverage report is uploaded as a workflow artifact.
 

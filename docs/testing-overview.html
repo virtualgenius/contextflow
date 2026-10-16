@@ -474,19 +474,20 @@
     <svg viewBox="0 0 720 230" role="img" aria-label="Pipeline of checks from commit to deploy">
       <rect x="20" y="30" width="150" height="80" rx="10" class="box"/>
       <text x="95" y="52" text-anchor="middle" font-size="13" font-weight="600">pre-commit</text>
-      <text x="95" y="74" text-anchor="middle" font-size="12" class="muted">prettier (staged)</text>
-      <text x="95" y="92" text-anchor="middle" font-size="12" class="muted">typecheck, lint</text>
+      <text x="95" y="70" text-anchor="middle" font-size="12" class="muted">prettier (staged)</text>
+      <text x="95" y="86" text-anchor="middle" font-size="12" class="muted">typecheck, lint</text>
+      <text x="95" y="102" text-anchor="middle" font-size="12" class="muted">contrast palette</text>
 
       <rect x="200" y="30" width="150" height="80" rx="10" class="box"/>
       <text x="275" y="52" text-anchor="middle" font-size="13" font-weight="600">pre-push</text>
       <text x="275" y="74" text-anchor="middle" font-size="12" class="muted">typecheck, lint</text>
-      <text x="275" y="92" text-anchor="middle" font-size="12" class="muted">release check</text>
+      <text x="275" y="92" text-anchor="middle" font-size="12" class="muted">release check, unit tests</text>
 
       <rect x="380" y="30" width="150" height="80" rx="10" class="box"/>
       <text x="455" y="52" text-anchor="middle" font-size="13" font-weight="600">GitHub CI</text>
       <text x="455" y="70" text-anchor="middle" font-size="12" class="muted">typecheck, lint, format</text>
       <text x="455" y="86" text-anchor="middle" font-size="12" class="muted">release check, tests + coverage</text>
-      <text x="455" y="102" text-anchor="middle" font-size="12" class="muted">build, DCO sign-off (PRs)</text>
+      <text x="455" y="102" text-anchor="middle" font-size="12" class="muted">build, contrast, DCO (PRs)</text>
 
       <rect x="560" y="30" width="140" height="80" rx="10" class="box"/>
       <text x="630" y="52" text-anchor="middle" font-size="13" font-weight="600">Deploy</text>
@@ -512,8 +513,9 @@
       <tr><td>ESLint</td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
       <tr><td>Release docs check</td><td></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
       <tr><td>Production build</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
-      <tr><td>Unit + integration tests</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>Unit + integration tests</td><td></td><td><span class="pill yes">yes</span></td><td><span class="pill yes">yes</span></td></tr>
       <tr><td>Coverage report + scoped floors</td><td></td><td></td><td><span class="pill yes">yes</span></td></tr>
+      <tr><td>WCAG AA contrast</td><td><span class="pill yes">palette pairs</span></td><td></td><td><span class="pill yes">axe on built app</span></td></tr>
       <tr><td>Browser E2E</td><td><span class="pill no">none</span></td><td><span class="pill no">none</span></td><td><span class="pill no">none</span></td></tr>
       <tr><td>Mutation testing</td><td colspan="3">On demand only (<code>npm run mutate</code>, or the <code>/mutate</code> skill during dev sessions)</td></tr>
     </tbody>
@@ -524,7 +526,6 @@
   <div class="callout">
     <p style="margin:0 0 4px"><b>Pipeline</b></p>
     <ul>
-      <li><b>Tests run in CI but not in the git hooks.</b> A push with a failing test still leaves the laptop. The suite takes about five seconds, so adding <code>npm run test:run</code> to the pre-push hook is a one-line change.</li>
       <li><b>Worker integration test skips without a live worker.</b> Two tests need a server on port 8787 and now skip rather than fail when none answers. Run <code>npm run dev:local</code> to exercise them.</li>
       <li><b>No browser-level tests.</b> Real WebSocket sync, offline and reconnect, file import, and canvas drag are only verified by hand. The Playwright plan in <code>docs/TESTING_STRATEGY.md</code> was never implemented.</li>
     </ul>
