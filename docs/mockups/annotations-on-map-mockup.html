@@ -66,6 +66,7 @@
   .pill-txt { font-size: 10px; font-weight: 600; }
   .sticky-txt { font-size: 9.5px; font-weight: 500; }
   .sticky-shadow { filter: drop-shadow(0 2px 3px rgba(0,0,0,.18)); }
+  svg { touch-action: none; user-select: none; }
   .dim { opacity: .18; }
   aside { border-left: 1px solid var(--line); padding: 16px; background: var(--panel); }
   aside h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
@@ -88,8 +89,8 @@
   <div class="ctl">
     <span class="lbl">Style</span>
     <div class="seg" id="styleSeg">
-      <button data-style="pill" aria-pressed="true">Badge</button>
-      <button data-style="sticky" aria-pressed="false">Sticky notes</button>
+      <button data-style="pill" aria-pressed="false">Badge</button>
+      <button data-style="sticky" aria-pressed="true">Sticky notes</button>
       <button data-style="hotspot" aria-pressed="false">Hotspots</button>
     </div>
   </div>
@@ -100,6 +101,9 @@
     <button class="chip" data-kind="info" aria-pressed="true"><span class="dot" style="background:var(--info)"></span>Info</button>
     <button class="chip" data-kind="question" aria-pressed="true"><span class="dot" style="background:var(--question)"></span>Question</button>
     <button class="chip" data-kind="strength" aria-pressed="true"><span class="dot" style="background:var(--strength)"></span>Working well</button>
+  </div>
+  <div class="ctl">
+    <button class="chip" id="resetBtn">Reset positions</button>
   </div>
   <div class="ctl">
     <span class="lbl">Where</span>
@@ -117,13 +121,14 @@
   </div>
   <aside>
     <h2>Annotations <span id="count"></span></h2>
-    <p>One list across the whole map. Click a row to spotlight it on the canvas.</p>
+    <p>One list across the whole map. Click a row to spotlight it on the canvas. Drag a sticky to pin it; drag a context and its notes follow. Double-click a sticky to return it to auto layout.</p>
     <div class="list" id="list"></div>
     <details>
       <summary>What this prototype is testing</summary>
       <p><b>Where.</b> Annotations attach to a relationship as readily as to a context. On an edge they sit at the label point, offset to the side so the pattern label stays readable.</p>
       <p><b>Kinds.</b> Three problem severities plus two new kinds: Question (open, needs an answer) and Working well (a strength worth protecting). Severity only applies to problems.</p>
       <p><b>Styles.</b> Badge is today's counter pill. Sticky notes are today's labels made more sticky-like. Hotspots borrow EventStorming colors: pink for problems, green for strengths, purple for questions.</p>
+      <p><b>Position.</b> A pinned note stores an offset from its anchor (context center, or relationship label point) in canvas units. The target moving moves the note. A dashed leader appears once the note sits away from its anchor. The small dot in the corner marks a pinned note.</p>
       <p><b>Filter.</b> Kind chips plus a target filter. A single annotation list in the sidebar is the payoff of moving annotations to a top-level collection.</p>
     </details>
   </aside>
@@ -174,7 +179,7 @@ const KIND = {
 };
 const SEVERITY_ORDER = ['critical', 'warning', 'info', 'question', 'strength'];
 
-const state = { style: 'pill', kinds: new Set(SEVERITY_ORDER), where: 'all', spotlight: null };
+const state = { style: 'sticky', kinds: new Set(SEVERITY_ORDER), where: 'all', spotlight: null };
 
 const svg = document.getElementById('map');
 const NS = 'http://www.w3.org/2000/svg';
@@ -228,33 +233,83 @@ function renderPill(list, x, y, anchor) {
   return g;
 }
 
-function renderStickies(list, x, y, anchor, mode) {
-  const W = 92, H = 56, GAP = 6, MAX = 3;
-  const shown = list.slice(0, MAX), extra = list.length - shown.length;
-  const totalW = (shown.length + (extra > 0 ? 1 : 0)) * (W + GAP) - GAP;
-  const sx = anchor === 'end' ? x - totalW : anchor === 'middle' ? x - totalW / 2 : x;
-  const g = el('g', { class: 'marker' + spotlightClass(list) });
-  shown.forEach((an, i) => {
-    const k = KIND[an.kind];
-    const nx = sx + i * (W + GAP);
-    const rot = mode === 'hotspot' ? ((i % 2 ? 1 : -1) * 2.5) : 0;
-    const note = el('g', { transform: `rotate(${rot} ${nx + W / 2} ${y + H / 2})`, class: mode === 'hotspot' ? 'sticky-shadow' : '' });
-    if (mode === 'hotspot') {
-      note.appendChild(el('rect', { x: nx, y, width: W, height: H, fill: k.sticky }));
-    } else {
-      note.appendChild(el('rect', { x: nx, y, width: W, height: H, rx: 4, fill: k.bg, stroke: k.border, 'stroke-width': 1.5 }));
-    }
-    const ink = mode === 'hotspot' ? k.stickyInk : k.ink;
-    note.appendChild(el('text', { x: nx + 7, y: y + 13, 'font-size': 10, 'font-weight': 700, fill: ink }, [k.glyph]));
-    const lines = clampLines(wrap(an.title, 15), 3);
-    lines.forEach((ln, li) => note.appendChild(el('text', { x: nx + 16, y: y + 13 + li * 12, class: 'sticky-txt', fill: ink }, [ln])));
-    g.appendChild(note);
-  });
-  if (extra > 0) {
-    const nx = sx + shown.length * (W + GAP);
-    g.appendChild(el('rect', { x: nx, y, width: 30, height: H, rx: 4, fill: 'var(--panel)', stroke: 'var(--line)' }));
-    g.appendChild(el('text', { x: nx + 15, y: y + H / 2 + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: 'var(--muted)' }, ['+' + extra]));
+const STICKY_W = 92, STICKY_H = 56, STICKY_GAP = 6, STICKY_MAX = 3, LEADER_MIN = 40;
+const STORAGE_KEY = 'cf-annotation-mockup-positions';
+
+function loadPositions() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    for (const an of annotations) if (raw.offsets && raw.offsets[an.id]) an.offset = raw.offsets[an.id];
+    for (const c of contexts) if (raw.contexts && raw.contexts[c.id]) Object.assign(c, raw.contexts[c.id]);
+  } catch (e) { /* storage unavailable, start fresh */ }
+}
+function savePositions() {
+  try {
+    const offsets = {}; for (const an of annotations) if (an.offset) offsets[an.id] = an.offset;
+    const ctx = {}; for (const c of contexts) ctx[c.id] = { x: c.x, y: c.y };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ offsets, contexts: ctx }));
+  } catch (e) { /* ignore */ }
+}
+function resetPositions() {
+  for (const an of annotations) an.offset = null;
+  for (const c of contexts) { c.x = c.home.x; c.y = c.home.y; }
+  savePositions(); render();
+}
+
+function anchorFor(target) {
+  if (target.type === 'context') return center(ctxById[target.id]);
+  const r = relationships.find(r => r.id === target.id);
+  const { mx, my } = edgeGeometry(r);
+  return { x: mx, y: my };
+}
+function autoSlot(an, list, index) {
+  const anchor = anchorFor(an.target);
+  const slots = list.filter(x => !x.offset).length;
+  const totalW = slots * (STICKY_W + STICKY_GAP) - STICKY_GAP;
+  const slotIndex = list.filter((x, i) => !x.offset && i < index).length;
+  if (an.target.type === 'context') {
+    return { x: anchor.x - totalW / 2 + slotIndex * (STICKY_W + STICKY_GAP), y: anchor.y + NODE_H / 2 + 8 };
   }
+  const r = relationships.find(r => r.id === an.target.id);
+  const { nx, ny } = edgeGeometry(r);
+  const off = 48;
+  return { x: anchor.x + nx * off - totalW / 2 + slotIndex * (STICKY_W + STICKY_GAP), y: anchor.y + ny * off - STICKY_H / 2 };
+}
+function notePosition(an, list, index) {
+  if (an.offset) {
+    const a = anchorFor(an.target);
+    return { x: a.x + an.offset.dx - STICKY_W / 2, y: a.y + an.offset.dy - STICKY_H / 2, pinned: true };
+  }
+  return { ...autoSlot(an, list, index), pinned: false };
+}
+
+function renderSticky(an, pos, mode, rot) {
+  const k = KIND[an.kind];
+  const { x: nx, y } = pos;
+  const g = el('g', { class: 'marker sticky' + (state.spotlight && state.spotlight !== an.id ? ' dim' : ''), 'data-id': an.id, style: 'cursor: grab' });
+  const note = el('g', { transform: `rotate(${rot} ${nx + STICKY_W / 2} ${y + STICKY_H / 2})`, class: mode === 'hotspot' ? 'sticky-shadow' : '' });
+  if (mode === 'hotspot') note.appendChild(el('rect', { x: nx, y, width: STICKY_W, height: STICKY_H, fill: k.sticky }));
+  else note.appendChild(el('rect', { x: nx, y, width: STICKY_W, height: STICKY_H, rx: 4, fill: k.bg, stroke: k.border, 'stroke-width': 1.5 }));
+  const ink = mode === 'hotspot' ? k.stickyInk : k.ink;
+  note.appendChild(el('text', { x: nx + 7, y: y + 13, 'font-size': 10, 'font-weight': 700, fill: ink, 'pointer-events': 'none' }, [k.glyph]));
+  clampLines(wrap(an.title, 15), 3).forEach((ln, li) => note.appendChild(el('text', { x: nx + 16, y: y + 13 + li * 12, class: 'sticky-txt', fill: ink, 'pointer-events': 'none' }, [ln])));
+  if (pos.pinned) note.appendChild(el('circle', { cx: nx + STICKY_W - 6, cy: y + 6, r: 2.5, fill: ink, opacity: .7 }));
+  g.appendChild(note);
+  return g;
+}
+function renderLeader(an, pos) {
+  const a = anchorFor(an.target);
+  const cx = pos.x + STICKY_W / 2, cy = pos.y + STICKY_H / 2;
+  if (Math.hypot(cx - a.x, cy - a.y) < LEADER_MIN && an.target.type === 'context') return null;
+  return el('line', { x1: a.x, y1: a.y, x2: cx, y2: cy, stroke: 'var(--edge)', 'stroke-dasharray': '2 3', 'stroke-width': 1, 'pointer-events': 'none' });
+}
+function renderOverflow(list, anchorTarget) {
+  const extra = list.length - STICKY_MAX;
+  if (extra <= 0) return null;
+  const a = anchorFor(anchorTarget);
+  const g = el('g');
+  g.appendChild(el('rect', { x: a.x + 60, y: a.y + NODE_H / 2 + 8, width: 30, height: STICKY_H, rx: 4, fill: 'var(--panel)', stroke: 'var(--line)' }));
+  g.appendChild(el('text', { x: a.x + 75, y: a.y + NODE_H / 2 + 8 + STICKY_H / 2 + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: 'var(--muted)' }, ['+' + extra]));
   return g;
 }
 
@@ -275,7 +330,7 @@ function render() {
   for (const r of relationships) {
     const { a, b, mx, my } = edgeGeometry(r);
     const dim = state.spotlight && !annotations.some(an => an.id === state.spotlight && an.target.type === 'relationship' && an.target.id === r.id);
-    const g = el('g', { class: dim && state.spotlight ? 'dim' : '' });
+    const g = el('g', { class: dim ? 'dim' : '' });
     g.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'edge', 'marker-end': 'url(#arrow)' }));
     const tw = r.label.length * 5 + 10;
     g.appendChild(el('rect', { x: mx - tw / 2, y: my - 8, width: tw, height: 15, rx: 3, fill: 'var(--bg)' }));
@@ -284,27 +339,42 @@ function render() {
   }
   for (const c of contexts) {
     const dim = state.spotlight && !annotations.some(an => an.id === state.spotlight && an.target.type === 'context' && an.target.id === c.id);
-    const g = el('g', { class: dim ? 'dim' : '' });
+    const g = el('g', { class: 'ctx' + (dim ? ' dim' : ''), 'data-ctx': c.id, style: 'cursor: grab' });
     g.appendChild(el('rect', { x: c.x, y: c.y, width: NODE_W, height: NODE_H, rx: 8, class: 'node' + (c.ext ? ' ext' : '') }));
-    g.appendChild(el('text', { x: c.x + 10, y: c.y + 20, class: 'node-title' }, [c.name]));
-    g.appendChild(el('text', { x: c.x + 10, y: c.y + 36, class: 'node-sub' }, [c.sub]));
+    g.appendChild(el('text', { x: c.x + 10, y: c.y + 20, class: 'node-title', 'pointer-events': 'none' }, [c.name]));
+    g.appendChild(el('text', { x: c.x + 10, y: c.y + 36, class: 'node-sub', 'pointer-events': 'none' }, [c.sub]));
     svg.appendChild(g);
   }
-  for (const c of contexts) {
-    const list = annotationsFor('context', c.id);
-    if (!list.length) continue;
-    if (state.style === 'pill') svg.appendChild(renderPill(list, c.x + NODE_W - 6, c.y + NODE_H - 10, 'end'));
-    else svg.appendChild(renderStickies(list, c.x + NODE_W / 2, c.y + NODE_H + 8, 'middle', state.style));
-  }
-  for (const r of relationships) {
-    const list = annotationsFor('relationship', r.id);
-    if (!list.length) continue;
-    const { mx, my, nx, ny } = edgeGeometry(r);
-    const off = state.style === 'pill' ? 32 : 48;
-    const px = mx + nx * off, py = my + ny * off;
-    svg.appendChild(el('line', { x1: mx, y1: my, x2: px, y2: py, stroke: 'var(--edge)', 'stroke-dasharray': '2 3', 'stroke-width': 1 }));
-    if (state.style === 'pill') svg.appendChild(renderPill(list, px, py, 'middle'));
-    else svg.appendChild(renderStickies(list, px, py - 28, 'middle', state.style));
+
+  if (state.style === 'pill') {
+    for (const c of contexts) {
+      const list = annotationsFor('context', c.id);
+      if (list.length) svg.appendChild(renderPill(list, c.x + NODE_W - 6, c.y + NODE_H - 10, 'end'));
+    }
+    for (const r of relationships) {
+      const list = annotationsFor('relationship', r.id);
+      if (!list.length) continue;
+      const { mx, my, nx, ny } = edgeGeometry(r);
+      const px = mx + nx * 32, py = my + ny * 32;
+      svg.appendChild(el('line', { x1: mx, y1: my, x2: px, y2: py, stroke: 'var(--edge)', 'stroke-dasharray': '2 3', 'stroke-width': 1 }));
+      svg.appendChild(renderPill(list, px, py, 'middle'));
+    }
+  } else {
+    const leaders = el('g'), notes = el('g');
+    const targets = [...contexts.map(c => ({ type: 'context', id: c.id })), ...relationships.map(r => ({ type: 'relationship', id: r.id }))];
+    for (const t of targets) {
+      const list = annotationsFor(t.type, t.id);
+      if (!list.length) continue;
+      const shown = list.slice(0, STICKY_MAX);
+      shown.forEach((an, i) => {
+        const pos = notePosition(an, shown, i);
+        const rot = state.style === 'hotspot' ? ((i % 2 ? 1 : -1) * 2.5) : 0;
+        const leader = renderLeader(an, pos); if (leader) leaders.appendChild(leader);
+        notes.appendChild(renderSticky(an, pos, state.style, rot));
+      });
+      const over = renderOverflow(list, t); if (over) notes.appendChild(over);
+    }
+    svg.appendChild(leaders); svg.appendChild(notes);
   }
   renderList();
 }
@@ -321,11 +391,59 @@ function renderList() {
   for (const an of shown) {
     const k = KIND[an.kind];
     const row = document.createElement('div'); row.className = 'row'; row.style.opacity = state.spotlight && state.spotlight !== an.id ? .5 : 1;
-    row.innerHTML = `<span class="kind-ico" style="background:${k.ink}">${k.glyph}</span><div><div class="t">${an.title}</div><div class="w">${k.label} · ${an.target.type === 'relationship' ? 'Relationship: ' : ''}${targetName(an)}</div></div>`;
+    const pin = an.offset ? ' · pinned' : '';
+    row.innerHTML = `<span class="kind-ico" style="background:${k.ink}">${k.glyph}</span><div><div class="t">${an.title}</div><div class="w">${k.label} · ${an.target.type === 'relationship' ? 'Relationship: ' : ''}${targetName(an)}${pin}</div></div>`;
     row.onclick = () => { state.spotlight = state.spotlight === an.id ? null : an.id; render(); };
     list.appendChild(row);
   }
 }
+
+// Dragging: stickies store an offset from their anchor; contexts move and their notes follow.
+function svgPoint(evt) {
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+let drag = null;
+svg.addEventListener('pointerdown', e => {
+  const stickyEl = e.target.closest('.sticky'), ctxEl = e.target.closest('.ctx');
+  if (!stickyEl && !ctxEl) return;
+  const p = svgPoint(e);
+  if (stickyEl) {
+    const an = annotations.find(a => a.id === stickyEl.dataset.id);
+    const a = anchorFor(an.target);
+    const shown = annotationsFor(an.target.type, an.target.id).slice(0, STICKY_MAX);
+    const pos = notePosition(an, shown, shown.indexOf(an));
+    const cx = pos.x + STICKY_W / 2, cy = pos.y + STICKY_H / 2;
+    drag = { kind: 'sticky', an, grabDx: p.x - cx, grabDy: p.y - cy, anchor: a, moved: false };
+  } else {
+    const c = ctxById[ctxEl.dataset.ctx];
+    drag = { kind: 'ctx', c, grabDx: p.x - c.x, grabDy: p.y - c.y, moved: false };
+  }
+  svg.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+svg.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = svgPoint(e);
+  drag.moved = true;
+  if (drag.kind === 'sticky') {
+    const cx = p.x - drag.grabDx, cy = p.y - drag.grabDy;
+    drag.an.offset = { dx: Math.round(cx - drag.anchor.x), dy: Math.round(cy - drag.anchor.y) };
+  } else {
+    drag.c.x = Math.round(p.x - drag.grabDx); drag.c.y = Math.round(p.y - drag.grabDy);
+  }
+  render();
+});
+svg.addEventListener('pointerup', e => {
+  if (!drag) return;
+  if (drag.moved) savePositions();
+  drag = null;
+});
+svg.addEventListener('dblclick', e => {
+  const stickyEl = e.target.closest('.sticky'); if (!stickyEl) return;
+  const an = annotations.find(a => a.id === stickyEl.dataset.id);
+  an.offset = null; savePositions(); render();
+});
 
 document.getElementById('styleSeg').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -346,6 +464,10 @@ document.getElementById('kindChips').addEventListener('click', e => {
   b.setAttribute('aria-pressed', String(state.kinds.has(k)));
   render();
 });
+document.getElementById('resetBtn').addEventListener('click', resetPositions);
+for (const c of contexts) c.home = { x: c.x, y: c.y };
+for (const an of annotations) an.offset = null;
+loadPositions();
 render();
 </script>
 </body>
