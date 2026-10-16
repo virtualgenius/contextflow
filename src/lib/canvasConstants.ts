@@ -86,7 +86,7 @@ export const PATTERN_EDGE_INDICATORS: Partial<
     colors: {
       bg: '#fef3c7', // amber-100
       border: '#f59e0b', // amber-500
-      text: '#d97706', // amber-600
+      text: '#92400e', // amber-800; amber-600 is 2.86:1 on amber-100
       bgDark: 'rgba(146, 64, 14, 0.4)',
       borderDark: '#fbbf24',
       textDark: '#fbbf24',
@@ -100,7 +100,7 @@ export const PATTERN_EDGE_INDICATORS: Partial<
     colors: {
       bg: '#dcfce7', // green-100
       border: '#22c55e', // green-500
-      text: '#16a34a', // green-600
+      text: '#166534', // green-800; green-600 is 3.00:1 on green-100
       bgDark: 'rgba(20, 83, 45, 0.4)',
       borderDark: '#4ade80',
       textDark: '#4ade80',

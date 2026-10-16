@@ -3,6 +3,7 @@ import { contrastRatio, WCAG_AA_NORMAL_TEXT } from '../colorContrast'
 import { getTopologyColors } from '../teamColors'
 import { OWNERSHIP_FILL_COLORS } from '../nodeStyles'
 import { SEVERITY_COLORS, ISSUE_LABEL_STYLES } from '../issueColors'
+import { PATTERN_EDGE_INDICATORS } from '../canvasConstants'
 
 // Every hand-picked text/background pair in the canvas palette is registered
 // here. Decorative borders are not: WCAG 1.4.11 covers only non-text elements
@@ -64,7 +65,21 @@ function issuePairs(): Pair[] {
   return [...labels, ...pills]
 }
 
-const PAIRS: Pair[] = [...topologyPairs(), ...ownershipPairs(), ...issuePairs()]
+function edgeIndicatorPairs(): Pair[] {
+  return Object.entries(PATTERN_EDGE_INDICATORS).map(([role, config]) => ({
+    name: `edge indicator ${config.label} (${role})`,
+    fg: config.colors.text,
+    bg: config.colors.bg,
+    threshold: WCAG_AA_NORMAL_TEXT,
+  }))
+}
+
+const PAIRS: Pair[] = [
+  ...topologyPairs(),
+  ...ownershipPairs(),
+  ...issuePairs(),
+  ...edgeIndicatorPairs(),
+]
 
 describe('canvas palette meets WCAG AA', () => {
   it.each(PAIRS.map((p) => [p.name, p]))('%s', (_name, pair) => {

@@ -49,6 +49,127 @@ async function runAxe(page) {
   })
 }
 
+// axe does not evaluate SVG <text>. Canvas-style mockups and the React Flow
+// canvas put their labels there, so this pass checks each visible SVG text
+// against whatever element is painted beneath its center.
+const LARGE_TEXT_PX = 24
+const LARGE_BOLD_TEXT_PX = 18.66
+const BOLD_WEIGHT = 700
+
+async function runSvgTextCheck(page) {
+  return page.evaluate(
+    ({ LARGE_TEXT_PX, LARGE_BOLD_TEXT_PX, BOLD_WEIGHT }) => {
+      const parse = (c) => {
+        const m = c && c.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?/)
+        if (!m) return null
+        const a = m[4] === undefined ? 1 : Number(m[4])
+        return a === 0 ? null : [Number(m[1]), Number(m[2]), Number(m[3])]
+      }
+      const lin = (v) => {
+        const c = v / 255
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+      }
+      const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+      const ratio = (f, b) => {
+        const lf = lum(f), lb = lum(b)
+        return (Math.max(lf, lb) + 0.05) / (Math.min(lf, lb) + 0.05)
+      }
+      const hex = ([r, g, b]) => '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
+      const isInvisible = (node) => {
+        for (let n = node; n && n !== document.body; n = n.parentElement) {
+          const cs = getComputedStyle(n)
+          if (cs.opacity === '0' || cs.visibility === 'hidden') return true
+        }
+        return false
+      }
+      // A path with no explicit fill computes to black without painting it.
+      const isSurface = (n) => {
+        if (!(n instanceof SVGElement)) return true
+        if (/^(rect|circle|ellipse|polygon)$/i.test(n.tagName)) return true
+        if (n.tagName.toLowerCase() === 'path') {
+          const f = n.getAttribute('fill') || n.style.fill
+          return Boolean(f) && f !== 'none'
+        }
+        return false
+      }
+      const paintedColor = (node) => {
+        if (isInvisible(node) || !isSurface(node)) return null
+        const cs = getComputedStyle(node)
+        return parse(node instanceof SVGElement ? cs.fill : cs.backgroundColor)
+      }
+      const selectorFor = (node) => {
+        const owner = node.closest('[data-id],[data-ctx],[data-testid]')
+        const attr = owner ? ['data-id', 'data-ctx', 'data-testid'].find((a) => owner.hasAttribute(a)) : null
+        const prefix = owner ? `${owner.tagName.toLowerCase()}[${attr}="${owner.getAttribute(attr)}"] ` : 'svg '
+        return `${prefix}text "${node.textContent.trim().slice(0, 30)}"`
+      }
+      const SLACK = 1
+      const containsBox = (n, box) => {
+        const b = n.getBoundingClientRect()
+        return b.left <= box.left + SLACK && b.top <= box.top + SLACK && b.right >= box.right - SLACK && b.bottom >= box.bottom - SLACK
+      }
+      // Walk outward through the text's SVG ancestors; the background is the
+      // last painted shape drawn before the text that encloses its glyph box.
+      const domSurface = (text, box) => {
+        const owner = text.ownerSVGElement
+        for (let scope = text.parentElement; scope && scope !== owner.parentElement; scope = scope.parentElement) {
+          const shapes = [...scope.querySelectorAll('rect,circle,ellipse,polygon,path')].filter(
+            (n) => !n.contains(text) && n.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING && paintedColor(n) && containsBox(n, box)
+          )
+          if (shapes.length) return shapes[shapes.length - 1]
+        }
+        return null
+      }
+      // Hit-test with the text made targetable: whatever paints above it means
+      // it is covered (a modal scrim, an overlay badge), not a contrast case.
+      const withHitTarget = (text, fn) => {
+        const chain = []
+        for (let n = text; n && n !== text.ownerSVGElement.parentElement; n = n.parentElement) {
+          chain.push([n, n.style.pointerEvents])
+          n.style.pointerEvents = 'all'
+        }
+        try {
+          return fn()
+        } finally {
+          for (const [n, prev] of chain) n.style.pointerEvents = prev
+        }
+      }
+      const failures = []
+      for (const text of document.querySelectorAll('svg text')) {
+        if (!text.textContent.trim() || !text.ownerSVGElement) continue
+        const box = text.getBoundingClientRect()
+        if (box.width === 0 || box.height === 0) continue
+        if (box.bottom < 0 || box.right < 0 || box.top > innerHeight || box.left > innerWidth) continue
+        const cs = getComputedStyle(text)
+        const fg = parse(cs.fill)
+        if (!fg) continue
+        const cx = box.left + box.width / 2, cy = box.top + box.height / 2
+        const stack = withHitTarget(text, () => document.elementsFromPoint(cx, cy))
+        const textIndex = stack.findIndex((n) => n === text || text.contains(n))
+        const above = textIndex === -1 ? stack : stack.slice(0, textIndex)
+        if (above.some((n) => !n.contains(text) && paintedColor(n))) continue
+        const below = textIndex === -1 ? [] : stack.slice(textIndex + 1)
+        const behind = domSurface(text, box) ?? below.find((n) => !n.contains(text) && paintedColor(n))
+        if (!behind) continue
+        const bg = paintedColor(behind)
+        const size = parseFloat(cs.fontSize)
+        const weight = parseInt(cs.fontWeight, 10) || (cs.fontWeight === 'bold' ? BOLD_WEIGHT : 400)
+        const large = size >= LARGE_TEXT_PX || (size >= LARGE_BOLD_TEXT_PX && weight >= BOLD_WEIGHT)
+        const needed = large ? 3 : 4.5
+        const r = ratio(fg, bg)
+        if (r < needed) {
+          failures.push({
+            target: [selectorFor(text)],
+            any: [{ data: { fgColor: hex(fg), bgColor: hex(bg), contrastRatio: r.toFixed(2), expectedContrastRatio: `${needed}:1` } }],
+          })
+        }
+      }
+      return failures
+    },
+    { LARGE_TEXT_PX, LARGE_BOLD_TEXT_PX, BOLD_WEIGHT }
+  )
+}
+
 function describeNode(node) {
   const data = node.any?.[0]?.data ?? {}
   const where = node.target?.join(' ') ?? '?'
@@ -60,7 +181,8 @@ function describeNode(node) {
 async function violationsOn(page) {
   await page.waitForTimeout(SETTLE_MS)
   const results = await runAxe(page)
-  return results.violations.flatMap((v) => v.nodes)
+  const svgText = await runSvgTextCheck(page)
+  return [...results.violations.flatMap((v) => v.nodes), ...svgText]
 }
 
 function report(label, nodes, allowed = 0) {

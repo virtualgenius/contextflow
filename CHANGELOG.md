@@ -6,7 +6,7 @@ All notable changes to ContextFlow will be documented in this file.
 
 ## [0.12.1] - 2026-10-16
 
-- Team label topology tags, warning issue counters, and the Examples heading on the project list now meet WCAG AA contrast in both themes
+- Team label topology tags, warning issue counters, ACL and OHS edge markers, and the Examples heading on the project list now meet WCAG AA contrast in both themes
 - Every release is now checked for WCAG AA color contrast across the app and design mockups before it can ship
 
 ## [0.12.0] - 2026-06-17
