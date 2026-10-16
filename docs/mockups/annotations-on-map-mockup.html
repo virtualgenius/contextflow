@@ -208,12 +208,24 @@ function annotationsFor(type, id) {
   return annotations.filter(an => an.target.type === type && an.target.id === id && visible(an))
     .sort((p, q) => SEVERITY_ORDER.indexOf(p.kind) - SEVERITY_ORDER.indexOf(q.kind));
 }
-function wrap(text, maxChars) {
-  const words = text.split(' '); const lines = []; let cur = '';
-  for (const w of words) {
-    if ((cur + ' ' + w).trim().length > maxChars) { lines.push(cur.trim()); cur = w; } else cur += ' ' + w;
+const measureCtx = document.createElement('canvas').getContext('2d');
+const STICKY_FONT = `500 9.5px ${getComputedStyle(document.body).fontFamily}`;
+function wrapToWidth(text, maxPx, font = STICKY_FONT) {
+  measureCtx.font = font;
+  const fits = (str) => measureCtx.measureText(str).width <= maxPx;
+  const lines = []; let cur = '';
+  for (const w of text.split(' ')) {
+    const candidate = cur ? cur + ' ' + w : w;
+    if (fits(candidate)) { cur = candidate; continue; }
+    if (cur) lines.push(cur);
+    cur = w;
+    while (!fits(cur) && cur.length > 1) {
+      let cut = cur.length - 1;
+      while (cut > 1 && !fits(cur.slice(0, cut))) cut--;
+      lines.push(cur.slice(0, cut)); cur = cur.slice(cut);
+    }
   }
-  if (cur.trim()) lines.push(cur.trim());
+  if (cur) lines.push(cur);
   return lines;
 }
 
@@ -234,7 +246,11 @@ function renderPill(list, x, y, anchor) {
   return g;
 }
 
-const STICKY_W = 92, STICKY_H = 56, STICKY_GAP = 6, STICKY_MAX = 3, LEADER_MIN = 40;
+const STICKY_W = 100, STICKY_MIN_H = 56, STICKY_GAP = 6, STICKY_MAX = 3, LEADER_MIN = 40;
+const STICKY_PAD_X = 16, STICKY_PAD_RIGHT = 6, STICKY_LINE_H = 12, STICKY_FIRST_BASELINE = 13, STICKY_PAD_BOTTOM = 7, STICKY_MAX_LINES = 5;
+// Stickies grow to fit their text (up to STICKY_MAX_LINES) so titles are read, not guessed.
+function stickyLines(an) { return clampLines(wrapToWidth(an.title, STICKY_W - STICKY_PAD_X - STICKY_PAD_RIGHT), STICKY_MAX_LINES); }
+function stickyHeight(an) { return Math.max(STICKY_MIN_H, STICKY_FIRST_BASELINE + (stickyLines(an).length - 1) * STICKY_LINE_H + STICKY_PAD_BOTTOM); }
 const STORAGE_KEY = 'cf-annotation-mockup-positions';
 
 function loadPositions() {
@@ -274,12 +290,12 @@ function autoSlot(an, list, index) {
   const r = relationships.find(r => r.id === an.target.id);
   const { nx, ny } = edgeGeometry(r);
   const off = 48;
-  return { x: anchor.x + nx * off - totalW / 2 + slotIndex * (STICKY_W + STICKY_GAP), y: anchor.y + ny * off - STICKY_H / 2 };
+  return { x: anchor.x + nx * off - totalW / 2 + slotIndex * (STICKY_W + STICKY_GAP), y: anchor.y + ny * off - stickyHeight(an) / 2 };
 }
 function notePosition(an, list, index) {
   if (an.offset) {
     const a = anchorFor(an.target);
-    return { x: a.x + an.offset.dx - STICKY_W / 2, y: a.y + an.offset.dy - STICKY_H / 2, pinned: true };
+    return { x: a.x + an.offset.dx - STICKY_W / 2, y: a.y + an.offset.dy - stickyHeight(an) / 2, pinned: true };
   }
   return { ...autoSlot(an, list, index), pinned: false };
 }
@@ -288,19 +304,20 @@ function renderSticky(an, pos, mode, rot) {
   const k = KIND[an.kind];
   const { x: nx, y } = pos;
   const g = el('g', { class: 'marker sticky' + (state.spotlight && state.spotlight !== an.id ? ' dim' : ''), 'data-id': an.id, style: 'cursor: grab' });
-  const note = el('g', { transform: `rotate(${rot} ${nx + STICKY_W / 2} ${y + STICKY_H / 2})`, class: mode === 'hotspot' ? 'sticky-shadow' : '' });
-  if (mode === 'hotspot') note.appendChild(el('rect', { x: nx, y, width: STICKY_W, height: STICKY_H, fill: k.sticky }));
-  else note.appendChild(el('rect', { x: nx, y, width: STICKY_W, height: STICKY_H, rx: 4, fill: k.bg, stroke: k.border, 'stroke-width': 1.5 }));
+  const h = stickyHeight(an);
+  const note = el('g', { transform: `rotate(${rot} ${nx + STICKY_W / 2} ${y + h / 2})`, class: mode === 'hotspot' ? 'sticky-shadow' : '' });
+  if (mode === 'hotspot') note.appendChild(el('rect', { x: nx, y, width: STICKY_W, height: h, fill: k.sticky }));
+  else note.appendChild(el('rect', { x: nx, y, width: STICKY_W, height: h, rx: 4, fill: k.bg, stroke: k.border, 'stroke-width': 1.5 }));
   const ink = mode === 'hotspot' ? k.stickyInk : k.ink;
   note.appendChild(el('text', { x: nx + 7, y: y + 13, 'font-size': 10, 'font-weight': 700, fill: ink, 'pointer-events': 'none' }, [k.glyph]));
-  clampLines(wrap(an.title, 15), 3).forEach((ln, li) => note.appendChild(el('text', { x: nx + 16, y: y + 13 + li * 12, class: 'sticky-txt', fill: ink, 'pointer-events': 'none' }, [ln])));
+  stickyLines(an).forEach((ln, li) => note.appendChild(el('text', { x: nx + STICKY_PAD_X, y: y + STICKY_FIRST_BASELINE + li * STICKY_LINE_H, class: 'sticky-txt', fill: ink, 'pointer-events': 'none' }, [ln])));
   if (pos.pinned) note.appendChild(el('circle', { cx: nx + STICKY_W - 6, cy: y + 6, r: 2.5, fill: ink, opacity: .7 }));
   g.appendChild(note);
   return g;
 }
 function renderLeader(an, pos) {
   const a = anchorFor(an.target);
-  const cx = pos.x + STICKY_W / 2, cy = pos.y + STICKY_H / 2;
+  const cx = pos.x + STICKY_W / 2, cy = pos.y + stickyHeight(an) / 2;
   if (Math.hypot(cx - a.x, cy - a.y) < LEADER_MIN && an.target.type === 'context') return null;
   return el('line', { x1: a.x, y1: a.y, x2: cx, y2: cy, stroke: 'var(--edge)', 'stroke-dasharray': '2 3', 'stroke-width': 1, 'pointer-events': 'none' });
 }
@@ -309,8 +326,8 @@ function renderOverflow(list, anchorTarget) {
   if (extra <= 0) return null;
   const a = anchorFor(anchorTarget);
   const g = el('g');
-  g.appendChild(el('rect', { x: a.x + 60, y: a.y + NODE_H / 2 + 8, width: 30, height: STICKY_H, rx: 4, fill: 'var(--panel)', stroke: 'var(--line)' }));
-  g.appendChild(el('text', { x: a.x + 75, y: a.y + NODE_H / 2 + 8 + STICKY_H / 2 + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: 'var(--muted)' }, ['+' + extra]));
+  g.appendChild(el('rect', { x: a.x + 60, y: a.y + NODE_H / 2 + 8, width: 30, height: STICKY_MIN_H, rx: 4, fill: 'var(--panel)', stroke: 'var(--line)' }));
+  g.appendChild(el('text', { x: a.x + 75, y: a.y + NODE_H / 2 + 8 + STICKY_MIN_H / 2 + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: 'var(--muted)' }, ['+' + extra]));
   return g;
 }
 
@@ -414,7 +431,7 @@ svg.addEventListener('pointerdown', e => {
     const a = anchorFor(an.target);
     const shown = annotationsFor(an.target.type, an.target.id).slice(0, STICKY_MAX);
     const pos = notePosition(an, shown, shown.indexOf(an));
-    const cx = pos.x + STICKY_W / 2, cy = pos.y + STICKY_H / 2;
+    const cx = pos.x + STICKY_W / 2, cy = pos.y + stickyHeight(an) / 2;
     drag = { kind: 'sticky', an, grabDx: p.x - cx, grabDy: p.y - cy, anchor: a, moved: false };
   } else {
     const c = ctxById[ctxEl.dataset.ctx];
