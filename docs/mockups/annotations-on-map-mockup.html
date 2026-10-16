@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Map Annotations</title>
+<style>
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --ink: #0f172a; --muted: #64748b; --line: #e2e8f0;
+    --node: #ffffff; --node-border: #94a3b8; --edge: #94a3b8;
+    --critical: #dc2626; --critical-bg: #fef2f2; --critical-border: #fca5a5;
+    --warning: #d97706; --warning-bg: #fffbeb; --warning-border: #fcd34d;
+    --info: #2563eb; --info-bg: #eff6ff; --info-border: #93c5fd;
+    --question: #7c3aed; --question-bg: #f5f3ff; --question-border: #c4b5fd;
+    --strength: #059669; --strength-bg: #ecfdf5; --strength-border: #6ee7b7;
+    --hotspot-pink: #f9a8d4; --hotspot-pink-ink: #9d174d;
+    --sticky-green: #86efac; --sticky-green-ink: #14532d;
+    --sticky-yellow: #fde68a; --sticky-yellow-ink: #78350f;
+    --sticky-purple: #c4b5fd; --sticky-purple-ink: #4c1d95;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171717; --panel: #262626; --ink: #f1f5f9; --muted: #94a3b8; --line: #404040;
+      --node: #262626; --node-border: #737373; --edge: #737373;
+      --critical-bg: #3f1d1d; --critical-border: #7f1d1d;
+      --warning-bg: #3b2a0e; --warning-border: #78350f;
+      --info-bg: #172036; --info-border: #1e3a8a;
+      --question-bg: #2a1d46; --question-border: #4c1d95;
+      --strength-bg: #0f2d24; --strength-border: #065f46;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171717; --panel: #262626; --ink: #f1f5f9; --muted: #94a3b8; --line: #404040;
+    --node: #262626; --node-border: #737373; --edge: #737373;
+    --critical-bg: #3f1d1d; --critical-border: #7f1d1d;
+    --warning-bg: #3b2a0e; --warning-border: #78350f;
+    --info-bg: #172036; --info-border: #1e3a8a;
+    --question-bg: #2a1d46; --question-border: #4c1d95;
+    --strength-bg: #0f2d24; --strength-border: #065f46;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+  header { padding: 16px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+  header h1 { font-size: 16px; margin: 0 16px 0 0; }
+  .ctl { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ctl .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-right: 4px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { background: var(--panel); color: var(--ink); border: 0; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); font-size: 12px; cursor: pointer; color: var(--ink); }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chip[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+  main { display: grid; grid-template-columns: 1fr; gap: 0; }
+  @media (min-width: 1100px) { main { grid-template-columns: 1fr 320px; } }
+  .canvas { position: relative; overflow: auto; padding: 16px; }
+  svg { width: 100%; max-width: 1080px; height: auto; display: block; margin: 0 auto; }
+  .node { fill: var(--node); stroke: var(--node-border); stroke-width: 1.5; }
+  .node.ext { stroke-dasharray: 5 4; }
+  .node-title { font-size: 12px; font-weight: 600; fill: var(--ink); }
+  .node-sub { font-size: 9px; fill: var(--muted); }
+  .edge { stroke: var(--edge); stroke-width: 1.5; fill: none; }
+  .edge-lbl { font-size: 9px; fill: var(--muted); }
+  .marker { cursor: pointer; }
+  .pill-bg { fill: var(--panel); stroke: var(--line); }
+  .pill-txt { font-size: 10px; font-weight: 600; }
+  .sticky-txt { font-size: 9.5px; font-weight: 500; }
+  .sticky-shadow { filter: drop-shadow(0 2px 3px rgba(0,0,0,.18)); }
+  .dim { opacity: .18; }
+  aside { border-left: 1px solid var(--line); padding: 16px; background: var(--panel); }
+  aside h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+  aside p { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+  .list { display: flex; flex-direction: column; gap: 6px; }
+  .row { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; padding: 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; cursor: pointer; }
+  .row:hover { border-color: var(--muted); }
+  .row .t { font-weight: 600; }
+  .row .w { color: var(--muted); font-size: 11px; }
+  .kind-ico { width: 16px; height: 16px; border-radius: 4px; display: inline-grid; place-items: center; font-size: 10px; font-weight: 700; color: #fff; margin-top: 1px; }
+  details { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  summary { cursor: pointer; font-size: 12px; font-weight: 600; }
+  details p { margin-top: 8px; }
+  @media (max-width: 1099px) { aside { border-left: 0; border-top: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Map annotations</h1>
+  <div class="ctl">
+    <span class="lbl">Style</span>
+    <div class="seg" id="styleSeg">
+      <button data-style="pill" aria-pressed="true">Badge</button>
+      <button data-style="sticky" aria-pressed="false">Sticky notes</button>
+      <button data-style="hotspot" aria-pressed="false">Hotspots</button>
+    </div>
+  </div>
+  <div class="ctl" id="kindChips">
+    <span class="lbl">Show</span>
+    <button class="chip" data-kind="critical" aria-pressed="true"><span class="dot" style="background:var(--critical)"></span>Critical</button>
+    <button class="chip" data-kind="warning" aria-pressed="true"><span class="dot" style="background:var(--warning)"></span>Warning</button>
+    <button class="chip" data-kind="info" aria-pressed="true"><span class="dot" style="background:var(--info)"></span>Info</button>
+    <button class="chip" data-kind="question" aria-pressed="true"><span class="dot" style="background:var(--question)"></span>Question</button>
+    <button class="chip" data-kind="strength" aria-pressed="true"><span class="dot" style="background:var(--strength)"></span>Working well</button>
+  </div>
+  <div class="ctl">
+    <span class="lbl">Where</span>
+    <div class="seg" id="whereSeg">
+      <button data-where="all" aria-pressed="true">All</button>
+      <button data-where="context" aria-pressed="false">Contexts</button>
+      <button data-where="relationship" aria-pressed="false">Relationships</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="canvas">
+    <svg id="map" viewBox="0 0 1080 560" role="img" aria-label="Context map with annotations on contexts and relationships"></svg>
+  </div>
+  <aside>
+    <h2>Annotations <span id="count"></span></h2>
+    <p>One list across the whole map. Click a row to spotlight it on the canvas.</p>
+    <div class="list" id="list"></div>
+    <details>
+      <summary>What this prototype is testing</summary>
+      <p><b>Where.</b> Annotations attach to a relationship as readily as to a context. On an edge they sit at the label point, offset to the side so the pattern label stays readable.</p>
+      <p><b>Kinds.</b> Three problem severities plus two new kinds: Question (open, needs an answer) and Working well (a strength worth protecting). Severity only applies to problems.</p>
+      <p><b>Styles.</b> Badge is today's counter pill. Sticky notes are today's labels made more sticky-like. Hotspots borrow EventStorming colors: pink for problems, green for strengths, purple for questions.</p>
+      <p><b>Filter.</b> Kind chips plus a target filter. A single annotation list in the sidebar is the payoff of moving annotations to a top-level collection.</p>
+    </details>
+  </aside>
+</main>
+
+<script>
+const contexts = [
+  { id: 'cart', name: 'Shopping Cart', sub: 'Manages cart contents', x: 90, y: 150 },
+  { id: 'checkout', name: 'Checkout & Order Placement', sub: 'Orchestrates checkout flow', x: 330, y: 120 },
+  { id: 'orders', name: 'Order Management', sub: 'Order lifecycle', x: 590, y: 110 },
+  { id: 'payment', name: 'Payment Processing', sub: 'Handles payment authorization', x: 330, y: 350 },
+  { id: 'stripe', name: 'Stripe Payment Gateway', sub: 'External', x: 90, y: 400, ext: true },
+  { id: 'wms', name: 'Warehouse Management (Legacy)', sub: 'Legacy on-prem system', x: 600, y: 380 },
+  { id: 'shipping', name: 'Shipping Integration', sub: 'Carrier APIs', x: 860, y: 250 },
+];
+const NODE_W = 170, NODE_H = 64;
+
+const relationships = [
+  { id: 'r1', from: 'cart', to: 'checkout', label: 'Customer-Supplier' },
+  { id: 'r2', from: 'checkout', to: 'orders', label: 'Customer-Supplier' },
+  { id: 'r3', from: 'checkout', to: 'payment', label: 'Partnership' },
+  { id: 'r4', from: 'payment', to: 'stripe', label: 'Conformist' },
+  { id: 'r5', from: 'orders', to: 'wms', label: 'ACL' },
+  { id: 'r6', from: 'wms', to: 'shipping', label: 'Published Language' },
+  { id: 'r7', from: 'orders', to: 'shipping', label: 'Open Host Service' },
+];
+
+const annotations = [
+  { id: 'a1', target: { type: 'context', id: 'payment' }, kind: 'critical', title: 'PCI scope leaking into checkout code' },
+  { id: 'a2', target: { type: 'context', id: 'payment' }, kind: 'warning', title: 'Retry logic duplicated in 3 places' },
+  { id: 'a3', target: { type: 'context', id: 'wms' }, kind: 'critical', title: 'No automated tests, nightly batch fails weekly' },
+  { id: 'a4', target: { type: 'context', id: 'wms' }, kind: 'question', title: 'Replace or strangle? Decision owner unclear' },
+  { id: 'a5', target: { type: 'context', id: 'checkout' }, kind: 'strength', title: 'Clean API, team owns end to end' },
+  { id: 'a6', target: { type: 'context', id: 'cart' }, kind: 'info', title: 'Planned move to edge cache Q1' },
+  { id: 'a7', target: { type: 'relationship', id: 'r5' }, kind: 'warning', title: 'ACL translates only 60% of WMS messages' },
+  { id: 'a8', target: { type: 'relationship', id: 'r4' }, kind: 'question', title: 'Who owns the Stripe webhook contract?' },
+  { id: 'a9', target: { type: 'relationship', id: 'r2' }, kind: 'strength', title: 'Shared event schema, zero incidents this year' },
+  { id: 'a10', target: { type: 'relationship', id: 'r6' }, kind: 'critical', title: 'Nightly CSV drop, no schema versioning' },
+  { id: 'a11', target: { type: 'context', id: 'shipping' }, kind: 'strength', title: 'Carrier failover works, tested in prod' },
+];
+
+const KIND = {
+  critical: { label: 'Critical', ink: 'var(--critical)', bg: 'var(--critical-bg)', border: 'var(--critical-border)', glyph: '!', sticky: 'var(--hotspot-pink)', stickyInk: 'var(--hotspot-pink-ink)' },
+  warning:  { label: 'Warning',  ink: 'var(--warning)',  bg: 'var(--warning-bg)',  border: 'var(--warning-border)',  glyph: '!', sticky: 'var(--hotspot-pink)', stickyInk: 'var(--hotspot-pink-ink)' },
+  info:     { label: 'Info',     ink: 'var(--info)',     bg: 'var(--info-bg)',     border: 'var(--info-border)',     glyph: 'i', sticky: 'var(--sticky-yellow)', stickyInk: 'var(--sticky-yellow-ink)' },
+  question: { label: 'Question', ink: 'var(--question)', bg: 'var(--question-bg)', border: 'var(--question-border)', glyph: '?', sticky: 'var(--sticky-purple)', stickyInk: 'var(--sticky-purple-ink)' },
+  strength: { label: 'Working well', ink: 'var(--strength)', bg: 'var(--strength-bg)', border: 'var(--strength-border)', glyph: '+', sticky: 'var(--sticky-green)', stickyInk: 'var(--sticky-green-ink)' },
+};
+const SEVERITY_ORDER = ['critical', 'warning', 'info', 'question', 'strength'];
+
+const state = { style: 'pill', kinds: new Set(SEVERITY_ORDER), where: 'all', spotlight: null };
+
+const svg = document.getElementById('map');
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs = {}, children = []) {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  for (const c of children) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  return n;
+}
+const ctxById = Object.fromEntries(contexts.map(c => [c.id, c]));
+function center(c) { return { x: c.x + NODE_W / 2, y: c.y + NODE_H / 2 }; }
+function edgeGeometry(r) {
+  const a = center(ctxById[r.from]), b = center(ctxById[r.to]);
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len;
+  return { a, b, mx, my, nx, ny };
+}
+function visible(an) {
+  if (!state.kinds.has(an.kind)) return false;
+  if (state.where !== 'all' && an.target.type !== state.where) return false;
+  return true;
+}
+function annotationsFor(type, id) {
+  return annotations.filter(an => an.target.type === type && an.target.id === id && visible(an))
+    .sort((p, q) => SEVERITY_ORDER.indexOf(p.kind) - SEVERITY_ORDER.indexOf(q.kind));
+}
+function wrap(text, maxChars) {
+  const words = text.split(' '); const lines = []; let cur = '';
+  for (const w of words) {
+    if ((cur + ' ' + w).trim().length > maxChars) { lines.push(cur.trim()); cur = w; } else cur += ' ' + w;
+  }
+  if (cur.trim()) lines.push(cur.trim());
+  return lines;
+}
+
+function renderPill(list, x, y, anchor) {
+  const groups = {};
+  for (const an of list) (groups[an.kind] ||= []).push(an);
+  const kinds = SEVERITY_ORDER.filter(k => groups[k]);
+  const w = kinds.length * 26 + 8;
+  const px = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
+  const g = el('g', { class: 'marker' + spotlightClass(list) });
+  g.appendChild(el('rect', { x: px, y: y - 9, width: w, height: 18, rx: 9, class: 'pill-bg' }));
+  kinds.forEach((k, i) => {
+    const cx = px + 6 + i * 26;
+    g.appendChild(el('rect', { x: cx, y: y - 6, width: 12, height: 12, rx: 3, fill: KIND[k].ink }));
+    g.appendChild(el('text', { x: cx + 6, y: y + 3, 'text-anchor': 'middle', 'font-size': 8, 'font-weight': 700, fill: '#fff' }, [KIND[k].glyph]));
+    g.appendChild(el('text', { x: cx + 15, y: y + 3.5, class: 'pill-txt', fill: KIND[k].ink }, [String(groups[k].length)]));
+  });
+  return g;
+}
+
+function renderStickies(list, x, y, anchor, mode) {
+  const W = 92, H = 56, GAP = 6, MAX = 3;
+  const shown = list.slice(0, MAX), extra = list.length - shown.length;
+  const totalW = (shown.length + (extra > 0 ? 1 : 0)) * (W + GAP) - GAP;
+  const sx = anchor === 'end' ? x - totalW : anchor === 'middle' ? x - totalW / 2 : x;
+  const g = el('g', { class: 'marker' + spotlightClass(list) });
+  shown.forEach((an, i) => {
+    const k = KIND[an.kind];
+    const nx = sx + i * (W + GAP);
+    const rot = mode === 'hotspot' ? ((i % 2 ? 1 : -1) * 2.5) : 0;
+    const note = el('g', { transform: `rotate(${rot} ${nx + W / 2} ${y + H / 2})`, class: mode === 'hotspot' ? 'sticky-shadow' : '' });
+    if (mode === 'hotspot') {
+      note.appendChild(el('rect', { x: nx, y, width: W, height: H, fill: k.sticky }));
+    } else {
+      note.appendChild(el('rect', { x: nx, y, width: W, height: H, rx: 4, fill: k.bg, stroke: k.border, 'stroke-width': 1.5 }));
+    }
+    const ink = mode === 'hotspot' ? k.stickyInk : k.ink;
+    note.appendChild(el('text', { x: nx + 7, y: y + 13, 'font-size': 10, 'font-weight': 700, fill: ink }, [k.glyph]));
+    const lines = clampLines(wrap(an.title, 15), 3);
+    lines.forEach((ln, li) => note.appendChild(el('text', { x: nx + 16, y: y + 13 + li * 12, class: 'sticky-txt', fill: ink }, [ln])));
+    g.appendChild(note);
+  });
+  if (extra > 0) {
+    const nx = sx + shown.length * (W + GAP);
+    g.appendChild(el('rect', { x: nx, y, width: 30, height: H, rx: 4, fill: 'var(--panel)', stroke: 'var(--line)' }));
+    g.appendChild(el('text', { x: nx + 15, y: y + H / 2 + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: 'var(--muted)' }, ['+' + extra]));
+  }
+  return g;
+}
+
+function clampLines(lines, max) { if (lines.length <= max) return lines; const out = lines.slice(0, max); out[max - 1] = out[max - 1].replace(/.{2}$/, '') + '…'; return out; }
+function spotlightClass(list) {
+  if (!state.spotlight) return '';
+  return list.some(an => an.id === state.spotlight) ? '' : ' dim';
+}
+
+function render() {
+  svg.innerHTML = '';
+  const defs = el('defs');
+  defs.appendChild(el('marker', { id: 'arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, [
+    el('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: 'var(--edge)' })
+  ]));
+  svg.appendChild(defs);
+
+  for (const r of relationships) {
+    const { a, b, mx, my } = edgeGeometry(r);
+    const dim = state.spotlight && !annotations.some(an => an.id === state.spotlight && an.target.type === 'relationship' && an.target.id === r.id);
+    const g = el('g', { class: dim && state.spotlight ? 'dim' : '' });
+    g.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'edge', 'marker-end': 'url(#arrow)' }));
+    const tw = r.label.length * 5 + 10;
+    g.appendChild(el('rect', { x: mx - tw / 2, y: my - 8, width: tw, height: 15, rx: 3, fill: 'var(--bg)' }));
+    g.appendChild(el('text', { x: mx, y: my + 3, 'text-anchor': 'middle', class: 'edge-lbl' }, [r.label]));
+    svg.appendChild(g);
+  }
+  for (const c of contexts) {
+    const dim = state.spotlight && !annotations.some(an => an.id === state.spotlight && an.target.type === 'context' && an.target.id === c.id);
+    const g = el('g', { class: dim ? 'dim' : '' });
+    g.appendChild(el('rect', { x: c.x, y: c.y, width: NODE_W, height: NODE_H, rx: 8, class: 'node' + (c.ext ? ' ext' : '') }));
+    g.appendChild(el('text', { x: c.x + 10, y: c.y + 20, class: 'node-title' }, [c.name]));
+    g.appendChild(el('text', { x: c.x + 10, y: c.y + 36, class: 'node-sub' }, [c.sub]));
+    svg.appendChild(g);
+  }
+  for (const c of contexts) {
+    const list = annotationsFor('context', c.id);
+    if (!list.length) continue;
+    if (state.style === 'pill') svg.appendChild(renderPill(list, c.x + NODE_W - 6, c.y + NODE_H - 10, 'end'));
+    else svg.appendChild(renderStickies(list, c.x + NODE_W / 2, c.y + NODE_H + 8, 'middle', state.style));
+  }
+  for (const r of relationships) {
+    const list = annotationsFor('relationship', r.id);
+    if (!list.length) continue;
+    const { mx, my, nx, ny } = edgeGeometry(r);
+    const off = state.style === 'pill' ? 32 : 48;
+    const px = mx + nx * off, py = my + ny * off;
+    svg.appendChild(el('line', { x1: mx, y1: my, x2: px, y2: py, stroke: 'var(--edge)', 'stroke-dasharray': '2 3', 'stroke-width': 1 }));
+    if (state.style === 'pill') svg.appendChild(renderPill(list, px, py, 'middle'));
+    else svg.appendChild(renderStickies(list, px, py - 28, 'middle', state.style));
+  }
+  renderList();
+}
+
+function targetName(an) {
+  if (an.target.type === 'context') return ctxById[an.target.id].name;
+  const r = relationships.find(r => r.id === an.target.id);
+  return `${ctxById[r.from].name} → ${ctxById[r.to].name}`;
+}
+function renderList() {
+  const list = document.getElementById('list'); list.innerHTML = '';
+  const shown = annotations.filter(visible).sort((p, q) => SEVERITY_ORDER.indexOf(p.kind) - SEVERITY_ORDER.indexOf(q.kind));
+  document.getElementById('count').textContent = `(${shown.length} of ${annotations.length})`;
+  for (const an of shown) {
+    const k = KIND[an.kind];
+    const row = document.createElement('div'); row.className = 'row'; row.style.opacity = state.spotlight && state.spotlight !== an.id ? .5 : 1;
+    row.innerHTML = `<span class="kind-ico" style="background:${k.ink}">${k.glyph}</span><div><div class="t">${an.title}</div><div class="w">${k.label} · ${an.target.type === 'relationship' ? 'Relationship: ' : ''}${targetName(an)}</div></div>`;
+    row.onclick = () => { state.spotlight = state.spotlight === an.id ? null : an.id; render(); };
+    list.appendChild(row);
+  }
+}
+
+document.getElementById('styleSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.style = b.dataset.style;
+  for (const x of e.currentTarget.children) x.setAttribute('aria-pressed', String(x === b));
+  render();
+});
+document.getElementById('whereSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.where = b.dataset.where;
+  for (const x of e.currentTarget.children) x.setAttribute('aria-pressed', String(x === b));
+  render();
+});
+document.getElementById('kindChips').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const k = b.dataset.kind;
+  if (state.kinds.has(k)) state.kinds.delete(k); else state.kinds.add(k);
+  b.setAttribute('aria-pressed', String(state.kinds.has(k)));
+  render();
+});
+render();
+</script>
+</body>
+</html>
