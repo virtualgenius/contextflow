@@ -2,6 +2,7 @@ import { useViewport } from 'reactflow'
 import { AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import type { BoundedContext } from '../../model/types'
 import { NODE_SIZES } from '../../lib/canvasConstants'
+import { ISSUE_LABEL_STYLES } from '../../lib/issueColors'
 
 export function IssueLabelsOverlay({
   contexts,
@@ -19,12 +20,6 @@ export function IssueLabelsOverlay({
   const contextsWithIssues = contexts.filter((ctx) => ctx.issues && ctx.issues.length > 0)
 
   if (contextsWithIssues.length === 0) return null
-
-  const severityStyles = {
-    critical: { bg: '#fef2f2', border: '#fca5a5', text: '#b91c1c' },
-    warning: { bg: '#fffbeb', border: '#fcd34d', text: '#b45309' },
-    info: { bg: '#eff6ff', border: '#93c5fd', text: '#1d4ed8' },
-  }
 
   return (
     <div
@@ -78,7 +73,7 @@ export function IssueLabelsOverlay({
             }}
           >
             {visibleIssues.map((issue) => {
-              const colors = severityStyles[issue.severity]
+              const colors = ISSUE_LABEL_STYLES[issue.severity]
 
               return (
                 <div

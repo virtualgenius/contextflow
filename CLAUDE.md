@@ -49,10 +49,14 @@ Do not stop at "port 5173 returns 200" — that is the HTML shell, not a working
 ## Quality Gates
 
 **Local hooks** (husky) run automatically:
-- **Pre-commit**: Prettier auto-formats staged `src/` files (via lint-staged), then runs `npm run typecheck` and `npm run lint`
+- **Pre-commit**: Prettier auto-formats staged `src/` files (via lint-staged), then runs `npm run typecheck`, `npm run lint`, and `npm run check:contrast:palette`
 - **Pre-push**: `npm run typecheck`, `npm run lint`, and `npm run check:release` (safety net)
 
-**CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, check:release, test:coverage, build. The coverage report is uploaded as a workflow artifact.
+**CI** (GitHub Actions) runs on every push to `main`: typecheck, lint, format:check, check:release, test:coverage, build, check:contrast. The coverage report is uploaded as a workflow artifact.
+
+**WCAG AA contrast** (`scripts/check-contrast.mjs`) is enforced in two layers and either one failing blocks the merge:
+1. `npm run check:contrast:palette` (pre-commit, fast): WCAG math in `src/lib/colorContrast.ts`; every hand-picked text/background pair in `src/lib/` is asserted in `src/lib/__tests__/palette.contrast.test.ts`. New color constants need a pair registered there.
+2. `npm run check:contrast` (CI, needs `npm run build` first): axe-core's color-contrast rule in headless Chromium against the built app (project list, getting-started guide, all three views, light and dark, issue and team labels on) and every `docs/mockups/*.html` in both color schemes. Pass `--url http://localhost:5173` to check a running dev server, `--app` or `--mockups` to narrow. Legacy mockups carry a per-file ratchet in `scripts/contrast-baseline.json`: a mockup may never exceed its baseline, a new mockup must be clean, and `--update-baseline` locks in improvements.
 
 **Coverage** (`npm run test:coverage`, V8 provider) writes `coverage/` (gitignored) with text, HTML, and lcov output. Thresholds are scoped, not global: `src/model/sync/**` and `src/model/store.ts` fail the run if they drop below the floors in `vite.config.ts`. Everything else is reported only. The worker integration test skips itself when no collab worker answers on 8787.
 

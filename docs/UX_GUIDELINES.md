@@ -241,7 +241,7 @@ Accessible via the gear icon in TopBar. Three categories:
 
 ## Accessibility and Usability
 
-- Sufficient contrast for all text and borders.
+- **WCAG 2.1 AA contrast is a quality gate, not a preference.** Text needs 4.5:1 against its background (3:1 for large text and meaningful non-text elements such as icons and focus rings). Two checks enforce it: `npm run check:contrast:palette` (pre-commit; every hand-picked text/background pair in `src/lib/` is registered in `src/lib/__tests__/palette.contrast.test.ts`) and `npm run check:contrast` (CI; axe-core in headless Chromium against the built app in both themes plus every mockup in `docs/mockups/`). When adding a color constant, register its pair in the palette test. Legacy mockups carry a ratcheting baseline in `scripts/contrast-baseline.json`; new mockups must be clean. Do not reach for `opacity` on text to signal hierarchy; use size, weight, or a registered color.
 - Visual indicators (border highlight) for selected elements.
 - All controls accessible via keyboard.
 - Descriptive tooltips for relationships and context labels.

@@ -120,7 +120,6 @@ export function TeamLabelsOverlay({
                 <span
                   style={{
                     fontSize: `${8 * zoom}px`,
-                    opacity: 0.7,
                     fontWeight: 400,
                   }}
                 >

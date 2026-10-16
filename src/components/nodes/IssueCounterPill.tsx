@@ -3,14 +3,9 @@ import { createPortal } from 'react-dom'
 import { Z_LAYERS } from '../../lib/zLayers'
 import { AlertTriangle, AlertOctagon, Info } from 'lucide-react'
 import type { Issue, IssueSeverity } from '../../model/types'
+import { SEVERITY_COLORS } from '../../lib/issueColors'
 
 const SEVERITY_ORDER: IssueSeverity[] = ['info', 'warning', 'critical']
-
-const SEVERITY_COLORS: Record<IssueSeverity, string> = {
-  critical: '#dc2626',
-  warning: '#d97706',
-  info: '#2563eb',
-}
 
 const SEVERITY_LABELS: Record<IssueSeverity, string> = {
   critical: 'Critical',

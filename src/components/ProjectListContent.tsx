@@ -270,8 +270,8 @@ export function ProjectListContent({
       {exampleProjects.length > 0 && (
         <div className={userProjects.length > 0 ? 'mt-6' : ''}>
           <div className="flex items-center gap-2 mb-3 pt-4 border-t border-slate-200 dark:border-neutral-700">
-            <BookOpen size={14} className="text-slate-400 dark:text-slate-500" />
-            <span className="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <BookOpen size={14} className="text-slate-500 dark:text-slate-400" />
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Examples
             </span>
           </div>

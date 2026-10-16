@@ -61,6 +61,12 @@ jobs:
         env:
           VITE_POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
 
+      - name: Install Chromium for contrast check
+        run: npx playwright install --with-deps chromium
+
+      - name: WCAG AA contrast check (app + mockups)
+        run: npm run check:contrast
+
       - name: Copy index.html to 404.html for SPA routing
         if: github.event_name == 'push'
         run: cp dist/index.html dist/404.html

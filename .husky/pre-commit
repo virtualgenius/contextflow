@@ -1,2 +1,2 @@
 npx lint-staged
-npm run typecheck && npm run lint
+npm run typecheck && npm run lint && npm run check:contrast:palette
