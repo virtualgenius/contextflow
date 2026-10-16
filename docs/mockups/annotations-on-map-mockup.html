@@ -14,11 +14,13 @@
     --info: #1d4ed8; --info-solid: #2563eb; --info-bg: #eff6ff; --info-border: #93c5fd;
     --question: #6d28d9; --question-solid: #7c3aed; --question-bg: #f5f3ff; --question-border: #c4b5fd;
     --strength: #047857; --strength-solid: #047857; --strength-bg: #ecfdf5; --strength-border: #6ee7b7;
-    --hotspot-pink: #f9a8d4; --hotspot-pink-ink: #831843;
-    --pastel-pink: #fbcfe8; --pastel-green: #bbf7d0; --pastel-yellow: #fef08a; --pastel-purple: #ddd6fe; --pastel-ink: #0f172a;
-    --sticky-green: #86efac; --sticky-green-ink: #14532d;
-    --sticky-yellow: #fde68a; --sticky-yellow-ink: #78350f;
-    --sticky-purple: #c4b5fd; --sticky-purple-ink: #4c1d95;
+    /* Paper per kind: the 200 shade of the same hue the chips, badges and bars use; ink is the 900 shade. */
+    --critical-paper: #fecaca; --critical-paper-ink: #7f1d1d;
+    --warning-paper: #fde68a; --warning-paper-ink: #78350f;
+    --info-paper: #bfdbfe; --info-paper-ink: #1e3a8a;
+    --question-paper: #ddd6fe; --question-paper-ink: #4c1d95;
+    --strength-paper: #bbf7d0; --strength-paper-ink: #14532d;
+    --pastel-ink: #0f172a;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -132,7 +134,7 @@
       <summary>What this prototype is testing</summary>
       <p><b>Where.</b> Annotations attach to a relationship as readily as to a context. On an edge they sit at the label point, offset to the side so the pattern label stays readable.</p>
       <p><b>Kinds.</b> Three problem severities plus two new kinds: Question (open, needs an answer) and Working well (a strength worth protecting). Severity only applies to problems.</p>
-      <p><b>Styles.</b> Badge is today's counter pill. Hotspots borrow EventStorming paper: pink for problems, green for strengths, purple for questions, yellow for info, with a slight tilt and shadow. Straight is the same paper without the tilt. Pastel paper is lighter paper with one dark ink. Card + color bar is a neutral card with a kind-colored edge. Tinted is today's label overlay for comparison.</p>
+      <p><b>Styles.</b> Badge is today's counter pill. Hotspots use EventStorming-style paper in the same five hues as the chips and badges (red, amber, blue, violet, green), with a slight tilt and shadow. Straight is the same paper without the tilt. Pastel paper is lighter paper with one dark ink. Card + color bar is a neutral card with a kind-colored edge. Tinted is today's label overlay for comparison.</p>
       <p><b>Position.</b> A pinned note stores an offset from its anchor (context center, or relationship label point) in canvas units. The target moving moves the note. A dashed leader appears once the note sits away from its anchor. The small dot in the corner marks a pinned note.</p>
       <p><b>Filter.</b> Kind chips plus a target filter. A single annotation list in the sidebar is the payoff of moving annotations to a top-level collection.</p>
     </details>
@@ -176,11 +178,11 @@ const annotations = [
 ];
 
 const KIND = {
-  critical: { label: 'Critical', ink: 'var(--critical)', solid: 'var(--critical-solid)', bg: 'var(--critical-bg)', border: 'var(--critical-border)', glyph: '!', pastel: 'var(--pastel-pink)', sticky: 'var(--hotspot-pink)', stickyInk: 'var(--hotspot-pink-ink)' },
-  warning:  { label: 'Warning',  ink: 'var(--warning)',  solid: 'var(--warning-solid)',  bg: 'var(--warning-bg)',  border: 'var(--warning-border)',  glyph: '!', pastel: 'var(--pastel-pink)', sticky: 'var(--hotspot-pink)', stickyInk: 'var(--hotspot-pink-ink)' },
-  info:     { label: 'Info',     ink: 'var(--info)',     solid: 'var(--info-solid)',     bg: 'var(--info-bg)',     border: 'var(--info-border)',     glyph: 'i', pastel: 'var(--pastel-yellow)', sticky: 'var(--sticky-yellow)', stickyInk: 'var(--sticky-yellow-ink)' },
-  question: { label: 'Question', ink: 'var(--question)', solid: 'var(--question-solid)', bg: 'var(--question-bg)', border: 'var(--question-border)', glyph: '?', pastel: 'var(--pastel-purple)', sticky: 'var(--sticky-purple)', stickyInk: 'var(--sticky-purple-ink)' },
-  strength: { label: 'Working well', ink: 'var(--strength)', solid: 'var(--strength-solid)', bg: 'var(--strength-bg)', border: 'var(--strength-border)', glyph: '+', pastel: 'var(--pastel-green)', sticky: 'var(--sticky-green)', stickyInk: 'var(--sticky-green-ink)' },
+  critical: { label: 'Critical', ink: 'var(--critical)', solid: 'var(--critical-solid)', bg: 'var(--critical-bg)', border: 'var(--critical-border)', glyph: '!', sticky: 'var(--critical-paper)', stickyInk: 'var(--critical-paper-ink)' },
+  warning:  { label: 'Warning',  ink: 'var(--warning)',  solid: 'var(--warning-solid)',  bg: 'var(--warning-bg)',  border: 'var(--warning-border)',  glyph: '!', sticky: 'var(--warning-paper)', stickyInk: 'var(--warning-paper-ink)' },
+  info:     { label: 'Info',     ink: 'var(--info)',     solid: 'var(--info-solid)',     bg: 'var(--info-bg)',     border: 'var(--info-border)',     glyph: 'i', sticky: 'var(--info-paper)', stickyInk: 'var(--info-paper-ink)' },
+  question: { label: 'Question', ink: 'var(--question)', solid: 'var(--question-solid)', bg: 'var(--question-bg)', border: 'var(--question-border)', glyph: '?', sticky: 'var(--question-paper)', stickyInk: 'var(--question-paper-ink)' },
+  strength: { label: 'Working well', ink: 'var(--strength)', solid: 'var(--strength-solid)', bg: 'var(--strength-bg)', border: 'var(--strength-border)', glyph: '+', sticky: 'var(--strength-paper)', stickyInk: 'var(--strength-paper-ink)' },
 };
 const SEVERITY_ORDER = ['critical', 'warning', 'info', 'question', 'strength'];
 
@@ -307,7 +309,7 @@ function notePosition(an, list, index) {
 const PAPER_MODES = new Set(['hotspot', 'flat', 'pastel']);
 const BAR_W = 4;
 function stickyPaper(k, mode) {
-  if (mode === 'pastel') return { fill: k.pastel, ink: 'var(--pastel-ink)', rx: 0, stroke: null };
+  if (mode === 'pastel') return { fill: k.sticky, ink: 'var(--pastel-ink)', rx: 0, stroke: null };
   if (mode === 'bar') return { fill: 'var(--panel)', ink: 'var(--ink)', rx: 3, stroke: 'var(--line)' };
   if (mode === 'sticky') return { fill: k.bg, ink: k.ink, rx: 4, stroke: k.border };
   return { fill: k.sticky, ink: k.stickyInk, rx: 0, stroke: null };
@@ -324,7 +326,7 @@ function renderSticky(an, pos, mode, rot) {
   note.appendChild(el('rect', rect));
   if (mode === 'bar') note.appendChild(el('rect', { x: nx, y, width: BAR_W, height: h, fill: k.solid }));
   const glyphX = mode === 'bar' ? nx + BAR_W + 5 : nx + 7;
-  const glyphColor = mode === 'bar' || mode === 'pastel' ? k.solid : paper.ink;
+  const glyphColor = mode === 'bar' ? k.solid : mode === 'pastel' ? k.stickyInk : paper.ink;
   note.appendChild(el('text', { x: glyphX, y: y + STICKY_FIRST_BASELINE, 'font-size': 10, 'font-weight': 700, fill: glyphColor, 'pointer-events': 'none' }, [k.glyph]));
   stickyLines(an).forEach((ln, li) => note.appendChild(el('text', { x: nx + STICKY_PAD_X + (mode === 'bar' ? BAR_W : 0), y: y + STICKY_FIRST_BASELINE + li * STICKY_LINE_H, class: 'sticky-txt', fill: paper.ink, 'pointer-events': 'none' }, [ln])));
   if (pos.pinned) note.appendChild(el('circle', { cx: nx + STICKY_W - 6, cy: y + 6, r: 2.5, fill: paper.ink, opacity: .7 }));
