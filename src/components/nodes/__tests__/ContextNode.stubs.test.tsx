@@ -158,6 +158,22 @@ describe('ContextNode hover stubs (GH #22)', () => {
     }
   })
 
+  it('clears the hover-leave timer on unmount so no store update fires afterwards', () => {
+    vi.useFakeTimers()
+    try {
+      const { unmount } = renderContextNode()
+      const title = screen.getByText('Orders')
+      fireEvent.mouseEnter(title)
+      fireEvent.mouseLeave(title)
+      mockSetHoveredContext.mockClear()
+      unmount()
+      vi.advanceTimersByTime(1000)
+      expect(mockSetHoveredContext).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('marks the stubs container with the data-stub attribute so it can be targeted in CSS/tests', () => {
     renderContextNode()
     const stubs = document.querySelectorAll('[data-context-stub]')

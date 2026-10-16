@@ -56,6 +56,14 @@ export function ContextNode({ data }: NodeProps) {
   const hoverLeaveTimeoutRef = React.useRef<number | undefined>(undefined)
   const HOVER_LEAVE_DELAY_MS = 120
 
+  React.useEffect(() => {
+    return () => {
+      if (hoverLeaveTimeoutRef.current !== undefined) {
+        window.clearTimeout(hoverLeaveTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const size = NODE_SIZES[context.codeSize?.bucket || 'medium']
   const hideDescription =
     context.codeSize?.bucket === 'tiny' || context.codeSize?.bucket === 'small'
