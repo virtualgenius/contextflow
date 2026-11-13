@@ -21,6 +21,10 @@ It gives you synchronized views of the same system:
 You can switch between these views live. The map animates, but remains the "same" system. This is how you explain reality to delivery teams, architects, and execs using the same underlying model.
 
 ## Who is this for?
+
+The primary user is the person responsible for integrating many teams and systems: an enterprise or software architect, a team lead, an engineering manager, or a CTO who is trying to understand and improve the sociotechnical landscape so that delivery flows. They can see the org chart and the service catalog, but neither shows which team depends on whose model and roadmap, where boundaries leak, or where a change has to pass through three teams to ship. ContextFlow gives that person a shared, living map and lets the people who own each part of it keep it current together.
+
+Around that primary user:
 - Software / platform / architecture consultants who walk into a new org and need to quickly understand “what’s really going on.”
 - Internal architecture leads or platform teams who need to communicate system boundaries, ownership, and pain points to leadership.
 - Teams doing Domain-Driven Design at a strategic level (bounded contexts, upstream/downstream power).

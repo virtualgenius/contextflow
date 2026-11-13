@@ -163,7 +163,7 @@ The app includes multiple example projects:
 - `src/` – React app code (TypeScript + Vite)
 - `src/model/` – Core types and Zustand store
 - `examples/` – Demo project data (`sample.project.json`, `cbioportal.project.json`, `elan-warranty.project.json`)
-- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [TODO.md](docs/TODO.md), [Enterprise Data Privacy](docs/ENTERPRISE_DATA_PRIVACY.md)
+- `docs/` – [VISION.md](docs/VISION.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [ROADMAP.md](docs/ROADMAP.md), [Enterprise Data Privacy](docs/ENTERPRISE_DATA_PRIVACY.md)
 
 ## Project Status
 
@@ -175,7 +175,7 @@ The app includes multiple example projects:
 
 Includes temporal evolution mode, CodeCohesion API integration, real-time collaboration, and multi-project support. Ready for field testing with real projects.
 
-See [TODO.md](docs/TODO.md) for current development tasks.
+See [ROADMAP.md](docs/ROADMAP.md) for where the tool is going, and the [issues](https://github.com/virtualgenius/contextflow/issues) for individual ideas and requests.
 
 ## Foundations & Resources
 

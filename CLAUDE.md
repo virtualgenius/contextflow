@@ -2,13 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Note**: This project uses [bd (beads)](https://github.com/steveyegge/beads) for issue tracking during AI coding sessions. Use `bd` commands for tactical work tracking. Human-readable roadmap remains in [docs/TODO.md](docs/TODO.md). See AGENTS.md for workflow details.
+**Note**: This project uses [bd (beads)](https://github.com/steveyegge/beads) for issue tracking during AI coding sessions. Use `bd` commands for tactical work tracking. Themes and priorities live in [docs/ROADMAP.md](docs/ROADMAP.md); ideas and feature requests are GitHub issues. See AGENTS.md for workflow details.
 
 ## Quick Reference
 
 For comprehensive documentation, see:
 - **Product vision & goals**: [docs/VISION.md](docs/VISION.md)
-- **Planning docs & ideas**: `~/Documents/business-hub/docs/contextflow-ideas/` (private, outside this public repo)
+- **Planning docs & ideas**: `~/Documents/business-hub/products/research/contextflow/ideas/` (private, outside this public repo)
 - **Technical architecture & data model**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **UX principles**: [docs/UX_GUIDELINES.md](docs/UX_GUIDELINES.md)
 - **Getting started**: [README.md](README.md)

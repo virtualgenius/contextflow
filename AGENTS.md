@@ -4,13 +4,13 @@ Instructions for AI coding agents working on ContextFlow.
 
 ## Issue Tracking with bd (beads)
 
-This project uses **bd (beads)** for tactical issue tracking during AI coding sessions. The human-readable roadmap and backlog remain in [docs/TODO.md](docs/TODO.md).
+This project uses **bd (beads)** for tactical issue tracking during AI coding sessions. Themes and priorities live in [docs/ROADMAP.md](docs/ROADMAP.md); ideas and feature requests are GitHub issues, and each bead points at the issue it serves.
 
 ### Usage Model
 
 | Tool | Purpose | Maintainer |
 |------|---------|------------|
-| `docs/TODO.md` | Human-readable roadmap, backlog, completed work | Human (Paul) |
+| `docs/ROADMAP.md` + GitHub issues | Themes in priority order; one issue per idea or request | Human (Paul) |
 | `.beads/` | Active work tracking, discovered bugs, follow-ups | AI (Claude) |
 
 ### Quick Start
@@ -77,7 +77,7 @@ Before ending a session:
 - Always use `--json` flag for programmatic use
 - Link discovered work with `discovered-from` dependencies
 - Check `bd ready` before asking "what should I work on?"
-- Do NOT duplicate tracking - bd is for session work, TODO.md is for roadmap
+- Do NOT duplicate tracking: bd is for session work, GitHub issues hold the ideas, ROADMAP.md holds the order
 
 ## Landing the Plane (Session Completion)
 
