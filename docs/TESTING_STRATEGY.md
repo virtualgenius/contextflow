@@ -10,12 +10,15 @@ Build a fast, reliable CI/CD pipeline with strategic E2E tests using Playwright.
 
 ## Current State
 
+Updated November 13, 2026. Live numbers: [testing overview](https://contextflow.virtualgenius.com/testing/). Open work: [#45](https://github.com/virtualgenius/contextflow/issues/45) component tests, [#46](https://github.com/virtualgenius/contextflow/issues/46) browser E2E, [#47](https://github.com/virtualgenius/contextflow/issues/47) dialogs (good first issue).
+
 | Aspect | Status |
 |--------|--------|
-| Unit tests | 1,468 tests (Vitest), ~14s locally |
-| E2E tests | None (no Playwright) |
-| CI quality gates | typecheck, lint, format check, build (no unit tests in CI yet) |
-| Failing tests | 0 (1 skipped) |
+| Unit tests | ~2,000 tests (Vitest), ~5s locally; run in pre-push and CI |
+| Coverage | V8 via `npm run test:coverage`; floors gate `src/model/sync/**` and `store.ts` only |
+| E2E tests | None (no Playwright); tracked in #46 |
+| CI quality gates | typecheck, lint, format check, release check, tests + coverage, build, WCAG contrast |
+| Failing tests | 0; the worker integration test skips when no collab worker answers on 8787 |
 
 ---
 
@@ -125,16 +128,9 @@ retries: process.env.CI ? 2 : 0,
 
 ## Implementation Plan
 
-### Phase 1: CI Foundation
+### Phase 1: CI Foundation (done)
 
-1. **Create `.github/workflows/ci.yml`**
-   - Lint + TypeCheck (parallel, ~30s)
-   - Unit Tests (parallel, ~60-90s)
-   - Build (parallel, ~60s)
-   - Deploy (on main only)
-
-2. **Fix failing test**
-   - `src/model/__tests__/storeCollabIntegration.test.ts` - `canUndo` assertion
+The quality gates live in `.github/workflows/deploy.yml` rather than a separate `ci.yml`: typecheck, lint, format check, release check, unit tests with coverage, build, contrast check, then deploy on `main`. The `canUndo` assertion in `storeCollabIntegration.test.ts` is fixed.
 
 ### Phase 2: Playwright Setup
 
@@ -305,7 +301,7 @@ Total: ~4-5 minutes
 
 | File | Action |
 |------|--------|
-| `.github/workflows/ci.yml` | Create - new CI pipeline |
+| `.github/workflows/deploy.yml` | Done - gates run here, no separate ci.yml |
 | `playwright.config.ts` | Create - Playwright config |
 | `e2e/pages/CanvasPage.ts` | Create - Page object model |
 | `e2e/utils/store.ts` | Create - Store access helpers |
@@ -314,7 +310,7 @@ Total: ~4-5 minutes
 | `e2e/critical/offline.spec.ts` | Create - offline/reconnect test |
 | `e2e/workflows/import-export.spec.ts` | Create - import workflow test |
 | `package.json` | Modify - add Playwright + scripts |
-| `src/model/__tests__/storeCollabIntegration.test.ts` | Fix - failing test |
+| `src/model/__tests__/storeCollabIntegration.test.ts` | Done - test fixed |
 
 ---
 

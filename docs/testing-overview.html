@@ -527,15 +527,15 @@
     <p style="margin:0 0 4px"><b>Pipeline</b></p>
     <ul>
       <li><b>Worker integration test skips without a live worker.</b> Two tests need a server on port 8787 and now skip rather than fail when none answers. Run <code>npm run dev:local</code> to exercise them.</li>
-      <li><b>No browser-level tests.</b> Real WebSocket sync, offline and reconnect, file import, and canvas drag are only verified by hand. The Playwright plan in <code>docs/TESTING_STRATEGY.md</code> was never implemented.</li>
+      <li><b>No browser-level tests.</b> Real WebSocket sync, offline and reconnect, file import, and canvas drag are only verified by hand. The Playwright plan in <code>docs/TESTING_STRATEGY.md</code> is written but not built. Tracked in <a href="https://github.com/virtualgenius/contextflow/issues/46">#46</a>, scoped to the critical customer journeys only.</li>
     </ul>
     <p style="margin:12px 0 4px"><b>Acceptance coverage</b></p>
     <ul>
-      <li><b>The canvas has no component test.</b> Pan, zoom, fit-to-map, drag to reposition, multi-select and group drag, drag-to-connect, and the N and arrow-key shortcuts all live in <code>CanvasArea.tsx</code>, which no test renders. This is the most-used surface in the product and the one where a React Flow upgrade would break silently.</li>
-      <li><b>Temporal evolution UI is untested.</b> The timeline slider, keyframe editor, and keyframe manager have no tests. Only the interpolation helpers do, so a broken slider would still pass.</li>
-      <li><b>Value Stream and Strategic views are tested at the store, not on screen.</b> The user and user-need nodes, the three connection edge types, and every view overlay (distillation regions, evolution bands, stage boundaries, axis labels) have no component tests.</li>
-      <li><b>Four dialogs are untested:</b> project create, project delete, group create, and import conflict. The actions behind them are covered, so the gap is wiring, not logic.</li>
-      <li><b>Two features have no test at all:</b> the light and dark theme toggle, and the live CodeCohesion repository statistics fetch.</li>
+      <li><b>The canvas has no component test.</b> Pan, zoom, fit-to-map, drag to reposition, multi-select and group drag, drag-to-connect, and the N and arrow-key shortcuts all live in <code>CanvasArea.tsx</code>, which no test renders. This is the most-used surface in the product and the one where a React Flow upgrade would break silently. Tracked in <a href="https://github.com/virtualgenius/contextflow/issues/45">#45</a>.</li>
+      <li><b>Temporal evolution UI is untested.</b> The timeline slider, keyframe editor, and keyframe manager have no tests. Only the interpolation helpers do, so a broken slider would still pass. Tracked in <a href="https://github.com/virtualgenius/contextflow/issues/45">#45</a>.</li>
+      <li><b>Value Stream and Strategic views are tested at the store, not on screen.</b> The user and user-need nodes, the three connection edge types, and every view overlay (distillation regions, evolution bands, stage boundaries, axis labels) have no component tests. Tracked in <a href="https://github.com/virtualgenius/contextflow/issues/45">#45</a>.</li>
+      <li><b>Four dialogs are untested:</b> project create, project delete, group create, and import conflict. The actions behind them are covered, so the gap is wiring, not logic. Tracked in <a href="https://github.com/virtualgenius/contextflow/issues/47">#47</a> as a good first issue.</li>
+      <li><b>Two features have no test at all:</b> the light and dark theme toggle, and the live CodeCohesion repository statistics fetch. Tracked in <a href="https://github.com/virtualgenius/contextflow/issues/45">#45</a>.</li>
       <li><b>Most component tests check wiring, not outcomes.</b> The dominant shape is "calls onX when clicked" against a mocked store. The handful of true outer-loop tests (undo buttons driven by real Yjs, Context Map preserving value-stream data, two-browser sync, add-related-context) are the strongest tests in the repo and the pattern worth extending.</li>
     </ul>
   </div>
