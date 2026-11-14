@@ -19,16 +19,47 @@ ContextFlow adopts the **Business Source License 1.1 (BSL) with free use for mos
 
 ### Who qualifies for free use
 
-An organisation qualifies when its annual revenue is under USD 10 million and the total funding it has raised is under USD 10 million. "Organisation" means the top-most company that controls (owns more than half of) every entity using the software, so a subsidiary counts together with its parent.
+An organisation qualifies when its annual revenue is under USD 10 million and the total funding it has raised is under USD 10 million.
 
-Ten million is a line developers already recognise. Docker Desktop uses the same figure, and EventCatalog put it into a BSL license. For ContextFlow it also matches who the buyer is: an organisation under that size rarely has many teams to integrate, so the people who have the problem pay and everyone else uses it free.
+- **Revenue** is the whole group's gross revenue for its last completed financial year, from consolidated accounts where they exist. A company with no completed year uses its projected first-year figure. Other currencies convert at that year's average rate.
+- **Funding** is all outside equity investment taken since the organisation was formed, including convertible notes and SAFEs, at the amounts invested. Revenue, grants, and loans do not count, so a bootstrapped or grant-funded company has zero funding for this test.
+- **Non-profits, charities, and public bodies** use the greater of their total income (including grants and donations) and their annual budget in place of revenue.
+- **Organisation** means the whole group: every company that controls you, that you control, or that is under common control with you, at more than half the voting power. A subsidiary counts together with its parent. Two exceptions, taken from EventCatalog: a government ministry, agency, or local authority counts on its own, not as "the government"; and companies owned by the same investment fund are not one group unless the fund consolidates them in its accounts.
+
+Ten million is a line developers already recognise. Docker Desktop has used it since 2021, CockroachDB since 2024, and EventCatalog put it into a BSL license in 2026. For ContextFlow it also matches who the buyer is: an organisation under that size rarely has many teams to integrate, so the people who have the problem pay and everyone else uses it free.
+
+### What counts as production use
+
+Production use is any use other than trying the tool with sample or throwaway content that nobody relies on, or developing and contributing to ContextFlow itself. Once a map of your real systems exists and anyone, including an automated system or an AI agent, looks at it or relies on it, that is production use, whatever the project is called: pilot, proof of concept, sandbox, or internal. This is EventCatalog's definition, and it is what gives "we are only evaluating" a clear edge.
+
+### Evaluation, grace, and honest mistakes
+
+- **Evaluation.** Every organisation, including its whole group, gets one 60-day evaluation of the full product, starting from its first production use of any BSL release. Upgrading, reinstalling, or creating another map does not restart it. Longer evaluations can be agreed in writing.
+- **Growing past the limits.** An organisation that crosses a threshold keeps its free use for 90 days, starting from the end of the financial year in which revenue reached USD 10 million, the date funding reached USD 10 million, or the date an acquisition or merger took the group over either line. After that it has 30 more days to buy a license or stop.
+- **Honest mistakes.** Anyone who discovers, or is told, that their use needs a license has 30 days to buy one or stop, and their past use is treated as permitted if they did not know and had no reason to know. This does not apply to someone who offered ContextFlow as a hosted service to others, or who had already been reminded in the product.
+- **Nothing breaks.** Maps and installs keep working when an evaluation or grace period ends. Reminders appear in the product. There is no throttling and no kill switch.
 
 ### Hosting it for other people
 
-Free use does not include running ContextFlow as a hosted service for people outside your organisation. (The license calls this a "Hosted Offering".) Two situations are explicitly fine:
+Free use does not include running ContextFlow as a hosted, managed, or multi-tenant service that gives people outside your organisation access to it, whether or not you charge. (The license calls this a "Hosted Offering".) These situations are explicitly fine:
 
-- Running ContextFlow for your own employees and contractors, including across subsidiaries. That is internal use.
-- A consultancy using ContextFlow to facilitate work that a client will use internally. Consultants are a core part of the ContextFlow community, so this is spelled out rather than left to interpretation.
+- Running ContextFlow for your own employees and contractors, including across subsidiaries. People in your own organisation are not third parties.
+- Publishing a map of your own systems so that customers, partners, or the public can see it.
+- Hosting ContextFlow for one specific client as part of services you provide to that client, where the maps describe that client's systems and you do not offer hosting as a standard self-service product.
+- Hosting maps of public open source projects without charge.
+
+### Working for clients
+
+Consultants, contractors, agencies, and software vendors are a core part of the ContextFlow community, so this case is spelled out rather than left to interpretation.
+
+- When you use ContextFlow for a client's benefit, whether you build the map, facilitate the workshop, host it, or hand it over, your use for that client is covered if the client qualifies for free use or holds a paid license. The client's size decides, not yours.
+- You may rely on the client's written statement of its status unless you know it is wrong.
+- Your own use of ContextFlow for your own systems is judged on your own size.
+- If you own what you build (you are a software vendor rather than a service provider), your own size counts, following Particular Software's small business program.
+
+### Your maps are yours
+
+The content of a map (contexts, relationships, teams, repositories, notes, and everything else you create) belongs to you and is not part of the licensed work. The license covers the software, not what you make with it.
 
 ### The hosted instance
 
@@ -73,7 +104,8 @@ The code today has one outside commit on `main`. It is MIT and stays MIT. Nobody
 
 ## Next steps, in order
 
-- [ ] A lawyer reads the free-use terms once (size limits, the definition of organisation, the hosting rules, the consultant case) and the hosted instance's terms of use.
+- [ ] A lawyer reads the free-use terms once (size limits, the definition of organisation, production use, evaluation and grace periods, the hosting rules, the client case, ownership of maps) and the hosted instance's terms of use.
+- [ ] A plain-English license FAQ, published alongside the license, with a line in the license saying the FAQ is guidance only and the license text wins if they differ.
 - [ ] `LICENSE` (BSL 1.1 with the terms above), `NOTICE` (MIT text for releases through 0.12.1), README badge, and a plain-English licensing page in `docs/`.
 - [ ] One checkbox in the pull request template confirming the contribution is MIT.
 - [ ] A license key field in Settings that records organisation and key, with no enforcement, and a form on the website that issues Community keys.
@@ -83,11 +115,15 @@ The code today has one outside commit on `main`. It is MIT and stays MIT. Nobody
 
 ## Sources
 
-The earlier options review (open core, RPL, FSL, with comparison tables) is kept privately as history. It predates EventCatalog's move to BSL.
+The earlier options review (open core, RPL, FSL, with comparison tables) is kept privately as history. It predates EventCatalog's move to BSL. A comparison of free-use terms across fourteen source-available products (EventCatalog, CockroachDB, Docker, Directus, Akka, Particular, MaxScale, Outline, Redpanda, Couchbase, HashiCorp, Elastic, n8n, Sentry), read from the live license texts on 2026-11-14, informed the definitions above and is also kept privately.
 
 External:
 - EventCatalog license (BSL 1.1 with free use): https://github.com/event-catalog/eventcatalog/blob/main/LICENSE
+- EventCatalog license FAQ: https://www.eventcatalog.dev/license-faq
 - EventCatalog pricing: https://www.eventcatalog.dev/pricing
+- CockroachDB licensing FAQ (free under USD 10M revenue, whole group): https://www.cockroachlabs.com/docs/stable/licensing-faqs
+- Docker Subscription Service Agreement (under 250 employees and USD 10M revenue): https://www.docker.com/legal/docker-subscription-service-agreement/
+- Outline license (hosted-service definition): https://github.com/outline/outline/blob/main/LICENSE
 - Business Source License 1.1: https://mariadb.com/bsl11/
 - MariaDB MaxScale contribution terms: https://github.com/mariadb-corporation/MaxScale/blob/develop/CONTRIBUTING.md
 - Particular Small Business Program (definition of organisation, graduated discounts): https://github.com/Particular/SmallBusinessProgram
