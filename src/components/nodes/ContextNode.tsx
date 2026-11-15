@@ -4,7 +4,7 @@ import { Z_LAYERS } from '../../lib/zLayers'
 import { NodeProps, Position, Handle } from 'reactflow'
 import { useEditorStore } from '../../model/store'
 import type { BoundedContext } from '../../model/types'
-import { Archive, CloudFog, Crosshair } from 'lucide-react'
+import { Archive, CloudFog, Crosshair, Layers, Users } from 'lucide-react'
 import { getContextTooltipLines } from '../../lib/contextTooltip'
 import { coordinateSpaceFor } from '../../lib/canvasViewModel'
 import { getContextNodeBorderStyle, OWNERSHIP_FILL_COLORS } from '../../lib/nodeStyles'
@@ -21,10 +21,14 @@ const CONCEPT_TOOLTIP_TOP_GAP = 8
 export const CONCEPT_TOOLTIP_STUB_CLEARANCE = STUB_OFFSET + STUB_SIZE / 2 + CONCEPT_TOOLTIP_TOP_GAP
 
 // Keep the right-click menu on-screen when opened near a viewport edge. Height
-// covers the tallest case (two focus items plus a keyframe item).
+// covers the tallest case (two focus items plus a keyframe item plus a short
+// "Add to group" list).
 const CONTEXT_MENU_WIDTH = 220
-const CONTEXT_MENU_MAX_HEIGHT = 130
+const CONTEXT_MENU_MAX_HEIGHT = 264
 const CONTEXT_MENU_MARGIN = 8
+// The menu lists at most this many groups; the rest stay reachable through the
+// group inspector, which lists every group's members.
+const CONTEXT_MENU_MAX_GROUPS = 4
 
 // Custom node component
 export function ContextNode({ data }: NodeProps) {
@@ -48,6 +52,7 @@ export function ContextNode({ data }: NodeProps) {
   const showHelpTooltips = useEditorStore((s) => s.showHelpTooltips)
   const setHoveredContext = useEditorStore((s) => s.setHoveredContext)
   const setSelectedContext = useEditorStore((s) => s.setSelectedContext)
+  const addContextToGroup = useEditorStore((s) => s.addContextToGroup)
   const setFocus = useEditorStore((s) => s.setFocus)
   const isHoveredByRelationship = data.isHoveredByRelationship as boolean
   const nodeRef = React.useRef<HTMLDivElement>(null)
@@ -131,6 +136,20 @@ export function ContextNode({ data }: NodeProps) {
   const handleFocusOnTeam = () => {
     if (!context.teamId) return
     setFocus({ kind: 'team', id: context.teamId, depth: 0 })
+    setContextMenu(null)
+  }
+
+  // Groups this context is not a member of yet, so the menu only offers the
+  // actions that can actually run. Extra groups stay reachable through the
+  // group inspector.
+  const joinableGroups = (project?.groups ?? []).filter(
+    (group) => !group.contextIds.includes(context.id)
+  )
+  const menuGroups = joinableGroups.slice(0, CONTEXT_MENU_MAX_GROUPS)
+  const hiddenGroupCount = joinableGroups.length - menuGroups.length
+
+  const handleAddToGroup = (groupId: string) => {
+    addContextToGroup(groupId, context.id)
     setContextMenu(null)
   }
 
@@ -396,6 +415,33 @@ export function ContextNode({ data }: NodeProps) {
                 <Crosshair size={14} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
                 Focus on team: {team.name}
               </button>
+            )}
+            {menuGroups.length > 0 && (
+              <div className="border-t border-slate-200 dark:border-neutral-700 mt-1 pt-1">
+                <div className="px-4 pt-1.5 pb-1 text-[11px] uppercase tracking-wide text-slate-400 dark:text-neutral-500 flex items-center gap-1.5">
+                  <Users size={12} />
+                  Add to group
+                </div>
+                {menuGroups.map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => handleAddToGroup(group.id)}
+                    data-testid={`add-to-group-${group.id}`}
+                    className="w-full px-4 py-1.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+                  >
+                    <Layers
+                      size={14}
+                      className="text-slate-400 dark:text-neutral-500 flex-shrink-0"
+                    />
+                    {group.label}
+                  </button>
+                ))}
+                {hiddenGroupCount > 0 && (
+                  <div className="px-4 pb-1 pt-0.5 text-xs text-slate-400 dark:text-neutral-500">
+                    +{hiddenGroupCount} more in the group inspector
+                  </div>
+                )}
+              </div>
             )}
             {activeKeyframeId && project?.temporal && (
               <button

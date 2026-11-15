@@ -18,6 +18,7 @@ vi.mock('reactflow', () => ({
 const mockSetFocus = vi.fn()
 const mockSetSelectedContext = vi.fn()
 const mockUpdateKeyframe = vi.fn()
+const mockAddContextToGroup = vi.fn()
 
 function makeContext(overrides: Partial<BoundedContext> = {}): BoundedContext {
   return {
@@ -40,6 +41,7 @@ interface StoreOverrides {
   activeViewMode?: string
   activeKeyframeId?: string | null
   temporalEnabled?: boolean
+  groups?: Array<{ id: string; label: string; contextIds: string[] }>
 }
 
 function setupStoreMock(overrides: StoreOverrides = {}) {
@@ -47,12 +49,14 @@ function setupStoreMock(overrides: StoreOverrides = {}) {
     const state = {
       assignRepoToContext: vi.fn(),
       assignTeamToContext: vi.fn(),
+      addContextToGroup: mockAddContextToGroup,
       activeProjectId: 'proj-1',
       projects: {
         'proj-1': {
           teams: [{ id: 'team-1', name: 'Fulfillment & Logistics' }],
           relationships: [],
           contexts: [],
+          groups: overrides.groups ?? [],
           temporal: overrides.temporalEnabled
             ? { enabled: true, keyframes: [{ id: 'kf-1', activeContextIds: [] }] }
             : undefined,
@@ -154,5 +158,69 @@ describe('ContextNode right-click focus menu', () => {
     renderContextNode(makeContext({ teamId: 'team-1' }))
     openMenu()
     expect(screen.queryByText(/in this keyframe/)).not.toBeInTheDocument()
+  })
+})
+
+describe('ContextNode right-click "Add to group" (issue #7)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('lists joinable groups under an "Add to group" heading', () => {
+    setupStoreMock({
+      groups: [
+        { id: 'g-1', label: 'Checkout', contextIds: [] },
+        { id: 'g-2', label: 'Fulfillment', contextIds: [] },
+      ],
+    })
+    renderContextNode(makeContext())
+    openMenu()
+    expect(screen.getByText('Add to group')).toBeInTheDocument()
+    expect(screen.getByText('Checkout')).toBeInTheDocument()
+    expect(screen.getByText('Fulfillment')).toBeInTheDocument()
+  })
+
+  it('adds the context to the chosen group and closes the menu', () => {
+    setupStoreMock({ groups: [{ id: 'g-1', label: 'Checkout', contextIds: [] }] })
+    renderContextNode(makeContext())
+    openMenu()
+    fireEvent.click(screen.getByTestId('add-to-group-g-1'))
+    expect(mockAddContextToGroup).toHaveBeenCalledWith('g-1', 'ctx-1')
+    expect(screen.queryByText('Focus on this context')).not.toBeInTheDocument()
+  })
+
+  it('omits groups the context already belongs to', () => {
+    setupStoreMock({
+      groups: [
+        { id: 'g-1', label: 'Checkout', contextIds: ['ctx-1'] },
+        { id: 'g-2', label: 'Fulfillment', contextIds: [] },
+      ],
+    })
+    renderContextNode(makeContext())
+    openMenu()
+    expect(screen.queryByTestId('add-to-group-g-1')).not.toBeInTheDocument()
+    expect(screen.getByTestId('add-to-group-g-2')).toBeInTheDocument()
+  })
+
+  it('shows no group section when the project has no groups', () => {
+    setupStoreMock()
+    renderContextNode(makeContext())
+    openMenu()
+    expect(screen.queryByText('Add to group')).not.toBeInTheDocument()
+  })
+
+  it('caps the group list and points the rest at the group inspector', () => {
+    setupStoreMock({
+      groups: Array.from({ length: 6 }, (_, i) => ({
+        id: `g-${i + 1}`,
+        label: `Group ${i + 1}`,
+        contextIds: [],
+      })),
+    })
+    renderContextNode(makeContext())
+    openMenu()
+    expect(screen.getByText('Group 4')).toBeInTheDocument()
+    expect(screen.queryByText('Group 5')).not.toBeInTheDocument()
+    expect(screen.getByText('+2 more in the group inspector')).toBeInTheDocument()
   })
 })
