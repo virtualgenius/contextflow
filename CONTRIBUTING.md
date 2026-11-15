@@ -61,6 +61,8 @@ npm run build         # Production build
 
 All four must pass for CI to accept your PR.
 
+To run everything CI runs in one command, including the worker integration test and the contrast check, use `npm run pr-gate`. It starts the collab worker itself, so port 8787 needs to be free.
+
 ## Architecture: Important Patterns
 
 ### The Yjs Sync Rule (read this first)

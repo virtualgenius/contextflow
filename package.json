@@ -32,6 +32,7 @@
   "scripts": {
     "dev": "vite --open",
     "dev:local": "bash scripts/dev-local.sh",
+    "pr-gate": "bash scripts/pr-gate.sh",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
