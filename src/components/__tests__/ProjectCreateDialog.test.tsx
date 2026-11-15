@@ -50,7 +50,7 @@ describe('ProjectCreateDialog', () => {
 
   it('calls onCancel when the close (X) button is clicked', () => {
     const { onCancel } = renderDialog()
-    fireEvent.click(screen.getAllByRole('button')[0])
+    fireEvent.click(screen.getByLabelText('Close'))
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 })

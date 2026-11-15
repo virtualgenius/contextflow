@@ -32,6 +32,7 @@ export function ProjectCreateDialog({ onConfirm, onCancel }: ProjectCreateDialog
           </h2>
           <button
             onClick={onCancel}
+            aria-label="Close"
             className="p-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
           >
             <X size={16} />
