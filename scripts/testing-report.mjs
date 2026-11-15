@@ -22,7 +22,7 @@ export const CATEGORIES = [
   ['Creating and editing contexts', ['ContextNode.', 'ContextDraftNode', 'ContextInspector', 'ContextRepoCardScroll', 'InspectorPanel', 'InspectorHeader', 'PillGroup', 'store.contextNameEdit', 'store.hover', 'addRelatedContext', 'TopBar.contextMap']],
   ['Focus lens', ['FocusBar', 'store.focus']],
   ['Teams and repos panel', ['TeamSidebar', 'RepoSidebar', 'TeamInspector', 'RepoInspector']],
-  ['Projects', ['ProjectListContent', 'ProjectListPage', 'store.persistence', 'store.clearActiveProject', 'loadExistingProject']],
+  ['Projects', ['ProjectListContent', 'ProjectListPage', 'ProjectCreateDialog', 'store.persistence', 'store.clearActiveProject', 'loadExistingProject']],
   ['Views and value stream', ['store.flowStages', 'store.userNeeds', 'store.connections', 'store.contextMapPreservesData', 'store.viewModePersistence', 'viewModePersistence', 'store.viewFilterDefaults', 'FlowStageInspector', 'UserNeedInspector', 'UserNeedConnectionInspector', 'NeedContextConnectionInspector', 'stageBoundaries']],
   ['Temporal evolution', []],
   ['Groups', ['store.groups']],
