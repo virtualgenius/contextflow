@@ -64,6 +64,15 @@ export function GroupInspector({ project, groupId }: { project: Project; groupId
 
       {/* Member Contexts */}
       <Section label={`Member Contexts (${memberContexts.length})`}>
+        {memberContexts.length === 0 && (
+          <div
+            data-testid="empty-group-callout"
+            className="mb-2 rounded border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 text-xs text-blue-700 dark:text-blue-300"
+          >
+            This group is empty. Add contexts from the list below, or right-click any context on the
+            canvas and choose "Add to group".
+          </div>
+        )}
         <div className="space-y-1">
           {memberContexts.map((context) => (
             <div key={context.id} className="flex items-center gap-2 group">

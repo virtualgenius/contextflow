@@ -71,6 +71,24 @@ function Workspace() {
     null
   )
 
+  // Grouping hint (issue #7): shown while a project has contexts but no groups
+  // yet, so the path into grouping is visible without reading docs. Hides while
+  // a multi-selection is active (that panel has its own Create Group button),
+  // and stays dismissed once the user closes it.
+  const [groupHintDismissed, setGroupHintDismissed] = React.useState(
+    () => localStorage.getItem('contextflow.groupHint.dismissed') === 'true'
+  )
+  const dismissGroupHint = React.useCallback(() => {
+    setGroupHintDismissed(true)
+    localStorage.setItem('contextflow.groupHint.dismissed', 'true')
+  }, [])
+  const showGroupHint =
+    !!project &&
+    project.contexts.length > 0 &&
+    project.groups.length === 0 &&
+    selectedContextIds.length === 0 &&
+    !groupHintDismissed
+
   React.useEffect(() => {
     if (route === 'shared-project' && params.projectId) {
       const sharedProjectId = params.projectId
@@ -224,6 +242,32 @@ function Workspace() {
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-neutral-900 dark:text-neutral-100">
       <TopBar />
+
+      {/* Grouping hint, while the project has contexts but no groups yet */}
+      {showGroupHint && (
+        <div
+          data-testid="group-hint"
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-3 bg-white dark:bg-neutral-800 border border-blue-200 dark:border-blue-800 rounded-lg shadow-xl px-4 py-3"
+          style={{ zIndex: Z_LAYERS.floating }}
+        >
+          <Users size={16} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+          <div className="text-xs text-slate-600 dark:text-neutral-300 max-w-md">
+            To organize related contexts into a group, select them (Shift+click or drag a box) and
+            use{' '}
+            <span className="font-medium text-slate-700 dark:text-neutral-200">Create Group</span>.
+            You can also right-click any context and choose{' '}
+            <span className="font-medium text-slate-700 dark:text-neutral-200">Add to group</span>.
+          </div>
+          <button
+            onClick={dismissGroupHint}
+            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-neutral-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex-shrink-0"
+            title="Dismiss this hint"
+            aria-label="Dismiss grouping hint"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Multi-select floating panel */}
       {selectedContextIds.length > 0 && (
