@@ -46,15 +46,15 @@ The UX is inspired by **Miro**, **Wardley Maps**, and the **Linear** aesthetic: 
   - Vertical drag → changes Y coordinate (shared between Value Stream and Strategic; independent for Distillation).
 - **Multi-select:** Shift+click or Cmd/Ctrl+click to select multiple contexts. Drag to move as a group with maintained relative positions. Multi-selection surfaces the "Create Group" floating panel.
 - **Drag-to-connect:** Click and drag from one context's handle to another to create a relationship edge. Visual feedback: dashed blue line while dragging, pulsing target handles on hover.
-- **Select Entity:** Click context/relationship/group/actor/user need to open Inspector Panel (right sidebar).
-- **Deselect:** Click empty canvas or press `Esc`.
+- **Select Entity:** Click a context, relationship, group, actor, user need, or flow stage on the canvas to open the Inspector (right sidebar). Team and repo selection comes from the left sidebar cards.
+- **Deselect:** Click empty canvas or press `Esc` (also exits focus when a focus is active and no dropdown is open).
 - **Undo/Redo:** Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z (or the TopBar buttons) for structural changes (add/move/delete context, relationships, repo assignments, groups, keyframes) and Inspector text edits.
 - **Autosave:** Changes sync to cloud automatically via Yjs. No save confirmation is shown; mutations reflect immediately in the UI.
 
 ### Keyboard Shortcuts
 - **Cmd/Ctrl+Z:** Undo
 - **Cmd/Ctrl+Shift+Z:** Redo
-- **Esc:** Deselect all
+- **Esc:** Deselect all; if a focus is active, exit focus (subject switcher open → Esc closes the switcher only)
 - **Delete:** Delete selected edge
 - **Cmd/Ctrl+?:** Show keyboard shortcuts modal
 - **Shift+click / Cmd/Ctrl+click:** Multi-select contexts
@@ -65,7 +65,17 @@ The UX is inspired by **Miro**, **Wardley Maps**, and the **Linear** aesthetic: 
 Right-click menus appear on specific elements only:
 - **Relationship edges:** Delete relationship, swap direction (reverse arrow).
 - **Timeline keyframes:** Duplicate keyframe, delete keyframe.
-- **Context nodes (temporal mode only):** Hide/show in current keyframe. Only available when editing a keyframe in Strategic View.
+- **Context nodes:** Focus on this context; Focus on owning team (when assigned). In temporal mode while editing a keyframe in Strategic View: Hide/show in current keyframe.
+
+### Focus Mode
+A non-destructive reading lens that dims everything outside a subject’s neighborhood while keeping the map’s shape and positions intact. Focus is transient working state (like zoom), not saved project data.
+
+- **Enter (team):** Crosshair on a Teams sidebar card focuses that team’s owned contexts at depth 0. Click the same crosshair again to exit.
+- **Enter (context):** Right-click a context → “Focus on this context” (starts at depth 1) or “Focus on team: …” when the context has an owning team.
+- **Focus bar:** Floating overlay names the subject, exposes adjacency hops, shows “N of M shown,” and Exit focus. For team focus, the subject pill is a dropdown to hop between teams without opening the sidebar.
+- **Adjacency hops:** Depth 0 / 1 / 2. Team labels: “team’s contexts”, “+ neighbors”, “+2 hops”. Context labels: “just this”, “+1 hop”, “+2 hops”. Neighborhood expands across relationships from the seed set.
+- **Visual treatment:** Out-of-focus contexts and edges fade (shared dim opacity); edges stay full strength only when both endpoints are in the neighborhood. Groups and scaffolding remain for orientation.
+- **Exit:** Focus bar “Exit focus”, re-click the team crosshair, or `Esc` when the team switcher is closed.
 
 ### View Modes
 Synchronized views of the same system model:
@@ -134,9 +144,9 @@ Floating labels that render above nodes at the React Flow viewport level:
 | Area | Purpose | Notes |
 |-------|----------|-------|
 | **Top Bar** | View toggle, project switcher, flow stage editor, temporal controls | Light background, minimal icons |
-| **Left Sidebar** | Repos and Teams (tabbed, Teams first) | Always reachable (renders even on an empty project). Each tab: pinned filter header (name search + filter chips) and pinned add control, with only the card list scrolling between. Uniform full-width cards, in-place add, delete, and click-to-select an inspector. Collapses to a floating control naming both tabs. Repos show CodeCohesion API stats when available; both support drag-to-assign onto contexts. |
-| **Center Canvas** | Main map visualization | Infinite plane, pan/zoom enabled |
-| **Right Sidebar (Inspector)** | Entity details | Edit context/relationship/group/actor/user need properties |
+| **Left Sidebar** | Teams and Repos (tabbed, Teams first) | Always reachable (renders even on an empty project). Each tab: pinned filter header (name search + filter chips) and pinned add control, with only the card list scrolling between. Uniform full-width cards; click selects and opens the matching inspector; delete on the card. Team cards add a focus crosshair (hidden when the team owns no contexts). Collapses to a floating control naming both tabs. Repos show CodeCohesion API stats when available; both support drag-to-assign onto contexts. |
+| **Center Canvas** | Main map visualization | Infinite plane, pan/zoom enabled. Hosts the Focus bar while a focus is active. |
+| **Right Sidebar (Inspector)** | Entity details | Opens for the current selection: context, relationship, group, actor, user need, connection, flow stage, team, or repo. 320px column; closes when selection clears. |
 | **Background Grid** | View-specific axes | Subtle gridlines + axis labels. Changes based on current view. |
 | **Timeline Slider** | Temporal evolution controls | Bottom of canvas when temporal mode enabled. Keyframe scrubbing + playback. |
 
@@ -157,14 +167,17 @@ Floating labels that render above nodes at the React Flow viewport level:
 
 | Component | Responsibility |
 |------------|----------------|
-| **CanvasArea.tsx** | Render nodes (contexts/actors/user needs), relationships, and groups via React Flow |
-| **InspectorPanel.tsx** | Display and edit metadata for selected entity (context/relationship/group/actor/user need) |
+| **CanvasArea.tsx** | Render nodes (contexts/actors/user needs), relationships, and groups via React Flow; apply focus dimming to out-of-neighborhood elements |
+| **InspectorPanel.tsx** | Route selection to the matching inspector (context, relationship, group, actor, user need, connection, stage, team, repo) |
+| **ContextInspector.tsx** | Edit a selected context via sectioned pill UI: identity/purpose, strategic profile (readout in Distillation/Strategic), team & ownership, codebase (repos, code size, boundary, concerns), business model role, notes & issues, relationships; delete |
+| **TeamInspector.tsx** | Edit a selected team: name, topology type pills, Jira board, assigned contexts list, delete |
 | **RepoSidebar.tsx** | List, filter (by status), add, select, delete, and drag-assign repositories. Click a card to open the Repo inspector. Show CodeCohesion API stats. |
 | **RepoInspector.tsx** | Edit a selected repo: name, remote URL, assigned context, owning teams (chips), delete |
 | **SidebarFilterChips.tsx** | Shared filter-chip row for the Teams (topology) and Repos (status) panels |
+| **FocusBar.tsx** | Presentational focus overlay: subject pill (team switcher when applicable), adjacency hops, visible count, exit |
 | **TopBar.tsx** | Global controls: view toggle, project switcher, flow stage editor, temporal mode toggle |
 | **TimelineSlider.tsx** | Keyframe management, scrubbing, and playback controls |
-| **App.tsx** | Layout composition, responsive sizing, and entity selection routing to Inspector |
+| **App.tsx** | Layout composition, responsive sizing, entity selection routing to Inspector, and focus state wiring |
 | **ProjectListPage.tsx** | Landing page with project list, creation, and example loading |
 | **TeamSidebar.tsx** | List, filter (by topology), add, select, delete, focus, and drag-assign teams (left sidebar is tabbed, Teams then Repos) |
 
@@ -249,7 +262,7 @@ Accessible via the gear icon in TopBar. Three categories:
 
 ## Future UX Enhancements
 
-- **Filtering and highlighting:** Filter canvas by team, ownership, or relationship type.
+- **Broader filtering:** Filter or highlight by ownership, relationship type, or other attributes beyond the current team/context focus lens.
 - **Alignment guides:** Visual guides and snapping for precise node positioning.
 - **Auto-layout options:** Automatic graph layout algorithms for large maps.
 - **Context-level comments:** Inline annotations and discussion threads.
